@@ -1,0 +1,27 @@
+{
+  "name": "bpmn-moddle-auto-layout",
+  "version": "1.0.0",
+  "description": "layouting bpmn-processes without di",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bpmn-io/bpmn-js-auto-layout.git"
+  },
+  "keywords": [
+    "bpmn",
+    "layout"
+  ],
+  "author": "hoferch91",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bpmn-io/bpmn-js-auto-layout/issues"
+  },
+  "homepage": "https://github.com/bpmn-io/bpmn-js-auto-layout#readme",
+  "dependencies": {
+    "bpmn-moddle": "^0.12.2",
+    "lodash": "^3.0.1"
+  }
+}

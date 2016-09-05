@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="0.7.0-dev">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>SequenceFlow_1lzns80</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1vfjmpe">
+      <bpmn:incoming>SequenceFlow_1lzns80</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_03rpksl</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="SequenceFlow_1lzns80" sourceRef="StartEvent_1" targetRef="Task_1vfjmpe" />
+    <bpmn:sequenceFlow id="SequenceFlow_03rpksl" sourceRef="Task_1vfjmpe" targetRef="EndEvent_02yunus" />
+    <bpmn:endEvent id="EndEvent_02yunus">
+      <bpmn:incoming>SequenceFlow_03rpksl</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+</bpmn:definitions>
