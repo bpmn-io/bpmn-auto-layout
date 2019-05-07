@@ -1,3 +1,5 @@
+> :warning: __This project isn't maintained officially anymore.__ You are still welcome to contribute, e.g. by reporting bugs, fixing issues or create enhancements.
+
 # bpmn-moddle-auto-layout
 
 
