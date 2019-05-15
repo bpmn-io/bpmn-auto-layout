@@ -1,7 +1,7 @@
-> :warning: __This project isn't maintained officially anymore.__ You are still welcome to contribute, e.g. by reporting bugs, fixing issues or create enhancements.
+> :warning: __This project is not officially maintained.__ You are still welcome to contribute, e.g. by fixing issues or creating enhancements.
+
 
 # bpmn-moddle-auto-layout
-
 
 Get a layouted diagram of a bpmn-process without graphical representation.
 
