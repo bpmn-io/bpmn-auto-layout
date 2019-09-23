@@ -8,7 +8,7 @@ __bpmn-moddle-auto-layout__  is built on top of [bpmn-moddle](https://github.com
 
 ## Usage
 
-__Preconditions:__ The diagram has to have __exactly one single startevent__. Up to now, elements with children are not supported.
+__Preconditions:__ The diagram has to have __exactly one single startevent__.
 
 ```javascript
 var AutoLayout = require('./index');
@@ -23,7 +23,14 @@ var xmlWithoutDi = '<?xml version="1.0" encoding="UTF-8"?>' +
 
 var autoLayout = new AutoLayout();
 
-autoLayout.layoutProcess(xmlWithoutDi);
+autoLayout.layoutProcess(xmlWithoutDi, function (error, bpmnXml) {
+  if (error) {
+    console.error(error)
+    return
+  }
+  // entire bpmn process and diagram contained in bpmnXml 
+});
+
 ```
 
 
