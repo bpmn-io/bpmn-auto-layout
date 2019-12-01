@@ -1,4 +1,4 @@
-var AutoLayout = require('./index');
+var AutoLayout = require('./index')
 
 var xmlWithoutDi = `
 <?xml version="1.0" encoding="UTF-8"?>
@@ -56,9 +56,7 @@ var xmlWithoutDi = `
     </bpmn:subProcess>
   </bpmn:process>
 </bpmn:definitions>
-`;
-
-var autoLayout = new AutoLayout();
+var autoLayout = new AutoLayout()
 const fs = require('fs')
 
 autoLayout.layoutProcess(xmlWithoutDi, function (error, bpmnXml) {
@@ -70,10 +68,9 @@ autoLayout.layoutProcess(xmlWithoutDi, function (error, bpmnXml) {
   console.log(bpmnXml)
 
   // ... or write to file
-  fs.writeFile(`./example.bpmn`, bpmnXml, function (err, done) {
+  fs.writeFile('./example.bpmn', bpmnXml, function (err, done) {
     if (err) {
       console.error(err)
-      return
     }
   })
-});
+})
