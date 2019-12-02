@@ -23,8 +23,8 @@
   },
   "homepage": "https://github.com/bpmn-io/bpmn-auto-layout#readme",
   "dependencies": {
-    "bpmn-moddle": "^0.12.2",
-    "lodash": "^3.0.1"
+    "bpmn-moddle": "^6.0.0",
+    "min-dash": "^3.5.2"
   },
   "devDependencies": {
     "eslint": "^6.7.2",
