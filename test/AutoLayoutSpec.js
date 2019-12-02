@@ -58,11 +58,6 @@ describe('bpmn-auto-layout', function() {
     });
 
 
-    it.skip('collaboration and message flows', async function() {
-      await test('collaboration-message-flows.bpmn');
-    });
-
-
     it('parallel flows', function() {
 
     });
@@ -78,18 +73,18 @@ describe('bpmn-auto-layout', function() {
     });
 
 
-    it('collaboration diagram', function() {
-
+    it.skip('collaboration and message flows', async function() {
+      await test('collaboration-message-flows.bpmn');
     });
 
 
-    it('boundary events', function() {
-
+    it('boundary events', async function() {
+      await test('boundary-events.bpmn');
     });
 
 
-    it('event-based sub-process', function() {
-
+    it('event sub-process', async function() {
+      await test('event-sub-process.bpmn');
     });
 
   });
