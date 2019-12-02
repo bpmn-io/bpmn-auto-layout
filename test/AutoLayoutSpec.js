@@ -4,12 +4,41 @@ const autoLayout = new AutoLayout();
 
 const fs = require('fs').promises;
 
+async function cleanDI(diagramXML) {
+
+  const BpmnModdle = require('bpmn-moddle');
+
+  const moddle = new BpmnModdle();
+
+  return new Promise(function(resolve, reject) {
+
+    moddle.fromXML(diagramXML, function(err, definitions) {
+
+      if (err) {
+        return reject(err);
+      }
+
+      definitions.diagrams = [];
+
+      moddle.toXML(definitions, function(err, xml) {
+
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(xml);
+      });
+    });
+  });
+}
 
 async function test(diagramName) {
 
   const diagramXML = await fs.readFile(__dirname + '/fixtures/' + diagramName, 'utf8');
 
-  const layoutedDiagramXML = await autoLayout.layoutProcess(diagramXML);
+  const cleanedXML = await cleanDI(diagramXML);
+
+  const layoutedDiagramXML = await autoLayout.layoutProcess(cleanedXML);
 
   await fs.mkdir(__dirname + '/generated', { recursive: true });
   await fs.writeFile(__dirname + '/generated/' + diagramName, layoutedDiagramXML);
@@ -40,7 +69,7 @@ describe('bpmn-auto-layout', function() {
 
 
     it('multiple start events', async function() {
-      await test('startEvent.bpmn');
+      await test('multiple-start-events.bpmn');
     });
 
 
