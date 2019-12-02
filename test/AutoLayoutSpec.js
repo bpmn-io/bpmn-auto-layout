@@ -1,22 +1,36 @@
-var AutoLayout = require('../');
+const AutoLayout = require('../');
 
-var autoLayout = new AutoLayout();
+const autoLayout = new AutoLayout();
 
-var fs = require('fs').promises;
+const fs = require('fs').promises;
 
+
+async function test(diagramName) {
+
+  const diagramXML = await fs.readFile(__dirname + '/fixtures/' + diagramName, 'utf8');
+
+  const layoutedDiagramXML = await autoLayout.layoutProcess(diagramXML);
+
+  await fs.mkdir(__dirname + '/generated', { recursive: true });
+  await fs.writeFile(__dirname + '/generated/' + diagramName, layoutedDiagramXML);
+}
 
 describe('bpmn-auto-layout', function() {
 
   describe('should layout', function() {
 
     it('basic', async function() {
+      await test('diagram_1.bpmn');
+    });
 
-      const diagramXML = await fs.readFile(__dirname + '/fixtures/diagram_2.bpmn', 'utf8');
 
-      const layoutedDiagramXML = await autoLayout.layoutProcess(diagramXML);
+    it('basic (2)', async function() {
+      await test('diagram_2.bpmn');
+    });
 
-      await fs.mkdir(__dirname + '/generated', { recursive: true });
-      await fs.writeFile(__dirname + '/generated/diagram_2.bpmn', layoutedDiagramXML);
+
+    it.skip('collaboration and message flows', async function() {
+      await test('collaboration-message-flows.bpmn');
     });
 
 
@@ -25,8 +39,8 @@ describe('bpmn-auto-layout', function() {
     });
 
 
-    it('multiple start events', function() {
-
+    it('multiple start events', async function() {
+      await test('startEvent.bpmn');
     });
 
 
@@ -49,6 +63,91 @@ describe('bpmn-auto-layout', function() {
 
     });
 
+  });
+
+
+  after(async () => {
+
+    const generatedFiles = await fs.readdir(__dirname + '/generated');
+
+    const generatedDiagrams = generatedFiles.filter(f => f.endsWith('.bpmn'));
+
+    const diagramContents = await Promise.all(
+      generatedDiagrams.map(diagram => fs.readFile(__dirname + '/generated/' + diagram, 'utf8'))
+    );
+
+    const generated = diagramContents.map((contents, idx) => {
+
+      return {
+        diagram: generatedDiagrams[idx],
+        contents
+      };
+    });
+
+    const config = JSON.stringify(generated);
+
+    const html = `
+<html>
+  <head>
+    <title>bpmn-auto-layouter - visual tests</title>
+    <style>
+      .title {
+        font-family: monospace;
+        margin-bottom: 10px;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      .container {
+        height: 400px;
+        width: 100%;
+        position: relative;
+        border: solid 1px #CCC;
+      }
+
+      .parent {
+        margin-bottom: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="https://unpkg.com/bpmn-js/dist/bpmn-viewer.production.min.js"></script>
+    <script>
+      const config = ${config};
+
+      for (const { diagram, contents } of config) {
+
+        const parent = document.createElement('div');
+        parent.className = 'parent';
+
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = 'test/generated/' + diagram;
+
+        const container = document.createElement('div');
+        container.className = 'container';
+
+        parent.appendChild(title);
+        parent.appendChild(container);
+
+        document.body.appendChild(parent);
+
+        const viewer = new BpmnJS({ container });
+
+        viewer.importXML(contents, function(err) {
+          if (err) {
+            console.log('ERROR: %s failed to import', diagram, err);
+          }
+
+          viewer.get('canvas').zoom('fit-viewport');
+        });
+      }
+    </script>
+  </body>
+</html>`;
+
+
+    await fs.writeFile(__dirname + '/generated/test.html', html, 'utf8');
   });
 
 });
