@@ -31,6 +31,16 @@ var autoLayout = new AutoLayout();
 *   [Issues](https://github.com/bpmn-io/bpmn-auto-layout/issues)
 
 
+## Building
+
+```
+npm install
+npm run all
+```
+
+As part of the test run, visual test cases are generated to `test/generated/test.html`.
+
+
 ## License
 
-Use under the terms of the [MIT license](http://opensource.org/licenses/MIT).
+MIT
