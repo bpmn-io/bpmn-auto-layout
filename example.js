@@ -1,4 +1,4 @@
-var AutoLayout = require('./index');
+var AutoLayout = require('bpmn-auto-layout');
 
 var xmlWithoutDi = `
 <?xml version="1.0" encoding="UTF-8"?>

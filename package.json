@@ -1,5 +1,5 @@
 {
-  "name": "bpmn-moddle-auto-layout",
+  "name": "bpmn-auto-layout",
   "version": "1.0.0",
   "description": "Layout BPMN diagrams, generating missing DI information",
   "main": "index.js",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bpmn-io/bpmn-js-auto-layout.git"
+    "url": "git+https://github.com/bpmn-io/bpmn-auto-layout.git"
   },
   "keywords": [
     "bpmn",
@@ -19,9 +19,9 @@
   "author": "hoferch91",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/bpmn-io/bpmn-js-auto-layout/issues"
+    "url": "https://github.com/bpmn-io/bpmn-auto-layout/issues"
   },
-  "homepage": "https://github.com/bpmn-io/bpmn-js-auto-layout#readme",
+  "homepage": "https://github.com/bpmn-io/bpmn-auto-layout#readme",
   "dependencies": {
     "bpmn-moddle": "^0.12.2",
     "lodash": "^3.0.1"
