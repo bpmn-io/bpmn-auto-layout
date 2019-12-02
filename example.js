@@ -59,21 +59,22 @@ var xmlWithoutDi = `
 `;
 
 var autoLayout = new AutoLayout();
-const fs = require('fs')
+const fs = require('fs');
 
-autoLayout.layoutProcess(xmlWithoutDi, function (error, bpmnXml) {
+autoLayout.layoutProcess(xmlWithoutDi, function(error, bpmnXml) {
   if (error) {
-    console.error(error)
-    return
+    console.error(error);
+    return;
   }
+
   // display bpmnXml to console
-  console.log(bpmnXml)
+  console.log(bpmnXml);
 
   // ... or write to file
-  fs.writeFile(`./example.bpmn`, bpmnXml, function (err, done) {
+  fs.writeFile('./example.bpmn', bpmnXml, function(err, done) {
     if (err) {
-      console.error(err)
-      return
+      console.error(err);
+      return;
     }
-  })
+  });
 });
