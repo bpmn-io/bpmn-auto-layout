@@ -175,8 +175,7 @@ describe('bpmn-auto-layout', function() {
   </body>
 </html>`;
 
-
-    await fs.writeFile(__dirname + '/generated/test.html', html, 'utf8');
+    await fs.writeFile(__dirname + '/generated/generated.html', html, 'utf8');
   });
 
 });
