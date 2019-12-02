@@ -48,13 +48,13 @@ describe('bpmn-auto-layout', function() {
 
   describe('should layout', function() {
 
-    it('basic', async function() {
-      await test('diagram_1.bpmn');
+    it.skip('simple', async function() {
+      await test('simple.bpmn');
     });
 
 
-    it('basic (2)', async function() {
-      await test('diagram_2.bpmn');
+    it('process-diagram', async function() {
+      await test('process-diagram.bpmn');
     });
 
 
@@ -101,15 +101,20 @@ describe('bpmn-auto-layout', function() {
 
     const generatedDiagrams = generatedFiles.filter(f => f.endsWith('.bpmn'));
 
-    const diagramContents = await Promise.all(
+    const originalContents = await Promise.all(
+      generatedDiagrams.map(diagram => fs.readFile(__dirname + '/fixtures/' + diagram, 'utf8'))
+    );
+
+    const generatedContents = await Promise.all(
       generatedDiagrams.map(diagram => fs.readFile(__dirname + '/generated/' + diagram, 'utf8'))
     );
 
-    const generated = diagramContents.map((contents, idx) => {
+    const generated = generatedContents.map((contents, idx) => {
 
       return {
         diagram: generatedDiagrams[idx],
-        contents
+        generatedContents: generatedContents[idx],
+        originalContents: originalContents[idx]
       };
     });
 
@@ -129,9 +134,14 @@ describe('bpmn-auto-layout', function() {
 
       .container {
         height: 400px;
-        width: 100%;
+        width: 48%;
+        display: inline-block;
         position: relative;
         border: solid 1px #CCC;
+      }
+
+      .container + .container {
+        margin-left: 5px;
       }
 
       .parent {
@@ -144,7 +154,7 @@ describe('bpmn-auto-layout', function() {
     <script>
       const config = ${config};
 
-      for (const { diagram, contents } of config) {
+      for (const { diagram, generatedContents, originalContents } of config) {
 
         const parent = document.createElement('div');
         parent.className = 'parent';
@@ -153,29 +163,53 @@ describe('bpmn-auto-layout', function() {
         title.className = 'title';
         title.textContent = 'test/generated/' + diagram;
 
-        const container = document.createElement('div');
-        container.className = 'container';
+        const containerParent = document.createElement('div');
+        containerParent.className = 'container-parent';
+
+        const containerBefore = document.createElement('div');
+        containerBefore.className = 'container before';
+
+        const containerAfter = document.createElement('div');
+        containerAfter.className = 'container after';
 
         parent.appendChild(title);
-        parent.appendChild(container);
+        parent.appendChild(containerParent);
+
+        containerParent.appendChild(containerBefore);
+        containerParent.appendChild(containerAfter);
 
         document.body.appendChild(parent);
 
-        const viewer = new BpmnJS({ container });
+        const originalViewer = new BpmnJS({
+          container: containerBefore
+        });
 
-        viewer.importXML(contents, function(err) {
+        originalViewer.importXML(originalContents, function(err) {
           if (err) {
             console.log('ERROR: %s failed to import', diagram, err);
           }
 
-          viewer.get('canvas').zoom('fit-viewport');
+          originalViewer.get('canvas').zoom('fit-viewport');
+        });
+
+
+        const generatedViewer = new BpmnJS({
+          container: containerAfter
+        });
+
+        generatedViewer.importXML(generatedContents, function(err) {
+          if (err) {
+            console.log('ERROR: %s failed to import', diagram, err);
+          }
+
+          generatedViewer.get('canvas').zoom('fit-viewport');
         });
       }
     </script>
   </body>
 </html>`;
 
-    await fs.writeFile(__dirname + '/generated/generated.html', html, 'utf8');
+    await fs.writeFile(__dirname + '/generated/test.html', html, 'utf8');
   });
 
 });
