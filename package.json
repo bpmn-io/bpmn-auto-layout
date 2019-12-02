@@ -1,7 +1,7 @@
 {
   "name": "bpmn-moddle-auto-layout",
   "version": "1.0.0",
-  "description": "layouting bpmn-processes without di",
+  "description": "Layout BPMN diagrams, generating missing DI information",
   "main": "index.js",
   "scripts": {
     "all": "run-s lint",
