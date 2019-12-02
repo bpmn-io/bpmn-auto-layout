@@ -1,6 +1,6 @@
 var AutoLayout = require('bpmn-auto-layout');
 
-var xmlWithoutDi = `
+var diagramXML = `
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" id="Definitions_13fbzpq" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.16.2">
   <bpmn:process id="Process_1" isExecutable="true">
@@ -59,22 +59,17 @@ var xmlWithoutDi = `
 `;
 
 var autoLayout = new AutoLayout();
-const fs = require('fs');
 
-autoLayout.layoutProcess(xmlWithoutDi, function(error, bpmnXml) {
-  if (error) {
-    console.error(error);
-    return;
-  }
+var fs = require('fs').promises;
 
-  // display bpmnXml to console
-  console.log(bpmnXml);
 
-  // ... or write to file
-  fs.writeFile('./example.bpmn', bpmnXml, function(err, done) {
-    if (err) {
-      console.error(err);
-      return;
-    }
-  });
-});
+(async () => {
+
+  var layoutedDiagramXML = autoLayout.layoutProcess(diagramXML);
+
+  // print diagram XML
+  console.log(layoutedDiagramXML);
+
+  // or write to file
+  await fs.writeFile('./layouted.bpmn', layoutedDiagramXML);
+})();

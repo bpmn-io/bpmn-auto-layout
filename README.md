@@ -13,21 +13,16 @@ __Preconditions:__ The diagram has to have __exactly one single startevent__.
 ```javascript
 var AutoLayout = require('bpmn-auto-layout');
 
-var xmlWithoutDi = `
-<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions>
-  <!-- no bpmndi section -->
-</bpmn:definitions>`;
+var diagramXML = '<bpmn:defintions ...></bpmn:defintions>';
 
 var autoLayout = new AutoLayout();
 
-autoLayout.layoutProcess(xmlWithoutDi, function(error, bpmnXml) {
-  if (error) {
-    return console.error(error);
-  }
+(async () => {
+  var layoutedDiagramXML = await autoLayout.layoutProcess(diagramXML);
 
-  // entire bpmn process and diagram contained in bpmnXml
-});
+  console.log(layoutedDiagramXML);
+})();
+
 ```
 
 
