@@ -2,7 +2,7 @@
 
 import * as fs from 'fs';
 
-import * as AutoLayout from './lib/AutoLayout';
+import * as AutoLayout from '../lib/AutoLayout';
 
 var diagramXML = fs.readFileSync(process.stdin.fd, 'utf-8');
 

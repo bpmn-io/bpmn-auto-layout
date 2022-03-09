@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var fs = require("fs");
-var AutoLayout = require("./lib/AutoLayout");
+var AutoLayout = require("../lib/AutoLayout");
 var diagramXML = fs.readFileSync(process.stdin.fd, 'utf-8');
 var autoLayout = new AutoLayout();
 function layoutedDiagramXML(inXML) {

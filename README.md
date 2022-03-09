@@ -9,7 +9,7 @@ Get a layouted diagram of a bpmn-process without graphical representation.
 ## Usage (command line)
 
 ```sh
-node bpmn-auto-layout.js < input.bpmn > output.bpmn
+node bin/bpmn-auto-layout.js < input.bpmn > output.bpmn
 ```
 
 ## Usage (as a library)
