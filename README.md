@@ -6,7 +6,13 @@
 Get a layouted diagram of a bpmn-process without graphical representation.
 
 
-## Usage
+## Usage (command line)
+
+```sh
+node bpmn-auto-layout.js < input.bpmn > output.bpmn
+```
+
+## Usage (as a library)
 
 __Preconditions:__ The diagram has to have __exactly one single startevent__.
 

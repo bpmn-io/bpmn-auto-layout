@@ -27,6 +27,7 @@
     "min-dash": "^3.5.2"
   },
   "devDependencies": {
+    "@types/node": "^17.0.21",
     "eslint": "^6.7.2",
     "eslint-plugin-bpmn-io": "^0.10.0",
     "mocha": "^6.2.2",
