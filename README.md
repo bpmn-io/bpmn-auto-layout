@@ -8,7 +8,9 @@ Get a layouted diagram of a bpmn-process without graphical representation.
 
 ## Usage
 
-__Preconditions:__ The diagram has to have __exactly one single startevent__.
+__Preconditions:__ This library needs [Node.js](https://nodejs.org/en/) to run.
+
+The diagram has to have __exactly one single startevent__.
 
 ```javascript
 var AutoLayout = require('bpmn-auto-layout');
