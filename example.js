@@ -65,7 +65,7 @@ var fs = require('fs').promises;
 
 (async () => {
 
-  var layoutedDiagramXML = autoLayout.layoutProcess(diagramXML);
+  var layoutedDiagramXML = await autoLayout.layoutProcess(diagramXML);
 
   // print diagram XML
   console.log(layoutedDiagramXML);
