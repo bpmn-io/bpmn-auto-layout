@@ -26,7 +26,14 @@ var autoLayout = new AutoLayout();
 })();
 
 ```
+You can change the default spacing between elements by passing a custom `config` option when itnitializint `AutoLayout`
 
+```javascript
+var autoLayout = new AutoLayout({
+    iLevelSeparation: 40,
+    iSiblingSeparation: 40,
+});
+```
 
 ## Resources
 
