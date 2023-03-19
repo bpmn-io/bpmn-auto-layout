@@ -58,6 +58,11 @@ describe('bpmn-auto-layout', function() {
     });
 
 
+    it('override-separation', async function() {
+      await test('override-separation.bpmn');
+    });
+
+
     it('parallel flows', function() {
 
     });
