@@ -1,6 +1,6 @@
 {
   "name": "bpmn-auto-layout",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Layout BPMN diagrams, generating missing DI information",
   "main": "index.js",
   "scripts": {
