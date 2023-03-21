@@ -1,5 +1,7 @@
 const AutoLayout = require('../');
 
+const autoLayout = new AutoLayout();
+
 const fs = require('fs').promises;
 
 async function cleanDI(diagramXML) {
@@ -30,13 +32,11 @@ async function cleanDI(diagramXML) {
   });
 }
 
-async function test(diagramName, config) {
+async function test(diagramName) {
 
   const diagramXML = await fs.readFile(__dirname + '/fixtures/' + diagramName, 'utf8');
 
   const cleanedXML = await cleanDI(diagramXML);
-
-  const autoLayout = new AutoLayout(config);
 
   const layoutedDiagramXML = await autoLayout.layoutProcess(cleanedXML);
 
@@ -55,13 +55,6 @@ describe('bpmn-auto-layout', function() {
 
     it('process-diagram', async function() {
       await test('process-diagram.bpmn');
-    });
-
-
-    it('override-separation', async function() {
-      await test('override-separation.bpmn', {
-        iLevelSeparation: 40,
-      });
     });
 
 
