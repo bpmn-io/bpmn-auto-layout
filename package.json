@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Layout BPMN diagrams, generating missing DI information",
   "main": "index.js",
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "all": "run-s lint test",
     "lint": "eslint .",
