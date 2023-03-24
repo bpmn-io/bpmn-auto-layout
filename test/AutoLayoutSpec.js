@@ -10,26 +10,16 @@ async function cleanDI(diagramXML) {
 
   const moddle = new BpmnModdle();
 
-  return new Promise(function(resolve, reject) {
+  try {
+    const { rootElement: definitions } = await moddle.fromXML(diagramXML);
+    definitions.diagrams = [];
 
-    moddle.fromXML(diagramXML, function(err, definitions) {
+    const { xml } = await moddle.toXML(definitions);
 
-      if (err) {
-        return reject(err);
-      }
-
-      definitions.diagrams = [];
-
-      moddle.toXML(definitions, function(err, xml) {
-
-        if (err) {
-          return reject(err);
-        }
-
-        return resolve(xml);
-      });
-    });
-  });
+    return Promise.resolve(xml);
+  } catch (error) {
+    return Promise.reject(error);
+  }
 }
 
 async function test(diagramName) {
@@ -55,11 +45,6 @@ describe('bpmn-auto-layout', function() {
 
     it('process-diagram', async function() {
       await test('process-diagram.bpmn');
-    });
-
-
-    it('parallel flows', function() {
-
     });
 
 
