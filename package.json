@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/bpmn-io/bpmn-auto-layout#readme",
   "dependencies": {
-    "bpmn-moddle": "^6.0.0",
+    "bpmn-moddle": "^8.0.1",
     "min-dash": "^3.5.2"
   },
   "devDependencies": {
