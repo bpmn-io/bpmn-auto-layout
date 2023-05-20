@@ -1,4 +1,5 @@
-var AutoLayout = require('bpmn-auto-layout');
+import AutoLayout from 'bpmn-auto-layout';
+import { promises as fs } from 'fs';
 
 var diagramXML = `
 <?xml version="1.0" encoding="UTF-8"?>
@@ -59,9 +60,6 @@ var diagramXML = `
 `;
 
 var autoLayout = new AutoLayout();
-
-var fs = require('fs').promises;
-
 
 (async () => {
 

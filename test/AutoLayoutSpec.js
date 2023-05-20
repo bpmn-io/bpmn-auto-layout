@@ -1,13 +1,18 @@
-const AutoLayout = require('../');
+import BpmnModdle from 'bpmn-moddle';
+import AutoLayout from '../index.js';
+
+import { promises as fs } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const autoLayout = new AutoLayout();
 
-const fs = require('fs').promises;
-
 async function cleanDI(diagramXML) {
-
-  const BpmnModdle = require('bpmn-moddle');
-
   const moddle = new BpmnModdle();
 
   try {

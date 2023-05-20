@@ -1,1 +1,1 @@
-module.exports = require('./lib/AutoLayout');
+export { default } from './lib/AutoLayout.js';
