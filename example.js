@@ -1,5 +1,5 @@
 import AutoLayout from 'bpmn-auto-layout';
-import { promises as fs } from 'fs';
+import fs from 'fs/promises';
 
 var diagramXML = `
 <?xml version="1.0" encoding="UTF-8"?>
