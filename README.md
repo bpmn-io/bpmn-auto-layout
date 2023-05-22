@@ -3,6 +3,8 @@
 
 # bpmn-auto-layout
 
+[![CI](https://github.com/bpmn-io/bpmn-auto-layout/actions/workflows/CI.yml/badge.svg)](https://github.com/bpmn-io/bpmn-auto-layout/actions/workflows/CI.yml)
+
 Get a layouted diagram of a bpmn-process without graphical representation.
 
 
