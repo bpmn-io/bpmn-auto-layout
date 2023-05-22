@@ -9,7 +9,9 @@ _**Note:** Yet to be released changes appear here._
 ## 0.2.0
 
 * `FIX`: correctly import in modern JS environments ([#30](https://github.com/bpmn-io/bpmn-auto-layout/pull/30), [#22](https://github.com/bpmn-io/bpmn-auto-layout/issues/22), [#18](https://github.com/bpmn-io/bpmn-auto-layout/issues/18))
+* `FIX`: some DI generation fixes
 * `CHORE`: Migrate to ES module ([#33](https://github.com/bpmn-io/bpmn-auto-layout/pull/33))
+* `DEPS`: use recent `bpmn-moddle` version
 
 ### Breaking Changes
 
