@@ -6,6 +6,8 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+* `DEPS`: Update `actions/setup-node` and `actions/checkout` to v3
+
 ## 0.2.0
 
 * `FIX`: correctly import in modern JS environments ([#30](https://github.com/bpmn-io/bpmn-auto-layout/pull/30), [#22](https://github.com/bpmn-io/bpmn-auto-layout/issues/22), [#18](https://github.com/bpmn-io/bpmn-auto-layout/issues/18))
