@@ -6,6 +6,7 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+* `DEPS`: Updates `min-dash` package to v4.1.1
 * `DEPS`: Update `actions/setup-node` and `actions/checkout` to v3
 
 ## 0.2.0
