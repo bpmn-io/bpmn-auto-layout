@@ -1,97 +1,50 @@
-import BpmnModdle from 'bpmn-moddle';
-import AutoLayout from '../index.js';
-
-import { promises as fs } from 'fs';
+import fs, { promises as fsPromises } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-
+import { layoutProcess } from '../lib/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const outputDirectory = __dirname + '/generated/';
 
-const autoLayout = new AutoLayout();
+describe('Layout', function() {
 
-async function cleanDI(diagramXML) {
-  const moddle = new BpmnModdle();
+  const filenames = fs.readdirSync('test/fixtures');
 
-  try {
-    const { rootElement: definitions } = await moddle.fromXML(diagramXML);
-    definitions.diagrams = [];
+  before(() => {
 
-    const { xml } = await moddle.toXML(definitions);
+    // Clean result directory
+    fs.rmSync(outputDirectory, { recursive: true, force: true });
+    fs.mkdirSync(outputDirectory, { recursive: true });
+  });
 
-    return Promise.resolve(xml);
-  } catch (error) {
-    return Promise.reject(error);
-  }
-}
+  filenames.forEach(filename => {
 
-async function test(diagramName) {
+    const iit = getIt(filename);
 
-  const diagramXML = await fs.readFile(__dirname + '/fixtures/' + diagramName, 'utf8');
+    iit('should layout ' + filename, async function() {
+      const xml = fs.readFileSync('test/fixtures/' + filename, 'utf8');
 
-  const cleanedXML = await cleanDI(diagramXML);
+      const result = await layoutProcess(xml);
 
-  const layoutedDiagramXML = await autoLayout.layoutProcess(cleanedXML);
-
-  await fs.mkdir(__dirname + '/generated', { recursive: true });
-  await fs.writeFile(__dirname + '/generated/' + diagramName, layoutedDiagramXML);
-}
-
-describe('bpmn-auto-layout', function() {
-
-  describe('should layout', function() {
-
-    it.skip('simple', async function() {
-      await test('simple.bpmn');
+      fs.writeFileSync(outputDirectory + filename, result, 'utf8');
     });
-
-
-    it('process-diagram', async function() {
-      await test('process-diagram.bpmn');
-    });
-
-
-    it('multiple start events', async function() {
-      await test('multiple-start-events.bpmn');
-    });
-
-
-    it('nested sub-process', async function() {
-      await test('nested-sub-processes.bpmn');
-    });
-
-
-    it.skip('collaboration and message flows', async function() {
-      await test('collaboration-message-flows.bpmn');
-    });
-
-
-    it.skip('boundary events', async function() {
-      await test('boundary-events.bpmn');
-    });
-
-
-    it.skip('event sub-process', async function() {
-      await test('event-sub-process.bpmn');
-    });
-
   });
 
 
   after(async () => {
 
-    const generatedFiles = await fs.readdir(__dirname + '/generated');
+    const generatedFiles = await fsPromises.readdir(outputDirectory);
 
     const generatedDiagrams = generatedFiles.filter(f => f.endsWith('.bpmn'));
 
     const originalContents = await Promise.all(
-      generatedDiagrams.map(diagram => fs.readFile(__dirname + '/fixtures/' + diagram, 'utf8'))
+      generatedDiagrams.map(diagram => fsPromises.readFile(__dirname + '/fixtures/' + diagram, 'utf8'))
     );
 
     const generatedContents = await Promise.all(
-      generatedDiagrams.map(diagram => fs.readFile(__dirname + '/generated/' + diagram, 'utf8'))
+      generatedDiagrams.map(diagram => fsPromises.readFile(outputDirectory + diagram, 'utf8'))
     );
 
     const generated = generatedContents.map((contents, idx) => {
@@ -194,7 +147,19 @@ describe('bpmn-auto-layout', function() {
   </body>
 </html>`;
 
-    await fs.writeFile(__dirname + '/generated/test.html', html, 'utf8');
+    await fsPromises.writeFile(__dirname + '/generated/test.html', html, 'utf8');
   });
 
 });
+
+function getIt(name) {
+  if (name.startsWith('ONLY')) {
+    return it.only;
+  }
+
+  if (name.startsWith('SKIP')) {
+    return it.skip;
+  }
+
+  return it;
+}
