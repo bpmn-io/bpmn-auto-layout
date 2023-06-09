@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" id="variant-explorer-bpmn-graph" targetNamespace="http://bpmn.io/schema/bpmn">
+    <bpmn2:process id="Process">
+        <bpmn2:sequenceFlow 
+            id="task2-exclusiveGateway2" 
+            sourceRef="task2" 
+            targetRef="exclusiveGateway2" 
+        />
+        <bpmn2:sequenceFlow 
+            id="exclusiveGateway1-task1" 
+            sourceRef="exclusiveGateway1" 
+            targetRef="task1" 
+        />
+        <bpmn2:sequenceFlow 
+            id="task9-exclusiveGateway4" 
+            sourceRef="task9" 
+            targetRef="exclusiveGateway4" 
+        />
+        <bpmn2:sequenceFlow 
+            id="exclusiveGateway3-task9" 
+            sourceRef="exclusiveGateway3" 
+            targetRef="task9" 
+        />
+        <bpmn2:sequenceFlow 
+            id="task3-task4" 
+            sourceRef="task3" 
+            targetRef="task4" 
+        />
+        <bpmn2:task id="task3" name="Task3">
+            <bpmn2:incoming>exclusiveGateway2-task3</bpmn2:incoming>
+            <bpmn2:outgoing>task3-task4</bpmn2:outgoing>
+        </bpmn2:task>
+        <bpmn2:task id="task4" name="task4">
+            <bpmn2:incoming>task3-task4</bpmn2:incoming>
+            <bpmn2:outgoing>task4-task5</bpmn2:outgoing>
+        </bpmn2:task>
+        <bpmn2:sequenceFlow 
+            id="task8-exclusiveGateway3" 
+            sourceRef="task8" 
+            targetRef="exclusiveGateway3" 
+        />
+        <bpmn2:task id="task8" name="Task8">
+            <bpmn2:incoming>task7-task8</bpmn2:incoming>
+            <bpmn2:outgoing>task8-exclusiveGateway3</bpmn2:outgoing>
+        </bpmn2:task>
+        <bpmn2:exclusiveGateway id="exclusiveGateway3">
+            <bpmn2:incoming>task8-exclusiveGateway3</bpmn2:incoming>
+            <bpmn2:incoming>exclusiveGateway2-exclusiveGateway3</bpmn2:incoming>
+            <bpmn2:incoming>task5-exclusiveGateway3</bpmn2:incoming>
+            <bpmn2:outgoing>exclusiveGateway3-task9</bpmn2:outgoing>
+        </bpmn2:exclusiveGateway>
+        <bpmn2:exclusiveGateway id="exclusiveGateway4">
+            <bpmn2:incoming>task9-exclusiveGateway4</bpmn2:incoming>
+            <bpmn2:outgoing>exclusiveGateway4-exclusiveGateway1</bpmn2:outgoing>
+            <bpmn2:outgoing>exclusiveGateway4-endEvent</bpmn2:outgoing>
+        </bpmn2:exclusiveGateway>
+        <bpmn2:task id="task9" name="Task9">
+            <bpmn2:incoming>exclusiveGateway3-task9</bpmn2:incoming>
+            <bpmn2:outgoing>task9-exclusiveGateway4</bpmn2:outgoing>
+        </bpmn2:task>
+        <bpmn2:sequenceFlow 
+            id="task1-task2" 
+            sourceRef="task1" 
+            targetRef="task2" 
+        />
+        <bpmn2:exclusiveGateway id="exclusiveGateway1">
+            <bpmn2:incoming>startEvent-exclusiveGateway1</bpmn2:incoming>
+            <bpmn2:incoming>exclusiveGateway4-exclusiveGateway1</bpmn2:incoming>
+            <bpmn2:outgoing>exclusiveGateway1-task1</bpmn2:outgoing>
+        </bpmn2:exclusiveGateway>
+        <bpmn2:task id="task1" name="Task1">
+            <bpmn2:incoming>exclusiveGateway1-task1</bpmn2:incoming>
+            <bpmn2:outgoing>task1-task2</bpmn2:outgoing>
+        </bpmn2:task>
+        <bpmn2:exclusiveGateway id="exclusiveGateway2">
+            <bpmn2:incoming>task2-exclusiveGateway2</bpmn2:incoming>
+            <bpmn2:outgoing>exclusiveGateway2-exclusiveGateway3</bpmn2:outgoing>
+            <bpmn2:outgoing>exclusiveGateway2-task3</bpmn2:outgoing>
+            <bpmn2:outgoing>exclusiveGateway2-task6</bpmn2:outgoing>
+        </bpmn2:exclusiveGateway>
+        <bpmn2:task id="task2" name="Task2">
+            <bpmn2:incoming>task1-task2</bpmn2:incoming>
+            <bpmn2:outgoing>task2-exclusiveGateway2</bpmn2:outgoing>
+        </bpmn2:task>
+        <bpmn2:sequenceFlow 
+            id="exclusiveGateway2-exclusiveGateway3" 
+            sourceRef="exclusiveGateway2" 
+            targetRef="exclusiveGateway3" 
+        />
+        <bpmn2:sequenceFlow 
+            id="startEvent-exclusiveGateway1" 
+            sourceRef="startEvent" 
+            targetRef="exclusiveGateway1" 
+        />
+        <bpmn2:startEvent id="startEvent" name="Start">
+            <bpmn2:outgoing>startEvent-exclusiveGateway1</bpmn2:outgoing>
+        </bpmn2:startEvent>
+        <bpmn2:sequenceFlow 
+            id="exclusiveGateway2-task3" 
+            sourceRef="exclusiveGateway2" 
+            targetRef="task3" 
+        />
+        <bpmn2:sequenceFlow 
+            id="task4-task5" 
+            sourceRef="task4" 
+            targetRef="task5" 
+        />
+        <bpmn2:task id="task5" name="Task5">
+            <bpmn2:incoming>task4-task5</bpmn2:incoming>
+            <bpmn2:outgoing>task5-exclusiveGateway3</bpmn2:outgoing>
+        </bpmn2:task>
+        <bpmn2:sequenceFlow 
+            id="task7-task8" 
+            sourceRef="task7" 
+            targetRef="task8" 
+        />
+        <bpmn2:task id="task7" name="Task7">
+            <bpmn2:incoming>task6-task7</bpmn2:incoming>
+            <bpmn2:outgoing>task7-task8</bpmn2:outgoing>
+        </bpmn2:task>
+        <bpmn2:sequenceFlow 
+            id="exclusiveGateway4-exclusiveGateway1" 
+            sourceRef="exclusiveGateway4" 
+            targetRef="exclusiveGateway1" 
+        />
+        <bpmn2:sequenceFlow 
+            id="task6-task7" 
+            sourceRef="task6" 
+            targetRef="task7" 
+        />
+        <bpmn2:task id="task6" name="Task6">
+            <bpmn2:incoming>exclusiveGateway2-task6</bpmn2:incoming>
+            <bpmn2:outgoing>task6-task7</bpmn2:outgoing>
+        </bpmn2:task>
+        <bpmn2:sequenceFlow 
+            id="exclusiveGateway2-task6" 
+            sourceRef="exclusiveGateway2" 
+            targetRef="task6" 
+        />
+        <bpmn2:sequenceFlow 
+            id="task5-exclusiveGateway3" 
+            sourceRef="task5" 
+            targetRef="exclusiveGateway3" 
+        />
+        <bpmn2:sequenceFlow 
+            id="exclusiveGateway4-endEvent" 
+            sourceRef="exclusiveGateway4" 
+            targetRef="endEvent" 
+        />
+        <bpmn2:endEvent id="endEvent" name="endEvent">
+            <bpmn2:incoming>exclusiveGateway4-endEvent</bpmn2:incoming>
+        </bpmn2:endEvent>
+    </bpmn2:process>
+</bpmn2:definitions>
