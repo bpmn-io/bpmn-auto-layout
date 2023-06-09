@@ -1,3 +1,5 @@
+import resolve from '@rollup/plugin-node-resolve';
+
 import fs from 'fs';
 const pkg = importPkg();
 
@@ -15,7 +17,10 @@ export default {
       file: pkg.exports['.'].require,
     }
   ],
-  external: Object.keys(pkg.dependencies)
+  external: Object.keys(pkg.dependencies),
+  plugins: [
+    resolve()
+  ]
 };
 
 function importPkg() {
