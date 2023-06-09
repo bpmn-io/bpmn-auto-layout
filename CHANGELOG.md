@@ -12,7 +12,7 @@ _**Note:** Yet to be released changes appear here._
 * `DEPS`: Updates `min-dash` package to v4.1.1
 * `DEPS`: Update `actions/setup-node` and `actions/checkout` to v3
 
-**Breaking changes**
+### Breaking changes
 This version is a complete re-write of the library, including a new API. Use `layoutProcess` to layout a BPMN process:
 
 ```javascript
