@@ -9,10 +9,10 @@ _**Note:** Yet to be released changes appear here._
 ## 0.3.0
 
 * `FEAT`: rewrite of the library with ([#36](https://github.com/bpmn-io/bpmn-auto-layout/pull/36), [#32](https://github.com/bpmn-io/bpmn-auto-layout/issues/32))
-* `DEPS`: Updates `min-dash` package to v4.1.1
-* `DEPS`: Update `actions/setup-node` and `actions/checkout` to v3
+* `DEPS`: bump to `min-dash@4.1.1`
 
-**Breaking changes**
+### Breaking changes
+
 This version is a complete re-write of the library, including a new API. Use `layoutProcess` to layout a BPMN process:
 
 ```javascript
