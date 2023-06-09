@@ -15,16 +15,20 @@ This library works in [Node.js](https://nodejs.org/) and in the browser.
 To layout diagrams these must have __exactly one single start event__.
 
 ```javascript
-import AutoLayout from 'bpmn-auto-layout';
+import { layoutProcess } from 'bpmn-auto-layout';
 
 const diagramXML = '<bpmn:defintions ...></bpmn:defintions>';
 
-const autoLayout = new AutoLayout();
-
-const layoutedDiagramXML = await autoLayout.layoutProcess(diagramXML);
+const layoutedDiagramXML = await layoutProcess(diagramXML);
 
 console.log(layoutedDiagramXML);
 ```
+## Unsupported Concepts and elements
+
+The Tool can currently not properly layout diagrams containing any of the following:
+- Pools
+- Data/Message Flows and Objects, Data Stores
+- event sub-processes
 
 
 ## Resources
