@@ -86,6 +86,8 @@ describe('Layout', function() {
         margin-bottom: 30px;
       }
     </style>
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js/dist/assets/diagram-js.css">
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js/dist/assets/bpmn-js.css">
   </head>
   <body>
     <script src="https://unpkg.com/bpmn-js/dist/bpmn-viewer.production.min.js"></script>
