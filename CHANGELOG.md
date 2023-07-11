@@ -6,6 +6,13 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+## 0.4.0
+
+* `FEAT`: improve connection exiting from boundary events ([`7048c86`](https://github.com/bpmn-io/bpmn-auto-layout/commit/7048c8682985409613f854202f727853a13bfe44))
+* `FEAT`: distribute attachers across host width ([`80f3c84`](https://github.com/bpmn-io/bpmn-auto-layout/commit/80f3c84f40b1b2ccf0d757cf70482130112b6c7b))
+* `FIX`: show exclusive gateway marker ([`7c18b0f`](https://github.com/bpmn-io/bpmn-auto-layout/commit/7c18b0f509ce2de9b5c9bda1f1035309d8ffd5cc))
+* `FIX`: correct CommonJS bundle extension ([#39](https://github.com/bpmn-io/bpmn-auto-layout/issues/39))
+
 ## 0.3.0
 
 * `FEAT`: rewrite of the library with ([#36](https://github.com/bpmn-io/bpmn-auto-layout/pull/36), [#32](https://github.com/bpmn-io/bpmn-auto-layout/issues/32))
