@@ -1,0 +1,1205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Web Modeler" exporterVersion="cbbea2d" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.3.0" camunda:diagramRelationId="0c8a978c-6cfe-4b50-b530-abae800b0dbe">
+  <bpmn:collaboration id="ExpenseReimbursement">
+    <bpmn:participant id="Participant_ExpenseReimbursement" name="Expense Reimbursement" processRef="Process_ExpenseReimbursement-15wwtt8" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_ExpenseReimbursement-15wwtt8" name="Expense Reimbursement" isExecutable="true">
+    <bpmn:extensionElements>
+      <zeebe:userTaskForm id="userTaskForm_0jijmee">{
+  "components": [
+    {
+      "text": "# Expense Claim",
+      "type": "text",
+      "layout": {
+        "row": "Row_0b02kr1",
+        "columns": null
+      },
+      "id": "Field_1gbvbm7"
+    },
+    {
+      "text": "### Personal Information\n\nPlease provide your personal information to ensure proper assignment of the expense claim.",
+      "type": "text",
+      "layout": {
+        "row": "Row_1ef2qla",
+        "columns": null
+      },
+      "id": "Field_1sbsc67",
+      "conditional": {
+        "hide": "=isReview"
+      }
+    },
+    {
+      "label": "First name",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_11isqe5",
+        "columns": null
+      },
+      "id": "Field_0zyjfuh",
+      "key": "firstName",
+      "validate": {
+        "required": false
+      }
+    },
+    {
+      "label": "Last name",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_11isqe5",
+        "columns": null
+      },
+      "id": "Field_0m4s208",
+      "key": "lastName",
+      "validate": {
+        "required": false
+      }
+    },
+    {
+      "label": "Email",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0f1wn8t",
+        "columns": null
+      },
+      "id": "Field_02tkefw",
+      "key": "email",
+      "appearance": {
+        "prefixAdorner": "@"
+      },
+      "validate": {
+        "validationType": "email",
+        "required": true
+      }
+    },
+    {
+      "values": [
+        {
+          "label": "IT",
+          "value": "IT"
+        },
+        {
+          "label": "Product",
+          "value": "product"
+        },
+        {
+          "label": "Finance",
+          "value": "finance"
+        },
+        {
+          "label": "Accounting",
+          "value": "accounting"
+        },
+        {
+          "label": "Marketing",
+          "value": "marketing"
+        }
+      ],
+      "label": "Department",
+      "type": "select",
+      "layout": {
+        "row": "Row_0f1wn8t",
+        "columns": null
+      },
+      "id": "Field_07rt8k5",
+      "key": "department",
+      "searchable": true
+    },
+    {
+      "text": "### Supervisor\n\nPlease provide the email of your supervisor to review the expense.",
+      "type": "text",
+      "layout": {
+        "row": "Row_1ybnh5e",
+        "columns": null
+      },
+      "id": "Field_0kq8635"
+    },
+    {
+      "label": "Supervisor email",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0lcbkut",
+        "columns": 8
+      },
+      "id": "Field_05eprbr",
+      "key": "supervisorEmail",
+      "appearance": {
+        "prefixAdorner": "@"
+      },
+      "conditional": {
+        "hide": "=isReview"
+      }
+    },
+    {
+      "text": "## Expense Details",
+      "type": "text",
+      "layout": {
+        "row": "Row_0jzv103",
+        "columns": null
+      },
+      "id": "Field_0rozem8"
+    },
+    {
+      "subtype": "date",
+      "dateLabel": "Expense date",
+      "label": "Date time",
+      "type": "datetime",
+      "layout": {
+        "row": "Row_1orcvpn",
+        "columns": null
+      },
+      "id": "Field_0z4pwh0",
+      "key": "expenseDate",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "values": [
+        {
+          "label": "Custom",
+          "value": "custom"
+        },
+        {
+          "label": "Travel",
+          "value": "travel"
+        }
+      ],
+      "label": "Expense type",
+      "type": "select",
+      "layout": {
+        "row": "Row_1orcvpn",
+        "columns": null
+      },
+      "id": "Field_1eiqop0",
+      "key": "expenseType",
+      "searchable": true
+    },
+    {
+      "subtype": "date",
+      "dateLabel": "Travel start",
+      "label": "Date time",
+      "type": "datetime",
+      "layout": {
+        "row": "Row_010wbhw",
+        "columns": null
+      },
+      "id": "Field_17w0xsu",
+      "key": "travelStart",
+      "conditional": {
+        "hide": "=not(expenseType = \"travel\")"
+},
+      "description": "Enter the start and end date of your travel"
+    },
+    {
+      "subtype": "date",
+      "dateLabel": "Travel end",
+      "label": "Date time",
+      "type": "datetime",
+      "layout": {
+        "row": "Row_010wbhw",
+        "columns": null
+      },
+      "id": "Field_1ttfo0c",
+      "key": "travelEnd",
+      "conditional": {
+        "hide": "=not(expenseType = \"travel\")"
+}
+    },
+    {
+      "text": "⚠️ The end date must be after the start date.",
+      "type": "text",
+      "layout": {
+        "row": "Row_1hua3bm",
+        "columns": null
+      },
+      "id": "Field_15j8ot1",
+      "conditional": {
+        "hide": "=travelEnd = null or not(after(travelStart, travelEnd))"
+      }
+    },
+    {
+      "label": "Travel location",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_00kdr2a",
+        "columns": null
+      },
+      "id": "Field_1xz2kcy",
+      "key": "travelLocation",
+      "appearance": {
+        "prefixAdorner": "📍"
+      },
+      "conditional": {
+        "hide": "=not(expenseType = \"travel\")"
+}
+    },
+    {
+      "label": "Custom expense type",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1tqe6ut",
+        "columns": null
+      },
+      "id": "Field_03ow051",
+      "key": "customExpenseType",
+      "conditional": {
+        "hide": "=not(expenseType = \"custom\")"
+}
+    },
+    {
+      "label": "Expense purpose",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_0ar8roa",
+        "columns": null
+      },
+      "id": "Field_136skvr",
+      "key": "expensePurpose",
+      "validate": {
+        "required": false
+      },
+      "description": "Describe the purpose of your expense. A good description increases the likelihood of quick approval."
+    },
+    {
+      "label": "Expense amount",
+      "type": "number",
+      "layout": {
+        "row": "Row_0jjom6t",
+        "columns": 8
+      },
+      "id": "Field_189ka5c",
+      "key": "expenseAmount",
+      "appearance": {
+        "prefixAdorner": "USD"
+      },
+      "validate": {
+        "required": true
+      },
+      "decimalDigits": 2,
+      "increment": "0.5"
+    }
+  ],
+  "type": "default",
+  "id": "Form_ExpenseClaim",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.2.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.12.0-rc.0"
+  },
+  "schemaVersion": 9
+}</zeebe:userTaskForm>
+      <zeebe:userTaskForm id="userTaskForm_3l1o3dg">{
+  "components": [
+    {
+      "text": "# Expense Claim Review\n\nPlease review the following expense reimbursement claim, and either approve or reject it.",
+      "type": "text",
+      "layout": {
+        "row": "Row_0b02kr1",
+        "columns": null
+      },
+      "id": "Field_1gbvbm7"
+    },
+    {
+      "text": "### Requester Information",
+      "type": "text",
+      "layout": {
+        "row": "Row_1ef2qla",
+        "columns": null
+      },
+      "id": "Field_1sbsc67",
+      "conditional": {
+        "hide": "=isReview"
+      }
+    },
+    {
+      "label": "First name",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_11isqe5",
+        "columns": null
+      },
+      "id": "Field_0zyjfuh",
+      "key": "firstName",
+      "validate": {
+        "required": false
+      },
+      "readonly": false,
+      "disabled": true
+    },
+    {
+      "label": "Last name",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_11isqe5",
+        "columns": null
+      },
+      "id": "Field_0m4s208",
+      "key": "lastName",
+      "validate": {
+        "required": false
+      },
+      "disabled": true
+    },
+    {
+      "label": "Email",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0f1wn8t",
+        "columns": null
+      },
+      "id": "Field_02tkefw",
+      "key": "email",
+      "appearance": {
+        "prefixAdorner": "@"
+      },
+      "validate": {
+        "validationType": "email",
+        "required": false
+      },
+      "disabled": true
+    },
+    {
+      "values": [
+        {
+          "label": "IT",
+          "value": "IT"
+        },
+        {
+          "label": "Product",
+          "value": "product"
+        },
+        {
+          "label": "Finance",
+          "value": "finance"
+        },
+        {
+          "label": "Accounting",
+          "value": "accounting"
+        },
+        {
+          "label": "Marketing",
+          "value": "marketing"
+        }
+      ],
+      "label": "Department",
+      "type": "select",
+      "layout": {
+        "row": "Row_0f1wn8t",
+        "columns": null
+      },
+      "id": "Field_07rt8k5",
+      "key": "department",
+      "searchable": true,
+      "disabled": true
+    },
+    {
+      "text": "### Expense Details",
+      "type": "text",
+      "layout": {
+        "row": "Row_0jzv103",
+        "columns": null
+      },
+      "id": "Field_0rozem8"
+    },
+    {
+      "subtype": "date",
+      "dateLabel": "Expense date",
+      "label": "Date time",
+      "type": "datetime",
+      "layout": {
+        "row": "Row_1orcvpn",
+        "columns": null
+      },
+      "id": "Field_0z4pwh0",
+      "key": "expenseDate",
+      "validate": {
+        "required": false
+      },
+      "disabled": true
+    },
+    {
+      "values": [
+        {
+          "label": "Custom",
+          "value": "custom"
+        },
+        {
+          "label": "Travel",
+          "value": "travel"
+        }
+      ],
+      "label": "Expense type",
+      "type": "select",
+      "layout": {
+        "row": "Row_1orcvpn",
+        "columns": null
+      },
+      "id": "Field_1eiqop0",
+      "key": "expenseType",
+      "searchable": true,
+      "disabled": true
+    },
+    {
+      "subtype": "date",
+      "dateLabel": "Travel start",
+      "label": "Date time",
+      "type": "datetime",
+      "layout": {
+        "row": "Row_010wbhw",
+        "columns": null
+      },
+      "id": "Field_17w0xsu",
+      "key": "travelStart",
+      "conditional": {
+        "hide": "=not(expenseType = \"travel\")"
+},
+      "description": "Enter the start and end date of your travel",
+      "disabled": true
+    },
+    {
+      "subtype": "date",
+      "dateLabel": "Travel end",
+      "label": "Date time",
+      "type": "datetime",
+      "layout": {
+        "row": "Row_010wbhw",
+        "columns": null
+      },
+      "id": "Field_1ttfo0c",
+      "key": "travelEnd",
+      "conditional": {
+        "hide": "=not(expenseType = \"travel\")"
+},
+      "disabled": true
+    },
+    {
+      "label": "Travel location",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_00kdr2a",
+        "columns": null
+      },
+      "id": "Field_1xz2kcy",
+      "key": "travelLocation",
+      "appearance": {
+        "prefixAdorner": "📍"
+      },
+      "conditional": {
+        "hide": "=not(expenseType = \"travel\")"
+},
+      "disabled": true
+    },
+    {
+      "label": "Custom expense type",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1tqe6ut",
+        "columns": null
+      },
+      "id": "Field_03ow051",
+      "key": "customExpenseType",
+      "conditional": {
+        "hide": "=not(expenseType = \"custom\")"
+},
+      "disabled": true
+    },
+    {
+      "label": "Expense purpose",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_0ar8roa",
+        "columns": null
+      },
+      "id": "Field_136skvr",
+      "key": "expensePurpose",
+      "validate": {
+        "required": false
+      },
+      "description": "Describe the purpose of your expense. A good description increases the likelihood of quick approval.",
+      "disabled": true
+    },
+    {
+      "label": "Expense amount",
+      "type": "number",
+      "layout": {
+        "row": "Row_0jjom6t",
+        "columns": 8
+      },
+      "id": "Field_189ka5c",
+      "key": "expenseAmount",
+      "appearance": {
+        "prefixAdorner": "USD"
+      },
+      "validate": {
+        "required": false
+      },
+      "decimalDigits": 2,
+      "increment": "0.5",
+      "disabled": true
+    },
+    {
+      "text": "---",
+      "label": "Text view",
+      "type": "text",
+      "layout": {
+        "row": "Row_1nymijp",
+        "columns": null
+      },
+      "id": "Field_19s421w"
+    },
+    {
+      "text": "### Approval",
+      "label": "Text view",
+      "type": "text",
+      "layout": {
+        "row": "Row_00khae6",
+        "columns": null
+      },
+      "id": "Field_1ptafde"
+    },
+    {
+      "values": [
+        {
+          "label": "I approve the expense claim.",
+          "value": "approved"
+        },
+        {
+          "label": "I reject the expense claim.",
+          "value": "rejected"
+        }
+      ],
+      "label": "Approval outcome",
+      "type": "radio",
+      "layout": {
+        "row": "Row_0nr03f7",
+        "columns": null
+      },
+      "id": "Field_0qcvtwe",
+      "key": "reviewOutcome",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "Rejection reason",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_0ehktzg",
+        "columns": null
+      },
+      "id": "Field_1l1k9fd",
+      "key": "rejectionReason",
+      "conditional": {
+        "hide": "=not(reviewOutcome = \"rejected\")"
+},
+      "description": "Provide a reason for rejecting this claim.",
+      "validate": {
+        "minLength": 10
+      }
+    }
+  ],
+  "type": "default",
+  "id": "Form_ExpenseClaimReview",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.2.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.12.0-rc.0"
+  },
+  "schemaVersion": 9
+}</zeebe:userTaskForm>
+      <zeebe:userTaskForm id="userTaskForm_326e1d1">{
+  "components": [
+    {
+      "text": "# Expense Claim Review\n\nPlease review the following expense reimbursement claim, and either approve or reject it.",
+      "type": "text",
+      "layout": {
+        "row": "Row_0b02kr1",
+        "columns": null
+      },
+      "id": "Field_1gbvbm7"
+    },
+    {
+      "text": "### Requester Information",
+      "type": "text",
+      "layout": {
+        "row": "Row_1ef2qla",
+        "columns": null
+      },
+      "id": "Field_1sbsc67",
+      "conditional": {
+        "hide": "=isReview"
+      }
+    },
+    {
+      "label": "First name",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_11isqe5",
+        "columns": null
+      },
+      "id": "Field_0zyjfuh",
+      "key": "firstName",
+      "validate": {
+        "required": false
+      },
+      "readonly": false,
+      "disabled": true
+    },
+    {
+      "label": "Last name",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_11isqe5",
+        "columns": null
+      },
+      "id": "Field_0m4s208",
+      "key": "lastName",
+      "validate": {
+        "required": false
+      },
+      "disabled": true
+    },
+    {
+      "label": "Email",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0f1wn8t",
+        "columns": null
+      },
+      "id": "Field_02tkefw",
+      "key": "email",
+      "appearance": {
+        "prefixAdorner": "@"
+      },
+      "validate": {
+        "validationType": "email",
+        "required": false
+      },
+      "disabled": true
+    },
+    {
+      "values": [
+        {
+          "label": "IT",
+          "value": "IT"
+        },
+        {
+          "label": "Product",
+          "value": "product"
+        },
+        {
+          "label": "Finance",
+          "value": "finance"
+        },
+        {
+          "label": "Accounting",
+          "value": "accounting"
+        },
+        {
+          "label": "Marketing",
+          "value": "marketing"
+        }
+      ],
+      "label": "Department",
+      "type": "select",
+      "layout": {
+        "row": "Row_0f1wn8t",
+        "columns": null
+      },
+      "id": "Field_07rt8k5",
+      "key": "department",
+      "searchable": true,
+      "disabled": true
+    },
+    {
+      "text": "### Expense Details",
+      "type": "text",
+      "layout": {
+        "row": "Row_0jzv103",
+        "columns": null
+      },
+      "id": "Field_0rozem8"
+    },
+    {
+      "subtype": "date",
+      "dateLabel": "Expense date",
+      "label": "Date time",
+      "type": "datetime",
+      "layout": {
+        "row": "Row_1orcvpn",
+        "columns": null
+      },
+      "id": "Field_0z4pwh0",
+      "key": "expenseDate",
+      "validate": {
+        "required": false
+      },
+      "disabled": true
+    },
+    {
+      "values": [
+        {
+          "label": "Custom",
+          "value": "custom"
+        },
+        {
+          "label": "Travel",
+          "value": "travel"
+        }
+      ],
+      "label": "Expense type",
+      "type": "select",
+      "layout": {
+        "row": "Row_1orcvpn",
+        "columns": null
+      },
+      "id": "Field_1eiqop0",
+      "key": "expenseType",
+      "searchable": true,
+      "disabled": true
+    },
+    {
+      "subtype": "date",
+      "dateLabel": "Travel start",
+      "label": "Date time",
+      "type": "datetime",
+      "layout": {
+        "row": "Row_010wbhw",
+        "columns": null
+      },
+      "id": "Field_17w0xsu",
+      "key": "travelStart",
+      "conditional": {
+        "hide": "=not(expenseType = \"travel\")"
+},
+      "description": "Enter the start and end date of your travel",
+      "disabled": true
+    },
+    {
+      "subtype": "date",
+      "dateLabel": "Travel end",
+      "label": "Date time",
+      "type": "datetime",
+      "layout": {
+        "row": "Row_010wbhw",
+        "columns": null
+      },
+      "id": "Field_1ttfo0c",
+      "key": "travelEnd",
+      "conditional": {
+        "hide": "=not(expenseType = \"travel\")"
+},
+      "disabled": true
+    },
+    {
+      "label": "Travel location",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_00kdr2a",
+        "columns": null
+      },
+      "id": "Field_1xz2kcy",
+      "key": "travelLocation",
+      "appearance": {
+        "prefixAdorner": "📍"
+      },
+      "conditional": {
+        "hide": "=not(expenseType = \"travel\")"
+},
+      "disabled": true
+    },
+    {
+      "label": "Custom expense type",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1tqe6ut",
+        "columns": null
+      },
+      "id": "Field_03ow051",
+      "key": "customExpenseType",
+      "conditional": {
+        "hide": "=not(expenseType = \"custom\")"
+},
+      "disabled": true
+    },
+    {
+      "label": "Expense purpose",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_0ar8roa",
+        "columns": null
+      },
+      "id": "Field_136skvr",
+      "key": "expensePurpose",
+      "validate": {
+        "required": false
+      },
+      "description": "Describe the purpose of your expense. A good description increases the likelihood of quick approval.",
+      "disabled": true
+    },
+    {
+      "label": "Expense amount",
+      "type": "number",
+      "layout": {
+        "row": "Row_0jjom6t",
+        "columns": 8
+      },
+      "id": "Field_189ka5c",
+      "key": "expenseAmount",
+      "appearance": {
+        "prefixAdorner": "USD"
+      },
+      "validate": {
+        "required": false
+      },
+      "decimalDigits": 2,
+      "increment": "0.5",
+      "disabled": true
+    },
+    {
+      "text": "---",
+      "label": "Text view",
+      "type": "text",
+      "layout": {
+        "row": "Row_1nymijp",
+        "columns": null
+      },
+      "id": "Field_19s421w"
+    },
+    {
+      "text": "### Approval",
+      "label": "Text view",
+      "type": "text",
+      "layout": {
+        "row": "Row_00khae6",
+        "columns": null
+      },
+      "id": "Field_1ptafde"
+    },
+    {
+      "values": [
+        {
+          "label": "I approve the expense claim.",
+          "value": "approved"
+        },
+        {
+          "label": "I reject the expense claim.",
+          "value": "rejected"
+        }
+      ],
+      "label": "Approval outcome",
+      "type": "radio",
+      "layout": {
+        "row": "Row_0nr03f7",
+        "columns": null
+      },
+      "id": "Field_0qcvtwe",
+      "key": "reviewOutcome",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "Rejection reason",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_0ehktzg",
+        "columns": null
+      },
+      "id": "Field_1l1k9fd",
+      "key": "rejectionReason",
+      "conditional": {
+        "hide": "=not(reviewOutcome = \"rejected\")"
+},
+      "description": "Provide a reason for rejecting this claim.",
+      "validate": {
+        "minLength": 10
+      }
+    }
+  ],
+  "type": "default",
+  "id": "Form_ExpenseClaimReview",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.2.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.12.0-rc.0"
+  },
+  "schemaVersion": 9
+}</zeebe:userTaskForm>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_1wg44px">
+      <bpmn:lane id="Lane_Finance" name="Finance Processing">
+        <bpmn:flowNodeRef>Gateway_1wrjn3x</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_12u444u</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_0hfb7dz</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ReviewExpenseReport_Finance</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_18ir29z</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ReimburseExpenses</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_0v75kn8</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_NotifyRejection</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1l5wj0t</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Manager" name="Manager">
+        <bpmn:flowNodeRef>Activity_ReviewExpenseReport_Manager</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Employee" name="Employee">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_CreateExpenseReport</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:sequenceFlow id="Flow_1vaffxg" sourceRef="StartEvent_1" targetRef="Activity_CreateExpenseReport" />
+    <bpmn:sequenceFlow id="Flow_0od82be" sourceRef="Activity_CreateExpenseReport" targetRef="Activity_ReviewExpenseReport_Manager" />
+    <bpmn:startEvent id="StartEvent_1" name="Expense approval requested">
+      <bpmn:outgoing>Flow_1vaffxg</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_1wrjn3x" name="Report approved?" default="Flow_07hh01v">
+      <bpmn:incoming>Flow_0mbdt0u</bpmn:incoming>
+      <bpmn:outgoing>Flow_07hh01v</bpmn:outgoing>
+      <bpmn:outgoing>Flow_07yvuxk</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="Event_12u444u" name="Expense reimbursement rejected">
+      <bpmn:incoming>Flow_02funv0</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="Event_0hfb7dz" name="Expenses reimbursed">
+      <bpmn:incoming>Flow_07w4wvi</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Activity_ReviewExpenseReport_Finance" name="Review expense report - finance">
+      <bpmn:extensionElements>
+        <zeebe:assignmentDefinition candidateGroups="Finance" />
+        <zeebe:formDefinition formKey="camunda-forms:bpmn:userTaskForm_326e1d1" />
+        <zeebe:ioMapping>
+          <zeebe:output source="=reviewOutcome" target="financeReviewOutcome" />
+          <zeebe:output source="=if reviewOutcome = &#34;rejected&#34; then rejectionReason else &#34;&#34;" target="rejectionReason" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_07yvuxk</bpmn:incoming>
+      <bpmn:outgoing>Flow_0tqbv24</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_18ir29z" name="Report approved?" default="Flow_0zibli6">
+      <bpmn:incoming>Flow_0tqbv24</bpmn:incoming>
+      <bpmn:outgoing>Flow_1lsaytj</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0zibli6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_ReimburseExpenses" name="Reimburse expenses">
+      <bpmn:incoming>Flow_0j33fwr</bpmn:incoming>
+      <bpmn:outgoing>Flow_07w4wvi</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_0v75kn8">
+      <bpmn:incoming>Flow_07hh01v</bpmn:incoming>
+      <bpmn:incoming>Flow_0zibli6</bpmn:incoming>
+      <bpmn:outgoing>Flow_185jnzm</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_NotifyRejection" name="Notify about rejection">
+      <bpmn:incoming>Flow_185jnzm</bpmn:incoming>
+      <bpmn:outgoing>Flow_02funv0</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1l5wj0t" name="Notify about approval">
+      <bpmn:incoming>Flow_1lsaytj</bpmn:incoming>
+      <bpmn:outgoing>Flow_0j33fwr</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Activity_ReviewExpenseReport_Manager" name="Review expense report - manager">
+      <bpmn:extensionElements>
+        <zeebe:assignmentDefinition candidateGroups="Manager" candidateUsers="=[supervisorEmail]" />
+        <zeebe:formDefinition formKey="camunda-forms:bpmn:userTaskForm_3l1o3dg" />
+        <zeebe:ioMapping>
+          <zeebe:output source="=reviewOutcome" target="managerReviewOutcome" />
+          <zeebe:output source="=if reviewOutcome = &#34;rejected&#34; then rejectionReason else &#34;&#34;" target="rejectionReason" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0od82be</bpmn:incoming>
+      <bpmn:outgoing>Flow_0mbdt0u</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0mbdt0u" sourceRef="Activity_ReviewExpenseReport_Manager" targetRef="Gateway_1wrjn3x" />
+    <bpmn:sequenceFlow id="Flow_07yvuxk" name="Approved" sourceRef="Gateway_1wrjn3x" targetRef="Activity_ReviewExpenseReport_Finance">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=managerReviewOutcome = "approved"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_07hh01v" name="Rejected" sourceRef="Gateway_1wrjn3x" targetRef="Gateway_0v75kn8" />
+    <bpmn:sequenceFlow id="Flow_02funv0" sourceRef="Activity_NotifyRejection" targetRef="Event_12u444u" />
+    <bpmn:sequenceFlow id="Flow_07w4wvi" sourceRef="Activity_ReimburseExpenses" targetRef="Event_0hfb7dz" />
+    <bpmn:sequenceFlow id="Flow_0tqbv24" sourceRef="Activity_ReviewExpenseReport_Finance" targetRef="Gateway_18ir29z" />
+    <bpmn:sequenceFlow id="Flow_1lsaytj" name="Approved" sourceRef="Gateway_18ir29z" targetRef="Activity_1l5wj0t">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=financeReviewOutcome = "approved"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0zibli6" name="Rejected" sourceRef="Gateway_18ir29z" targetRef="Gateway_0v75kn8" />
+    <bpmn:sequenceFlow id="Flow_0j33fwr" sourceRef="Activity_1l5wj0t" targetRef="Activity_ReimburseExpenses" />
+    <bpmn:sequenceFlow id="Flow_185jnzm" sourceRef="Gateway_0v75kn8" targetRef="Activity_NotifyRejection" />
+    <bpmn:userTask id="Activity_CreateExpenseReport" name="Create expense report">
+      <bpmn:extensionElements>
+        <zeebe:formDefinition formKey="camunda-forms:bpmn:userTaskForm_0jijmee" />
+        <zeebe:properties>
+          <zeebe:property name="camundaModeler:exampleOutputJson" value="{&#10;  &#34;firstName&#34;: &#34;John&#34;,&#10;  &#34;lastName&#34;: &#34;Doe&#34;,&#10;  &#34;email&#34;: &#34;john.doe@camunda.com&#34;,&#10;  &#34;department&#34;: &#34;finance&#34;,&#10;  &#34;supervisorEmail&#34;: &#34;jane.doe@camunda.com&#34;,&#10;  &#34;expenseDate&#34;: &#34;2023-06-09&#34;,&#10;  &#34;expenseType&#34;: &#34;travel&#34;,&#10;  &#34;travelStart&#34;: &#34;2023-06-06&#34;,&#10;  &#34;travelEnd&#34;: &#34;2023-06-09&#34;,&#10;  &#34;travelLocation&#34;: &#34;Berlin&#34;,&#10;  &#34;expensePurpose&#34;: &#34;Travel to Berlin Office&#34;,&#10;  &#34;expenseAmount&#34;: 650&#10;}" />
+        </zeebe:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1vaffxg</bpmn:incoming>
+      <bpmn:outgoing>Flow_0od82be</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:textAnnotation id="TextAnnotation_02rliy5">
+      <bpmn:text>Automate this task using your payroll process</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0k4qsxw">
+      <bpmn:text>Use a connector or service task to send a notification through your preferred channel.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_12m4aqv" sourceRef="Activity_ReimburseExpenses" targetRef="TextAnnotation_02rliy5" />
+    <bpmn:association id="Association_1c7637v" sourceRef="TextAnnotation_0k4qsxw" targetRef="Activity_1l5wj0t" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ExpenseReimbursement">
+      <bpmndi:BPMNShape id="Participant_15xrhcp_di" bpmnElement="Participant_ExpenseReimbursement" isHorizontal="true">
+        <dc:Bounds x="200" y="110" width="1320" height="640" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0x1gxt3_di" bpmnElement="Lane_Employee" isHorizontal="true">
+        <dc:Bounds x="230" y="110" width="1290" height="160" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1bmavi2_di" bpmnElement="Lane_Manager" isHorizontal="true">
+        <dc:Bounds x="230" y="270" width="1290" height="140" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0rt1o8j_di" bpmnElement="Lane_Finance" isHorizontal="true">
+        <dc:Bounds x="230" y="410" width="1290" height="340" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0wv91m0_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="292" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="266" y="215" width="89" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1wrjn3x_di" bpmnElement="Gateway_1wrjn3x" isMarkerVisible="true">
+        <dc:Bounds x="705" y="455" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="606" y="473" width="89" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_12u444u_di" bpmnElement="Event_12u444u">
+        <dc:Bounds x="1432" y="462" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1413" y="505" width="74" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0hfb7dz_di" bpmnElement="Event_0hfb7dz">
+        <dc:Bounds x="1432" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1422" y="625" width="56" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1bovg4q" bpmnElement="Activity_ReviewExpenseReport_Finance">
+        <dc:Bounds x="830" y="560" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_18ir29z_di" bpmnElement="Gateway_18ir29z" isMarkerVisible="true">
+        <dc:Bounds x="985" y="575" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="966" y="632" width="89" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0v91guy_di" bpmnElement="Activity_ReimburseExpenses">
+        <dc:Bounds x="1280" y="560" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0v75kn8_di" bpmnElement="Gateway_0v75kn8" isMarkerVisible="true">
+        <dc:Bounds x="985" y="455" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_17jmzeh_di" bpmnElement="Activity_NotifyRejection">
+        <dc:Bounds x="1280" y="440" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_133f1vk" bpmnElement="Activity_1l5wj0t">
+        <dc:Bounds x="1130" y="560" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0vwhhlo_di" bpmnElement="Activity_ReviewExpenseReport_Manager">
+        <dc:Bounds x="580" y="300" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_090loid_di" bpmnElement="Activity_CreateExpenseReport">
+        <dc:Bounds x="390" y="150" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_02rliy5_di" bpmnElement="TextAnnotation_02rliy5">
+        <dc:Bounds x="1290" y="660" width="100" height="55" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_06nphg1" bpmnElement="TextAnnotation_0k4qsxw">
+        <dc:Bounds x="1060" y="660" width="150" height="70" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1vaffxg_di" bpmnElement="Flow_1vaffxg">
+        <di:waypoint x="328" y="190" />
+        <di:waypoint x="390" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0od82be_di" bpmnElement="Flow_0od82be">
+        <di:waypoint x="490" y="190" />
+        <di:waypoint x="530" y="190" />
+        <di:waypoint x="530" y="340" />
+        <di:waypoint x="580" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0mbdt0u_di" bpmnElement="Flow_0mbdt0u">
+        <di:waypoint x="680" y="340" />
+        <di:waypoint x="730" y="340" />
+        <di:waypoint x="730" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_07yvuxk_di" bpmnElement="Flow_07yvuxk">
+        <di:waypoint x="730" y="505" />
+        <di:waypoint x="730" y="600" />
+        <di:waypoint x="830" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="756" y="606" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_07hh01v_di" bpmnElement="Flow_07hh01v">
+        <di:waypoint x="755" y="480" />
+        <di:waypoint x="985" y="480" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="778" y="483" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02funv0_di" bpmnElement="Flow_02funv0">
+        <di:waypoint x="1380" y="480" />
+        <di:waypoint x="1432" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_07w4wvi_di" bpmnElement="Flow_07w4wvi">
+        <di:waypoint x="1380" y="600" />
+        <di:waypoint x="1432" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0tqbv24_di" bpmnElement="Flow_0tqbv24">
+        <di:waypoint x="930" y="600" />
+        <di:waypoint x="985" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1lsaytj_di" bpmnElement="Flow_1lsaytj">
+        <di:waypoint x="1035" y="600" />
+        <di:waypoint x="1130" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1053" y="606" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0zibli6_di" bpmnElement="Flow_0zibli6">
+        <di:waypoint x="1010" y="575" />
+        <di:waypoint x="1010" y="505" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1018" y="554" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0j33fwr_di" bpmnElement="Flow_0j33fwr">
+        <di:waypoint x="1230" y="600" />
+        <di:waypoint x="1280" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_185jnzm_di" bpmnElement="Flow_185jnzm">
+        <di:waypoint x="1035" y="480" />
+        <di:waypoint x="1280" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_12m4aqv_di" bpmnElement="Association_12m4aqv">
+        <di:waypoint x="1335" y="640" />
+        <di:waypoint x="1338" y="660" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1c7637v_di" bpmnElement="Association_1c7637v">
+        <di:waypoint x="1168" y="660" />
+        <di:waypoint x="1176" y="640" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

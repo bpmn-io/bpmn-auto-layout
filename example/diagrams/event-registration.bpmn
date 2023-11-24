@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Web Modeler" exporterVersion="cbbea2d" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.3.0" camunda:diagramRelationId="00aaad6b-17a7-4b58-a5f3-64c95a35ed7e">
+  <bpmn:collaboration id="Collaboration_EventRegistration">
+    <bpmn:participant id="Participant_EventRegistration" name="Event team" processRef="Process_EventRegistration-1u77q12" />
+    <bpmn:participant id="Participant_1wawa2o" name="Attendee" />
+    <bpmn:messageFlow id="Flow_1p4u8s4" sourceRef="Participant_1wawa2o" targetRef="StartEvent_Form" />
+    <bpmn:messageFlow id="Flow_0belkav" sourceRef="Activity_NotifyAttendee" targetRef="Participant_1wawa2o" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_EventRegistration-1u77q12" name="Event Registration" isExecutable="true">
+    <bpmn:extensionElements>
+      <zeebe:userTaskForm id="userTaskForm_2mubui4">{
+   "components": [
+     {
+       "label": "Image view",
+       "type": "image",
+       "layout": {
+         "row": "Row_11u1oj3",
+         "columns": 3
+       },
+       "id": "Field_1gqy0xt",
+       "source": "https://camunda.com/wp-content/uploads/2023/01/coe-circle.svg"
+     },
+     {
+       "text": "##### About this Virtual Event\n\n**Topic:** Automation CoEs\n**Time:** 9:00 AM - 1:00 PM\n\n&lt;br&gt;\n\nIn this virtual event, we'll talk about success stories of automation CoEs. We'll discuss how did they get started, what are the needed tools, how much information or knowledge required to start, and many more.\n",
+       "label": "Text view",
+       "type": "text",
+       "layout": {
+         "row": "Row_11u1oj3",
+         "columns": null
+       },
+       "id": "Field_0v10mcc"
+     },
+     {
+       "text": "---\n\nComplete this quick form to let us know you're attending. It'll just take a minute.",
+       "label": "Text view",
+       "type": "text",
+       "layout": {
+         "row": "Row_1oap4ax",
+         "columns": null
+       },
+       "id": "Field_1dbdtw9"
+     },
+     {
+       "text": "##### Personal Information",
+       "type": "text",
+       "id": "Personal-info-subheading",
+       "layout": {
+         "row": "row_2",
+         "col": "auto"
+       }
+     },
+     {
+       "type": "textfield",
+       "id": "First-name-field",
+       "label": "First Name",
+       "key": "first_name",
+       "appearance": {
+         "fieldPrefix": "First Name: "
+       },
+       "validate": {
+         "required": false
+       },
+       "layout": {
+         "row": "row_3",
+         "col": "auto"
+       }
+     },
+     {
+       "type": "textfield",
+       "id": "Last-name-field",
+       "label": "Last Name",
+       "key": "last_name",
+       "appearance": {
+         "fieldPrefix": "Last Name: "
+       },
+       "validate": {
+         "required": false
+       },
+       "layout": {
+         "row": "row_3",
+         "col": "auto"
+       }
+     },
+     {
+       "type": "textfield",
+       "id": "Email-field",
+       "label": "Email",
+       "key": "email",
+       "appearance": {
+         "fieldPrefix": "Email: "
+       },
+       "validate": {
+         "required": true,
+         "email": true
+       },
+       "layout": {
+         "row": "row_4",
+         "col": "auto",
+         "columns": 8
+       },
+       "description": "Required for registration"
+     },
+     {
+       "label": "Phone number",
+       "type": "textfield",
+       "layout": {
+         "row": "row_4",
+         "columns": null
+       },
+       "id": "Field_1wuui84",
+       "key": "phone_number",
+       "description": "Can we get your phone number?",
+       "validate": {
+         "validationType": "phone"
+       }
+     },
+     {
+       "label": "Company",
+       "type": "textfield",
+       "layout": {
+         "row": "Row_0rtkl8d",
+         "columns": 8
+       },
+       "id": "Field_0c1xvpt",
+       "key": "company"
+     },
+     {
+       "text": "##### How did you hear about us?",
+       "type": "text",
+       "id": "Event-info-subheading",
+       "layout": {
+         "row": "row_5",
+         "col": "auto"
+       }
+     },
+     {
+       "values": [
+         {
+           "label": "Social Media",
+           "value": "social_media"
+         },
+         {
+           "label": "Google",
+           "value": "google"
+         },
+         {
+           "label": "Website",
+           "value": "website"
+         },
+         {
+           "label": "A Coworker",
+           "value": "coworker"
+         }
+       ],
+       "type": "checklist",
+       "layout": {
+         "row": "Row_1tj3vr8",
+         "columns": null
+       },
+       "id": "Field_13nmxan",
+       "key": "news_source"
+     },
+     {
+       "label": "Some other source",
+       "type": "textfield",
+       "layout": {
+         "row": "Row_1nt8oqi",
+         "columns": null
+       },
+       "id": "Field_0tjrny0",
+       "key": "news_source_alternative"
+     },
+     {
+       "text": "##### Additional Information",
+       "type": "text",
+       "id": "Additional-info-subheading",
+       "layout": {
+         "row": "row_9",
+         "col": "auto"
+       }
+     },
+     {
+       "type": "textarea",
+       "id": "Additional-comments-field",
+       "label": "Additional Comments",
+       "key": "additional_comments",
+       "validate": {
+         "maxLength": 500
+       },
+       "layout": {
+         "row": "row_10",
+         "col": "auto"
+       }
+     },
+     {
+       "type": "checkbox",
+       "id": "Future-notifications-checkbox",
+       "label": "Opt-in to receive future webinar notifications",
+       "key": "future_notifications",
+       "layout": {
+         "row": "row_11",
+         "col": "auto"
+       }
+     }
+   ],
+   "exporter": {
+     "name": "Camunda Web Modeler",
+     "version": "8aebd64"
+   },
+   "generated": true,
+   "type": "default",
+   "id": "Form_EventRegistration",
+   "executionPlatform": "Camunda Cloud",
+   "executionPlatformVersion": "8.2.0",
+   "schemaVersion": 9
+ }</zeebe:userTaskForm>
+    </bpmn:extensionElements>
+    <bpmn:sequenceFlow id="Flow_15hhweo" sourceRef="StartEvent_Form" targetRef="Activity_StoreRegistrations" />
+    <bpmn:startEvent id="StartEvent_Form" name="Event registration received">
+      <bpmn:extensionElements>
+        <zeebe:properties>
+          <zeebe:property name="camundaModeler:exampleOutputJson" value="{&#10;  &#34;first_name&#34;: &#34;John&#34;,&#10;  &#34;last_name&#34;: &#34;Doe&#34;,&#10;  &#34;email&#34;: &#34;john.doe@acme.com&#34;,&#10;  &#34;phone_number&#34;: &#34;&#34;,&#10;  &#34;company&#34;: &#34;Acme Corp&#34;,&#10;  &#34;news_source&#34;: [&#10;    &#34;website&#34;,&#10;    &#34;google&#34;&#10;  ],&#10;  &#34;news_source_alternative&#34;: &#34;&#34;,&#10;  &#34;additional_comments&#34;: &#34;&#34;,&#10;  &#34;future_notifications&#34;: true&#10;}" />
+          <zeebe:property name="publicAccess" value="true" />
+        </zeebe:properties>
+        <zeebe:ioMapping>
+          <zeebe:output source="=first_name" target="first_name" />
+          <zeebe:output source="=last_name" target="last_name" />
+          <zeebe:output source="=email" target="email" />
+          <zeebe:output source="=phone_number" target="phone_number" />
+          <zeebe:output source="=company" target="company" />
+          <zeebe:output source="=concatenate(news_source, [news_source_alternative])" target="news_source" />
+          <zeebe:output source="=additional_comments" target="additional_comments" />
+          <zeebe:output source="=future_notifications" target="future_notifications" />
+        </zeebe:ioMapping>
+        <zeebe:formDefinition formKey="camunda-forms:bpmn:userTaskForm_2mubui4" />
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_15hhweo</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_05vjl7d" sourceRef="Activity_NotifyAttendee" targetRef="Gateway_0u6owc4" />
+    <bpmn:sequenceFlow id="Flow_06htesz" sourceRef="Activity_StoreRegistrations" targetRef="Activity_NotifyAttendee" />
+    <bpmn:sequenceFlow id="Flow_1pjwdwi" name="Opt-In" sourceRef="Gateway_0u6owc4" targetRef="Activity_AddToNewsletter">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=future_notifications</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_05qqgi8" sourceRef="Activity_AddToNewsletter" targetRef="Gateway_0k2t6ga" />
+    <bpmn:sequenceFlow id="Flow_1n8iwqt" sourceRef="Gateway_0k2t6ga" targetRef="Event_0kitru1" />
+    <bpmn:endEvent id="Event_0kitru1" name="Attendee registered">
+      <bpmn:incoming>Flow_1n8iwqt</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0j25dn6" name="No opt-in" sourceRef="Gateway_0u6owc4" targetRef="Gateway_0k2t6ga" />
+    <bpmn:serviceTask id="Activity_StoreRegistrations" name="Store registration in Google Sheets" zeebe:modelerTemplate="io.camunda.connectors.GoogleSheets.v1" zeebe:modelerTemplateVersion="1" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMC8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgaWQ9ImJvZHlfMSIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE0Ij4KCjxnIHRyYW5zZm9ybT0ibWF0cml4KDAuMTU5MDkwOSAwIDAgMC4xNTkwOTA5IDMuOTA5MDkxIC0wKSI+CiAgICA8cGF0aCBkPSJNNDIgMEw2NCAyMkw1MyAyNEw0MiAyMkw0MCAxMUw0MiAweiIgc3Ryb2tlPSJub25lIiBmaWxsPSIjMTg4MDM4IiBmaWxsLXJ1bGU9Im5vbnplcm8iIC8+CiAgICA8cGF0aCBkPSJNNDIgMjJMNDIgMEw2IDBDIDIuNjg1IDAgMCAyLjY4NSAwIDZMMCA2TDAgODJDIDAgODUuMzE1IDIuNjg1IDg4IDYgODhMNiA4OEw1OCA4OEMgNjEuMzE1IDg4IDY0IDg1LjMxNSA2NCA4Mkw2NCA4Mkw2NCAyMkw0MiAyMnoiIHN0cm9rZT0ibm9uZSIgZmlsbD0iIzM0QTg1MyIgZmlsbC1ydWxlPSJub256ZXJvIiAvPgogICAgPHBhdGggZD0iTTEyIDM0TDEyIDYzTDUyIDYzTDUyIDM0TDEyIDM0ek0yOS41IDU4TDE3IDU4TDE3IDUxTDI5LjUgNTF6TTI5LjUgNDZMMTcgNDZMMTcgMzlMMjkuNSAzOXpNNDcgNThMMzQuNSA1OEwzNC41IDUxTDQ3IDUxek00NyA0NkwzNC41IDQ2TDM0LjUgMzlMNDcgMzl6IiBzdHJva2U9Im5vbmUiIGZpbGw9IiNGRkZGRkYiIGZpbGwtcnVsZT0ibm9uemVybyIgLz4KPC9nPgo8L3N2Zz4=">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:google-sheets:1" />
+        <zeebe:ioMapping>
+          <zeebe:input source="bearer" target="authentication.authType" />
+          <zeebe:input source="&#60;YOUR TOKEN&#62;" target="authentication.bearerToken" />
+          <zeebe:input source="createRow" target="operation.type" />
+          <zeebe:input source="&#60;YOUR SPREADSHEET ID&#62;" target="operation.spreadsheetId" />
+          <zeebe:input source="2" target="operation.rowIndex" />
+          <zeebe:input source="=[first_name, last_name, email, phone_number, company, news_source, future_notifications]" target="operation.values" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_15hhweo</bpmn:incoming>
+      <bpmn:outgoing>Flow_06htesz</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_NotifyAttendee" name="Notify attendee of successful registration" zeebe:modelerTemplate="io.camunda.connectors.SendGrid.v2" zeebe:modelerTemplateIcon="data:image/svg+xml;utf8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20d%3D%22M0.285706%205.40847H5.43837V10.5611H0.285706V5.40847Z%22%20fill%3D%22white%22%2F%3E%0A%3Cpath%20d%3D%22M0.285706%205.40847H5.43837V10.5611H0.285706V5.40847Z%22%20fill%3D%22%2399E1F4%22%2F%3E%0A%3Cpath%20d%3D%22M5.43837%2010.5611L10.5611%2010.5616V15.6844H5.43837V10.5611Z%22%20fill%3D%22white%22%2F%3E%0A%3Cpath%20d%3D%22M5.43837%2010.5611L10.5611%2010.5616V15.6844H5.43837V10.5611Z%22%20fill%3D%22%2399E1F4%22%2F%3E%0A%3Cpath%20d%3D%22M0.285706%2015.6846L5.43837%2015.6844V15.7143H0.285706V15.6846ZM0.285706%2010.5619H5.43837V15.6844L0.285706%2015.6846V10.5619Z%22%20fill%3D%22%231A82E2%22%2F%3E%0A%3Cpath%20d%3D%22M5.43837%200.285706H10.5611V5.40847H5.43837V0.285706ZM10.5616%205.43837H15.7143V10.5611H10.5616V5.43837Z%22%20fill%3D%22%2300B3E3%22%2F%3E%0A%3Cpath%20d%3D%22M5.43837%2010.5611L10.5611%2010.5616V5.40847H5.43837V10.5611Z%22%20fill%3D%22%23009DD9%22%2F%3E%0A%3Cpath%20d%3D%22M10.5611%200.285706H15.7143V5.40847H10.5611V0.285706Z%22%20fill%3D%22%231A82E2%22%2F%3E%0A%3Cpath%20d%3D%22M10.5611%205.40847H15.7143V5.43837H10.5616L10.5611%205.40847Z%22%20fill%3D%22%231A82E2%22%2F%3E%0A%3C%2Fsvg%3E">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:sendgrid:1" />
+        <zeebe:ioMapping>
+          <zeebe:input source="&#60;YOUR API KEY&#62;" target="apiKey" />
+          <zeebe:input source="&#60;YOUR NAME&#62;" target="from.name" />
+          <zeebe:input source="&#60;YOUR EMAIL&#62;" target="from.email" />
+          <zeebe:input source="=first_name + &#34; &#34; + last_name" target="to.name" />
+          <zeebe:input source="=email" target="to.email" />
+          <zeebe:input source="mail" target="unMappedFieldNotUseInModel.mailType" />
+          <zeebe:input source="You are registered!" target="content.subject" />
+          <zeebe:input source="text/plain" target="content.type" />
+          <zeebe:input source="We confirm your registration to our event. Looking forward to see you soon!" target="content.value" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_06htesz</bpmn:incoming>
+      <bpmn:outgoing>Flow_05vjl7d</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_0u6owc4" name="Opt-In to future notifications?" default="Flow_0j25dn6">
+      <bpmn:incoming>Flow_05vjl7d</bpmn:incoming>
+      <bpmn:outgoing>Flow_1pjwdwi</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0j25dn6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_AddToNewsletter" name="Add to newsletter list">
+      <bpmn:incoming>Flow_1pjwdwi</bpmn:incoming>
+      <bpmn:outgoing>Flow_05qqgi8</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1df2u8n">
+        <bpmn:targetRef>DataStoreReference_1s94j66</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_0k2t6ga">
+      <bpmn:incoming>Flow_05qqgi8</bpmn:incoming>
+      <bpmn:incoming>Flow_0j25dn6</bpmn:incoming>
+      <bpmn:outgoing>Flow_1n8iwqt</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:dataStoreReference id="DataStoreReference_1s94j66" name="Newsletter system" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_EventRegistration">
+      <bpmndi:BPMNShape id="Participant_0jmxhi3_di" bpmnElement="Participant_EventRegistration" isHorizontal="true">
+        <dc:Bounds x="160" y="170" width="920" height="190" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_Form">
+        <dc:Bounds x="242" y="260" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="218" y="303" width="86" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0kitru1_di" bpmnElement="Event_0kitru1">
+        <dc:Bounds x="1012" y="260" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1006" y="303" width="49" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1rioh52_di" bpmnElement="Activity_StoreRegistrations">
+        <dc:Bounds x="330" y="238" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_143xuvy_di" bpmnElement="Activity_NotifyAttendee">
+        <dc:Bounds x="487" y="238" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0u6owc4_di" bpmnElement="Gateway_0u6owc4" isMarkerVisible="true">
+        <dc:Bounds x="644" y="253" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="632" y="312.5" width="74" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_15tz2id_di" bpmnElement="Activity_AddToNewsletter">
+        <dc:Bounds x="751" y="238" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0k2t6ga_di" bpmnElement="Gateway_0k2t6ga" isMarkerVisible="true">
+        <dc:Bounds x="908" y="253" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_15hhweo_di" bpmnElement="Flow_15hhweo">
+        <di:waypoint x="278" y="278" />
+        <di:waypoint x="330" y="278" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05vjl7d_di" bpmnElement="Flow_05vjl7d">
+        <di:waypoint x="587" y="278" />
+        <di:waypoint x="644" y="278" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06htesz_di" bpmnElement="Flow_06htesz">
+        <di:waypoint x="430" y="278" />
+        <di:waypoint x="487" y="278" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1pjwdwi_di" bpmnElement="Flow_1pjwdwi">
+        <di:waypoint x="694" y="278" />
+        <di:waypoint x="751" y="278" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="707" y="260" width="31" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05qqgi8_di" bpmnElement="Flow_05qqgi8">
+        <di:waypoint x="851" y="278" />
+        <di:waypoint x="908" y="278" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1n8iwqt_di" bpmnElement="Flow_1n8iwqt">
+        <di:waypoint x="958" y="278" />
+        <di:waypoint x="1012" y="278" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0j25dn6_di" bpmnElement="Flow_0j25dn6">
+        <di:waypoint x="669" y="253" />
+        <di:waypoint x="669" y="200" />
+        <di:waypoint x="933" y="200" />
+        <di:waypoint x="933" y="253" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="778" y="182" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="DataStoreReference_1s94j66_di" bpmnElement="DataStoreReference_1s94j66">
+        <dc:Bounds x="776" y="385" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="757" y="442" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_1x8j2z0_di" bpmnElement="Participant_1wawa2o" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="440" height="60" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1df2u8n_di" bpmnElement="DataOutputAssociation_1df2u8n">
+        <di:waypoint x="801" y="318" />
+        <di:waypoint x="800" y="385" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1p4u8s4_di" bpmnElement="Flow_1p4u8s4">
+        <di:waypoint x="260" y="140" />
+        <di:waypoint x="260" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0belkav_di" bpmnElement="Flow_0belkav">
+        <di:waypoint x="537" y="238" />
+        <di:waypoint x="537" y="140" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

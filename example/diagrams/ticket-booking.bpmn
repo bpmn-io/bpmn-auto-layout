@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1a4gt8m" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Web Modeler" exporterVersion="cbbea2d" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.3.0" camunda:diagramRelationId="5d811647-c4c2-48bc-8d57-3e7d197f91cd">
+  <bpmn:collaboration id="Collaboration_0t1vxrh">
+    <bpmn:participant id="template-ticket-booking-participant" name="Ticket Booking" processRef="template-ticket-booking-06ebrp0" />
+    <bpmn:participant id="Participant_1l2gxa0" name="Payment" />
+    <bpmn:participant id="SeatReservationParticipant" name="Seat Reservation" />
+    <bpmn:participant id="Participant_1i465kq" name="Ticket Generation" />
+    <bpmn:messageFlow id="Flow_11rhvrd" name="REST (could be gRPC Pub/Sub Engine)" sourceRef="ReserveSeatsActivity" targetRef="SeatReservationParticipant" />
+    <bpmn:messageFlow id="Flow_08b5p57" name="REST (could be AMQP)" sourceRef="Activity_0lox1kf" targetRef="Participant_1l2gxa0" />
+    <bpmn:messageFlow id="Flow_1lm74ik" name="could be AMQP" sourceRef="Participant_1l2gxa0" targetRef="WaitForPaymentReceivedEvent" />
+    <bpmn:messageFlow id="Flow_02bhzx9" name="REST" sourceRef="Activity_0etdda4" targetRef="Participant_1i465kq" />
+  </bpmn:collaboration>
+  <bpmn:process id="template-ticket-booking-06ebrp0" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Booking submitted">
+      <bpmn:outgoing>Flow_19ebf54</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:receiveTask id="WaitForPaymentReceivedEvent" name="Wait for &#39;payment received&#39; event" messageRef="Message_04xnjbt">
+      <bpmn:incoming>Flow_0mwrroh</bpmn:incoming>
+      <bpmn:outgoing>Flow_0podi1a</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:endEvent id="Event_1mqmjv4" name="Booking succeeded">
+      <bpmn:incoming>Flow_19x2sei</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="Event_05eni0s" name="Booking cancelled">
+      <bpmn:incoming>Flow_012b8wg</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Activity_0etdda4" name="Generate Ticket" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateIcon="data:image/svg+xml;utf8,%3Csvg%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2018%2018%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20d%3D%22M17.0335%208.99997C17.0335%2013.4475%2013.4281%2017.0529%208.98065%2017.0529C4.53316%2017.0529%200.927765%2013.4475%200.927765%208.99997C0.927765%204.55248%204.53316%200.947083%208.98065%200.947083C13.4281%200.947083%2017.0335%204.55248%2017.0335%208.99997Z%22%20fill%3D%22%23505562%22%2F%3E%0A%3Cpath%20d%3D%22M4.93126%2014.1571L6.78106%203.71471H10.1375C11.1917%203.71471%2011.9824%203.98323%2012.5095%204.52027C13.0465%205.04736%2013.315%205.73358%2013.315%206.57892C13.315%207.44414%2013.0714%208.15522%2012.5841%208.71215C12.1067%209.25913%2011.4553%209.63705%2010.6298%209.8459L12.0619%2014.1571H10.3315L9.03364%2010.0249H7.24351L6.51254%2014.1571H4.93126ZM7.49711%208.59281H9.24248C9.99832%208.59281%2010.5901%208.42374%2011.0177%208.08561C11.4553%207.73753%2011.6741%207.26513%2011.6741%206.66842C11.6741%206.19106%2011.5249%205.81811%2011.2265%205.54959C10.9282%205.27113%2010.4558%205.1319%209.80936%205.1319H8.10874L7.49711%208.59281Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E%0A">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="post" target="method" />
+          <zeebe:input source="https://b6907c60-dba0-49ff-bbb3-9599981ad398.mock.pstmn.io/generateTicket" target="url" />
+          <zeebe:input source="20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="={&#10;&#34;ticketNumber&#34; : &#34;AO-112233&#34;&#10;}" target="body" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultVariable" />
+          <zeebe:header key="resultExpression" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0podi1a</bpmn:incoming>
+      <bpmn:outgoing>Flow_19x2sei</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_0lox1kf" name="Request Payment" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateIcon="data:image/svg+xml;utf8,%3Csvg%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2018%2018%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20d%3D%22M17.0335%208.99997C17.0335%2013.4475%2013.4281%2017.0529%208.98065%2017.0529C4.53316%2017.0529%200.927765%2013.4475%200.927765%208.99997C0.927765%204.55248%204.53316%200.947083%208.98065%200.947083C13.4281%200.947083%2017.0335%204.55248%2017.0335%208.99997Z%22%20fill%3D%22%23505562%22%2F%3E%0A%3Cpath%20d%3D%22M4.93126%2014.1571L6.78106%203.71471H10.1375C11.1917%203.71471%2011.9824%203.98323%2012.5095%204.52027C13.0465%205.04736%2013.315%205.73358%2013.315%206.57892C13.315%207.44414%2013.0714%208.15522%2012.5841%208.71215C12.1067%209.25913%2011.4553%209.63705%2010.6298%209.8459L12.0619%2014.1571H10.3315L9.03364%2010.0249H7.24351L6.51254%2014.1571H4.93126ZM7.49711%208.59281H9.24248C9.99832%208.59281%2010.5901%208.42374%2011.0177%208.08561C11.4553%207.73753%2011.6741%207.26513%2011.6741%206.66842C11.6741%206.19106%2011.5249%205.81811%2011.2265%205.54959C10.9282%205.27113%2010.4558%205.1319%209.80936%205.1319H8.10874L7.49711%208.59281Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E%0A">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="post" target="method" />
+          <zeebe:input source="=&#34;https://b6907c60-dba0-49ff-bbb3-9599981ad398.mock.pstmn.io/requestPayment&#34;" target="url" />
+          <zeebe:input source="20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="={&#10;&#34;ticketNumber&#34; : &#34;AO-112233&#34;,&#10;&#34;flightNumber&#34;: &#34;KJ345N&#34;&#10;}" target="body" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultVariable" />
+          <zeebe:header key="resultExpression" value="={&#34;paymentRequestId&#34;: response.body.paymentRequestId}" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0qbwde5</bpmn:incoming>
+      <bpmn:outgoing>Flow_0mwrroh</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="ReserveSeatsActivity" name="Reserve Seats" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateIcon="data:image/svg+xml;utf8,%3Csvg%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2018%2018%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20d%3D%22M17.0335%208.99997C17.0335%2013.4475%2013.4281%2017.0529%208.98065%2017.0529C4.53316%2017.0529%200.927765%2013.4475%200.927765%208.99997C0.927765%204.55248%204.53316%200.947083%208.98065%200.947083C13.4281%200.947083%2017.0335%204.55248%2017.0335%208.99997Z%22%20fill%3D%22%23505562%22%2F%3E%0A%3Cpath%20d%3D%22M4.93126%2014.1571L6.78106%203.71471H10.1375C11.1917%203.71471%2011.9824%203.98323%2012.5095%204.52027C13.0465%205.04736%2013.315%205.73358%2013.315%206.57892C13.315%207.44414%2013.0714%208.15522%2012.5841%208.71215C12.1067%209.25913%2011.4553%209.63705%2010.6298%209.8459L12.0619%2014.1571H10.3315L9.03364%2010.0249H7.24351L6.51254%2014.1571H4.93126ZM7.49711%208.59281H9.24248C9.99832%208.59281%2010.5901%208.42374%2011.0177%208.08561C11.4553%207.73753%2011.6741%207.26513%2011.6741%206.66842C11.6741%206.19106%2011.5249%205.81811%2011.2265%205.54959C10.9282%205.27113%2010.4558%205.1319%209.80936%205.1319H8.10874L7.49711%208.59281Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E%0A">
+      <bpmn:documentation>The process instance stops here and waits until the job is complete. The engine will not call the microservice, but instead wait to be called by a job worker that subscribes to the job type "io.camunda:http-json:1". Once the engine is notified by the worker that the task is completed, the process instance continues.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="post" target="method" />
+          <zeebe:input source="=&#34;https://b6907c60-dba0-49ff-bbb3-9599981ad398.mock.pstmn.io/reserveSeats&#34;" target="url" />
+          <zeebe:input source="20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="={&#10;&#34;ticketNumber&#34; : &#34;AO-112233&#34;,&#10;&#34;flightNumber&#34;: &#34;KJ345N&#34;,&#10;&#34;numOfSeats&#34;: 2&#10;}" target="body" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultVariable" />
+          <zeebe:header key="resultExpression" value="= {&#34;seatNumbers&#34;: response.body.seatNumbers}" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_19ebf54</bpmn:incoming>
+      <bpmn:outgoing>Flow_0qbwde5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:boundaryEvent id="AfterFiveMinutesTimer" name="after 5 minutes" attachedToRef="WaitForPaymentReceivedEvent">
+      <bpmn:documentation>This timer event is interrupting. The engine will cancel the Receive Task "Wait for payment received event" if it is not completed within 5 minutes. In case of the time out, the engine will end the process in the End Event "Booking cancelled".</bpmn:documentation>
+      <bpmn:outgoing>Flow_012b8wg</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_17ojlyf">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT5M</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_19ebf54" sourceRef="StartEvent_1" targetRef="ReserveSeatsActivity" />
+    <bpmn:sequenceFlow id="Flow_0mwrroh" sourceRef="Activity_0lox1kf" targetRef="WaitForPaymentReceivedEvent" />
+    <bpmn:sequenceFlow id="Flow_0podi1a" sourceRef="WaitForPaymentReceivedEvent" targetRef="Activity_0etdda4" />
+    <bpmn:sequenceFlow id="Flow_19x2sei" sourceRef="Activity_0etdda4" targetRef="Event_1mqmjv4" />
+    <bpmn:sequenceFlow id="Flow_012b8wg" sourceRef="AfterFiveMinutesTimer" targetRef="Event_05eni0s" />
+    <bpmn:sequenceFlow id="Flow_0qbwde5" sourceRef="ReserveSeatsActivity" targetRef="Activity_0lox1kf" />
+  </bpmn:process>
+  <bpmn:message id="Message_04xnjbt" name="msg-payment-received">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=paymentRequestId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:error id="Error_11kp03o" name="ErrorSeatsNotAvailable" errorCode="ErrorSeatsNotAvailable" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0t1vxrh">
+      <bpmndi:BPMNShape id="Participant_0yfjoqi_di" bpmnElement="template-ticket-booking-participant" isHorizontal="true">
+        <dc:Bounds x="160" y="79" width="940" height="301" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="229" y="189" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="223" y="232" width="48" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0z5d04d_di" bpmnElement="WaitForPaymentReceivedEvent">
+        <dc:Bounds x="640" y="167" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1mqmjv4_di" bpmnElement="Event_1mqmjv4">
+        <dc:Bounds x="932" y="189" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="923" y="232" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_05eni0s_di" bpmnElement="Event_05eni0s">
+        <dc:Bounds x="762" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="735" y="355" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_08lfvn8_di" bpmnElement="Activity_0etdda4">
+        <dc:Bounds x="790" y="167" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0uh4iz4_di" bpmnElement="Activity_0lox1kf">
+        <dc:Bounds x="500" y="167" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0esfq8r_di" bpmnElement="ReserveSeatsActivity">
+        <dc:Bounds x="320" y="167" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0pqivlb_di" bpmnElement="AfterFiveMinutesTimer">
+        <dc:Bounds x="692" y="229" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="723" y="263" width="74" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_19ebf54_di" bpmnElement="Flow_19ebf54">
+        <di:waypoint x="265" y="207" />
+        <di:waypoint x="320" y="207" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0mwrroh_di" bpmnElement="Flow_0mwrroh">
+        <di:waypoint x="600" y="207" />
+        <di:waypoint x="640" y="207" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0podi1a_di" bpmnElement="Flow_0podi1a">
+        <di:waypoint x="740" y="207" />
+        <di:waypoint x="790" y="207" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19x2sei_di" bpmnElement="Flow_19x2sei">
+        <di:waypoint x="890" y="207" />
+        <di:waypoint x="932" y="207" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_012b8wg_di" bpmnElement="Flow_012b8wg">
+        <di:waypoint x="710" y="265" />
+        <di:waypoint x="710" y="330" />
+        <di:waypoint x="762" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0qbwde5_di" bpmnElement="Flow_0qbwde5">
+        <di:waypoint x="420" y="207" />
+        <di:waypoint x="500" y="207" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_1xi7sa7_di" bpmnElement="Participant_1l2gxa0" isHorizontal="true">
+        <dc:Bounds x="474" y="450" width="300" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_03ofn7t_di" bpmnElement="SeatReservationParticipant" isHorizontal="true">
+        <dc:Bounds x="160" y="450" width="300" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_0whvqa2_di" bpmnElement="Participant_1i465kq" isHorizontal="true">
+        <dc:Bounds x="800" y="450" width="300" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_11rhvrd_di" bpmnElement="Flow_11rhvrd">
+        <di:waypoint x="340" y="247" />
+        <di:waypoint x="340" y="450" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="352" y="403" width="78" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_08b5p57_di" bpmnElement="Flow_08b5p57">
+        <di:waypoint x="550" y="247" />
+        <di:waypoint x="550" y="450" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="561" y="393" width="78" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1lm74ik_di" bpmnElement="Flow_1lm74ik">
+        <di:waypoint x="660" y="450" />
+        <di:waypoint x="660" y="247" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="671" y="393" width="78" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02bhzx9_di" bpmnElement="Flow_02bhzx9">
+        <di:waypoint x="840" y="247" />
+        <di:waypoint x="840" y="450" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="845" y="393" width="30" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
