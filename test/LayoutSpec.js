@@ -2,7 +2,7 @@ import fs, { promises as fsPromises } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-import { layoutProcess } from '../lib/index.js';
+import { layoutProcess } from 'bpmn-auto-layout';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
