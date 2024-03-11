@@ -6,8 +6,11 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
-* `DEPS`: update to `bpmn-moddle@9.0.1`
+## 0.5.0
+
+* `FIX`: drop broken `main` export
 * `CHORE`: require Node >= 18
+* `DEPS`: update to `bpmn-moddle@9.0.1`
 
 ### Breaking Changes
 
