@@ -6,6 +6,8 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+* `DEPS`: update to `bpmn-moddle@9.0.1`
+
 ## 0.4.0
 
 * `FEAT`: improve connection exiting from boundary events ([`7048c86`](https://github.com/bpmn-io/bpmn-auto-layout/commit/7048c8682985409613f854202f727853a13bfe44))
