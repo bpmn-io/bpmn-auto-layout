@@ -38,7 +38,7 @@
   },
   "homepage": "https://github.com/bpmn-io/bpmn-auto-layout#readme",
   "dependencies": {
-    "bpmn-moddle": "^8.0.1",
+    "bpmn-moddle": "^9.0.0",
     "min-dash": "^4.1.1"
   },
   "devDependencies": {
@@ -47,7 +47,7 @@
     "eslint-plugin-bpmn-io": "^1.0.0",
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
-    "rollup": "^3.24.0"
+    "rollup": "^4.12.1"
   },
   "engines": {
     "node": ">= 10.0.0",
