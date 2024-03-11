@@ -1,12 +1,13 @@
-import fs, { promises as fsPromises } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
 
 import { layoutProcess } from 'bpmn-auto-layout';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const outputDirectory = __dirname + '/generated/';
+
 
 describe('Layout', function() {
 
@@ -33,18 +34,18 @@ describe('Layout', function() {
   });
 
 
-  after(async () => {
+  after(() => {
 
-    const generatedFiles = await fsPromises.readdir(outputDirectory);
+    const generatedFiles = fs.readdirSync(outputDirectory);
 
     const generatedDiagrams = generatedFiles.filter(f => f.endsWith('.bpmn'));
 
-    const originalContents = await Promise.all(
-      generatedDiagrams.map(diagram => fsPromises.readFile(__dirname + '/fixtures/' + diagram, 'utf8'))
+    const originalContents = generatedDiagrams.map(
+      diagram => fs.readFileSync(__dirname + '/fixtures/' + diagram, 'utf8')
     );
 
-    const generatedContents = await Promise.all(
-      generatedDiagrams.map(diagram => fsPromises.readFile(outputDirectory + diagram, 'utf8'))
+    const generatedContents = generatedDiagrams.map(
+      diagram => fs.readFileSync(outputDirectory + diagram, 'utf8')
     );
 
     const generated = generatedContents.map((contents, idx) => {
@@ -149,7 +150,7 @@ describe('Layout', function() {
   </body>
 </html>`;
 
-    await fsPromises.writeFile(__dirname + '/generated/test.html', html, 'utf8');
+    fs.writeFileSync(__dirname + '/generated/test.html', html, 'utf8');
   });
 
 });
