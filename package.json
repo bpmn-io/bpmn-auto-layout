@@ -13,9 +13,10 @@
     "dist"
   ],
   "scripts": {
-    "all": "run-s lint test build",
+    "all": "run-s lint test",
     "lint": "eslint .",
-    "test": "mocha --experimental-specifier-resolution=node",
+    "test": "mocha",
+    "pretest": "run-s build",
     "build": "rollup -c",
     "prepare": "run-s build"
   },
