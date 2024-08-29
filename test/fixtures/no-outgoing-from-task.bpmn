@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="CreditCardFraudDisputeHandling" name="Credit Card Fraud Dispute Handling" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1" name="Fraud dispute received">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_RequestDocuments" />
+    <bpmn:sendTask id="Task_RequestDocuments" name="Request necessary documents from customer">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_RequestDocuments" targetRef="SubProcess_WaitForResponse" />
+    <bpmn:subProcess id="SubProcess_WaitForResponse" name="Wait for customer response">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:startEvent id="StartEvent_SubProcess" name="Start waiting">
+        <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="Flow_3" sourceRef="StartEvent_SubProcess" targetRef="IntermediateTimerEvent_1" />
+      <bpmn:intermediateCatchEvent id="IntermediateTimerEvent_1" name="Wait 2 days">
+        <bpmn:incoming>Flow_3</bpmn:incoming>
+        <bpmn:outgoing>Flow_4</bpmn:outgoing>
+        <bpmn:timerEventDefinition id="TimerEventDefinition_1" />
+      </bpmn:intermediateCatchEvent>
+      <bpmn:sequenceFlow id="Flow_4" sourceRef="IntermediateTimerEvent_1" targetRef="Task_SendReminder" />
+      <bpmn:sendTask id="Task_SendReminder" name="Send reminder to customer">
+        <bpmn:incoming>Flow_4</bpmn:incoming>
+        <bpmn:outgoing>Flow_5</bpmn:outgoing>
+      </bpmn:sendTask>
+      <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_SendReminder" targetRef="IntermediateTimerEvent_1" />
+      <bpmn:boundaryEvent id="BoundaryEvent_1" attachedToRef="Task_SendReminder">
+        <bpmn:escalationEventDefinition id="EscalationEventDefinition_1" />
+      </bpmn:boundaryEvent>
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="SubProcess_WaitForResponse" targetRef="Gateway_1" />
+    <bpmn:exclusiveGateway id="Gateway_1" name="Documents received?">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_7" name="Yes" sourceRef="Gateway_1" targetRef="Task_SaveDocuments" />
+    <bpmn:sequenceFlow id="Flow_8" name="No" sourceRef="Gateway_1" targetRef="EndEvent_2" />
+    <bpmn:serviceTask id="Task_SaveDocuments" name="Save documents">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_SaveDocuments" targetRef="EndEvent_1" />
+    <bpmn:endEvent id="EndEvent_1" name="Documents saved">
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_2" name="Documents not received">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+</bpmn:definitions>
