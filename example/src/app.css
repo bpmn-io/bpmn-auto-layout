@@ -14,11 +14,12 @@ body {
 }
 
 #modeler {
+  position: relative;
   flex-grow: 1;
+}
 
-  .bjs-powered-by {
-    display: none;
-  }
+.bjs-powered-by {
+  display: none;
 }
 
 #viewer {
@@ -54,9 +55,20 @@ body {
   }
 }
 
-#file-open {
+.buttons {
   position: absolute;
   bottom: 20px;
-  left: 20px;
   font-size: 12px;
+
+  button:not(:last-child) {
+    margin-right: 4px;
+  }
+}
+
+.buttons-modeler {
+  left: 20px;
+}
+
+.buttons-viewer {
+  right: 20px;
 }
