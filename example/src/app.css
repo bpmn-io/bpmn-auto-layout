@@ -1,0 +1,62 @@
+html,
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: row;
+}
+
+#modeler {
+  flex-grow: 1;
+
+  .bjs-powered-by {
+    display: none;
+  }
+}
+
+#viewer {
+  position: relative;
+  flex-grow: 1;
+  margin: 4px 4px 4px 0;
+  background: hsl(225, 10%, 97%);
+  border: solid 1px hsl(225, 10%, 75%);
+  border-radius: 4px;
+
+  .bjs-breadcrumbs {
+    top: 20px;
+    left: 20px;
+  }
+}
+
+.drop-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+
+  .box {
+    .label {
+      font-size: 12px;
+    }
+  }
+}
+
+#file-open {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  font-size: 12px;
+}
