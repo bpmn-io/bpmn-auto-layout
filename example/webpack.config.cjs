@@ -7,10 +7,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   mode: 'development',
   entry: {
-    app: path.resolve(__dirname, './example/src/app.js'),
+    app: path.resolve(__dirname, './src/app.js'),
   },
   output: {
-    path: path.resolve(__dirname, './example/dist'),
+    path: path.resolve(__dirname, './dist'),
     filename: '[name].bundle.js',
   },
   module: {
@@ -32,7 +32,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './example/src/index.html',
+      template: './src/index.html',
     })
   ],
   devtool: 'eval-source-map',
