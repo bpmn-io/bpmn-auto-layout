@@ -18,6 +18,7 @@
     "test": "mocha",
     "pretest": "run-s build",
     "build": "rollup -c",
+    "build:example": "npm run build -w example",
     "prepare": "run-s build",
     "start": "npm run start -w example"
   },
