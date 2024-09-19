@@ -36,25 +36,6 @@ body {
   }
 }
 
-.drop-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.75);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-
-  .box {
-    .label {
-      font-size: 12px;
-    }
-  }
-}
-
 .buttons {
   position: absolute;
   bottom: 20px;
@@ -71,4 +52,38 @@ body {
 
 .buttons-viewer {
   right: 20px;
+}
+
+
+/** file-drops */
+
+.drop-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+
+  padding: 50px;
+
+  background: rgba(255, 255, 255, .9);
+
+  z-index: 1000;
+}
+
+.drop-overlay .box {
+  text-align: center;
+  border: dashed 4px #CCC;
+  height: 100%;
+  width: 100%;
+  display: table;
+}
+
+.drop-overlay .label {
+  font-size: 26px;
+  color: #888;
+  margin: auto;
+
+  display: table-cell;
+  vertical-align: middle;
 }
