@@ -8,6 +8,8 @@ import BPMNModdle from 'bpmn-moddle';
 import fileDrop from 'file-drops';
 import fileOpen from 'file-open';
 
+import download from 'downloadjs';
+
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-js.css';
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
@@ -100,3 +102,16 @@ async function isValidXML(xml) {
     return false;
   }
 }
+
+const downloadXML = async (bpmnjs) => {
+  const { xml } = await bpmnjs.saveXML({ format: true });
+
+  download(
+    'data:application/xml;charset=UTF-8,' + encodeURIComponent(xml),
+    'diagram.bpmn',
+    'application/xml'
+  );
+};
+
+document.getElementById('download-modeler').addEventListener('click', () => downloadXML(modeler));
+document.getElementById('download-viewer').addEventListener('click', () => downloadXML(viewer));
