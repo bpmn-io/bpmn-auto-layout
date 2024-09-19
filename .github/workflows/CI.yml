@@ -21,3 +21,12 @@ jobs:
       run: npm ci
     - name: Build
       run: npm run all
+    - name: Build (Example)
+      run: npm run build:example
+    - name: Update example
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      env:
+        GIT_USER_NAME: ${{secrets.BPMN_IO_USER_NAME}}
+        GIT_USER_EMAIL: ${{secrets.BPMN_IO_EMAIL}}
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      run: tasks/update-example
