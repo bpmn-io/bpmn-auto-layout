@@ -4,7 +4,6 @@
 
 Get a layouted diagram of a BPMN process without graphical representation.
 
-
 ## Usage
 
 This library works in [Node.js](https://nodejs.org/) and in the browser.
@@ -27,21 +26,24 @@ The Tool can currently not properly layout diagrams containing any of the follow
 - Data/Message Flows and Objects, Data Stores
 - event sub-processes
 
-
 ## Resources
 
 *   [Issues](https://github.com/bpmn-io/bpmn-auto-layout/issues)
 
-
-## Building
+## Build and Run
 
 ```sh
+# install dependencies
 npm install
+
+# build the and run tests
 npm run all
+
+# run example
+npm start
 ```
 
 As part of the test run, visual test cases are generated to `test/generated/test.html`.
-
 
 ## License
 
