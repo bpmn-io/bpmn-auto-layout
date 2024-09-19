@@ -20,7 +20,7 @@ cd "$GH_PAGES_DIR"
 git checkout --orphan gh-pages
 git reset --hard
 
-(cd "$WORK_DIR" && cp -r example/* $GH_PAGES_DIR)
+(cd "$WORK_DIR" && cp -r example/dist/* $GH_PAGES_DIR)
 
 
 if [[ "x$SKIP_COMMIT" = "x" ]]; then
