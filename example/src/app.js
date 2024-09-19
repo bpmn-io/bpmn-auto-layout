@@ -3,8 +3,6 @@ import Modeler from 'bpmn-js/lib/Modeler.js';
 
 import { layoutProcess } from '../../lib/index.js';
 
-import BPMNModdle from 'bpmn-moddle';
-
 import fileDrop from 'file-drops';
 import fileOpen from 'file-open';
 
@@ -17,6 +15,8 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 import './app.css';
 
 import diagram from './diagram.bpmn';
+
+let fileName = 'diagram.bpmn';
 
 const modeler = new Modeler({
   container: '#modeler',
@@ -52,66 +52,64 @@ const update = async () => {
 
 modeler.on([ 'import.done', 'elements.changed' ], update);
 
-modeler
-  .importXML(diagram)
-  .then(({ warnings }) => {
-    if (warnings.length) {
-      console.log(warnings);
-    }
+// helpers ////////////
 
-    const canvas = modeler.get('canvas');
+function openDiagram(diagram) {
+  return modeler.importXML(diagram)
+    .then(({ warnings }) => {
+      if (warnings.length) {
+        console.warn(warnings);
+      }
 
-    canvas.zoom('fit-viewport');
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+      modeler.get('canvas').zoom('fit-viewport');
+    })
+    .catch(err => {
+      console.error(err);
+    });
+}
 
-document.body.addEventListener('dragover', fileDrop('Drop a file', async (files) => {
-  const [ file ] = files;
+function openFile(files) {
 
-  const { contents } = file;
+  // files = [ { name, contents }, ... ]
 
-  if (await isValidXML(contents)) {
-    modeler.importXML(contents);
+  if (!files.length) {
+    return;
   }
-}));
 
-const button = document.querySelector('#file-open');
+  fileName = files[0].name;
 
-button.addEventListener('click', async function() {
-  const files = await fileOpen({ multiple: false });
+  openDiagram(files[0].contents);
+}
 
-  const [ file ] = files;
+function downloadDiagram(modeler) {
+  return modeler.saveXML({ format: true }).then(
+    ({ xml }) => download(xml, fileName, 'application/xml')
+  );
+}
 
-  const { contents } = file;
+document.body.addEventListener('dragover', fileDrop('Open BPMN diagram', openFile), false);
 
-  if (await isValidXML(contents)) {
-    modeler.importXML(contents);
+const openButton = document.querySelector('#file-open');
+
+openButton.addEventListener('click', function() {
+  return fileOpen().then(openFile);
+});
+
+document.body.addEventListener('keydown', function(event) {
+  if (event.code === 'KeyS' && (event.metaKey || event.ctrlKey)) {
+    event.preventDefault();
+
+    downloadDiagram(modeler);
+  }
+
+  if (event.code === 'KeyO' && (event.metaKey || event.ctrlKey)) {
+    event.preventDefault();
+
+    fileOpen().then(openFile);
   }
 });
 
-async function isValidXML(xml) {
-  const moddle = new BPMNModdle();
+document.querySelector('#download-modeler').addEventListener('click', () => downloadDiagram(modeler));
+document.querySelector('#download-viewer').addEventListener('click', () => downloadDiagram(viewer));
 
-  try {
-    await moddle.fromXML(xml);
-
-    return true;
-  } catch (err) {
-    return false;
-  }
-}
-
-const downloadXML = async (bpmnjs) => {
-  const { xml } = await bpmnjs.saveXML({ format: true });
-
-  download(
-    'data:application/xml;charset=UTF-8,' + encodeURIComponent(xml),
-    'diagram.bpmn',
-    'application/xml'
-  );
-};
-
-document.getElementById('download-modeler').addEventListener('click', () => downloadXML(modeler));
-document.getElementById('download-viewer').addEventListener('click', () => downloadXML(viewer));
+openDiagram(diagram);
