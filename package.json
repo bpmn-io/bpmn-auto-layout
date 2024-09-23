@@ -16,6 +16,7 @@
     "all": "run-s lint test",
     "lint": "eslint .",
     "test": "mocha",
+    "test:update-snapshots": "cross-env UPDATE_SNAPSHOTS=true mocha",
     "pretest": "run-s build",
     "build": "rollup -c",
     "build:example": "npm run build -w example",
@@ -45,6 +46,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.1.0",
+    "cross-env": "^7.0.3",
     "eslint": "^8.41.0",
     "eslint-plugin-bpmn-io": "^1.0.0",
     "mocha": "^10.2.0",

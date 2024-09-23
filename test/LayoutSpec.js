@@ -1,166 +1,120 @@
+import assert from 'node:assert';
 import fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
+import path from 'node:path';
+import url from 'node:url';
 
 import { layoutProcess } from 'bpmn-auto-layout';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const outputDirectory = __dirname + '/generated/';
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const fixturesDirectory = path.join(__dirname, 'fixtures');
+const outputDirectory = path.join(__dirname, 'output');
+const snapshotsDirectory = path.join(__dirname, 'snapshots');
+
+const UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === 'true';
 
 
 describe('Layout', function() {
 
-  const filenames = fs.readdirSync('test/fixtures');
-
   before(() => {
-
-    // Clean result directory
     fs.rmSync(outputDirectory, { recursive: true, force: true });
     fs.mkdirSync(outputDirectory, { recursive: true });
+
+    if (UPDATE_SNAPSHOTS) {
+      fs.rmSync(snapshotsDirectory, { recursive: true, force: true });
+      fs.mkdirSync(snapshotsDirectory, { recursive: true });
+    }
   });
 
-  filenames.forEach(filename => {
+  fs.readdirSync(fixturesDirectory)
+    .filter(fileName => fileName.endsWith('.bpmn'))
+    .forEach(fileName => {
+      iit(fileName)(`should layout ${ fileName }`, async function() {
 
-    const iit = getIt(filename);
+        // given
+        const xml = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
 
-    iit('should layout ' + filename, async function() {
-      const xml = fs.readFileSync('test/fixtures/' + filename, 'utf8');
+        // when
+        const output = await layoutProcess(xml);
 
-      const result = await layoutProcess(xml);
+        fs.writeFileSync(path.join(outputDirectory, fileName), output, 'utf8');
 
-      fs.writeFileSync(outputDirectory + filename, result, 'utf8');
+        if (UPDATE_SNAPSHOTS) {
+          fs.writeFileSync(path.join(snapshotsDirectory, fileName), output, 'utf8');
+        } else if (fs.existsSync(path.join(snapshotsDirectory, fileName))) {
+          const snapshot = fs.readFileSync(path.join(snapshotsDirectory, fileName), 'utf8');
+
+          // then
+          assert.strictEqual(output, snapshot, `Snapshot does not match output for ${ fileName }`);
+        }
+      });
     });
-  });
 
 
   after(() => {
+    const results = fs.readdirSync(outputDirectory).filter(f => f.endsWith('.bpmn')).reduce((results, fileName) => {
 
-    const generatedFiles = fs.readdirSync(outputDirectory);
+      const diagram = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
 
-    const generatedDiagrams = generatedFiles.filter(f => f.endsWith('.bpmn'));
+      const diagramOutput = fs.readFileSync(path.join(outputDirectory, fileName), 'utf8');
 
-    const originalContents = generatedDiagrams.map(
-      diagram => fs.readFileSync(__dirname + '/fixtures/' + diagram, 'utf8')
+      let diagramSnapshot = null;
+
+      if (fs.existsSync(path.join(snapshotsDirectory, fileName))) {
+        diagramSnapshot = fs.readFileSync(path.join(snapshotsDirectory, fileName), 'utf8');
+      }
+
+      let diagramSnapshotMatching = null;
+
+      if (diagramSnapshot) {
+
+        if (diagramSnapshot === diagramOutput) {
+          diagramSnapshotMatching = true;
+        } else {
+          diagramSnapshotMatching = false;
+
+          console.error(`Snapshot does not match output for ${ fileName }`);
+        }
+      }
+
+      return [
+        ...results,
+        {
+          diagram,
+          diagramOutput,
+          diagramSnapshot,
+          diagramSnapshotMatching,
+          name: fileName
+        }
+      ];
+    }, []);
+
+    const template = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8');
+
+    const index = template.replace(
+      /\/\* results-start \*\/[\s\S]*\/\* results-end \*\//,
+      `const results = ${ JSON.stringify(results) };`
     );
 
-    const generatedContents = generatedDiagrams.map(
-      diagram => fs.readFileSync(outputDirectory + diagram, 'utf8')
-    );
-
-    const generated = generatedContents.map((contents, idx) => {
-
-      return {
-        diagram: generatedDiagrams[idx],
-        generatedContents: generatedContents[idx],
-        originalContents: originalContents[idx]
-      };
-    });
-
-    const config = JSON.stringify(generated);
-
-    const html = `
-<html>
-  <head>
-    <title>bpmn-auto-layouter - visual tests</title>
-    <style>
-      .title {
-        font-family: monospace;
-        margin-bottom: 10px;
-        margin-top: 10px;
-        font-weight: bold;
-      }
-
-      .container {
-        height: 400px;
-        width: 48%;
-        display: inline-block;
-        position: relative;
-        border: solid 1px #CCC;
-      }
-
-      .container + .container {
-        margin-left: 5px;
-      }
-
-      .parent {
-        margin-bottom: 30px;
-      }
-    </style>
-    <link rel="stylesheet" href="https://unpkg.com/bpmn-js/dist/assets/diagram-js.css">
-    <link rel="stylesheet" href="https://unpkg.com/bpmn-js/dist/assets/bpmn-js.css">
-  </head>
-  <body>
-    <script src="https://unpkg.com/bpmn-js/dist/bpmn-viewer.production.min.js"></script>
-    <script>
-      const config = ${config};
-
-      for (const { diagram, generatedContents, originalContents } of config) {
-
-        const parent = document.createElement('div');
-        parent.className = 'parent';
-
-        const title = document.createElement('div');
-        title.className = 'title';
-        title.textContent = 'test/generated/' + diagram;
-
-        const containerParent = document.createElement('div');
-        containerParent.className = 'container-parent';
-
-        const containerBefore = document.createElement('div');
-        containerBefore.className = 'container before';
-
-        const containerAfter = document.createElement('div');
-        containerAfter.className = 'container after';
-
-        parent.appendChild(title);
-        parent.appendChild(containerParent);
-
-        containerParent.appendChild(containerBefore);
-        containerParent.appendChild(containerAfter);
-
-        document.body.appendChild(parent);
-
-        const originalViewer = new BpmnJS({
-          container: containerBefore
-        });
-
-        originalViewer.importXML(originalContents, function(err) {
-          if (err) {
-            console.log('ERROR: %s failed to import', diagram, err);
-          }
-
-          originalViewer.get('canvas').zoom('fit-viewport');
-        });
-
-
-        const generatedViewer = new BpmnJS({
-          container: containerAfter
-        });
-
-        generatedViewer.importXML(generatedContents, function(err) {
-          if (err) {
-            console.log('ERROR: %s failed to import', diagram, err);
-          }
-
-          generatedViewer.get('canvas').zoom('fit-viewport');
-        });
-      }
-    </script>
-  </body>
-</html>`;
-
-    fs.writeFileSync(__dirname + '/generated/test.html', html, 'utf8');
+    fs.writeFileSync(path.join(outputDirectory, 'index.html'), index, 'utf8');
   });
 
 });
 
-function getIt(name) {
-  if (name.startsWith('ONLY')) {
+
+/**
+ * Return the matcher for the spec of the given name.
+ *
+ * @param {string} fileName
+ * @return {any} mochaFN
+ */
+function iit(fileName) {
+  if (fileName.startsWith('ONLY')) {
     return it.only;
   }
 
-  if (name.startsWith('SKIP')) {
+  if (fileName.startsWith('SKIP')) {
     return it.skip;
   }
 
