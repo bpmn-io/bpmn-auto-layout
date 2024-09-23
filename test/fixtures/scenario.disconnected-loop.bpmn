@@ -18,9 +18,6 @@
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="Flow_18uu265" sourceRef="Gateway_12t5yhu" targetRef="Activity_0bd4p8f" />
   </bpmn:process>
-  <bpmn:error id="Error_0gyjhl0" name="ErrorInData" errorCode="ErrorInData" />
-  <bpmn:error id="Error_0df5ic3" name="FailedToCreateRecord" errorCode="FailedToCreateRecord" />
-  <bpmn:error id="Error_0u57r6m" name="ProblemProcessingData" errorCode="ProblemProcessingData" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="template-error-handling">
       <bpmndi:BPMNShape id="Event_0dgburo_di" bpmnElement="Event_0dgburo">
