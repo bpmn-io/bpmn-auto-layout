@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_01p3jf9" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.28.0-rc.1" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.0.0" camunda:diagramRelationId="a0d0615c-3547-410d-a6d0-e0f5f7c190e8">
+  <bpmn:process id="template-error-handling" name="Error Handling Example" isExecutable="true">
+    <bpmn:extensionElements>
+      <zeebe:userTaskForm id="userTaskForm_1q238ds" />
+    </bpmn:extensionElements>
+    <bpmn:startEvent id="Event_0dgburo" />
+    <bpmn:task id="Activity_0bd4p8f">
+      <bpmn:incoming>Flow_18uu265</bpmn:incoming>
+      <bpmn:outgoing>Flow_0emxg0w</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_12t5yhu">
+      <bpmn:incoming>Flow_00zencn</bpmn:incoming>
+      <bpmn:outgoing>Flow_18uu265</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_00zencn" sourceRef="Event_1r3tot9" targetRef="Gateway_12t5yhu" />
+    <bpmn:boundaryEvent id="Event_1r3tot9" attachedToRef="Activity_0bd4p8f">
+      <bpmn:outgoing>Flow_00zencn</bpmn:outgoing>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_18uu265" sourceRef="Gateway_12t5yhu" targetRef="Activity_0bd4p8f" />
+    <bpmn:task id="Activity_18hs9o4">
+      <bpmn:incoming>Flow_0emxg0w</bpmn:incoming>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0emxg0w" sourceRef="Activity_0bd4p8f" targetRef="Activity_18hs9o4" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_template-error-handling">
+    <bpmndi:BPMNPlane id="BPMNPlane_template-error-handling" bpmnElement="template-error-handling">
+      <bpmndi:BPMNShape id="Event_0dgburo_di" bpmnElement="Event_0dgburo">
+        <dc:Bounds x="57" y="52" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0bd4p8f_di" bpmnElement="Activity_0bd4p8f">
+        <dc:Bounds x="25" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1r3tot9_di" bpmnElement="Event_1r3tot9">
+        <dc:Bounds x="57" y="232" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_18hs9o4_di" bpmnElement="Activity_18hs9o4">
+        <dc:Bounds x="175" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_12t5yhu_di" bpmnElement="Gateway_12t5yhu" isMarkerVisible="true">
+        <dc:Bounds x="200" y="325" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0emxg0w_di" bpmnElement="Flow_0emxg0w">
+        <di:waypoint x="125" y="210" />
+        <di:waypoint x="175" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_00zencn_di" bpmnElement="Flow_00zencn">
+        <di:waypoint x="75" y="268" />
+        <di:waypoint x="75" y="350" />
+        <di:waypoint x="200" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18uu265_di" bpmnElement="Flow_18uu265">
+        <di:waypoint x="225" y="375" />
+        <di:waypoint x="225" y="420" />
+        <di:waypoint x="75" y="420" />
+        <di:waypoint x="75" y="250" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
