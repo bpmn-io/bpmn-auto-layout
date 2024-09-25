@@ -2,33 +2,35 @@
 
 [![CI](https://github.com/bpmn-io/bpmn-auto-layout/actions/workflows/CI.yml/badge.svg)](https://github.com/bpmn-io/bpmn-auto-layout/actions/workflows/CI.yml)
 
-Get a layouted diagram of a BPMN process without graphical representation.
+Create and layout the graphical representation of a BPMN diagram.
 
 ## Usage
 
-This library works in [Node.js](https://nodejs.org/) and in the browser.
-
-To layout diagrams these must have __exactly one single start event__.
+This library works with [Node.js](https://nodejs.org/) and in the browser.
 
 ```javascript
 import { layoutProcess } from 'bpmn-auto-layout';
 
-const diagramXML = '<bpmn:defintions ...></bpmn:defintions>';
+import diagramXML from './diagram.bpmn';
 
-const layoutedDiagramXML = await layoutProcess(diagramXML);
+const diagramWithLayoutXML = await layoutProcess(diagramXML);
 
-console.log(layoutedDiagramXML);
+console.log(diagramWithLayoutXML);
 ```
-## Unsupported Concepts and elements
 
-The Tool can currently not properly layout diagrams containing any of the following:
-- Pools
-- Data/Message Flows and Objects, Data Stores
-- event sub-processes
+## Limitations
+
+* Given a collaboration only the first participant's process will be laid out
+* Sub-processes will be laid out as collapsed sub-processes
+* The following elements are not laid out:
+  * Groups
+  * Text annotations
+  * Associations
+  * Message flows
 
 ## Resources
 
-*   [Issues](https://github.com/bpmn-io/bpmn-auto-layout/issues)
+* [Issues](https://github.com/bpmn-io/bpmn-auto-layout/issues)
 
 ## Build and Run
 
@@ -36,14 +38,29 @@ The Tool can currently not properly layout diagrams containing any of the follow
 # install dependencies
 npm install
 
-# build the and run tests
+# build and run tests
 npm run all
 
 # run example
 npm start
 ```
 
-As part of the test run, visual test cases are generated to `test/generated/test.html`.
+## Test
+
+We use snapshot testing to verify old and new layout attempts. A mismatch is indicated as a test failure.
+
+```sh
+# run tests
+npm test
+
+# inspect the results
+npm run test:inspect
+
+# run update snapshots
+npm run test:update-snapshots
+```
+
+Add new test cases to [`test/fixtures`](./test/fixures) and they will be picked up automatically.
 
 ## License
 
