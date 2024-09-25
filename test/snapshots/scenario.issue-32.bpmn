@@ -101,16 +101,16 @@
         <dc:Bounds x="650" y="45" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="exclusiveGateway3_di" bpmnElement="exclusiveGateway3" isMarkerVisible="true">
-        <dc:Bounds x="800" y="45" width="50" height="50" />
+        <dc:Bounds x="1250" y="45" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="task9_di" bpmnElement="task9">
-        <dc:Bounds x="925" y="30" width="100" height="80" />
+        <dc:Bounds x="1375" y="30" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="exclusiveGateway4_di" bpmnElement="exclusiveGateway4" isMarkerVisible="true">
-        <dc:Bounds x="1100" y="45" width="50" height="50" />
+        <dc:Bounds x="1550" y="45" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="endEvent_di" bpmnElement="endEvent">
-        <dc:Bounds x="1257" y="52" width="36" height="36" />
+        <dc:Bounds x="1707" y="52" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="task3_di" bpmnElement="task3">
         <dc:Bounds x="775" y="170" width="100" height="80" />
@@ -148,7 +148,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="exclusiveGateway2-exclusiveGateway3_di" bpmnElement="exclusiveGateway2-exclusiveGateway3">
         <di:waypoint x="700" y="70" />
-        <di:waypoint x="800" y="70" />
+        <di:waypoint x="1250" y="70" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="exclusiveGateway2-task3_di" bpmnElement="exclusiveGateway2-task3">
         <di:waypoint x="675" y="95" />
@@ -161,22 +161,22 @@
         <di:waypoint x="775" y="350" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="exclusiveGateway3-task9_di" bpmnElement="exclusiveGateway3-task9">
-        <di:waypoint x="850" y="70" />
-        <di:waypoint x="925" y="70" />
+        <di:waypoint x="1300" y="70" />
+        <di:waypoint x="1375" y="70" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="task9-exclusiveGateway4_di" bpmnElement="task9-exclusiveGateway4">
-        <di:waypoint x="1025" y="70" />
-        <di:waypoint x="1100" y="70" />
+        <di:waypoint x="1475" y="70" />
+        <di:waypoint x="1550" y="70" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="exclusiveGateway4-exclusiveGateway1_di" bpmnElement="exclusiveGateway4-exclusiveGateway1">
-        <di:waypoint x="1125" y="45" />
-        <di:waypoint x="1125" y="0" />
+        <di:waypoint x="1575" y="45" />
+        <di:waypoint x="1575" y="0" />
         <di:waypoint x="225" y="0" />
         <di:waypoint x="225" y="45" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="exclusiveGateway4-endEvent_di" bpmnElement="exclusiveGateway4-endEvent">
-        <di:waypoint x="1150" y="70" />
-        <di:waypoint x="1257" y="70" />
+        <di:waypoint x="1600" y="70" />
+        <di:waypoint x="1707" y="70" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="task3-task4_di" bpmnElement="task3-task4">
         <di:waypoint x="875" y="210" />
@@ -188,11 +188,8 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="task5-exclusiveGateway3_di" bpmnElement="task5-exclusiveGateway3">
         <di:waypoint x="1175" y="210" />
-        <di:waypoint x="1200" y="210" />
-        <di:waypoint x="1200" y="140" />
-        <di:waypoint x="750" y="140" />
-        <di:waypoint x="750" y="70" />
-        <di:waypoint x="800" y="70" />
+        <di:waypoint x="1275" y="210" />
+        <di:waypoint x="1275" y="95" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="task6-task7_di" bpmnElement="task6-task7">
         <di:waypoint x="875" y="350" />
@@ -204,11 +201,8 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="task8-exclusiveGateway3_di" bpmnElement="task8-exclusiveGateway3">
         <di:waypoint x="1175" y="350" />
-        <di:waypoint x="1200" y="350" />
-        <di:waypoint x="1200" y="140" />
-        <di:waypoint x="750" y="140" />
-        <di:waypoint x="750" y="70" />
-        <di:waypoint x="800" y="70" />
+        <di:waypoint x="1275" y="350" />
+        <di:waypoint x="1275" y="95" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
