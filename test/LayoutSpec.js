@@ -100,6 +100,12 @@ describe('Layout', function() {
     fs.writeFileSync(path.join(outputDirectory, 'index.html'), index, 'utf8');
   });
 
+  this.afterAll(() => {
+    console.log('\nRun `npm run test:inspect` to inspect results.');
+
+    console.log('\nRun `npm run test:update-snapshots` to re-build snapshots.');
+  });
+
 });
 
 
