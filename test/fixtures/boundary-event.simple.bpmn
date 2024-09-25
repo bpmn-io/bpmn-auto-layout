@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.28.0-rc.0">
+  <bpmn:process id="CreditCardFraudDisputeHandling" name="Credit Card Fraud Dispute Handling" isExecutable="false">
+    <bpmn:task id="Activity_170dub4">
+      <bpmn:incoming>Flow_1wytt5w</bpmn:incoming>
+      <bpmn:outgoing>Flow_1guv5l8</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:boundaryEvent id="Event_0f0q2gz" attachedToRef="Activity_170dub4">
+      <bpmn:outgoing>Flow_06n2ega</bpmn:outgoing>
+    </bpmn:boundaryEvent>
+    <bpmn:endEvent id="Event_01xq0ps">
+      <bpmn:incoming>Flow_06n2ega</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_06n2ega" sourceRef="Event_0f0q2gz" targetRef="Event_01xq0ps" />
+    <bpmn:endEvent id="Event_1w296ux">
+      <bpmn:incoming>Flow_1guv5l8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1guv5l8" sourceRef="Activity_170dub4" targetRef="Event_1w296ux" />
+    <bpmn:startEvent id="Event_0ardfkw">
+      <bpmn:outgoing>Flow_1wytt5w</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1wytt5w" sourceRef="Event_0ardfkw" targetRef="Activity_170dub4" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_CreditCardFraudDisputeHandling">
+    <bpmndi:BPMNPlane id="BPMNPlane_CreditCardFraudDisputeHandling" bpmnElement="CreditCardFraudDisputeHandling">
+      <bpmndi:BPMNShape id="Activity_170dub4_di" bpmnElement="Activity_170dub4">
+        <dc:Bounds x="260" y="50" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_01xq0ps_di" bpmnElement="Event_01xq0ps">
+        <dc:Bounds x="392" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1w296ux_di" bpmnElement="Event_1w296ux">
+        <dc:Bounds x="412" y="72" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ardfkw_di" bpmnElement="Event_0ardfkw">
+        <dc:Bounds x="152" y="72" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0aewqqa_di" bpmnElement="Event_0f0q2gz">
+        <dc:Bounds x="302" y="112" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_06n2ega_di" bpmnElement="Flow_06n2ega">
+        <di:waypoint x="320" y="148" />
+        <di:waypoint x="320" y="210" />
+        <di:waypoint x="392" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1guv5l8_di" bpmnElement="Flow_1guv5l8">
+        <di:waypoint x="360" y="90" />
+        <di:waypoint x="412" y="90" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1wytt5w_di" bpmnElement="Flow_1wytt5w">
+        <di:waypoint x="188" y="90" />
+        <di:waypoint x="260" y="90" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
