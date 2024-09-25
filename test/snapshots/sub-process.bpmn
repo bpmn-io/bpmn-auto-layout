@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" id="Definitions_13fbzpq" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.26.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" id="Definitions_13fbzpq" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.28.0-rc.0">
   <bpmn:process id="Process_1" isExecutable="true">
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>SequenceFlow_1mszyzk</bpmn:outgoing>
@@ -11,10 +11,6 @@
       <bpmn:outgoing>SequenceFlow_02hvcgf</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_19h83er</bpmn:outgoing>
     </bpmn:parallelGateway>
-    <bpmn:task id="Task_0ld66b4">
-      <bpmn:incoming>SequenceFlow_03esriq</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0tg7drp</bpmn:outgoing>
-    </bpmn:task>
     <bpmn:sequenceFlow id="SequenceFlow_03esriq" sourceRef="ExclusiveGateway_0sq3174" targetRef="Task_0ld66b4" />
     <bpmn:sequenceFlow id="SequenceFlow_0tg7drp" sourceRef="Task_0ld66b4" targetRef="ExclusiveGateway_0r8lvxp" />
     <bpmn:parallelGateway id="ExclusiveGateway_0r8lvxp">
@@ -51,6 +47,20 @@
       </bpmn:endEvent>
       <bpmn:sequenceFlow id="SequenceFlow_1q664hi" sourceRef="Task_0dbcp5s" targetRef="EndEvent_1oe3ly7" />
     </bpmn:subProcess>
+    <bpmn:subProcess id="Task_0ld66b4">
+      <bpmn:incoming>SequenceFlow_03esriq</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0tg7drp</bpmn:outgoing>
+    </bpmn:subProcess>
+    <bpmn:subProcess id="Activity_1arffcs" triggeredByEvent="true">
+      <bpmn:startEvent id="Event_03gw0g6" isInterrupting="false">
+        <bpmn:outgoing>Flow_1snl3y9</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="MessageEventDefinition_09reu77" />
+      </bpmn:startEvent>
+      <bpmn:task id="Activity_1rv3mcn">
+        <bpmn:incoming>Flow_1snl3y9</bpmn:incoming>
+      </bpmn:task>
+      <bpmn:sequenceFlow id="Flow_1snl3y9" sourceRef="Event_03gw0g6" targetRef="Activity_1rv3mcn" />
+    </bpmn:subProcess>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_Process_1">
     <bpmndi:BPMNPlane id="BPMNPlane_Process_1" bpmnElement="Process_1">
@@ -68,6 +78,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_103kypw_di" bpmnElement="EndEvent_103kypw">
         <dc:Bounds x="657" y="52" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1arffcs_di" bpmnElement="Activity_1arffcs">
+        <dc:Bounds x="25" y="170" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Task_0zrq2vz_di" bpmnElement="Task_0zrq2vz">
         <dc:Bounds x="325" y="170" width="100" height="80" />
@@ -136,5 +149,22 @@
   </bpmndi:BPMNDiagram>
   <bpmndi:BPMNDiagram id="BPMNDiagram_Task_0zrq2vz">
     <bpmndi:BPMNPlane id="BPMNPlane_Task_0zrq2vz" bpmnElement="Task_0zrq2vz" />
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Task_0ld66b4">
+    <bpmndi:BPMNPlane id="BPMNPlane_Task_0ld66b4" bpmnElement="Task_0ld66b4" />
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Activity_1arffcs">
+    <bpmndi:BPMNPlane id="BPMNPlane_Activity_1arffcs" bpmnElement="Activity_1arffcs">
+      <bpmndi:BPMNShape id="Event_03gw0g6_di" bpmnElement="Event_03gw0g6">
+        <dc:Bounds x="57" y="52" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1rv3mcn_di" bpmnElement="Activity_1rv3mcn">
+        <dc:Bounds x="175" y="30" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1snl3y9_di" bpmnElement="Flow_1snl3y9">
+        <di:waypoint x="93" y="70" />
+        <di:waypoint x="175" y="70" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
