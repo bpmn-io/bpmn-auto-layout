@@ -49,10 +49,13 @@
         display: none;
       }
 
-      .sub-container.error {
+      .sub-container.message {
         display: flex;
         justify-content: center;
         align-items: center;
+      }
+
+      .sub-container.error {
         background-color: rgba(255, 0, 0, 0.25);
         color: #F00;
       }
@@ -597,36 +600,12 @@
           }
         });
 
-        diagramViewer.importXML(diagram).then(({ warnings }) => {
-          if (warnings.length) {
-            console.warn(warnings);
-          }
-
-          diagramViewer.get('canvas').zoom('fit-viewport');
-        }).catch(err => {
-          console.error(err);
-
-          subContainerDiagram.classList.add('error');
-
-          subContainerDiagram.textContent = `Error: ${err.message}`;
-        });
-
         const diagramSnapshotViewer = new BpmnJS({
           container: subContainerSnapshot,
           bpmnRenderer: {
             defaultStrokeColor: 'red'
           }
         });
-
-        if (diagramSnapshot && diagramSnapshotMatching === false) {
-          diagramSnapshotViewer.importXML(diagramSnapshot).then(({ warnings }) => {
-            if (warnings.length) {
-              console.warn(warnings);
-            }
-
-            diagramSnapshotViewer.get('canvas').zoom('fit-viewport');
-          });
-        }
 
         const diagramOutputViewer = new BpmnJS({
           container: subContainerOutput,
@@ -635,23 +614,57 @@
           }
         });
 
-        diagramOutputViewer.importXML(diagramOutput).then(({ warnings }) => {
-          if (warnings.length) {
-            console.warn(warnings);
+        const errors = Promise.all([
+          diagramViewer.importXML(diagram).then(({ warnings }) => {
+            if (warnings.length) {
+              console.warn(warnings);
+            }
+
+            diagramViewer.get('canvas').zoom('fit-viewport');
+          }).catch(err => {
+            console.error('Viewer render error', err);
+
+            subContainerDiagram.textContent = `Error: ${err.message}`;
+            subContainerDiagram.classList.add('message');
+
+            return err;
+          }),
+
+          diagramOutputViewer.importXML(diagramOutput).then(({ warnings }) => {
+            if (warnings.length) {
+              console.warn(warnings);
+            }
+
+            diagramOutputViewer.get('canvas').zoom('fit-viewport');
+
+            if (diagramSnapshot) {
+              diagramSnapshotViewer.get('canvas').viewbox(diagramOutputViewer.get('canvas').viewbox());
+            }
+          }).catch(err => {
+            console.error('Output render error', err);
+
+            subContainerOutput.textContent = `Error: ${err.message}`;
+            subContainerOutput.classList.add('message');
+          })
+        ]);
+
+        if (diagramSnapshot && diagramSnapshotMatching === false) {
+          diagramSnapshotViewer.importXML(diagramSnapshot).then(({ warnings }) => {
+            if (warnings.length) {
+              console.warn(warnings);
+            }
+
+            diagramSnapshotViewer.get('canvas').zoom('fit-viewport');
+          }).catch(err => {
+            console.error('Snapshot render error', err);
+          });
+        }
+
+        errors.then(([ a, b ]) => {
+          if (a && b && a.message !== b.message) {
+            subContainerOutput.classList.add('error');
           }
-
-          diagramOutputViewer.get('canvas').zoom('fit-viewport');
-
-          if (diagramSnapshot) {
-            diagramSnapshotViewer.get('canvas').viewbox(diagramOutputViewer.get('canvas').viewbox());
-          }
-        }).catch(err => {
-          console.error(err);
-
-          subContainerOutput.classList.add('error');
-
-          subContainerOutput.textContent = `Error: ${err.message}`;
-        });;
+        });
 
         let isSyncing = false;
 
