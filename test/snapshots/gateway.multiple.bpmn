@@ -111,12 +111,10 @@
         <di:waypoint x="657" y="210" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_137be2r_di" bpmnElement="Flow_137be2r">
-        <di:waypoint x="1025" y="210" />
-        <di:waypoint x="1050" y="210" />
-        <di:waypoint x="1050" y="140" />
-        <di:waypoint x="150" y="140" />
-        <di:waypoint x="150" y="70" />
-        <di:waypoint x="200" y="70" />
+        <di:waypoint x="975" y="250" />
+        <di:waypoint x="975" y="280" />
+        <di:waypoint x="225" y="280" />
+        <di:waypoint x="225" y="95" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
