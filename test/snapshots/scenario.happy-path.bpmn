@@ -53,10 +53,10 @@
         <di:waypoint x="325" y="70" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1cp2keh_di" bpmnElement="Flow_1cp2keh">
-        <di:waypoint x="225" y="30" />
-        <di:waypoint x="225" y="0" />
-        <di:waypoint x="525" y="0" />
-        <di:waypoint x="525" y="45" />
+        <di:waypoint x="225" y="110" />
+        <di:waypoint x="225" y="140" />
+        <di:waypoint x="525" y="140" />
+        <di:waypoint x="525" y="95" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_04fevuo_di" bpmnElement="Flow_04fevuo">
         <di:waypoint x="425" y="70" />

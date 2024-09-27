@@ -169,10 +169,10 @@
         <di:waypoint x="1550" y="70" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="exclusiveGateway4-exclusiveGateway1_di" bpmnElement="exclusiveGateway4-exclusiveGateway1">
-        <di:waypoint x="1575" y="45" />
-        <di:waypoint x="1575" y="0" />
-        <di:waypoint x="225" y="0" />
-        <di:waypoint x="225" y="45" />
+        <di:waypoint x="1575" y="95" />
+        <di:waypoint x="1575" y="140" />
+        <di:waypoint x="225" y="140" />
+        <di:waypoint x="225" y="95" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="exclusiveGateway4-endEvent_di" bpmnElement="exclusiveGateway4-endEvent">
         <di:waypoint x="1600" y="70" />
