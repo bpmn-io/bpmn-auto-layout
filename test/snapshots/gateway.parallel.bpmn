@@ -99,16 +99,16 @@
         <di:waypoint x="350" y="210" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_15k0y3x_di" bpmnElement="SequenceFlow_15k0y3x">
-        <di:waypoint x="225" y="45" />
-        <di:waypoint x="225" y="0" />
-        <di:waypoint x="825" y="0" />
-        <di:waypoint x="825" y="45" />
+        <di:waypoint x="225" y="95" />
+        <di:waypoint x="225" y="140" />
+        <di:waypoint x="825" y="140" />
+        <di:waypoint x="825" y="95" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_00ndemc_di" bpmnElement="SequenceFlow_00ndemc">
-        <di:waypoint x="225" y="45" />
-        <di:waypoint x="225" y="0" />
-        <di:waypoint x="825" y="0" />
-        <di:waypoint x="825" y="45" />
+        <di:waypoint x="225" y="95" />
+        <di:waypoint x="225" y="140" />
+        <di:waypoint x="825" y="140" />
+        <di:waypoint x="825" y="95" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1b1x3wc_di" bpmnElement="SequenceFlow_1b1x3wc">
         <di:waypoint x="425" y="70" />
