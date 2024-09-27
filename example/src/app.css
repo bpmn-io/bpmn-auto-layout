@@ -36,24 +36,50 @@ body {
   }
 }
 
-.buttons {
+.links {
   position: absolute;
-  bottom: 20px;
+  z-index: 1;
   font-size: 12px;
 
-  button:not(:last-child) {
-    margin-right: 4px;
+  button + button {
+    margin-left: 8px;
   }
 }
 
-.buttons-modeler {
+.bottom-links {
+  bottom: 20px;
+}
+
+.bottom-links-modeler {
   left: 20px;
 }
 
-.buttons-viewer {
+.bottom-links-viewer {
   right: 20px;
 }
 
+.top-links {
+  top: 20px;
+  right: 20px;
+}
+
+button.link,
+a.link {
+  color: #212121;
+  display: inline-block;
+  padding: 6px 10px;
+  font-size: 16px;
+  border-radius: 2px;
+  background-color: #EFEFEF;
+  text-decoration: none;
+  border: none;
+}
+
+button.link:hover,
+a.link:hover {
+  color: #FFFFFF;
+  background-color: #10D070;
+}
 
 /** file-drops */
 
