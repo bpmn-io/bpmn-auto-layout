@@ -6,6 +6,17 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+## 1.0.0
+
+* `FEAT`: add playground ([#60](https://github.com/bpmn-io/bpmn-auto-layout/pull/60))
+* `FIX`: empty process definition ([#43](https://github.com/bpmn-io/bpmn-auto-layout/commit/6d01c2901e3fba4c3ae1aa8d1e77f6d821beb937))
+* `FIX`: element without outgoing ([#45](https://github.com/bpmn-io/bpmn-auto-layout/commit/8cbac2bbf27d063188c42ea6b996df46d14684f7))
+* `FIX`: no process definition ([#46](https://github.com/bpmn-io/bpmn-auto-layout/commit/f38812638f35ae49691a9d701f42e550cbff4405))
+* `FIX`: prevent empty space after element ([#47](https://github.com/bpmn-io/bpmn-auto-layout/issues/47))
+* `FIX`: correct gateway layouting in various cases ([#67](https://github.com/bpmn-io/bpmn-auto-layout/issues/67), [#63](https://github.com/bpmn-io/bpmn-auto-layout/issues/63), [#67](https://github.com/bpmn-io/bpmn-auto-layout/issues/67), [#62](https://github.com/bpmn-io/bpmn-auto-layout/issues/62))
+* `FIX`: layout happy path first ([#72](https://github.com/bpmn-io/bpmn-auto-layout/issues/72))
+* `FIX`: handle disconnected elements ([#64](https://github.com/bpmn-io/bpmn-auto-layout/issues/64))
+
 ## 0.5.0
 
 * `FIX`: drop broken `main` export
