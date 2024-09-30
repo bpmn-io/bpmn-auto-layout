@@ -8,6 +8,15 @@ body {
   padding: 0;
 }
 
+h2 {
+  position: absolute;
+  left: 50%;
+  text-align: center;
+  z-index: 1;
+  transform: translateX(-50%);
+  margin: 20px auto;
+}
+
 body {
   display: flex;
   flex-direction: row;
