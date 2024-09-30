@@ -2,8 +2,8 @@
   "name": "example",
   "private": true,
   "scripts": {
-    "build": "webpack",
-    "start": "webpack serve --open"
+    "build": "cross-env NODE_ENV=production webpack",
+    "start": "cross-env NODE_ENV=development webpack serve --open"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -15,6 +15,7 @@
     "file-drops": "^0.5.0",
     "file-open": "^0.1.1",
     "html-webpack-plugin": "^5.6.0",
+    "mini-css-extract-plugin": "^2.9.1",
     "raw-loader": "^4.0.2",
     "style-loader": "^4.0.0",
     "webpack": "^5.94.0",
