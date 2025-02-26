@@ -10,7 +10,6 @@
       <bpmn:outgoing>SequenceFlow_1g0ldz5</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0vqubcb</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_15k0y3x</bpmn:outgoing>
-      <bpmn:outgoing>SequenceFlow_00ndemc</bpmn:outgoing>
     </bpmn:parallelGateway>
     <bpmn:task id="Task_0dqmpit" name="C.1">
       <bpmn:incoming>SequenceFlow_1g0ldz5</bpmn:incoming>
@@ -21,7 +20,6 @@
     <bpmn:parallelGateway id="ExclusiveGateway_17yfy5y" name="F">
       <bpmn:incoming>SequenceFlow_1b1x3wc</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1e7sech</bpmn:incoming>
-      <bpmn:incoming>SequenceFlow_00ndemc</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_15k0y3x</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0hmcbcm</bpmn:outgoing>
     </bpmn:parallelGateway>
@@ -54,7 +52,6 @@
     <bpmn:sequenceFlow id="SequenceFlow_1ql4chl" sourceRef="ExclusiveGateway_1gto2rc" targetRef="Task_09y0vk9" />
     <bpmn:sequenceFlow id="SequenceFlow_1lqp8vz" sourceRef="Task_09y0vk9" targetRef="ExclusiveGateway_0f2qh4c" />
     <bpmn:sequenceFlow id="SequenceFlow_15k0y3x" sourceRef="ExclusiveGateway_1pew5ft" targetRef="ExclusiveGateway_17yfy5y" />
-    <bpmn:sequenceFlow id="SequenceFlow_00ndemc" sourceRef="ExclusiveGateway_1pew5ft" targetRef="ExclusiveGateway_17yfy5y" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_Process_1">
     <bpmndi:BPMNPlane id="BPMNPlane_Process_1" bpmnElement="Process_1">
@@ -99,12 +96,6 @@
         <di:waypoint x="350" y="210" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_15k0y3x_di" bpmnElement="SequenceFlow_15k0y3x">
-        <di:waypoint x="225" y="95" />
-        <di:waypoint x="225" y="140" />
-        <di:waypoint x="825" y="140" />
-        <di:waypoint x="825" y="95" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_00ndemc_di" bpmnElement="SequenceFlow_00ndemc">
         <di:waypoint x="225" y="95" />
         <di:waypoint x="225" y="140" />
         <di:waypoint x="825" y="140" />
