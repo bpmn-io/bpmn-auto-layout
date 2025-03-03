@@ -60,7 +60,7 @@ npm run test:inspect
 npm run test:update-snapshots
 ```
 
-Add new test cases to [`test/fixtures`](./test/fixures) and they will be picked up automatically.
+Add new test cases to [`test/fixtures`](./test/fixtures) and they will be picked up automatically.
 
 ## License
 
