@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import url from 'node:url';
+import BPMNModdle from 'bpmn-moddle';
 
 import { layoutProcess } from 'bpmn-auto-layout';
 
@@ -11,6 +12,7 @@ const __dirname = path.dirname(__filename);
 const fixturesDirectory = path.join(__dirname, 'fixtures');
 const outputDirectory = path.join(__dirname, 'output');
 const snapshotsDirectory = path.join(__dirname, 'snapshots');
+const customDirectory = path.join(__dirname, 'custom');
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === 'true';
 
@@ -30,7 +32,7 @@ describe('Layout', function() {
   fs.readdirSync(fixturesDirectory)
     .filter(fileName => fileName.endsWith('.bpmn'))
     .forEach(fileName => {
-      iit(fileName)(`should layout ${ fileName }`, async function() {
+      iit(fileName)(`should layout ${fileName}`, async function() {
 
         // given
         const xml = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
@@ -46,7 +48,7 @@ describe('Layout', function() {
           const snapshot = fs.readFileSync(path.join(snapshotsDirectory, fileName), 'utf8');
 
           // then
-          assert.strictEqual(output, snapshot, `Snapshot does not match output for ${ fileName }`);
+          assert.strictEqual(output, snapshot, `Snapshot does not match output for ${fileName}`);
         }
       });
     });
@@ -74,7 +76,7 @@ describe('Layout', function() {
         } else {
           diagramSnapshotMatching = false;
 
-          console.error(`Snapshot does not match output for ${ fileName }`);
+          console.error(`Snapshot does not match output for ${fileName}`);
         }
       }
 
@@ -94,7 +96,7 @@ describe('Layout', function() {
 
     const index = template.replace(
       /\/\* results-start \*\/[\s\S]*\/\* results-end \*\//,
-      `const results = ${ JSON.stringify(results) };`
+      `const results = ${JSON.stringify(results)};`
     );
 
     fs.writeFileSync(path.join(outputDirectory, 'index.html'), index, 'utf8');
@@ -106,6 +108,57 @@ describe('Layout', function() {
     console.log('\nRun `npm run test:update-snapshots` to re-build snapshots.');
   });
 
+});
+describe('LayoutFailure', function() {
+
+  fs.readdirSync(customDirectory)
+    .filter(fileName => fileName.endsWith('.bpmn'))
+    .forEach(fileName => {
+      iit(fileName)(`should layout ${fileName} fail`, async function() {
+        // given
+        const xml = fs.readFileSync(path.join(customDirectory, fileName), 'utf8');
+        // when
+        await assert.rejects(
+          async () => await layoutProcess(xml),
+          Error,
+          `Expected layoutProcess to throw for ${fileName}`
+        );
+      });
+    });
+});
+
+describe('LayoutCustom', function() {
+
+  fs.readdirSync(customDirectory)
+    .filter(fileName => fileName.endsWith('.bpmn'))
+    .forEach(fileName => {
+      iit(fileName)(`should successfully layout ${fileName}`, async function() {
+        // given
+        const xml = fs.readFileSync(path.join(customDirectory, fileName), 'utf8');
+        // when
+
+        await layoutProcess(xml, new BPMNModdle({
+          custom: {
+            'name': 'custom',
+            'uri': 'http://example/spec/1.0/custom',
+            'prefix': 'custom',
+            'xml': {
+              'tagAlias': 'lowerCase'
+            },
+            'associations': [],
+            'types': [
+              {
+                'name': 'Task',
+                'superClass': [
+                  'bpmn:ServiceTask'
+                ]
+              }
+            ],
+            'emumerations': []
+          }
+        }));
+      });
+    });
 });
 
 

@@ -15,6 +15,9 @@ import diagramXML from './diagram.bpmn';
 
 const diagramWithLayoutXML = await layoutProcess(diagramXML);
 
+// or (support custom moddler)
+const diagramWithLayoutXML = await layoutProcess(diagramXML, viewer.get('moddler'));
+
 console.log(diagramWithLayoutXML);
 ```
 
