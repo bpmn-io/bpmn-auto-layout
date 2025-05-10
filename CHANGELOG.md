@@ -6,6 +6,10 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+## 1.0.1
+
+* `FIX`: improve layout of gateway loop ([#94](https://github.com/bpmn-io/bpmn-auto-layout/issues/94))
+
 ## 1.0.0
 
 * `FEAT`: add playground ([#60](https://github.com/bpmn-io/bpmn-auto-layout/pull/60))

@@ -43,10 +43,9 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0dimcke_di" bpmnElement="SequenceFlow_0dimcke">
         <di:waypoint x="375" y="128" />
-        <di:waypoint x="375" y="140" />
-        <di:waypoint x="450" y="140" />
-        <di:waypoint x="450" y="70" />
-        <di:waypoint x="250" y="70" />
+        <di:waypoint x="375" y="180" />
+        <di:waypoint x="225" y="180" />
+        <di:waypoint x="225" y="95" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

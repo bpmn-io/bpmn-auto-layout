@@ -29,8 +29,10 @@
         <di:waypoint x="175" y="210" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_128ka86_di" bpmnElement="Flow_128ka86">
-        <di:waypoint x="175" y="210" />
-        <di:waypoint x="100" y="210" />
+        <di:waypoint x="225" y="250" />
+        <di:waypoint x="225" y="280" />
+        <di:waypoint x="75" y="280" />
+        <di:waypoint x="75" y="235" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
