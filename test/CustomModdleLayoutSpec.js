@@ -3,19 +3,41 @@ import fs from 'node:fs';
 import path from 'node:path';
 import url from 'node:url';
 
+import BpmnModdle from 'bpmn-moddle';
 import { layoutProcess } from 'bpmn-auto-layout';
+
+const moddle = new BpmnModdle({
+  'custom': {
+    'name': 'custom',
+    'uri': 'http://example/spec/1.0/custom',
+    'prefix': 'custom',
+    'xml': {
+      'tagAlias': 'lowerCase'
+    },
+    'associations': [],
+    'types': [
+      {
+        'name': 'Task',
+        'superClass': [
+          'bpmn:ServiceTask'
+        ]
+      }
+    ],
+    'emumerations': []
+  }
+});
 
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const fixturesDirectory = path.join(__dirname, 'fixtures');
-const outputDirectory = path.join(__dirname, 'output');
+const outputDirectory = path.join(__dirname, 'custom/output');
 const snapshotsDirectory = path.join(__dirname, 'snapshots');
+const customDirectory = path.join(__dirname, 'custom');
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === 'true';
 
 
-describe('Layout', function() {
+describe('LayoutWithExtension', function() {
 
   before(() => {
     fs.rmSync(outputDirectory, { recursive: true, force: true });
@@ -27,16 +49,16 @@ describe('Layout', function() {
     }
   });
 
-  fs.readdirSync(fixturesDirectory)
+  fs.readdirSync(customDirectory)
     .filter(fileName => fileName.endsWith('.bpmn'))
     .forEach(fileName => {
-      iit(fileName)(`should layout ${ fileName }`, async function() {
+      iit(fileName)(`should layout ${fileName}`, async function() {
 
         // given
-        const xml = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
+        const xml = fs.readFileSync(path.join(customDirectory, fileName), 'utf8');
 
         // when
-        const output = await layoutProcess(xml);
+        const output = await layoutProcess(xml, moddle);
 
         fs.writeFileSync(path.join(outputDirectory, fileName), output, 'utf8');
 
@@ -46,7 +68,7 @@ describe('Layout', function() {
           const snapshot = fs.readFileSync(path.join(snapshotsDirectory, fileName), 'utf8');
 
           // then
-          assert.strictEqual(output, snapshot, `Snapshot does not match output for ${ fileName }`);
+          assert.strictEqual(output, snapshot, `Snapshot does not match output for ${fileName}`);
         }
       });
     });
@@ -55,7 +77,7 @@ describe('Layout', function() {
   after(() => {
     const results = fs.readdirSync(outputDirectory).filter(f => f.endsWith('.bpmn')).reduce((results, fileName) => {
 
-      const diagram = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
+      const diagram = fs.readFileSync(path.join(customDirectory, fileName), 'utf8');
 
       const diagramOutput = fs.readFileSync(path.join(outputDirectory, fileName), 'utf8');
 
@@ -74,7 +96,7 @@ describe('Layout', function() {
         } else {
           diagramSnapshotMatching = false;
 
-          console.error(`Snapshot does not match output for ${ fileName }`);
+          console.error(`Snapshot does not match output for ${fileName}`);
         }
       }
 
@@ -90,11 +112,11 @@ describe('Layout', function() {
       ];
     }, []);
 
-    const template = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8');
+    const template = fs.readFileSync(path.join(__dirname, 'template-with-extension.html'), 'utf8');
 
     const index = template.replace(
       /\/\* results-start \*\/[\s\S]*\/\* results-end \*\//,
-      `const results = ${ JSON.stringify(results) };`
+      `const results = ${JSON.stringify(results)};`
     );
 
     fs.writeFileSync(path.join(outputDirectory, 'index.html'), index, 'utf8');

@@ -1,0 +1,18 @@
+{
+  "name": "custom",
+  "uri": "http://example/spec/1.0/custom",
+  "prefix": "custom",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "Task",
+      "superClass": [
+        "bpmn:ServiceTask"
+      ]
+    }
+  ],
+  "emumerations": []
+}
