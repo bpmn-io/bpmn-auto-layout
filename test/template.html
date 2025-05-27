@@ -1,4 +1,4 @@
-<html>
+<html lang="en">
   <head>
     <title>bpmn-auto-layout - Visual Test</title>
     <style>
@@ -23,7 +23,7 @@
       .container-parent {
         display: flex;
         flex-direction: row;
-        flex-basis: 1;
+        flex-basis: auto;
       }
 
       .container {
@@ -43,6 +43,10 @@
         left: 0;
         right: 0;
         bottom: 0;
+      }
+
+      .snapshot-mismatch .output .djs-shape {
+        opacity: 75%;
       }
 
       .sub-container.snapshot .bjs-powered-by {
@@ -71,7 +75,7 @@
 
       .snapshot-match:not(:has(.error)) .container.after {
         border-color: #0F0;
-      } 
+      }
 
       .snapshot-mismatch:not(:has(.error)) .snapshot {
         background: rgba(255, 0, 0, 0.25);
