@@ -17,7 +17,7 @@ const UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === 'true';
 
 describe('Layout', function() {
 
-  before(() => {
+  before(function() {
     fs.rmSync(outputDirectory, { recursive: true, force: true });
     fs.mkdirSync(outputDirectory, { recursive: true });
 
@@ -52,7 +52,7 @@ describe('Layout', function() {
     });
 
 
-  after(() => {
+  after(function() {
     const results = fs.readdirSync(outputDirectory).filter(f => f.endsWith('.bpmn')).reduce((results, fileName) => {
 
       const diagram = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
