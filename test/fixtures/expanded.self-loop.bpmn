@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_17lno73" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.35.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:process id="Process_0vaccff" isExecutable="true">
+    <bpmn:subProcess id="Activity_13uv42f">
+      <bpmn:incoming>Flow_10z8wz4</bpmn:incoming>
+      <bpmn:outgoing>Flow_10z8wz4</bpmn:outgoing>
+      <bpmn:startEvent id="Event_1wk1li1" />
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_10z8wz4" sourceRef="Activity_13uv42f" targetRef="Activity_13uv42f" />
+    <bpmn:subProcess id="Activity_1u53pwc">
+      <bpmn:incoming>Flow_0y61mnc</bpmn:incoming>
+      <bpmn:startEvent id="Event_0dp2hnq" />
+    </bpmn:subProcess>
+    <bpmn:boundaryEvent id="Event_10irqhg" attachedToRef="Activity_1u53pwc">
+      <bpmn:outgoing>Flow_0y61mnc</bpmn:outgoing>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_0y61mnc" sourceRef="Event_10irqhg" targetRef="Activity_1u53pwc" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_0vaccff">
+      <bpmndi:BPMNShape id="Activity_13uv42f_di" bpmnElement="Activity_13uv42f" isExpanded="true">
+        <dc:Bounds x="180" y="110" width="350" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1wk1li1_di" bpmnElement="Event_1wk1li1">
+        <dc:Bounds x="220" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1u53pwc_di" bpmnElement="Activity_1u53pwc" isExpanded="true">
+        <dc:Bounds x="180" y="370" width="350" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0dp2hnq_di" bpmnElement="Event_0dp2hnq">
+        <dc:Bounds x="220" y="452" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0emtbmz_di" bpmnElement="Event_10irqhg">
+        <dc:Bounds x="220" y="552" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_10z8wz4_di" bpmnElement="Flow_10z8wz4">
+        <di:waypoint x="355" y="310" />
+        <di:waypoint x="355" y="330" />
+        <di:waypoint x="160" y="330" />
+        <di:waypoint x="160" y="210" />
+        <di:waypoint x="180" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0y61mnc_di" bpmnElement="Flow_0y61mnc">
+        <di:waypoint x="238" y="588" />
+        <di:waypoint x="238" y="608" />
+        <di:waypoint x="355" y="608" />
+        <di:waypoint x="355" y="570" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
