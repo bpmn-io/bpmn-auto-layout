@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0kpp760" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.35.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.23.0">
+  <bpmn:process id="Process_1dqidd7" isExecutable="true">
+    <bpmn:subProcess id="Activity_1tmag1d">
+      <bpmn:subProcess id="Activity_0rkxj4r">
+        <bpmn:subProcess id="Activity_12ccbb3" />
+      </bpmn:subProcess>
+    </bpmn:subProcess>
+    <bpmn:subProcess id="Activity_0m54mw7">
+      <bpmn:startEvent id="Event_1pag8e4" />
+      <bpmn:subProcess id="Activity_0xfpv3z">
+        <bpmn:startEvent id="Event_13wzph5" />
+        <bpmn:subProcess id="Activity_1rstnb4">
+          <bpmn:startEvent id="Event_13vrkkg" />
+        </bpmn:subProcess>
+      </bpmn:subProcess>
+    </bpmn:subProcess>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1dqidd7">
+      <bpmndi:BPMNShape id="Activity_1tmag1d_di" bpmnElement="Activity_1tmag1d" isExpanded="true">
+        <dc:Bounds x="160" y="80" width="600" height="360" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0rkxj4r_di" bpmnElement="Activity_0rkxj4r" isExpanded="true">
+        <dc:Bounds x="180" y="90" width="480" height="290" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_12ccbb3_di" bpmnElement="Activity_12ccbb3" isExpanded="true">
+        <dc:Bounds x="210" y="120" width="350" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0m54mw7_di" bpmnElement="Activity_0m54mw7" isExpanded="true">
+        <dc:Bounds x="160" y="500" width="780" height="440" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1pag8e4_di" bpmnElement="Event_1pag8e4">
+        <dc:Bounds x="200" y="682" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0xfpv3z_di" bpmnElement="Activity_0xfpv3z" isExpanded="true">
+        <dc:Bounds x="260" y="560" width="580" height="320" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_13wzph5_di" bpmnElement="Event_13wzph5">
+        <dc:Bounds x="300" y="702" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1rstnb4_di" bpmnElement="Activity_1rstnb4" isExpanded="true">
+        <dc:Bounds x="390" y="620" width="350" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_13vrkkg_di" bpmnElement="Event_13vrkkg">
+        <dc:Bounds x="430" y="702" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
