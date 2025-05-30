@@ -51,10 +51,10 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1qik4c5_di" bpmnElement="SequenceFlow_1qik4c5">
         <di:waypoint x="93" y="70" />
-        <di:waypoint x="175" y="280" />
+        <di:waypoint x="175" y="70" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0by4iku_di" bpmnElement="SequenceFlow_0by4iku">
-        <di:waypoint x="1175" y="280" />
+        <di:waypoint x="1175" y="70" />
         <di:waypoint x="1257" y="70" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="StartEvent_19eq95r_di" bpmnElement="StartEvent_19eq95r">
@@ -68,10 +68,10 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0rs96y6_di" bpmnElement="SequenceFlow_0rs96y6">
         <di:waypoint x="318" y="140" />
-        <di:waypoint x="400" y="210" />
+        <di:waypoint x="400" y="140" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_07r8z4e_di" bpmnElement="SequenceFlow_07r8z4e">
-        <di:waypoint x="950" y="210" />
+        <di:waypoint x="950" y="140" />
         <di:waypoint x="1032" y="140" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="StartEvent_0spidcu_di" bpmnElement="StartEvent_0spidcu">

@@ -76,7 +76,7 @@
         <dc:Bounds x="57" y="1312" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_0ttggga_di" bpmnElement="Flow_0ttggga">
-        <di:waypoint x="275" y="140" />
+        <di:waypoint x="275" y="70" />
         <di:waypoint x="475" y="70" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0oo7b6a_di" bpmnElement="Flow_0oo7b6a">
@@ -86,7 +86,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0kq1wgq_di" bpmnElement="Flow_0kq1wgq">
         <di:waypoint x="93" y="490" />
-        <di:waypoint x="475" y="560" />
+        <di:waypoint x="475" y="490" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0h4nch6_di" bpmnElement="Flow_0h4nch6">
         <di:waypoint x="125" y="770" />

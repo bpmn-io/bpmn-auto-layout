@@ -195,10 +195,10 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_17nttda_di" bpmnElement="Flow_17nttda">
         <di:waypoint x="1000" y="350" />
-        <di:waypoint x="1075" y="420" />
+        <di:waypoint x="1075" y="350" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1vt6ezk_di" bpmnElement="Flow_1vt6ezk">
-        <di:waypoint x="1925" y="420" />
+        <di:waypoint x="1925" y="350" />
         <di:waypoint x="1975" y="350" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_188kodm_di" bpmnElement="Flow_188kodm">
