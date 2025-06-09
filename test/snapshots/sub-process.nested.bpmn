@@ -44,7 +44,7 @@
         <dc:Bounds x="57" y="52" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="SubProcess_1ak5u5f_di" bpmnElement="SubProcess_1ak5u5f" isExpanded="true">
-        <dc:Bounds x="175" y="30" width="1000" height="500" />
+        <dc:Bounds x="175" y="30" width="1000" height="360" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_0dsko3k_di" bpmnElement="EndEvent_0dsko3k">
         <dc:Bounds x="1257" y="52" width="36" height="36" />
