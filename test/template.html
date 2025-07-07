@@ -1,4 +1,4 @@
-<html>
+<html lang="en">
   <head>
     <title>bpmn-auto-layout - Visual Test</title>
     <style>
@@ -23,7 +23,7 @@
       .container-parent {
         display: flex;
         flex-direction: row;
-        flex-basis: 1;
+        flex-basis: auto;
       }
 
       .container {
@@ -43,6 +43,10 @@
         left: 0;
         right: 0;
         bottom: 0;
+      }
+
+      .snapshot-mismatch .output .djs-shape {
+        opacity: 75%;
       }
 
       .sub-container.snapshot .bjs-powered-by {
@@ -71,7 +75,7 @@
 
       .snapshot-match:not(:has(.error)) .container.after {
         border-color: #0F0;
-      } 
+      }
 
       .snapshot-mismatch:not(:has(.error)) .snapshot {
         background: rgba(255, 0, 0, 0.25);
@@ -80,11 +84,44 @@
       .snapshot-mismatch:not(:has(.error)) .container.after {
         border-color: #F00;
       }
+
+      #scroll-container {
+        height: 100vh;
+        overflow-y: auto;
+      }
+
+      .statistic {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 100;
+        font-size: large;
+        display: flex;
+        gap: 10px;
+      }
+
+      #fail {
+        color: red;
+      }
+
+      #pass {
+        color: green;
+      }
+
+      #new {
+        color: blue;
+      }
     </style>
     <link rel="stylesheet" href="https://unpkg.com/bpmn-js/dist/assets/diagram-js.css">
     <link rel="stylesheet" href="https://unpkg.com/bpmn-js/dist/assets/bpmn-js.css">
   </head>
   <body>
+    <div class="statistic">
+      <div id="pass"></div>
+      <div id="fail"></div>
+      <div id="new"></div>
+    </div>
+    <div id="scroll-container"></div>
     <script src="https://unpkg.com/bpmn-js/dist/bpmn-navigated-viewer.development.js"></script>
     <script>
       /* results-start */
@@ -542,6 +579,44 @@
       ]
       /* results-end */
 
+      const scrollContainer = document.getElementById('scroll-container')
+
+      // save scroll position before unload
+      window.addEventListener('beforeunload', () => {
+        localStorage.setItem('scrollPosition', scrollContainer.scrollTop);
+      });
+
+      // save scroll position
+      let scrollTimeout;
+      scrollContainer.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          localStorage.setItem('scrollPosition', scrollContainer.scrollTop);
+        }, 100);
+      });
+
+      // set scroll position
+      window.addEventListener('load', () => {
+        const savedScrollPosition = localStorage.getItem('scrollPosition');
+        if (savedScrollPosition) {
+          scrollContainer.scrollTo(0, parseInt(savedScrollPosition));
+        }
+      });
+
+      /* show stat */
+      const passCount = results.filter(element => element.diagramSnapshotMatching).length
+      const failCount = results.filter(element => element.diagramSnapshotMatching === false).length
+      const newCount = results.filter(element => element.diagramSnapshotMatching === null).length
+
+      const failStat = document.getElementById('fail')
+      failStat.textContent = `fail: ${failCount}`
+
+      const passStat = document.getElementById('pass')
+      passStat.textContent = `pass: ${passCount}`
+
+      const newStat = document.getElementById('new')
+      newStat.textContent = `new: ${newCount}`
+
       for (const {
         diagram,
         diagramOutput,
@@ -578,7 +653,7 @@
         containerParent.appendChild(containerBefore);
         containerParent.appendChild(containerAfter);
 
-        document.body.appendChild(parent);
+        scrollContainer.appendChild(parent);
 
         const subContainerDiagram = document.createElement('div');
         subContainerDiagram.className = 'sub-container diagram';
