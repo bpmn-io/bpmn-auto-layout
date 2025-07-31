@@ -4,6 +4,8 @@
 
 Create and layout the graphical representation of a BPMN diagram.
 
+Try it out in [the example project](https://bpmn-io.github.io/bpmn-auto-layout/).
+
 ## Usage
 
 This library works with [Node.js](https://nodejs.org/) and in the browser.
