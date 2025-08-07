@@ -3,7 +3,7 @@ import Modeler from 'bpmn-js/lib/Modeler.js';
 
 import { layoutProcess } from '../../lib/index.js';
 
-import fileDrop from 'file-drops';
+import fileDrop from 'file-drops-safary-compatible';
 import fileOpen from 'file-open';
 
 import download from 'downloadjs';

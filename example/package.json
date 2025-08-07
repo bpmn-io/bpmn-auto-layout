@@ -12,7 +12,7 @@
     "bpmn-js": "^17.11.1",
     "css-loader": "^7.1.2",
     "downloadjs": "^1.4.7",
-    "file-drops": "^0.5.0",
+    "file-drops-safary-compatible": "^0.6.1",
     "file-open": "^0.1.1",
     "html-webpack-plugin": "^5.6.0",
     "mini-css-extract-plugin": "^2.9.1",
