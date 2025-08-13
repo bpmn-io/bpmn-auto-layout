@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="process_1" name="Dispatch of goods&#10;Computer Hardware Shop" isExecutable="false">
+    <bpmn:startEvent id="startEvent_1" name="Ship goods">
+      <bpmn:outgoing>sequenceFlow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:boundaryEvent id="boundaryEvent_1" name="48 hours" attachedToRef="task_7">
+      <bpmn:outgoing>sequenceFlow_11</bpmn:outgoing>
+      <bpmn:timerEventDefinition />
+    </bpmn:boundaryEvent>
+    <bpmn:endEvent id="endEvent_1" name="Shipment&#10;prepared">
+      <bpmn:incoming>sequenceFlow_9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="exclusiveGateway_1" name="Special&#10;handling?">
+      <bpmn:incoming>sequenceFlow_3</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_13</bpmn:outgoing>
+      <bpmn:outgoing>sequenceFlow_14</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="exclusiveGateway_2" name="">
+      <bpmn:incoming>sequenceFlow_7</bpmn:incoming>
+      <bpmn:incoming>sequenceFlow_8</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_17</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:inclusiveGateway id="inclusiveGateway_1" name="">
+      <bpmn:incoming>sequenceFlow_12</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_15</bpmn:outgoing>
+      <bpmn:outgoing>sequenceFlow_16</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:inclusiveGateway id="inclusiveGateway_2" name="">
+      <bpmn:incoming>sequenceFlow_4</bpmn:incoming>
+      <bpmn:incoming>sequenceFlow_5</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_8</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:inclusiveGateway id="inclusiveGateway_3" name="">
+      <bpmn:incoming>sequenceFlow_18</bpmn:incoming>
+      <bpmn:incoming>sequenceFlow_19</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_22</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:parallelGateway id="parallelGateway_1" name="">
+      <bpmn:incoming>sequenceFlow_1</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_2</bpmn:outgoing>
+      <bpmn:outgoing>sequenceFlow_10</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:parallelGateway id="parallelGateway_2" name="">
+      <bpmn:incoming>sequenceFlow_17</bpmn:incoming>
+      <bpmn:incoming>sequenceFlow_22</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_20</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="task_1" name="Insure parcel">
+      <bpmn:incoming>sequenceFlow_15</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_2" name="Clarify shipment method">
+      <bpmn:incoming>sequenceFlow_2</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_3" name="Write package&#10;label">
+      <bpmn:incoming>sequenceFlow_16</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_4" name="Get 3 offers&#10;from logistic&#10;companies">
+      <bpmn:incoming>sequenceFlow_13</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_5" name="Select logistic&#10;company and&#10;place order">
+      <bpmn:incoming>sequenceFlow_6</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_7</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_6" name="Check if insurance is required">
+      <bpmn:incoming>sequenceFlow_14</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_12</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_7" name="Package goods">
+      <bpmn:incoming>sequenceFlow_10</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_18</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_8" name="Move package to pickup area">
+      <bpmn:incoming>sequenceFlow_21</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_9</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_9" name="Notify customer about delay">
+      <bpmn:incoming>sequenceFlow_11</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_19</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="task_10" name="Fill out Shipment paperwork">
+      <bpmn:incoming>sequenceFlow_20</bpmn:incoming>
+      <bpmn:outgoing>sequenceFlow_21</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="sequenceFlow_1" name="" sourceRef="startEvent_1" targetRef="parallelGateway_1" />
+    <bpmn:sequenceFlow id="sequenceFlow_2" name="" sourceRef="parallelGateway_1" targetRef="task_2" />
+    <bpmn:sequenceFlow id="sequenceFlow_3" name="" sourceRef="task_2" targetRef="exclusiveGateway_1" />
+    <bpmn:sequenceFlow id="sequenceFlow_4" name="" sourceRef="task_3" targetRef="inclusiveGateway_2" />
+    <bpmn:sequenceFlow id="sequenceFlow_5" name="" sourceRef="task_1" targetRef="inclusiveGateway_2" />
+    <bpmn:sequenceFlow id="sequenceFlow_6" name="" sourceRef="task_4" targetRef="task_5" />
+    <bpmn:sequenceFlow id="sequenceFlow_7" name="" sourceRef="task_5" targetRef="exclusiveGateway_2" />
+    <bpmn:sequenceFlow id="sequenceFlow_8" name="" sourceRef="inclusiveGateway_2" targetRef="exclusiveGateway_2" />
+    <bpmn:sequenceFlow id="sequenceFlow_9" name="" sourceRef="task_8" targetRef="endEvent_1" />
+    <bpmn:sequenceFlow id="sequenceFlow_10" name="" sourceRef="parallelGateway_1" targetRef="task_7" />
+    <bpmn:sequenceFlow id="sequenceFlow_11" name="" sourceRef="boundaryEvent_1" targetRef="task_9" />
+    <bpmn:sequenceFlow id="sequenceFlow_12" name="" sourceRef="task_6" targetRef="inclusiveGateway_1" />
+    <bpmn:sequenceFlow id="sequenceFlow_13" name="yes" sourceRef="exclusiveGateway_1" targetRef="task_4" />
+    <bpmn:sequenceFlow id="sequenceFlow_14" name="no" sourceRef="exclusiveGateway_1" targetRef="task_6" />
+    <bpmn:sequenceFlow id="sequenceFlow_15" name="If insurance&#10;necessary" sourceRef="inclusiveGateway_1" targetRef="task_1" />
+    <bpmn:sequenceFlow id="sequenceFlow_16" name="always" sourceRef="inclusiveGateway_1" targetRef="task_3" />
+    <bpmn:sequenceFlow id="sequenceFlow_17" name="" sourceRef="exclusiveGateway_2" targetRef="parallelGateway_2" />
+    <bpmn:sequenceFlow id="sequenceFlow_18" name="" sourceRef="task_7" targetRef="inclusiveGateway_3" />
+    <bpmn:sequenceFlow id="sequenceFlow_19" name="" sourceRef="task_9" targetRef="inclusiveGateway_3" />
+    <bpmn:sequenceFlow id="sequenceFlow_20" name="" sourceRef="parallelGateway_2" targetRef="task_10" />
+    <bpmn:sequenceFlow id="sequenceFlow_21" name="" sourceRef="task_10" targetRef="task_8" />
+    <bpmn:sequenceFlow id="sequenceFlow_22" name="" sourceRef="inclusiveGateway_3" targetRef="parallelGateway_2" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_process_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_process_1" bpmnElement="process_1">
+      <bpmndi:BPMNShape id="startEvent_1_di" bpmnElement="startEvent_1">
+        <dc:Bounds x="57" y="52" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="parallelGateway_1_di" bpmnElement="parallelGateway_1">
+        <dc:Bounds x="200" y="45" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_2_di" bpmnElement="task_2">
+        <dc:Bounds x="325" y="30" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="exclusiveGateway_1_di" bpmnElement="exclusiveGateway_1" isMarkerVisible="true">
+        <dc:Bounds x="500" y="45" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_4_di" bpmnElement="task_4">
+        <dc:Bounds x="625" y="30" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_5_di" bpmnElement="task_5">
+        <dc:Bounds x="775" y="30" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="exclusiveGateway_2_di" bpmnElement="exclusiveGateway_2" isMarkerVisible="true">
+        <dc:Bounds x="1250" y="45" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="parallelGateway_2_di" bpmnElement="parallelGateway_2">
+        <dc:Bounds x="1400" y="45" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_10_di" bpmnElement="task_10">
+        <dc:Bounds x="1525" y="30" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_8_di" bpmnElement="task_8">
+        <dc:Bounds x="1675" y="30" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_1_di" bpmnElement="endEvent_1">
+        <dc:Bounds x="1857" y="52" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_6_di" bpmnElement="task_6">
+        <dc:Bounds x="625" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="inclusiveGateway_1_di" bpmnElement="inclusiveGateway_1">
+        <dc:Bounds x="800" y="185" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_1_di" bpmnElement="task_1">
+        <dc:Bounds x="925" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="inclusiveGateway_2_di" bpmnElement="inclusiveGateway_2">
+        <dc:Bounds x="1100" y="185" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_3_di" bpmnElement="task_3">
+        <dc:Bounds x="925" y="310" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_7_di" bpmnElement="task_7">
+        <dc:Bounds x="325" y="450" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="boundaryEvent_1_di" bpmnElement="boundaryEvent_1">
+        <dc:Bounds x="357" y="512" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="inclusiveGateway_3_di" bpmnElement="inclusiveGateway_3">
+        <dc:Bounds x="650" y="465" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_9_di" bpmnElement="task_9">
+        <dc:Bounds x="475" y="590" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="sequenceFlow_1_di" bpmnElement="sequenceFlow_1">
+        <di:waypoint x="93" y="70" />
+        <di:waypoint x="200" y="70" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_2_di" bpmnElement="sequenceFlow_2">
+        <di:waypoint x="250" y="70" />
+        <di:waypoint x="325" y="70" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_10_di" bpmnElement="sequenceFlow_10">
+        <di:waypoint x="225" y="95" />
+        <di:waypoint x="225" y="490" />
+        <di:waypoint x="325" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_3_di" bpmnElement="sequenceFlow_3">
+        <di:waypoint x="425" y="70" />
+        <di:waypoint x="500" y="70" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_13_di" bpmnElement="sequenceFlow_13">
+        <di:waypoint x="550" y="70" />
+        <di:waypoint x="625" y="70" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_14_di" bpmnElement="sequenceFlow_14">
+        <di:waypoint x="525" y="95" />
+        <di:waypoint x="525" y="210" />
+        <di:waypoint x="625" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_6_di" bpmnElement="sequenceFlow_6">
+        <di:waypoint x="725" y="70" />
+        <di:waypoint x="775" y="70" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_7_di" bpmnElement="sequenceFlow_7">
+        <di:waypoint x="875" y="70" />
+        <di:waypoint x="1250" y="70" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_17_di" bpmnElement="sequenceFlow_17">
+        <di:waypoint x="1300" y="70" />
+        <di:waypoint x="1400" y="70" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_20_di" bpmnElement="sequenceFlow_20">
+        <di:waypoint x="1450" y="70" />
+        <di:waypoint x="1525" y="70" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_21_di" bpmnElement="sequenceFlow_21">
+        <di:waypoint x="1625" y="70" />
+        <di:waypoint x="1675" y="70" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_9_di" bpmnElement="sequenceFlow_9">
+        <di:waypoint x="1775" y="70" />
+        <di:waypoint x="1857" y="70" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_12_di" bpmnElement="sequenceFlow_12">
+        <di:waypoint x="725" y="210" />
+        <di:waypoint x="800" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_15_di" bpmnElement="sequenceFlow_15">
+        <di:waypoint x="850" y="210" />
+        <di:waypoint x="925" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_16_di" bpmnElement="sequenceFlow_16">
+        <di:waypoint x="825" y="235" />
+        <di:waypoint x="825" y="350" />
+        <di:waypoint x="925" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_5_di" bpmnElement="sequenceFlow_5">
+        <di:waypoint x="1025" y="210" />
+        <di:waypoint x="1100" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_8_di" bpmnElement="sequenceFlow_8">
+        <di:waypoint x="1150" y="210" />
+        <di:waypoint x="1275" y="210" />
+        <di:waypoint x="1275" y="95" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_4_di" bpmnElement="sequenceFlow_4">
+        <di:waypoint x="1025" y="350" />
+        <di:waypoint x="1125" y="350" />
+        <di:waypoint x="1125" y="235" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_18_di" bpmnElement="sequenceFlow_18">
+        <di:waypoint x="425" y="490" />
+        <di:waypoint x="650" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_11_di" bpmnElement="sequenceFlow_11">
+        <di:waypoint x="375" y="548" />
+        <di:waypoint x="375" y="630" />
+        <di:waypoint x="475" y="630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_22_di" bpmnElement="sequenceFlow_22">
+        <di:waypoint x="700" y="490" />
+        <di:waypoint x="1425" y="490" />
+        <di:waypoint x="1425" y="95" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sequenceFlow_19_di" bpmnElement="sequenceFlow_19">
+        <di:waypoint x="575" y="630" />
+        <di:waypoint x="675" y="630" />
+        <di:waypoint x="675" y="515" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
