@@ -6,6 +6,12 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+## 1.1.0
+
+* `FIX`: improve handling of merging connections after boundary events ([#79](https://github.com/bpmn-io/bpmn-auto-layout/issues/79), [#122](https://github.com/bpmn-io/bpmn-auto-layout/pull/122))
+* `FIX`: correct grid add logic ([#115](https://github.com/bpmn-io/bpmn-auto-layout/issues/115), [#119](https://github.com/bpmn-io/bpmn-auto-layout/pull/119))
+* `FIX`: correct edge floating around boundary cell bounds ([#112](https://github.com/bpmn-io/bpmn-auto-layout/issues/112), [#120](https://github.com/bpmn-io/bpmn-auto-layout/pull/120))
+
 ## 1.0.1
 
 * `FIX`: improve layout of gateway loop ([#94](https://github.com/bpmn-io/bpmn-auto-layout/issues/94))
