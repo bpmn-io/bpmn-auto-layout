@@ -9,7 +9,7 @@
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
     "babel-loader": "^10.0.0",
-    "bpmn-js": "^17.11.1",
+    "bpmn-js": "^18.9.1",
     "css-loader": "^7.1.2",
     "downloadjs": "^1.4.7",
     "file-drops": "^0.6.2",
