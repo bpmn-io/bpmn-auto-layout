@@ -8,7 +8,7 @@ _**Note:** Yet to be released changes appear here._
 
 ## 1.1.0
 
-* `FIX`: improve handling of merging connections after boundary events ([#79](https://github.com/bpmn-io/bpmn-auto-layout/issues/79), [#122](https://github.com/bpmn-io/bpmn-auto-layout/pull/122))
+* `FEAT`: improve handling of merging connections after boundary events ([#79](https://github.com/bpmn-io/bpmn-auto-layout/issues/79), [#122](https://github.com/bpmn-io/bpmn-auto-layout/pull/122))
 * `FIX`: correct grid add logic ([#115](https://github.com/bpmn-io/bpmn-auto-layout/issues/115), [#119](https://github.com/bpmn-io/bpmn-auto-layout/pull/119))
 * `FIX`: correct edge floating around boundary cell bounds ([#112](https://github.com/bpmn-io/bpmn-auto-layout/issues/112), [#120](https://github.com/bpmn-io/bpmn-auto-layout/pull/120))
 
