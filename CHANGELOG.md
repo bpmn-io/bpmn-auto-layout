@@ -6,6 +6,10 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+## 1.1.1
+
+* `FIX`: handle multiple missing elements ([#131](https://github.com/bpmn-io/bpmn-auto-layout/issues/131))
+
 ## 1.1.0
 
 * `FEAT`: improve handling of merging connections after boundary events ([#79](https://github.com/bpmn-io/bpmn-auto-layout/issues/79), [#122](https://github.com/bpmn-io/bpmn-auto-layout/pull/122))
