@@ -6,6 +6,12 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+## 1.2.0
+
+* `FEAT`: create subprocesses as expanded ([#82](https://github.com/bpmn-io/bpmn-auto-layout/issues/82))
+* `DEPS`: update to `bpmn-moddle@10`
+* `DEPS`: update to `min-dash@5`
+
 ## 1.1.1
 
 * `FIX`: handle multiple missing elements ([#131](https://github.com/bpmn-io/bpmn-auto-layout/issues/131))
