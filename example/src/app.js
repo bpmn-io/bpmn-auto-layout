@@ -20,9 +20,6 @@ let fileName = 'diagram.bpmn';
 
 const modeler = new Modeler({
   container: '#modeler',
-  keyboard: {
-    bindTo: document,
-  },
 });
 
 const viewer = new Viewer({
