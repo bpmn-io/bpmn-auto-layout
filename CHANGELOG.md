@@ -6,6 +6,10 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+## 1.3.0
+
+* `FEAT`: support ad-hoc subprocess and transaction ([#134](https://github.com/bpmn-io/bpmn-auto-layout/issues/134))
+
 ## 1.2.0
 
 * `FEAT`: create subprocesses as expanded ([#82](https://github.com/bpmn-io/bpmn-auto-layout/issues/82))
