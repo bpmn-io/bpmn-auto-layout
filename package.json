@@ -8,8 +8,12 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./umd": "./dist/bpmn-auto-layout.umd.js",
-    "./iife": "./dist/bpmn-auto-layout.iife.js"
+    "./umd": {
+      "browser": "./dist/bpmn-auto-layout.umd.js"
+    },
+    "./iife": {
+      "browser": "./dist/bpmn-auto-layout.iife.js"
+    }
   },
   "umd:main": "dist/bpmn-auto-layout.umd.js",
   "files": [
