@@ -18,32 +18,32 @@
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_Process_1dqidd7">
     <bpmndi:BPMNPlane id="BPMNPlane_Process_1dqidd7" bpmnElement="Process_1dqidd7">
-      <bpmndi:BPMNShape id="Activity_1tmag1d_di" bpmnElement="Activity_1tmag1d" isExpanded="true">
-        <dc:Bounds x="25" y="30" width="550" height="500" />
+      <bpmndi:BPMNShape id="BPMNShape_Activity_1tmag1d" bpmnElement="Activity_1tmag1d" isExpanded="true">
+        <dc:Bounds x="80" y="80" width="300" height="280" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0m54mw7_di" bpmnElement="Activity_0m54mw7" isExpanded="true">
-        <dc:Bounds x="25" y="590" width="550" height="780" />
+      <bpmndi:BPMNShape id="BPMNShape_Activity_0m54mw7" bpmnElement="Activity_0m54mw7" isExpanded="true">
+        <dc:Bounds x="80" y="520" width="300" height="672" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1pag8e4_di" bpmnElement="Event_1pag8e4">
-        <dc:Bounds x="132" y="682" width="36" height="36" />
+      <bpmndi:BPMNShape id="BPMNShape_Activity_0rkxj4r" bpmnElement="Activity_0rkxj4r" isExpanded="true">
+        <dc:Bounds x="120" y="120" width="220" height="200" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0xfpv3z_di" bpmnElement="Activity_0xfpv3z" isExpanded="true">
-        <dc:Bounds x="100" y="800" width="400" height="500" />
+      <bpmndi:BPMNShape id="BPMNShape_Activity_12ccbb3" bpmnElement="Activity_12ccbb3" isExpanded="true">
+        <dc:Bounds x="160" y="160" width="140" height="120" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0rkxj4r_di" bpmnElement="Activity_0rkxj4r" isExpanded="true">
-        <dc:Bounds x="100" y="100" width="400" height="360" />
+      <bpmndi:BPMNShape id="BPMNShape_Event_1pag8e4" bpmnElement="Event_1pag8e4">
+        <dc:Bounds x="120" y="560" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_13wzph5_di" bpmnElement="Event_13wzph5">
-        <dc:Bounds x="207" y="892" width="36" height="36" />
+      <bpmndi:BPMNShape id="BPMNShape_Activity_0xfpv3z" bpmnElement="Activity_0xfpv3z" isExpanded="true">
+        <dc:Bounds x="120" y="756" width="220" height="396" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1rstnb4_di" bpmnElement="Activity_1rstnb4" isExpanded="true">
-        <dc:Bounds x="175" y="1010" width="250" height="220" />
+      <bpmndi:BPMNShape id="BPMNShape_Event_13wzph5" bpmnElement="Event_13wzph5">
+        <dc:Bounds x="160" y="796" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_12ccbb3_di" bpmnElement="Activity_12ccbb3" isExpanded="true">
-        <dc:Bounds x="175" y="170" width="250" height="220" />
+      <bpmndi:BPMNShape id="BPMNShape_Activity_1rstnb4" bpmnElement="Activity_1rstnb4" isExpanded="true">
+        <dc:Bounds x="160" y="992" width="140" height="120" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_13vrkkg_di" bpmnElement="Event_13vrkkg">
-        <dc:Bounds x="282" y="1102" width="36" height="36" />
+      <bpmndi:BPMNShape id="BPMNShape_Event_13vrkkg" bpmnElement="Event_13vrkkg">
+        <dc:Bounds x="200" y="1032" width="36" height="36" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
