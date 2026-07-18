@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>The minimum bounds and waypoint coordinates equal the fixed outer margin after normalization.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0af8kwr</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_0coqiw2">
+      <bpmn:incoming>Flow_0af8kwr</bpmn:incoming>
+      <bpmn:outgoing>Flow_0pmbd11</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0af8kwr" sourceRef="StartEvent_1" targetRef="Activity_0coqiw2" />
+    <bpmn:endEvent id="Event_009xfb5">
+      <bpmn:incoming>Flow_0pmbd11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0pmbd11" sourceRef="Activity_0coqiw2" targetRef="Event_009xfb5" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="760" y="500" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0coqiw2_di" bpmnElement="Activity_0coqiw2">
+        <dc:Bounds x="850" y="478" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_009xfb5_di" bpmnElement="Event_009xfb5">
+        <dc:Bounds x="1012" y="500" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0af8kwr_di" bpmnElement="Flow_0af8kwr">
+        <di:waypoint x="796" y="518" />
+        <di:waypoint x="850" y="518" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0pmbd11_di" bpmnElement="Flow_0pmbd11">
+        <di:waypoint x="950" y="518" />
+        <di:waypoint x="1012" y="518" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

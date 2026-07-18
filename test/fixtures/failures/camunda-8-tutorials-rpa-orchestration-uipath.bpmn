@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Web Modeler" exporterVersion="18bf3f8" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0" camunda:diagramRelationId="aa76d615-0d8a-4a8a-8bdc-1fda876d06b4">
+  <bpmn:process id="Orchestrate_UiPath_Bot" name="RPA Integration" isExecutable="true">
+    <bpmn:startEvent id="Event_1qzd898" name="Task processing started">
+      <bpmn:extensionElements />
+      <bpmn:outgoing>Flow_0mhv1kc</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_118pfe1" name="add task to queue" zeebe:modelerTemplate="io.camunda.connectors.UIPath.v1" zeebe:modelerTemplateVersion="4" zeebe:modelerTemplateIcon="data:image/svg+xml;utf8,%3C%3Fxml version=&#39;1.0&#39; encoding=&#39;utf-8&#39;%3F%3E%3Csvg version=&#39;1.1&#39; width=&#39;18&#39; height=&#39;18&#39; id=&#39;Extra_Large&#39; xmlns=&#39;http://www.w3.org/2000/svg&#39; xmlns:xlink=&#39;http://www.w3.org/1999/xlink&#39; x=&#39;0px&#39; y=&#39;0px&#39; viewBox=&#39;0 0 3261 1200&#39; style=&#39;enable-background:new 0 0 3261 1200;&#39; xml:space=&#39;preserve&#39;%3E%3Cstyle type=&#39;text/css&#39;%3E .st0%7Bfill:%23FA4616;%7D%0A%3C/style%3E%3Cg%3E%3Cpath class=&#39;st0&#39; d=&#39;M0,0h1200v1200H0V0z M124.2,1075.8h951.6V124.2H124.2V1075.8z M604,309.5h124.2v363.6 c0,164.3-93.2,263.4-250.4,263.4c-154.3,0-245.4-97.2-245.4-263.4V309.5h124.2v363.6c0,91.2,38.1,146.2,124.2,146.2 c83.1,0,123.2-52.1,123.2-146.2V309.5z M964.6,309.5c0,44.1-32.1,74.1-76.1,74.1c-44.1,0-76.1-30-76.1-74.1 c0-45.1,32.1-76.1,76.1-76.1C932.5,233.4,964.6,264.4,964.6,309.5z M826.4,442.7h124.2v487.8H826.4V442.7z M1784,517.9 c0,133.2-88.1,212.4-223.4,212.4h-112.2v200.3h-124.2v-621h236.4C1697.8,309.5,1784,389.6,1784,517.9z M1657.8,517.9 c0-68.1-39.1-108.2-110.2-108.2h-99.2v221.4h99.2C1618.7,631.1,1657.8,591,1657.8,517.9z M2201.7,442.7h124.2v487.8h-124.2v-55.1 c-33.1,39.1-85.1,61.1-158.3,61.1c-132.2,0-225.4-104.2-225.4-249.4c0-144.2,91.2-250.4,225.4-250.4c71.1,0,125.2,25,158.3,67.1 V442.7z M2201.7,687.1c0-84.1-50.1-142.2-129.2-142.2c-79.1,0-128.2,55.1-128.2,142.2c0,81.1,44.1,140.2,128.2,140.2 C2148.6,827.4,2201.7,772.3,2201.7,687.1z M2629.4,824.4h49.1v106.2h-65.1c-118.2,0-169.3-56.1-169.3-171.3V547.9H2386V442.7h58.1 V309.5h124.2v133.2h109.2v105.2h-109.2v212.3C2568.3,803.3,2581.3,824.4,2629.4,824.4z M3214.3,647.1v283.5h-124.2V661.1 c0-74.1-38.1-122.2-111.2-122.2s-117.2,50.1-117.2,133.2v258.4h-124.2V279.5h124.2v213.4c31.1-37.1,80.1-57.1,147.2-57.1 C3124.2,435.7,3214.3,518.9,3214.3,647.1z M3200,279.5h21.7v4.2h-8.5v25.8h-4.8v-25.8h-8.5V279.5z M3261,279.5v30h-4.8v-22.8 l-9.7,22.8h-3.6l-9.7-22.8v22.8h-4.8v-30h6l10.3,23.4l10.3-23.4H3261z&#39;/%3E%3C/g%3E%3C/svg%3E%0A">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" />
+        <zeebe:ioMapping>
+          <zeebe:input source="addQueueItem" target="operationType" />
+          <zeebe:input source="oauth-client-credentials-flow" target="authentication.type" />
+          <zeebe:input source="https://cloud.uipath.com/identity_/connect/token" target="authentication.oauthTokenEndpoint" />
+          <zeebe:input target="authentication.clientId" />
+          <zeebe:input source="{{secrets.UiPath_Secret_Value}}" target="authentication.clientSecret" />
+          <zeebe:input source="OR.Queues" target="authentication.scopes" />
+          <zeebe:input source="basicAuthHeader" target="authentication.clientAuthentication" />
+          <zeebe:input source="post" target="method" />
+          <zeebe:input source="cloud.uipath.com" target="cloudUrl" />
+          <zeebe:input target="cloudOrg" />
+          <zeebe:input source="DefaultTenant" target="cloudTenant" />
+          <zeebe:input target="organizationUnitId" />
+          <zeebe:input source="={&#34;X-UIPATH-OrganizationUnitId&#34;:organizationUnitId, &#34;Content-Type&#34;:&#34;application/json&#34;}" target="headers" />
+          <zeebe:input target="queueName" />
+          <zeebe:input source="Normal" target="priority" />
+          <zeebe:input source="={&#10;  &#34;input&#34;:&#34;myinput&#34;&#10;}" target="specificContent" />
+          <zeebe:input source="={&#34;itemData&#34;:{&#34;DeferDate&#34;:if deferDate = null then null else deferDate, &#34;DueDate&#34;:if dueDate = null then null else dueDate,&#34;Priority&#34;:if priority = null then null else priority,&#34;Name&#34;:queueName,&#34;SpecificContent&#34;:if specificContent = null then null else specificContent,&#34;Reference&#34;:if reference = null then null else reference}}" target="body" />
+          <zeebe:input source="20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="=&#34;https:&#34;+&#34;//&#34;+cloudUrl+&#34;/&#34;+cloudOrg+&#34;/&#34;+cloudTenant+&#34;/orchestrator_/odata/Queues/UiPathODataSvc.AddQueueItem&#34;" target="url" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultVariable" value="response" />
+          <zeebe:header key="resultExpression" value="={queueItemId: response.body.Id}" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0mhv1kc</bpmn:incoming>
+      <bpmn:outgoing>Flow_1aqhjsr</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0mhv1kc" sourceRef="Event_1qzd898" targetRef="Activity_118pfe1" />
+    <bpmn:boundaryEvent id="Event_04itckl" name="Compensate" attachedToRef="Activity_118pfe1">
+      <bpmn:compensateEventDefinition id="CompensateEventDefinition_1nba3la" />
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="Activity_1dibkd5" name="revert RPA job" isForCompensation="true" zeebe:modelerTemplate="io.camunda.connectors.UIPath.v1" zeebe:modelerTemplateVersion="4" zeebe:modelerTemplateIcon="data:image/svg+xml;utf8,%3C%3Fxml version=&#39;1.0&#39; encoding=&#39;utf-8&#39;%3F%3E%3Csvg version=&#39;1.1&#39; width=&#39;18&#39; height=&#39;18&#39; id=&#39;Extra_Large&#39; xmlns=&#39;http://www.w3.org/2000/svg&#39; xmlns:xlink=&#39;http://www.w3.org/1999/xlink&#39; x=&#39;0px&#39; y=&#39;0px&#39; viewBox=&#39;0 0 3261 1200&#39; style=&#39;enable-background:new 0 0 3261 1200;&#39; xml:space=&#39;preserve&#39;%3E%3Cstyle type=&#39;text/css&#39;%3E .st0%7Bfill:%23FA4616;%7D%0A%3C/style%3E%3Cg%3E%3Cpath class=&#39;st0&#39; d=&#39;M0,0h1200v1200H0V0z M124.2,1075.8h951.6V124.2H124.2V1075.8z M604,309.5h124.2v363.6 c0,164.3-93.2,263.4-250.4,263.4c-154.3,0-245.4-97.2-245.4-263.4V309.5h124.2v363.6c0,91.2,38.1,146.2,124.2,146.2 c83.1,0,123.2-52.1,123.2-146.2V309.5z M964.6,309.5c0,44.1-32.1,74.1-76.1,74.1c-44.1,0-76.1-30-76.1-74.1 c0-45.1,32.1-76.1,76.1-76.1C932.5,233.4,964.6,264.4,964.6,309.5z M826.4,442.7h124.2v487.8H826.4V442.7z M1784,517.9 c0,133.2-88.1,212.4-223.4,212.4h-112.2v200.3h-124.2v-621h236.4C1697.8,309.5,1784,389.6,1784,517.9z M1657.8,517.9 c0-68.1-39.1-108.2-110.2-108.2h-99.2v221.4h99.2C1618.7,631.1,1657.8,591,1657.8,517.9z M2201.7,442.7h124.2v487.8h-124.2v-55.1 c-33.1,39.1-85.1,61.1-158.3,61.1c-132.2,0-225.4-104.2-225.4-249.4c0-144.2,91.2-250.4,225.4-250.4c71.1,0,125.2,25,158.3,67.1 V442.7z M2201.7,687.1c0-84.1-50.1-142.2-129.2-142.2c-79.1,0-128.2,55.1-128.2,142.2c0,81.1,44.1,140.2,128.2,140.2 C2148.6,827.4,2201.7,772.3,2201.7,687.1z M2629.4,824.4h49.1v106.2h-65.1c-118.2,0-169.3-56.1-169.3-171.3V547.9H2386V442.7h58.1 V309.5h124.2v133.2h109.2v105.2h-109.2v212.3C2568.3,803.3,2581.3,824.4,2629.4,824.4z M3214.3,647.1v283.5h-124.2V661.1 c0-74.1-38.1-122.2-111.2-122.2s-117.2,50.1-117.2,133.2v258.4h-124.2V279.5h124.2v213.4c31.1-37.1,80.1-57.1,147.2-57.1 C3124.2,435.7,3214.3,518.9,3214.3,647.1z M3200,279.5h21.7v4.2h-8.5v25.8h-4.8v-25.8h-8.5V279.5z M3261,279.5v30h-4.8v-22.8 l-9.7,22.8h-3.6l-9.7-22.8v22.8h-4.8v-30h6l10.3,23.4l10.3-23.4H3261z&#39;/%3E%3C/g%3E%3C/svg%3E%0A">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" />
+        <zeebe:ioMapping>
+          <zeebe:input source="addQueueItem" target="operationType" />
+          <zeebe:input source="oauth-client-credentials-flow" target="authentication.type" />
+          <zeebe:input source="https://cloud.uipath.com/identity_/connect/token" target="authentication.oauthTokenEndpoint" />
+          <zeebe:input target="authentication.clientId" />
+          <zeebe:input source="{{secrets.UiPath_Secret_Value}}" target="authentication.clientSecret" />
+          <zeebe:input source="OR.Queues" target="authentication.scopes" />
+          <zeebe:input source="basicAuthHeader" target="authentication.clientAuthentication" />
+          <zeebe:input source="post" target="method" />
+          <zeebe:input source="cloud.uipath.com" target="cloudUrl" />
+          <zeebe:input target="cloudOrg" />
+          <zeebe:input source="DefaultTenant" target="cloudTenant" />
+          <zeebe:input target="organizationUnitId" />
+          <zeebe:input source="={&#34;X-UIPATH-OrganizationUnitId&#34;:organizationUnitId, &#34;Content-Type&#34;:&#34;application/json&#34;}" target="headers" />
+          <zeebe:input target="queueName" />
+          <zeebe:input source="Normal" target="priority" />
+          <zeebe:input source="={&#10;  &#34;input&#34;:&#34;myinput&#34;&#10;}" target="specificContent" />
+          <zeebe:input source="={&#34;itemData&#34;:{&#34;DeferDate&#34;:if deferDate = null then null else deferDate, &#34;DueDate&#34;:if dueDate = null then null else dueDate,&#34;Priority&#34;:if priority = null then null else priority,&#34;Name&#34;:queueName,&#34;SpecificContent&#34;:if specificContent = null then null else specificContent,&#34;Reference&#34;:if reference = null then null else reference}}" target="body" />
+          <zeebe:input source="20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="=&#34;https:&#34;+&#34;//&#34;+cloudUrl+&#34;/&#34;+cloudOrg+&#34;/&#34;+cloudTenant+&#34;/orchestrator_/odata/Queues/UiPathODataSvc.AddQueueItem&#34;" target="url" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultExpression" value="={queueItemId: response.body.Id}" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_14ev0fk" name="item processed">
+      <bpmn:incoming>Flow_1j5h7i1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Activity_0svfozj" name="get queue item information" zeebe:modelerTemplate="io.camunda.connectors.UIPath.v1" zeebe:modelerTemplateVersion="4" zeebe:modelerTemplateIcon="data:image/svg+xml;utf8,%3C%3Fxml version=&#39;1.0&#39; encoding=&#39;utf-8&#39;%3F%3E%3Csvg version=&#39;1.1&#39; width=&#39;18&#39; height=&#39;18&#39; id=&#39;Extra_Large&#39; xmlns=&#39;http://www.w3.org/2000/svg&#39; xmlns:xlink=&#39;http://www.w3.org/1999/xlink&#39; x=&#39;0px&#39; y=&#39;0px&#39; viewBox=&#39;0 0 3261 1200&#39; style=&#39;enable-background:new 0 0 3261 1200;&#39; xml:space=&#39;preserve&#39;%3E%3Cstyle type=&#39;text/css&#39;%3E .st0%7Bfill:%23FA4616;%7D%0A%3C/style%3E%3Cg%3E%3Cpath class=&#39;st0&#39; d=&#39;M0,0h1200v1200H0V0z M124.2,1075.8h951.6V124.2H124.2V1075.8z M604,309.5h124.2v363.6 c0,164.3-93.2,263.4-250.4,263.4c-154.3,0-245.4-97.2-245.4-263.4V309.5h124.2v363.6c0,91.2,38.1,146.2,124.2,146.2 c83.1,0,123.2-52.1,123.2-146.2V309.5z M964.6,309.5c0,44.1-32.1,74.1-76.1,74.1c-44.1,0-76.1-30-76.1-74.1 c0-45.1,32.1-76.1,76.1-76.1C932.5,233.4,964.6,264.4,964.6,309.5z M826.4,442.7h124.2v487.8H826.4V442.7z M1784,517.9 c0,133.2-88.1,212.4-223.4,212.4h-112.2v200.3h-124.2v-621h236.4C1697.8,309.5,1784,389.6,1784,517.9z M1657.8,517.9 c0-68.1-39.1-108.2-110.2-108.2h-99.2v221.4h99.2C1618.7,631.1,1657.8,591,1657.8,517.9z M2201.7,442.7h124.2v487.8h-124.2v-55.1 c-33.1,39.1-85.1,61.1-158.3,61.1c-132.2,0-225.4-104.2-225.4-249.4c0-144.2,91.2-250.4,225.4-250.4c71.1,0,125.2,25,158.3,67.1 V442.7z M2201.7,687.1c0-84.1-50.1-142.2-129.2-142.2c-79.1,0-128.2,55.1-128.2,142.2c0,81.1,44.1,140.2,128.2,140.2 C2148.6,827.4,2201.7,772.3,2201.7,687.1z M2629.4,824.4h49.1v106.2h-65.1c-118.2,0-169.3-56.1-169.3-171.3V547.9H2386V442.7h58.1 V309.5h124.2v133.2h109.2v105.2h-109.2v212.3C2568.3,803.3,2581.3,824.4,2629.4,824.4z M3214.3,647.1v283.5h-124.2V661.1 c0-74.1-38.1-122.2-111.2-122.2s-117.2,50.1-117.2,133.2v258.4h-124.2V279.5h124.2v213.4c31.1-37.1,80.1-57.1,147.2-57.1 C3124.2,435.7,3214.3,518.9,3214.3,647.1z M3200,279.5h21.7v4.2h-8.5v25.8h-4.8v-25.8h-8.5V279.5z M3261,279.5v30h-4.8v-22.8 l-9.7,22.8h-3.6l-9.7-22.8v22.8h-4.8v-30h6l10.3,23.4l10.3-23.4H3261z&#39;/%3E%3C/g%3E%3C/svg%3E%0A">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" />
+        <zeebe:ioMapping>
+          <zeebe:input source="getItemById" target="operationType" />
+          <zeebe:input source="oauth-client-credentials-flow" target="authentication.type" />
+          <zeebe:input source="https://cloud.uipath.com/identity_/connect/token" target="authentication.oauthTokenEndpoint" />
+          <zeebe:input target="authentication.clientId" />
+          <zeebe:input source="{{secrets.UiPath_Secret_Value}}" target="authentication.clientSecret" />
+          <zeebe:input source="OR.Queues" target="authentication.scopes" />
+          <zeebe:input source="basicAuthHeader" target="authentication.clientAuthentication" />
+          <zeebe:input source="get" target="method" />
+          <zeebe:input source="cloud.uipath.com" target="cloudUrl" />
+          <zeebe:input target="cloudOrg" />
+          <zeebe:input source="DefaultTenant" target="cloudTenant" />
+          <zeebe:input target="organizationUnitId" />
+          <zeebe:input source="={&#34;X-UIPATH-OrganizationUnitId&#34;:organizationUnitId, &#34;Content-Type&#34;:&#34;application/json&#34;}" target="headers" />
+          <zeebe:input source="=queueItemId" target="itemId" />
+          <zeebe:input source="={&#34;$Filter&#34;:&#34;Id eq &#34;+string(itemId)}" target="queryParameters" />
+          <zeebe:input source="20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="=&#34;https:&#34;+&#34;//&#34;+cloudUrl+&#34;/&#34;+cloudOrg+&#34;/&#34;+cloudTenant+&#34;/orchestrator_/odata/QueueItems()&#34;" target="url" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultVariable" />
+          <zeebe:header key="resultExpression" value="={&#10;itemStatus: response.body.value[1].Status}" />
+          <zeebe:header key="errorExpression" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1ut4ave</bpmn:incoming>
+      <bpmn:outgoing>Flow_1989gzl</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:manualTask id="Activity_0hztmxc" name="manually review queueitem">
+      <bpmn:incoming>Flow_1989gzl</bpmn:incoming>
+      <bpmn:outgoing>Flow_18a70pp</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:sequenceFlow id="Flow_1989gzl" sourceRef="Activity_0svfozj" targetRef="Activity_0hztmxc" />
+    <bpmn:intermediateThrowEvent id="Event_0gq12nk" name="RPA activities reverted">
+      <bpmn:incoming>Flow_0cmi09p</bpmn:incoming>
+      <bpmn:outgoing>Flow_0haj141</bpmn:outgoing>
+      <bpmn:compensateEventDefinition id="CompensateEventDefinition_0m718fh" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:exclusiveGateway id="Gateway_0z2t5ph" name="Processing outcome?">
+      <bpmn:incoming>Flow_18a70pp</bpmn:incoming>
+      <bpmn:outgoing>Flow_0220r5e</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1yxwzsm</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_18a70pp" sourceRef="Activity_0hztmxc" targetRef="Gateway_0z2t5ph" />
+    <bpmn:exclusiveGateway id="Gateway_14h4iq6">
+      <bpmn:incoming>Flow_0haj141</bpmn:incoming>
+      <bpmn:incoming>Flow_0220r5e</bpmn:incoming>
+      <bpmn:outgoing>Flow_1u11xjq</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0haj141" sourceRef="Event_0gq12nk" targetRef="Gateway_14h4iq6" />
+    <bpmn:sequenceFlow id="Flow_0220r5e" name="manually done" sourceRef="Gateway_0z2t5ph" targetRef="Gateway_14h4iq6">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=decision = "manual"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="Event_0qel938" name="item processed manually">
+      <bpmn:incoming>Flow_1kng7gt</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:manualTask id="Activity_1umb1rv" name="manually do the task">
+      <bpmn:incoming>Flow_1u11xjq</bpmn:incoming>
+      <bpmn:outgoing>Flow_1kng7gt</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:sequenceFlow id="Flow_1kng7gt" sourceRef="Activity_1umb1rv" targetRef="Event_0qel938" />
+    <bpmn:sequenceFlow id="Flow_1u11xjq" sourceRef="Gateway_14h4iq6" targetRef="Activity_1umb1rv" />
+    <bpmn:sequenceFlow id="Flow_1yxwzsm" name="it took longer, but it is ok" sourceRef="Gateway_0z2t5ph" targetRef="Event_0sl0vbh">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=decision = "wait"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:intermediateThrowEvent id="Event_0sl0vbh" name="retry">
+      <bpmn:incoming>Flow_1yxwzsm</bpmn:incoming>
+      <bpmn:linkEventDefinition id="LinkEventDefinition_02liqwu" name="restart" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:intermediateCatchEvent id="Event_0pvygwq" name="retry">
+      <bpmn:outgoing>Flow_1o2ezll</bpmn:outgoing>
+      <bpmn:linkEventDefinition id="LinkEventDefinition_0ik64ly" name="restart" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:exclusiveGateway id="Gateway_1jz7av2">
+      <bpmn:incoming>Flow_1o2ezll</bpmn:incoming>
+      <bpmn:incoming>Flow_1aqhjsr</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ikiid0</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1o2ezll" sourceRef="Event_0pvygwq" targetRef="Gateway_1jz7av2" />
+    <bpmn:sequenceFlow id="Flow_0ikiid0" sourceRef="Gateway_1jz7av2" targetRef="Activity_1ko88ft" />
+    <bpmn:subProcess id="Activity_1ko88ft">
+      <bpmn:incoming>Flow_0ikiid0</bpmn:incoming>
+      <bpmn:outgoing>Flow_1j5h7i1</bpmn:outgoing>
+      <bpmn:task id="Activity_0om9p4a" name="inform user">
+        <bpmn:incoming>Flow_1rd7p6f</bpmn:incoming>
+        <bpmn:outgoing>Flow_1tyl6gu</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:endEvent id="Event_08710ws" name="item abandoned">
+        <bpmn:incoming>Flow_17aidmd</bpmn:incoming>
+        <bpmn:errorEventDefinition id="ErrorEventDefinition_05p22j9" errorRef="Error_18b6buz" />
+      </bpmn:endEvent>
+      <bpmn:endEvent id="Event_1wojnup" name="item failed">
+        <bpmn:incoming>Flow_0qxull5</bpmn:incoming>
+        <bpmn:errorEventDefinition id="ErrorEventDefinition_0cl8nnn" errorRef="Error_0q5i6kc" />
+      </bpmn:endEvent>
+      <bpmn:endEvent id="Event_053gfzv" name="bot processed the queue item">
+        <bpmn:incoming>Flow_0wdmr4f</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:endEvent id="Event_1ado95h" name="item timed out">
+        <bpmn:incoming>Flow_1dpkqrm</bpmn:incoming>
+        <bpmn:errorEventDefinition id="ErrorEventDefinition_1mfotlj" errorRef="Error_18b6buz" />
+      </bpmn:endEvent>
+      <bpmn:exclusiveGateway id="Gateway_16qm1s0" name="queue item status?">
+        <bpmn:incoming>Flow_129m2m2</bpmn:incoming>
+        <bpmn:outgoing>Flow_17aidmd</bpmn:outgoing>
+        <bpmn:outgoing>Flow_1rd7p6f</bpmn:outgoing>
+        <bpmn:outgoing>Flow_0wdmr4f</bpmn:outgoing>
+        <bpmn:outgoing>Flow_0qxull5</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:sequenceFlow id="Flow_17aidmd" name="abandoned" sourceRef="Gateway_16qm1s0" targetRef="Event_08710ws">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=queueItemStatus = "queueItem.transactionAbandoned"</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_1rd7p6f" name="transaction started" sourceRef="Gateway_16qm1s0" targetRef="Activity_0om9p4a">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=queueItemStatus = "queueItem.transactionStarted"</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_0wdmr4f" name="completed" sourceRef="Gateway_16qm1s0" targetRef="Event_053gfzv">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=queueItemStatus = "queueItem.transactionCompleted"</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_0qxull5" name="failed" sourceRef="Gateway_16qm1s0" targetRef="Event_1wojnup">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=queueItemStatus = "queueItem.transactionFailed"</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:intermediateCatchEvent id="Event_1vvi0dm" name="wait 60s">
+        <bpmn:incoming>Flow_0qdcgkg</bpmn:incoming>
+        <bpmn:outgoing>Flow_1dpkqrm</bpmn:outgoing>
+        <bpmn:timerEventDefinition id="TimerEventDefinition_08xxbnn">
+          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT60S</bpmn:timeDuration>
+        </bpmn:timerEventDefinition>
+      </bpmn:intermediateCatchEvent>
+      <bpmn:sequenceFlow id="Flow_1dpkqrm" sourceRef="Event_1vvi0dm" targetRef="Event_1ado95h" />
+      <bpmn:intermediateCatchEvent id="Event_16yd83w" name="item updated" zeebe:modelerTemplate="io.camunda.connectors.webhook.WebhookConnectorIntermediate.v1" zeebe:modelerTemplateVersion="6" zeebe:modelerTemplateIcon="data:image/svg+xml,%3Csvg id=&#39;icon&#39; xmlns=&#39;http://www.w3.org/2000/svg&#39; width=&#39;18&#39; height=&#39;18&#39; viewBox=&#39;0 0 32 32&#39;%3E%3Cdefs%3E%3Cstyle%3E .cls-1 %7B fill: none; %7D %3C/style%3E%3C/defs%3E%3Cpath d=&#39;M24,26a3,3,0,1,0-2.8164-4H13v1a5,5,0,1,1-5-5V16a7,7,0,1,0,6.9287,8h6.2549A2.9914,2.9914,0,0,0,24,26Z&#39;/%3E%3Cpath d=&#39;M24,16a7.024,7.024,0,0,0-2.57.4873l-3.1656-5.5395a3.0469,3.0469,0,1,0-1.7326.9985l4.1189,7.2085.8686-.4976a5.0006,5.0006,0,1,1-1.851,6.8418L17.937,26.501A7.0005,7.0005,0,1,0,24,16Z&#39;/%3E%3Cpath d=&#39;M8.532,20.0537a3.03,3.03,0,1,0,1.7326.9985C11.74,18.47,13.86,14.7607,13.89,14.708l.4976-.8682-.8677-.497a5,5,0,1,1,6.812-1.8438l1.7315,1.002a7.0008,7.0008,0,1,0-10.3462,2.0356c-.457.7427-1.1021,1.8716-2.0737,3.5728Z&#39;/%3E%3Crect id=&#39;_Transparent_Rectangle_&#39; data-name=&#39;&#38;lt;Transparent Rectangle&#38;gt;&#39; class=&#39;cls-1&#39; width=&#39;32&#39; height=&#39;32&#39;/%3E%3C/svg%3E">
+        <bpmn:extensionElements>
+          <zeebe:properties>
+            <zeebe:property name="inbound.type" value="io.camunda:webhook:1" />
+            <zeebe:property name="inbound.subtype" value="ConfigurableInboundWebhook" />
+            <zeebe:property name="inbound.method" value="post" />
+            <zeebe:property name="inbound.context" value="uipath-updates" />
+            <zeebe:property name="inbound.shouldValidateHmac" value="disabled" />
+            <zeebe:property name="inbound.auth.type" value="NONE" />
+            <zeebe:property name="correlationKeyExpression" value="=request.body.QueueItem.Id" />
+            <zeebe:property name="resultVariable" value="generalresponse" />
+            <zeebe:property name="resultExpression" value="={&#10;    &#34;queueItemStatus&#34; : request.body.Type&#10;}" />
+          </zeebe:properties>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_0j1hv6o</bpmn:incoming>
+        <bpmn:outgoing>Flow_129m2m2</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="MessageEventDefinition_1rhrndp" messageRef="Message_0j5kbwa" />
+      </bpmn:intermediateCatchEvent>
+      <bpmn:sequenceFlow id="Flow_129m2m2" sourceRef="Event_16yd83w" targetRef="Gateway_16qm1s0" />
+      <bpmn:exclusiveGateway id="Gateway_join_before_ebg" name="" gatewayDirection="Converging">
+      <bpmn:incoming>Flow_1mqad0z</bpmn:incoming>
+      <bpmn:incoming>Flow_1tyl6gu</bpmn:incoming>
+      <bpmn:outgoing>Flow_join_to_ebg</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:eventBasedGateway id="Gateway_1j8nunf">
+        <bpmn:incoming>Flow_join_to_ebg</bpmn:incoming>
+        <bpmn:outgoing>Flow_0j1hv6o</bpmn:outgoing>
+        <bpmn:outgoing>Flow_0qdcgkg</bpmn:outgoing>
+      </bpmn:eventBasedGateway>
+      <bpmn:sequenceFlow id="Flow_0j1hv6o" sourceRef="Gateway_1j8nunf" targetRef="Event_16yd83w" />
+      <bpmn:sequenceFlow id="Flow_0qdcgkg" sourceRef="Gateway_1j8nunf" targetRef="Event_1vvi0dm" />
+      <bpmn:startEvent id="Event_1fr1ftj" name="item check started">
+        <bpmn:outgoing>Flow_1mqad0z</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="Flow_1mqad0z" sourceRef="Event_1fr1ftj" targetRef="Gateway_join_before_ebg" />
+      <bpmn:sequenceFlow id="Flow_1tyl6gu" sourceRef="Activity_0om9p4a" targetRef="Gateway_join_before_ebg" />
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_1j5h7i1" sourceRef="Activity_1ko88ft" targetRef="Event_14ev0fk" />
+    <bpmn:boundaryEvent id="Event_0f7bls8" name="item failed" attachedToRef="Activity_1ko88ft">
+      <bpmn:outgoing>Flow_0cmi09p</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0unyvrl" errorRef="Error_0q5i6kc" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_0cmi09p" sourceRef="Event_0f7bls8" targetRef="Event_0gq12nk" />
+    <bpmn:boundaryEvent id="Event_16ail2y" name="item timed out or abandoned" attachedToRef="Activity_1ko88ft">
+      <bpmn:outgoing>Flow_1ut4ave</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0bcau8j" errorRef="Error_18b6buz" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_1ut4ave" sourceRef="Event_16ail2y" targetRef="Activity_0svfozj" />
+    <bpmn:sequenceFlow id="Flow_1aqhjsr" sourceRef="Activity_118pfe1" targetRef="Gateway_1jz7av2" />
+    <bpmn:sequenceFlow id="Flow_join_to_ebg" sourceRef="Gateway_join_before_ebg" targetRef="Gateway_1j8nunf" />
+    <bpmn:association id="Association_0wps4yf" associationDirection="One" sourceRef="Event_04itckl" targetRef="Activity_1dibkd5" />
+    <bpmn:textAnnotation id="TextAnnotation_1ti5l8v">
+      <bpmn:text>add a queue, where you reverting the actions from the bot</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0a0x8xa" associationDirection="None" sourceRef="Activity_1dibkd5" targetRef="TextAnnotation_1ti5l8v" />
+    <bpmn:textAnnotation id="TextAnnotation_07ss40e">
+      <bpmn:text>You need to define a queue in the UiPath Orchestrator</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0z4uv4r" associationDirection="None" sourceRef="Activity_118pfe1" targetRef="TextAnnotation_07ss40e" />
+    <bpmn:textAnnotation id="TextAnnotation_0qbjmxt">
+      <bpmn:text>check queue item id + status</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1worlyr">
+      <bpmn:text>no response since time [max SLA time]</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0czz4ee">
+      <bpmn:text>here you can inform the user, that a bot is now working on the queue item</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0mchv4a" associationDirection="None" sourceRef="Activity_0om9p4a" targetRef="TextAnnotation_0czz4ee" />
+    <bpmn:association id="Association_0a9dqhm" associationDirection="None" sourceRef="Event_16yd83w" targetRef="TextAnnotation_0qbjmxt" />
+    <bpmn:association id="Association_1pcbbq9" associationDirection="None" sourceRef="Event_1vvi0dm" targetRef="TextAnnotation_1worlyr" />
+    <bpmn:textAnnotation id="TextAnnotation_0ghi73w">
+      <bpmn:text>here you can assign the task to a user (HTO) or create an incident in your RPA Ops System</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1rwuetl" associationDirection="None" sourceRef="TextAnnotation_0ghi73w" targetRef="Activity_0hztmxc" />
+    <bpmn:textAnnotation id="TextAnnotation_0nzl5pb">
+      <bpmn:text>here you can assign the task to a user (HTO)</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1e5wlm9" associationDirection="None" sourceRef="TextAnnotation_0nzl5pb" targetRef="Activity_1umb1rv" />
+    <bpmn:textAnnotation id="TextAnnotation_rpa_intro">
+      <bpmn:text>Triggered when a task needs to be processed by a UiPath RPA bot. The happy-path outcome is the bot processing the queue item successfully and the item marked as processed.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_rpa_intro" associationDirection="None" sourceRef="Event_1qzd898" targetRef="TextAnnotation_rpa_intro" />
+  </bpmn:process>
+  <bpmn:message id="Message_0j5kbwa" name="36a59b39-c6d5-41e6-aa34-bd805badab31" zeebe:modelerTemplate="io.camunda.connectors.webhook.WebhookConnectorIntermediate.v1">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=queueItemId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:error id="Error_0q5i6kc" name="item failed" errorCode="item_failed" />
+  <bpmn:error id="Error_18b6buz" name="item timed out or abandoned" errorCode="item_timed_out_or_abandoned" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Orchestrate_UiPath_Bot">
+      <bpmndi:BPMNShape id="BPMNShape_1de3ovb" bpmnElement="Event_1qzd898">
+        <dc:Bounds x="162" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="142" y="235" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0zozx1u" bpmnElement="Activity_118pfe1">
+        <dc:Bounds x="240" y="170" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_14xojy0_di" bpmnElement="Activity_1dibkd5">
+        <dc:Bounds x="300" y="290" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_14ev0fk_di" bpmnElement="Event_14ev0fk">
+        <dc:Bounds x="1322" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1303" y="235" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0a5nefw" bpmnElement="Activity_0svfozj">
+        <dc:Bounds x="1320" y="410" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0nz78qt" bpmnElement="Activity_0hztmxc">
+        <dc:Bounds x="1460" y="410" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0nlqb10" bpmnElement="Event_0gq12nk">
+        <dc:Bounds x="1322" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1307" y="355" width="67" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0z2t5ph_di" bpmnElement="Gateway_0z2t5ph" isMarkerVisible="true">
+        <dc:Bounds x="1595" y="425" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1596" y="403" width="47" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_14h4iq6_di" bpmnElement="Gateway_14h4iq6" isMarkerVisible="true">
+        <dc:Bounds x="1725" y="305" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_06tvmdy" bpmnElement="Event_0qel938">
+        <dc:Bounds x="1952" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1933" y="355" width="75" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_04hpoc5" bpmnElement="Activity_1umb1rv">
+        <dc:Bounds x="1810" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0883pgd_di" bpmnElement="Event_0sl0vbh">
+        <dc:Bounds x="1732" y="552" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1739" y="595" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0bc1cd8_di" bpmnElement="Event_0pvygwq">
+        <dc:Bounds x="367" y="552" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="374" y="595" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1jz7av2_di" bpmnElement="Gateway_1jz7av2" isMarkerVisible="true">
+        <dc:Bounds x="435" y="185" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ko88ft_di" bpmnElement="Activity_1ko88ft" isExpanded="true">
+        <dc:Bounds x="520" y="110" width="690" height="570" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0u8iwz8" bpmnElement="Activity_0om9p4a">
+        <dc:Bounds x="1050" y="530" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0v1ycng_di" bpmnElement="Event_08710ws">
+        <dc:Bounds x="1052" y="432" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1031" y="475" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1s9boah_di" bpmnElement="Event_1wojnup">
+        <dc:Bounds x="1052" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1045" y="355" width="51" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1xf9p8k" bpmnElement="Event_053gfzv">
+        <dc:Bounds x="1052" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1026" y="235" width="88" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_13h5bxf_di" bpmnElement="Event_1ado95h">
+        <dc:Bounds x="842" y="432" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="825" y="475" width="71" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1t5s1j0" bpmnElement="Gateway_16qm1s0" isMarkerVisible="true">
+        <dc:Bounds x="905" y="185" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="903" y="141" width="55" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1ijl83e" bpmnElement="Event_1vvi0dm">
+        <dc:Bounds x="752" y="432" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="751" y="475" width="40" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1nw8cb5" bpmnElement="Event_16yd83w">
+        <dc:Bounds x="752" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="740" y="235" width="64" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0hrytk7" bpmnElement="Gateway_1j8nunf">
+        <dc:Bounds x="665" y="185" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1fr1ftj_di" bpmnElement="Event_1fr1ftj">
+        <dc:Bounds x="535" y="192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="508" y="235" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_1lmtnv5" bpmnElement="Flow_17aidmd">
+        <di:waypoint x="930" y="235" />
+        <di:waypoint x="930" y="450" />
+        <di:waypoint x="1052" y="450" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="957" y="433" width="56" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0n6h1tm" bpmnElement="Flow_1rd7p6f">
+        <di:waypoint x="930" y="235" />
+        <di:waypoint x="930" y="570" />
+        <di:waypoint x="1050" y="570" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="958" y="556" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0gellqk" bpmnElement="Flow_0wdmr4f">
+        <di:waypoint x="955" y="210" />
+        <di:waypoint x="1052" y="210" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="959" y="193" width="51" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1na3i8x" bpmnElement="Flow_0qxull5">
+        <di:waypoint x="930" y="235" />
+        <di:waypoint x="930" y="330" />
+        <di:waypoint x="1052" y="330" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="972" y="313" width="26" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0vwgjkb" bpmnElement="Flow_1dpkqrm">
+        <di:waypoint x="788" y="450" />
+        <di:waypoint x="842" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0kvd5xt" bpmnElement="Flow_129m2m2">
+        <di:waypoint x="788" y="210" />
+        <di:waypoint x="905" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_10sw7gj" bpmnElement="Flow_0j1hv6o">
+        <di:waypoint x="715" y="210" />
+        <di:waypoint x="752" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1bm1wsz" bpmnElement="Flow_0qdcgkg">
+        <di:waypoint x="690" y="235" />
+        <di:waypoint x="690" y="450" />
+        <di:waypoint x="752" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1mqad0z_di" bpmnElement="Flow_1mqad0z">
+        <di:waypoint x="571" y="210" />
+        <di:waypoint x="585" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0us0wja" bpmnElement="Flow_1tyl6gu">
+        <di:waypoint x="1150" y="570" />
+        <di:waypoint x="1175" y="570" />
+        <di:waypoint x="1175" y="640" />
+        <di:waypoint x="640" y="640" />
+        <di:waypoint x="640" y="220" />
+        <di:waypoint x="670" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_1ti5l8v_di" bpmnElement="TextAnnotation_1ti5l8v">
+        <dc:Bounds x="280" y="410" width="140" height="58" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_07ss40e_di" bpmnElement="TextAnnotation_07ss40e">
+        <dc:Bounds x="215" y="80" width="170" height="40" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0i2islu" bpmnElement="TextAnnotation_0qbjmxt">
+        <dc:Bounds x="685" y="140" width="170" height="30" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_08stkwj" bpmnElement="TextAnnotation_1worlyr">
+        <dc:Bounds x="700" y="375" width="140" height="40" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_064tul7" bpmnElement="TextAnnotation_0czz4ee">
+        <dc:Bounds x="685" y="570" width="220" height="40" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0yrvqy5" bpmnElement="TextAnnotation_0ghi73w">
+        <dc:Bounds x="1350" y="570" width="219.99998474121094" height="54.999996185302734" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1uyyk9x" bpmnElement="TextAnnotation_0nzl5pb">
+        <dc:Bounds x="1780" y="160" width="219.9857940673828" height="40.99431610107422" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1qlvm5k_di" bpmnElement="Event_16ail2y">
+        <dc:Bounds x="1192" y="432" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1218" y="468" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_16tgwlc_di" bpmnElement="Event_0f7bls8">
+        <dc:Bounds x="1192" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1229" y="343" width="51" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_17wgw7a_di" bpmnElement="Event_04itckl">
+        <dc:Bounds x="242" y="232" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_1fvelgq" bpmnElement="Flow_0mhv1kc">
+        <di:waypoint x="198" y="210" />
+        <di:waypoint x="240" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0tgayqs" bpmnElement="Flow_1989gzl">
+        <di:waypoint x="1420" y="450" />
+        <di:waypoint x="1460" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18a70pp_di" bpmnElement="Flow_18a70pp">
+        <di:waypoint x="1560" y="450" />
+        <di:waypoint x="1595" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0haj141_di" bpmnElement="Flow_0haj141">
+        <di:waypoint x="1358" y="330" />
+        <di:waypoint x="1725" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0220r5e_di" bpmnElement="Flow_0220r5e">
+        <di:waypoint x="1645" y="450" />
+        <di:waypoint x="1750" y="450" />
+        <di:waypoint x="1750" y="355" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1644" y="433" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1cd4mbb" bpmnElement="Flow_1kng7gt">
+        <di:waypoint x="1910" y="330" />
+        <di:waypoint x="1952" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1u11xjq_di" bpmnElement="Flow_1u11xjq">
+        <di:waypoint x="1775" y="330" />
+        <di:waypoint x="1810" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1yxwzsm_di" bpmnElement="Flow_1yxwzsm">
+        <di:waypoint x="1620" y="475" />
+        <di:waypoint x="1620" y="570" />
+        <di:waypoint x="1732" y="570" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1637" y="536" width="85" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1o2ezll_di" bpmnElement="Flow_1o2ezll">
+        <di:waypoint x="403" y="570" />
+        <di:waypoint x="460" y="570" />
+        <di:waypoint x="460" y="235" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ikiid0_di" bpmnElement="Flow_0ikiid0">
+        <di:waypoint x="485" y="210" />
+        <di:waypoint x="520" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1j5h7i1_di" bpmnElement="Flow_1j5h7i1">
+        <di:waypoint x="1210" y="210" />
+        <di:waypoint x="1322" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0cmi09p_di" bpmnElement="Flow_0cmi09p">
+        <di:waypoint x="1228" y="330" />
+        <di:waypoint x="1322" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ut4ave_di" bpmnElement="Flow_1ut4ave">
+        <di:waypoint x="1228" y="450" />
+        <di:waypoint x="1320" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1aqhjsr_di" bpmnElement="Flow_1aqhjsr">
+        <di:waypoint x="340" y="210" />
+        <di:waypoint x="435" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0wps4yf_di" bpmnElement="Association_0wps4yf">
+        <di:waypoint x="260" y="268" />
+        <di:waypoint x="260" y="330" />
+        <di:waypoint x="300" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0a0x8xa_di" bpmnElement="Association_0a0x8xa">
+        <di:waypoint x="350" y="370" />
+        <di:waypoint x="350" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0z4uv4r_di" bpmnElement="Association_0z4uv4r">
+        <di:waypoint x="294" y="170" />
+        <di:waypoint x="298" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_03pkll7" bpmnElement="Association_0mchv4a">
+        <di:waypoint x="1050" y="585" />
+        <di:waypoint x="905" y="592" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_03q5s1s" bpmnElement="Association_0a9dqhm">
+        <di:waypoint x="770" y="190" />
+        <di:waypoint x="770" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0ttvlth" bpmnElement="Association_1pcbbq9">
+        <di:waypoint x="770" y="430" />
+        <di:waypoint x="770" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1rwuetl_di" bpmnElement="Association_1rwuetl">
+        <di:waypoint x="1469" y="570" />
+        <di:waypoint x="1505" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1e5wlm9_di" bpmnElement="Association_1e5wlm9">
+        <di:waypoint x="1885" y="201" />
+        <di:waypoint x="1863" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_rpa_intro_di" bpmnElement="TextAnnotation_rpa_intro">
+        <dc:Bounds x="112" y="102" width="300" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_rpa_intro_di" bpmnElement="Association_rpa_intro">
+        <di:waypoint x="162" y="192" />
+        <di:waypoint x="262" y="172" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Gateway_join_before_ebg_di" bpmnElement="Gateway_join_before_ebg" isMarkerVisible="true">
+        <dc:Bounds x="585" y="185" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_join_to_ebg_di" bpmnElement="Flow_join_to_ebg">
+        <di:waypoint x="635" y="210" />
+        <di:waypoint x="665" y="210" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

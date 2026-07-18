@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_0o87biy" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.22.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0" camunda:diagramRelationId="fb106f6d-8291-4045-83fc-3ca3615685f3">
+  <bpmn:collaboration id="AbsenceRequestProcessPool">
+    <bpmn:participant id="Participant_056nh3b" name="Absence Request Process" processRef="absence-request-process-10w7pa5-16gc7a1" />
+  </bpmn:collaboration>
+  <bpmn:process id="absence-request-process-10w7pa5-16gc7a1" name="Absence Request Process" isExecutable="true">
+    <bpmn:extensionElements>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_08mslvx">
+      <bpmn:lane id="Lane_Employee" name="Employee">
+        <bpmn:flowNodeRef>TimeOffNeededStartEvent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>RequestAbsenceTask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GetLineManagerTask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ClarifyRequestTask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GetNotification</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_02m7n8y</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_LineManager" name="Line Manager">
+        <bpmn:flowNodeRef>Gateway_0sz0cst</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ApproveAbsenceTask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GetAndConfirmReminderTask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_0zynvca</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_1pdgva1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>LogAbsenceTask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_1uhcky9</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_0z73nuo</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:sequenceFlow id="Flow_15yg3k5" sourceRef="TimeOffNeededStartEvent" targetRef="RequestAbsenceTask" />
+    <bpmn:sequenceFlow id="Flow_0xnutez" sourceRef="RequestAbsenceTask" targetRef="GetLineManagerTask" />
+    <bpmn:sequenceFlow id="Flow_00xi8zy" sourceRef="Gateway_0sz0cst" targetRef="ApproveAbsenceTask" />
+    <bpmn:sequenceFlow id="Flow_0225a20" sourceRef="ApproveAbsenceTask" targetRef="Gateway_1pdgva1" />
+    <bpmn:sequenceFlow id="Flow_1ynjfct" name="approved" sourceRef="Gateway_1pdgva1" targetRef="LogAbsenceTask">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= approvalResult = "approved"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1f7d78d" name="clarification needed" sourceRef="Gateway_1pdgva1" targetRef="ClarifyRequestTask">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= approvalResult = "clarificationNeeded"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1a3eadh" name="rejected" sourceRef="Gateway_1pdgva1" targetRef="Gateway_1uhcky9">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= approvalResult = "rejected"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1cug0fm" sourceRef="LogAbsenceTask" targetRef="Gateway_1uhcky9" />
+    <bpmn:sequenceFlow id="Flow_1wt1dkc" sourceRef="Gateway_1uhcky9" targetRef="GetNotification" />
+    <bpmn:sequenceFlow id="Flow_1cusxs4" sourceRef="GetNotification" targetRef="Event_02m7n8y" />
+    <bpmn:sequenceFlow id="Flow_07mywsg" sourceRef="GetAndConfirmReminderTask" targetRef="Event_0zynvca" />
+    <bpmn:sequenceFlow id="Flow_1izp9te" sourceRef="Event_0z73nuo" targetRef="GetAndConfirmReminderTask" />
+    <bpmn:sequenceFlow id="Flow_0axp5vf" sourceRef="ClarifyRequestTask" targetRef="Gateway_0sz0cst" />
+    <bpmn:sequenceFlow id="Flow_1d5wcnk" sourceRef="GetLineManagerTask" targetRef="Gateway_0sz0cst" />
+    <bpmn:startEvent id="TimeOffNeededStartEvent" name="Time off needed">
+      <bpmn:outgoing>Flow_15yg3k5</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="RequestAbsenceTask" name="Request absence">
+      <bpmn:documentation>This task uses a Camunda form (see below). Forms can be created in the Modeler. To link a form to a user task, its JSON definition is copied into the corresonding configuration below. When executing the process, users can use Camunda Tasklist to view and edit data via this form.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="RequestAbsence" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_15yg3k5</bpmn:incoming>
+      <bpmn:outgoing>Flow_0xnutez</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:businessRuleTask id="GetLineManagerTask" name="Get line manager">
+      <bpmn:documentation>Each department has a line manager. This task uses a DMN decision table to get the line manager of the employee. The result is stored in the variable "assignedLineManager". It is used to assign upcoming user tasks to the responsible line manager.</bpmn:documentation>
+      <bpmn:extensionElements>
+        <zeebe:calledDecision decisionId="department_line_manager" resultVariable="department_line_manager" />
+        <zeebe:ioMapping>
+          <zeebe:output source="=department_line_manager" target="assignedLineManager" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0xnutez</bpmn:incoming>
+      <bpmn:outgoing>Flow_1d5wcnk</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:exclusiveGateway id="Gateway_0sz0cst">
+      <bpmn:incoming>Flow_0axp5vf</bpmn:incoming>
+      <bpmn:incoming>Flow_1d5wcnk</bpmn:incoming>
+      <bpmn:outgoing>Flow_00xi8zy</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="ApproveAbsenceTask" name="Approve absence">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:assignmentDefinition assignee="=assignedLineManager" />
+        <zeebe:formDefinition formId="ApproveAbsence" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_00xi8zy</bpmn:incoming>
+      <bpmn:outgoing>Flow_0225a20</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="GetAndConfirmReminderTask" name="Acknowledge approval reminder">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="AcknowledgeApprovalReminder" />
+        <zeebe:assignmentDefinition assignee="=assignedLineManager" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1izp9te</bpmn:incoming>
+      <bpmn:outgoing>Flow_07mywsg</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_0zynvca" name="Line manager reminded">
+      <bpmn:incoming>Flow_07mywsg</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="ClarifyRequestTask" name="Clarify request">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="ClarifyRequest" />
+        <zeebe:assignmentDefinition assignee="=employeeName" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1f7d78d</bpmn:incoming>
+      <bpmn:outgoing>Flow_0axp5vf</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="GetNotification" name="Acknowledge approval decision">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="AcknowledgeApprovalDecision" />
+        <zeebe:assignmentDefinition assignee="=employeeName" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1wt1dkc</bpmn:incoming>
+      <bpmn:outgoing>Flow_1cusxs4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_02m7n8y" name="Employee notified">
+      <bpmn:incoming>Flow_1cusxs4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Gateway_1pdgva1" name="Approval Result?">
+      <bpmn:incoming>Flow_0225a20</bpmn:incoming>
+      <bpmn:outgoing>Flow_1a3eadh</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1f7d78d</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1ynjfct</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="LogAbsenceTask" name="Log absence in HR system">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="LogAbsenceInHRSystem" />
+        <zeebe:assignmentDefinition assignee="=assignedLineManager" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1ynjfct</bpmn:incoming>
+      <bpmn:outgoing>Flow_1cug0fm</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_1uhcky9">
+      <bpmn:incoming>Flow_1a3eadh</bpmn:incoming>
+      <bpmn:incoming>Flow_1cug0fm</bpmn:incoming>
+      <bpmn:outgoing>Flow_1wt1dkc</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:boundaryEvent id="Event_0z73nuo" name="Every 2 days" cancelActivity="false" attachedToRef="ApproveAbsenceTask">
+      <bpmn:documentation>This timer triggers a reminder every two days.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1izp9te</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_0c27emr">
+        <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">R/P2D</bpmn:timeCycle>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:textAnnotation id="TextAnnotation_absence_intro">
+      <bpmn:text>Triggered when an employee needs time off. The happy-path outcome is the absence request being approved, logged in the HR system, and the employee notified.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_absence_intro" associationDirection="None" sourceRef="TimeOffNeededStartEvent" targetRef="TextAnnotation_absence_intro" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="AbsenceRequestProcessPool">
+      <bpmndi:BPMNShape id="Participant_056nh3b_di" bpmnElement="Participant_056nh3b" isHorizontal="true">
+        <dc:Bounds x="159" y="100" width="1531" height="440" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0jbpf0w_di" bpmnElement="Lane_Employee" isHorizontal="true">
+        <dc:Bounds x="189" y="100" width="1501" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0dur4gj_di" bpmnElement="Lane_LineManager" isHorizontal="true">
+        <dc:Bounds x="189" y="280" width="1501" height="260" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="TimeOffNeededStartEvent">
+        <dc:Bounds x="242" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="240" y="216" width="40" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0o4nisz_di" bpmnElement="RequestAbsenceTask">
+        <dc:Bounds x="320" y="150" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1tqap6e_di" bpmnElement="GetLineManagerTask">
+        <dc:Bounds x="460" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0sz0cst_di" bpmnElement="Gateway_0sz0cst" isMarkerVisible="true">
+        <dc:Bounds x="635" y="436" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1lb7152_di" bpmnElement="ApproveAbsenceTask">
+        <dc:Bounds x="720" y="421" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1561p8l_di" bpmnElement="GetAndConfirmReminderTask">
+        <dc:Bounds x="850" y="330" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0zynvca_di" bpmnElement="Event_0zynvca">
+        <dc:Bounds x="992" y="352" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="976" y="395" width="69" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1bx0fjx_di" bpmnElement="ClarifyRequestTask">
+        <dc:Bounds x="1190" y="150" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0kl9uoy_di" bpmnElement="GetNotification">
+        <dc:Bounds x="1460" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_02m7n8y_di" bpmnElement="Event_02m7n8y">
+        <dc:Bounds x="1602" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1576" y="215" width="88" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1pdgva1_di" bpmnElement="Gateway_1pdgva1" isMarkerVisible="true">
+        <dc:Bounds x="1055" y="436" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1037.5" y="493" width="83" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0pixets_di" bpmnElement="LogAbsenceTask">
+        <dc:Bounds x="1190" y="421" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1uhcky9_di" bpmnElement="Gateway_1uhcky9" isMarkerVisible="true">
+        <dc:Bounds x="1335" y="436" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1xxzzm1_di" bpmnElement="Event_0z73nuo">
+        <dc:Bounds x="782" y="403" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="717" y="403" width="65" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_15yg3k5_di" bpmnElement="Flow_15yg3k5">
+        <di:waypoint x="278" y="190" />
+        <di:waypoint x="320" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0xnutez_di" bpmnElement="Flow_0xnutez">
+        <di:waypoint x="420" y="190" />
+        <di:waypoint x="460" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_00xi8zy_di" bpmnElement="Flow_00xi8zy">
+        <di:waypoint x="685" y="461" />
+        <di:waypoint x="720" y="461" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0225a20_di" bpmnElement="Flow_0225a20">
+        <di:waypoint x="820" y="461" />
+        <di:waypoint x="1055" y="461" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ynjfct_di" bpmnElement="Flow_1ynjfct">
+        <di:waypoint x="1105" y="461" />
+        <di:waypoint x="1190" y="461" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1117" y="443" width="46" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1f7d78d_di" bpmnElement="Flow_1f7d78d">
+        <di:waypoint x="1080" y="436" />
+        <di:waypoint x="1080" y="190" />
+        <di:waypoint x="1190" y="190" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1112" y="156" width="56" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1a3eadh_di" bpmnElement="Flow_1a3eadh">
+        <di:waypoint x="1080" y="436" />
+        <di:waypoint x="1080" y="370" />
+        <di:waypoint x="1360" y="370" />
+        <di:waypoint x="1360" y="436" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1120" y="353" width="40" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1cug0fm_di" bpmnElement="Flow_1cug0fm">
+        <di:waypoint x="1290" y="461" />
+        <di:waypoint x="1335" y="461" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1wt1dkc_di" bpmnElement="Flow_1wt1dkc">
+        <di:waypoint x="1385" y="461" />
+        <di:waypoint x="1420" y="461" />
+        <di:waypoint x="1420" y="190" />
+        <di:waypoint x="1460" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1cusxs4_di" bpmnElement="Flow_1cusxs4">
+        <di:waypoint x="1560" y="190" />
+        <di:waypoint x="1602" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_07mywsg_di" bpmnElement="Flow_07mywsg">
+        <di:waypoint x="950" y="370" />
+        <di:waypoint x="992" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1izp9te_di" bpmnElement="Flow_1izp9te">
+        <di:waypoint x="800" y="403" />
+        <di:waypoint x="800" y="370" />
+        <di:waypoint x="850" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0axp5vf_di" bpmnElement="Flow_0axp5vf">
+        <di:waypoint x="1290" y="190" />
+        <di:waypoint x="1360" y="190" />
+        <di:waypoint x="1360" y="120" />
+        <di:waypoint x="660" y="120" />
+        <di:waypoint x="660" y="436" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1d5wcnk_di" bpmnElement="Flow_1d5wcnk">
+        <di:waypoint x="560" y="190" />
+        <di:waypoint x="600" y="190" />
+        <di:waypoint x="600" y="461" />
+        <di:waypoint x="635" y="461" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_absence_intro_di" bpmnElement="TextAnnotation_absence_intro">
+        <dc:Bounds x="170" y="20" width="290" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_absence_intro_di" bpmnElement="Association_absence_intro">
+        <di:waypoint x="260" y="172" />
+        <di:waypoint x="260" y="75" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>An error boundary event docks below its host and the handler region occupies the lower band.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_11p69dm</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_10x76o1">
+      <bpmn:incoming>Flow_11p69dm</bpmn:incoming>
+      <bpmn:outgoing>Flow_19woc48</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_11p69dm" sourceRef="StartEvent_1" targetRef="Activity_10x76o1" />
+    <bpmn:endEvent id="Event_02bwyr6">
+      <bpmn:incoming>Flow_19woc48</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_19woc48" sourceRef="Activity_10x76o1" targetRef="Event_02bwyr6" />
+    <bpmn:boundaryEvent id="Event_1fcgk23" attachedToRef="Activity_10x76o1">
+      <bpmn:outgoing>Flow_051awb7</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0hx6j1e" errorRef="Error_17uyljw" />
+    </bpmn:boundaryEvent>
+    <bpmn:task id="Activity_1m65g60">
+      <bpmn:incoming>Flow_051awb7</bpmn:incoming>
+      <bpmn:outgoing>Flow_02g8aey</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_051awb7" sourceRef="Event_1fcgk23" targetRef="Activity_1m65g60" />
+    <bpmn:endEvent id="Event_19pokuu">
+      <bpmn:incoming>Flow_02g8aey</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_02g8aey" sourceRef="Activity_1m65g60" targetRef="Event_19pokuu" />
+  </bpmn:process>
+  <bpmn:error id="Error_17uyljw" name="Error_1dor3ee" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Process_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Process_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_10x76o1" bpmnElement="Activity_10x76o1">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_02bwyr6" bpmnElement="Event_02bwyr6">
+        <dc:Bounds x="448" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_1m65g60" bpmnElement="Activity_1m65g60">
+        <dc:Bounds x="416" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_19pokuu" bpmnElement="Event_19pokuu">
+        <dc:Bounds x="616" y="262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_1fcgk23" bpmnElement="Event_1fcgk23">
+        <dc:Bounds x="248" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_11p69dm" bpmnElement="Flow_11p69dm">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_19woc48" bpmnElement="Flow_19woc48">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="448" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_02g8aey" bpmnElement="Flow_02g8aey">
+        <di:waypoint x="516" y="280" />
+        <di:waypoint x="616" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_051awb7" bpmnElement="Flow_051awb7">
+        <di:waypoint x="266" y="178" />
+        <di:waypoint x="266" y="280" />
+        <di:waypoint x="416" y="280" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:collaboration id="Collaboration_1m4gzsi">
+    <bpmn:participant id="Participant_1o5alx8" processRef="Process_1" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>An empty lane retains its minimum height.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_1dis5ko">
+      <bpmn:lane id="Lane_1i085ya">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1o8hxjt</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1ytxckr</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_152dm9b</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_1p9apwh" />
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1aeqa9q</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_1o8hxjt">
+      <bpmn:incoming>Flow_1aeqa9q</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ylt69b</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1ytxckr">
+      <bpmn:incoming>Flow_0ylt69b</bpmn:incoming>
+      <bpmn:outgoing>Flow_1o658yo</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_152dm9b">
+      <bpmn:incoming>Flow_1o658yo</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1aeqa9q" sourceRef="StartEvent_1" targetRef="Activity_1o8hxjt" />
+    <bpmn:sequenceFlow id="Flow_0ylt69b" sourceRef="Activity_1o8hxjt" targetRef="Activity_1ytxckr" />
+    <bpmn:sequenceFlow id="Flow_1o658yo" sourceRef="Activity_1ytxckr" targetRef="Event_152dm9b" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1m4gzsi">
+      <bpmndi:BPMNShape id="Participant_1o5alx8_di" bpmnElement="Participant_1o5alx8" isHorizontal="true">
+        <dc:Bounds x="160" y="50" width="600" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1i085ya_di" bpmnElement="Lane_1i085ya" isHorizontal="true">
+        <dc:Bounds x="190" y="50" width="570" height="125" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1p9apwh_di" bpmnElement="Lane_1p9apwh" isHorizontal="true">
+        <dc:Bounds x="190" y="175" width="570" height="125" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="242" y="100" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1o8hxjt_di" bpmnElement="Activity_1o8hxjt">
+        <dc:Bounds x="330" y="78" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ytxckr_di" bpmnElement="Activity_1ytxckr">
+        <dc:Bounds x="490" y="78" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_152dm9b_di" bpmnElement="Event_152dm9b">
+        <dc:Bounds x="652" y="100" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1aeqa9q_di" bpmnElement="Flow_1aeqa9q">
+        <di:waypoint x="278" y="118" />
+        <di:waypoint x="330" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ylt69b_di" bpmnElement="Flow_0ylt69b">
+        <di:waypoint x="430" y="118" />
+        <di:waypoint x="490" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1o658yo_di" bpmnElement="Flow_1o658yo">
+        <di:waypoint x="590" y="118" />
+        <di:waypoint x="652" y="118" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

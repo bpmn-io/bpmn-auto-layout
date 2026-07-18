@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1u258uy" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.47.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.9.0">
+  <bpmn:process id="Process_0nlk636" isExecutable="true">
+    <bpmn:documentation>Start → task → task → end is one left-to-right, zero-bend spine</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1" name="Foo">
+      <bpmn:outgoing>Flow_0w4bo7g</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_0r8ed7k" name="Bar">
+      <bpmn:incoming>Flow_0w4bo7g</bpmn:incoming>
+      <bpmn:outgoing>Flow_0858x4s</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0w4bo7g" sourceRef="StartEvent_1" targetRef="Activity_0r8ed7k" />
+    <bpmn:task id="Activity_1sfaxpw">
+      <bpmn:incoming>Flow_0858x4s</bpmn:incoming>
+      <bpmn:outgoing>Flow_167nzu1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0858x4s" sourceRef="Activity_0r8ed7k" targetRef="Activity_1sfaxpw" />
+    <bpmn:endEvent id="Event_0ugexzq">
+      <bpmn:incoming>Flow_167nzu1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_167nzu1" sourceRef="Activity_1sfaxpw" targetRef="Event_0ugexzq" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Process_0nlk636">
+    <bpmndi:BPMNPlane id="BPMNPlane_Process_0nlk636" bpmnElement="Process_0nlk636">
+      <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_0r8ed7k" bpmnElement="Activity_0r8ed7k">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_1sfaxpw" bpmnElement="Activity_1sfaxpw">
+        <dc:Bounds x="416" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_0ugexzq" bpmnElement="Event_0ugexzq">
+        <dc:Bounds x="616" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0w4bo7g" bpmnElement="Flow_0w4bo7g">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0858x4s" bpmnElement="Flow_0858x4s">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_167nzu1" bpmnElement="Flow_167nzu1">
+        <di:waypoint x="516" y="120" />
+        <di:waypoint x="616" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

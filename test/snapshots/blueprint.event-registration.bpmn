@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Web Modeler" exporterVersion="0a0ba04" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0" camunda:diagramRelationId="331d01c6-770f-4b16-8799-536a997ca928">
+  <bpmn:collaboration id="Collaboration_EventRegistration">
+    <bpmn:participant id="Participant_EventRegistration" name="Event team" processRef="Process_EventRegistration-1u9wzht" />
+    <bpmn:participant id="Participant_1wawa2o" name="Attendee" />
+    <bpmn:messageFlow id="Flow_1p4u8s4" sourceRef="Participant_1wawa2o" targetRef="StartEvent_Form" />
+    <bpmn:messageFlow id="Flow_0belkav" sourceRef="Activity_NotifyAttendee" targetRef="Participant_1wawa2o" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_EventRegistration-1u9wzht" name="Event Registration" isExecutable="true">
+    <bpmn:extensionElements />
+    <bpmn:sequenceFlow id="Flow_15hhweo" sourceRef="StartEvent_Form" targetRef="Activity_StoreRegistrations" />
+    <bpmn:startEvent id="StartEvent_Form" name="Event registration received">
+      <bpmn:extensionElements>
+        <zeebe:properties>
+          <zeebe:property name="camundaModeler:exampleOutputJson" value="{&#10;  &#34;first_name&#34;: &#34;John&#34;,&#10;  &#34;last_name&#34;: &#34;Doe&#34;,&#10;  &#34;email&#34;: &#34;john.doe@acme.com&#34;,&#10;  &#34;phone_number&#34;: &#34;&#34;,&#10;  &#34;company&#34;: &#34;Acme Corp&#34;,&#10;  &#34;news_source&#34;: [&#10;    &#34;website&#34;,&#10;    &#34;google&#34;&#10;  ],&#10;  &#34;news_source_alternative&#34;: &#34;&#34;,&#10;  &#34;additional_comments&#34;: &#34;&#34;,&#10;  &#34;future_notifications&#34;: true&#10;}" />
+          <zeebe:property name="publicAccess" value="true" />
+        </zeebe:properties>
+        <zeebe:ioMapping>
+          <zeebe:output source="=first_name" target="first_name" />
+          <zeebe:output source="=last_name" target="last_name" />
+          <zeebe:output source="=email" target="email" />
+          <zeebe:output source="=phone_number" target="phone_number" />
+          <zeebe:output source="=company" target="company" />
+          <zeebe:output source="=concatenate(news_source, [news_source_alternative])" target="news_source" />
+          <zeebe:output source="=additional_comments" target="additional_comments" />
+          <zeebe:output source="=future_notifications" target="future_notifications" />
+        </zeebe:ioMapping>
+        <zeebe:formDefinition formId="EventRegistration" />
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_15hhweo</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_05vjl7d" sourceRef="Activity_NotifyAttendee" targetRef="Gateway_0u6owc4" />
+    <bpmn:sequenceFlow id="Flow_06htesz" sourceRef="Activity_StoreRegistrations" targetRef="Activity_NotifyAttendee" />
+    <bpmn:sequenceFlow id="Flow_1pjwdwi" name="Opt-In" sourceRef="Gateway_0u6owc4" targetRef="Activity_AddToNewsletter">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=future_notifications</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_05qqgi8" sourceRef="Activity_AddToNewsletter" targetRef="Gateway_0k2t6ga" />
+    <bpmn:sequenceFlow id="Flow_1n8iwqt" sourceRef="Gateway_0k2t6ga" targetRef="Event_0kitru1" />
+    <bpmn:sequenceFlow id="Flow_0j25dn6" name="No opt-in" sourceRef="Gateway_0u6owc4" targetRef="Gateway_0k2t6ga" />
+    <bpmn:dataStoreReference id="DataStoreReference_1s94j66" name="Newsletter system" />
+    <bpmn:serviceTask id="Activity_StoreRegistrations" name="Store registration in Google Sheets" zeebe:modelerTemplate="io.camunda.connectors.GoogleSheets.v1" zeebe:modelerTemplateVersion="3" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iNDlweCIgaGVpZ2h0PSI2N3B4IiB2aWV3Qm94PSIwIDAgNDkgNjciIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8IS0tIEdlbmVyYXRvcjogU2tldGNoIDU0LjEgKDc2NDkwKSAtIGh0dHBzOi8vc2tldGNoYXBwLmNvbSAtLT4KICAgIDx0aXRsZT5TaGVldHMtaWNvbjwvdGl0bGU+CiAgICA8ZGVzYz5DcmVhdGVkIHdpdGggU2tldGNoLjwvZGVzYz4KICAgIDxkZWZzPgogICAgICAgIDxwYXRoIGQ9Ik0yOS41ODMzMzMzLDAgTDQuNDM3NSwwIEMxLjk5Njg3NSwwIDAsMS45OTY4NzUgMCw0LjQzNzUgTDAsNjAuNjQ1ODMzMyBDMCw2My4wODY0NTgzIDEuOTk2ODc1LDY1LjA4MzMzMzMgNC40Mzc1LDY1LjA4MzMzMzMgTDQyLjg5NTgzMzMsNjUuMDgzMzMzMyBDNDUuMzM2NDU4Myw2NS4wODMzMzMzIDQ3LjMzMzMzMzMsNjMuMDg2NDU4MyA0Ny4zMzMzMzMzLDYwLjY0NTgzMzMgTDQ3LjMzMzMzMzMsMTcuNzUgTDI5LjU4MzMzMzMsMCBaIiBpZD0icGF0aC0xIj48L3BhdGg+CiAgICAgICAgPHBhdGggZD0iTTI5LjU4MzMzMzMsMCBMNC40Mzc1LDAgQzEuOTk2ODc1LDAgMCwxLjk5Njg3NSAwLDQuNDM3NSBMMCw2MC42NDU4MzMzIEMwLDYzLjA4NjQ1ODMgMS45OTY4NzUsNjUuMDgzMzMzMyA0LjQzNzUsNjUuMDgzMzMzMyBMNDIuODk1ODMzMyw2NS4wODMzMzMzIEM0NS4zMzY0NTgzLDY1LjA4MzMzMzMgNDcuMzMzMzMzMyw2My4wODY0NTgzIDQ3LjMzMzMzMzMsNjAuNjQ1ODMzMyBMNDcuMzMzMzMzMywxNy43NSBMMjkuNTgzMzMzMywwIFoiIGlkPSJwYXRoLTMiPjwvcGF0aD4KICAgICAgICA8cGF0aCBkPSJNMjkuNTgzMzMzMywwIEw0LjQzNzUsMCBDMS45OTY4NzUsMCAwLDEuOTk2ODc1IDAsNC40Mzc1IEwwLDYwLjY0NTgzMzMgQzAsNjMuMDg2NDU4MyAxLjk5Njg3NSw2NS4wODMzMzMzIDQuNDM3NSw2NS4wODMzMzMzIEw0Mi44OTU4MzMzLDY1LjA4MzMzMzMgQzQ1LjMzNjQ1ODMsNjUuMDgzMzMzMyA0Ny4zMzMzMzMzLDYzLjA4NjQ1ODMgNDcuMzMzMzMzMyw2MC42NDU4MzMzIEw0Ny4zMzMzMzMzLDE3Ljc1IEwyOS41ODMzMzMzLDAgWiIgaWQ9InBhdGgtNSI+PC9wYXRoPgogICAgICAgIDxsaW5lYXJHcmFkaWVudCB4MT0iNTAuMDA1Mzk0NSUiIHkxPSI4LjU4NjEwNjEyJSIgeDI9IjUwLjAwNTM5NDUlIiB5Mj0iMTAwLjAxMzkzOSUiIGlkPSJsaW5lYXJHcmFkaWVudC03Ij4KICAgICAgICAgICAgPHN0b3Agc3RvcC1jb2xvcj0iIzI2MzIzOCIgc3RvcC1vcGFjaXR5PSIwLjIiIG9mZnNldD0iMCUiPjwvc3RvcD4KICAgICAgICAgICAgPHN0b3Agc3RvcC1jb2xvcj0iIzI2MzIzOCIgc3RvcC1vcGFjaXR5PSIwLjAyIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD4KICAgICAgICA8L2xpbmVhckdyYWRpZW50PgogICAgICAgIDxwYXRoIGQ9Ik0yOS41ODMzMzMzLDAgTDQuNDM3NSwwIEMxLjk5Njg3NSwwIDAsMS45OTY4NzUgMCw0LjQzNzUgTDAsNjAuNjQ1ODMzMyBDMCw2My4wODY0NTgzIDEuOTk2ODc1LDY1LjA4MzMzMzMgNC40Mzc1LDY1LjA4MzMzMzMgTDQyLjg5NTgzMzMsNjUuMDgzMzMzMyBDNDUuMzM2NDU4Myw2NS4wODMzMzMzIDQ3LjMzMzMzMzMsNjMuMDg2NDU4MyA0Ny4zMzMzMzMzLDYwLjY0NTgzMzMgTDQ3LjMzMzMzMzMsMTcuNzUgTDI5LjU4MzMzMzMsMCBaIiBpZD0icGF0aC04Ij48L3BhdGg+CiAgICAgICAgPHBhdGggZD0iTTI5LjU4MzMzMzMsMCBMNC40Mzc1LDAgQzEuOTk2ODc1LDAgMCwxLjk5Njg3NSAwLDQuNDM3NSBMMCw2MC42NDU4MzMzIEMwLDYzLjA4NjQ1ODMgMS45OTY4NzUsNjUuMDgzMzMzMyA0LjQzNzUsNjUuMDgzMzMzMyBMNDIuODk1ODMzMyw2NS4wODMzMzMzIEM0NS4zMzY0NTgzLDY1LjA4MzMzMzMgNDcuMzMzMzMzMyw2My4wODY0NTgzIDQ3LjMzMzMzMzMsNjAuNjQ1ODMzMyBMNDcuMzMzMzMzMywxNy43NSBMMjkuNTgzMzMzMywwIFoiIGlkPSJwYXRoLTEwIj48L3BhdGg+CiAgICAgICAgPHBhdGggZD0iTTI5LjU4MzMzMzMsMCBMNC40Mzc1LDAgQzEuOTk2ODc1LDAgMCwxLjk5Njg3NSAwLDQuNDM3NSBMMCw2MC42NDU4MzMzIEMwLDYzLjA4NjQ1ODMgMS45OTY4NzUsNjUuMDgzMzMzMyA0LjQzNzUsNjUuMDgzMzMzMyBMNDIuODk1ODMzMyw2NS4wODMzMzMzIEM0NS4zMzY0NTgzLDY1LjA4MzMzMzMgNDcuMzMzMzMzMyw2My4wODY0NTgzIDQ3LjMzMzMzMzMsNjAuNjQ1ODMzMyBMNDcuMzMzMzMzMywxNy43NSBMMjkuNTgzMzMzMywwIFoiIGlkPSJwYXRoLTEyIj48L3BhdGg+CiAgICAgICAgPHBhdGggZD0iTTI5LjU4MzMzMzMsMCBMNC40Mzc1LDAgQzEuOTk2ODc1LDAgMCwxLjk5Njg3NSAwLDQuNDM3NSBMMCw2MC42NDU4MzMzIEMwLDYzLjA4NjQ1ODMgMS45OTY4NzUsNjUuMDgzMzMzMyA0LjQzNzUsNjUuMDgzMzMzMyBMNDIuODk1ODMzMyw2NS4wODMzMzMzIEM0NS4zMzY0NTgzLDY1LjA4MzMzMzMgNDcuMzMzMzMzMyw2My4wODY0NTgzIDQ3LjMzMzMzMzMsNjAuNjQ1ODMzMyBMNDcuMzMzMzMzMywxNy43NSBMMjkuNTgzMzMzMywwIFoiIGlkPSJwYXRoLTE0Ij48L3BhdGg+CiAgICAgICAgPHJhZGlhbEdyYWRpZW50IGN4PSIzLjE2ODA0Njg4JSIgY3k9IjIuNzE3NDQzMTglIiBmeD0iMy4xNjgwNDY4OCUiIGZ5PSIyLjcxNzQ0MzE4JSIgcj0iMTYxLjI0ODUxNiUiIGdyYWRpZW50VHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC4wMzE2ODAsMC4wMjcxNzQpLHNjYWxlKDEuMDAwMDAwLDAuNzI3MjczKSx0cmFuc2xhdGUoLTAuMDMxNjgwLC0wLjAyNzE3NCkiIGlkPSJyYWRpYWxHcmFkaWVudC0xNiI+CiAgICAgICAgICAgIDxzdG9wIHN0b3AtY29sb3I9IiNGRkZGRkYiIHN0b3Atb3BhY2l0eT0iMC4xIiBvZmZzZXQ9IjAlIj48L3N0b3A+CiAgICAgICAgICAgIDxzdG9wIHN0b3AtY29sb3I9IiNGRkZGRkYiIHN0b3Atb3BhY2l0eT0iMCIgb2Zmc2V0PSIxMDAlIj48L3N0b3A+CiAgICAgICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxnIGlkPSJQYWdlLTEiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPgogICAgICAgIDxnIGlkPSJDb25zdW1lci1BcHBzLVNoZWV0cy1MYXJnZS1WRC1SOC0iIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00NTEuMDAwMDAwLCAtNDUxLjAwMDAwMCkiPgogICAgICAgICAgICA8ZyBpZD0iSGVybyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC4wMDAwMDAsIDYzLjAwMDAwMCkiPgogICAgICAgICAgICAgICAgPGcgaWQ9IlBlcnNvbmFsIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNzcuMDAwMDAwLCAyOTkuMDAwMDAwKSI+CiAgICAgICAgICAgICAgICAgICAgPGcgaWQ9IlNoZWV0cy1pY29uIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNzQuODMzMzMzLCA4OS45NTgzMzMpIj4KICAgICAgICAgICAgICAgICAgICAgICAgPGcgaWQ9Ikdyb3VwIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxnIGlkPSJDbGlwcGVkIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8bWFzayBpZD0ibWFzay0yIiBmaWxsPSJ3aGl0ZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx1c2UgeGxpbms6aHJlZj0iI3BhdGgtMSI+PC91c2U+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9tYXNrPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxnIGlkPSJTVkdJRF8xXyI+PC9nPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxwYXRoIGQ9Ik0yOS41ODMzMzMzLDAgTDQuNDM3NSwwIEMxLjk5Njg3NSwwIDAsMS45OTY4NzUgMCw0LjQzNzUgTDAsNjAuNjQ1ODMzMyBDMCw2My4wODY0NTgzIDEuOTk2ODc1LDY1LjA4MzMzMzMgNC40Mzc1LDY1LjA4MzMzMzMgTDQyLjg5NTgzMzMsNjUuMDgzMzMzMyBDNDUuMzM2NDU4Myw2NS4wODMzMzMzIDQ3LjMzMzMzMzMsNjMuMDg2NDU4MyA0Ny4zMzMzMzMzLDYwLjY0NTgzMzMgTDQ3LjMzMzMzMzMsMTcuNzUgTDM2Ljk3OTE2NjcsMTAuMzU0MTY2NyBMMjkuNTgzMzMzMywwIFoiIGlkPSJQYXRoIiBmaWxsPSIjMEY5RDU4IiBmaWxsLXJ1bGU9Im5vbnplcm8iIG1hc2s9InVybCgjbWFzay0yKSI+PC9wYXRoPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9nPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPGcgaWQ9IkNsaXBwZWQiPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxtYXNrIGlkPSJtYXNrLTQiIGZpbGw9IndoaXRlIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHVzZSB4bGluazpocmVmPSIjcGF0aC0zIj48L3VzZT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L21hc2s+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGcgaWQ9IlNWR0lEXzFfIj48L2c+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0iTTExLjgzMzMzMzMsMzEuODAyMDgzMyBMMTEuODMzMzMzMyw1My4yNSBMMzUuNSw1My4yNSBMMzUuNSwzMS44MDIwODMzIEwxMS44MzMzMzMzLDMxLjgwMjA4MzMgWiBNMjIuMTg3NSw1MC4yOTE2NjY3IEwxNC43OTE2NjY3LDUwLjI5MTY2NjcgTDE0Ljc5MTY2NjcsNDYuNTkzNzUgTDIyLjE4NzUsNDYuNTkzNzUgTDIyLjE4NzUsNTAuMjkxNjY2NyBaIE0yMi4xODc1LDQ0LjM3NSBMMTQuNzkxNjY2Nyw0NC4zNzUgTDE0Ljc5MTY2NjcsNDAuNjc3MDgzMyBMMjIuMTg3NSw0MC42NzcwODMzIEwyMi4xODc1LDQ0LjM3NSBaIE0yMi4xODc1LDM4LjQ1ODMzMzMgTDE0Ljc5MTY2NjcsMzguNDU4MzMzMyBMMTQuNzkxNjY2NywzNC43NjA0MTY3IEwyMi4xODc1LDM0Ljc2MDQxNjcgTDIyLjE4NzUsMzguNDU4MzMzMyBaIE0zMi41NDE2NjY3LDUwLjI5MTY2NjcgTDI1LjE0NTgzMzMsNTAuMjkxNjY2NyBMMjUuMTQ1ODMzMyw0Ni41OTM3NSBMMzIuNTQxNjY2Nyw0Ni41OTM3NSBMMzIuNTQxNjY2Nyw1MC4yOTE2NjY3IFogTTMyLjU0MTY2NjcsNDQuMzc1IEwyNS4xNDU4MzMzLDQ0LjM3NSBMMjUuMTQ1ODMzMyw0MC42NzcwODMzIEwzMi41NDE2NjY3LDQwLjY3NzA4MzMgTDMyLjU0MTY2NjcsNDQuMzc1IFogTTMyLjU0MTY2NjcsMzguNDU4MzMzMyBMMjUuMTQ1ODMzMywzOC40NTgzMzMzIEwyNS4xNDU4MzMzLDM0Ljc2MDQxNjcgTDMyLjU0MTY2NjcsMzQuNzYwNDE2NyBMMzIuNTQxNjY2NywzOC40NTgzMzMzIFoiIGlkPSJTaGFwZSIgZmlsbD0iI0YxRjFGMSIgZmlsbC1ydWxlPSJub256ZXJvIiBtYXNrPSJ1cmwoI21hc2stNCkiPjwvcGF0aD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxnIGlkPSJDbGlwcGVkIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8bWFzayBpZD0ibWFzay02IiBmaWxsPSJ3aGl0ZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx1c2UgeGxpbms6aHJlZj0iI3BhdGgtNSI+PC91c2U+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9tYXNrPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxnIGlkPSJTVkdJRF8xXyI+PC9nPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxwb2x5Z29uIGlkPSJQYXRoIiBmaWxsPSJ1cmwoI2xpbmVhckdyYWRpZW50LTcpIiBmaWxsLXJ1bGU9Im5vbnplcm8iIG1hc2s9InVybCgjbWFzay02KSIgcG9pbnRzPSIzMC44ODEzMDIxIDE2LjQ1MjAzMTMgNDcuMzMzMzMzMyAzMi45MDAzNjQ2IDQ3LjMzMzMzMzMgMTcuNzUiPjwvcG9seWdvbj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxnIGlkPSJDbGlwcGVkIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8bWFzayBpZD0ibWFzay05IiBmaWxsPSJ3aGl0ZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx1c2UgeGxpbms6aHJlZj0iI3BhdGgtOCI+PC91c2U+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9tYXNrPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxnIGlkPSJTVkdJRF8xXyI+PC9nPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxnIGlkPSJHcm91cCIgbWFzaz0idXJsKCNtYXNrLTkpIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjYuNjI1MDAwLCAtMi45NTgzMzMpIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxwYXRoIGQ9Ik0yLjk1ODMzMzMzLDIuOTU4MzMzMzMgTDIuOTU4MzMzMzMsMTYuMjcwODMzMyBDMi45NTgzMzMzMywxOC43MjI1NTIxIDQuOTQ0MTE0NTgsMjAuNzA4MzMzMyA3LjM5NTgzMzMzLDIwLjcwODMzMzMgTDIwLjcwODMzMzMsMjAuNzA4MzMzMyBMMi45NTgzMzMzMywyLjk1ODMzMzMzIFoiIGlkPSJQYXRoIiBmaWxsPSIjODdDRUFDIiBmaWxsLXJ1bGU9Im5vbnplcm8iPjwvcGF0aD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9nPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxnIGlkPSJDbGlwcGVkIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8bWFzayBpZD0ibWFzay0xMSIgZmlsbD0id2hpdGUiPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dXNlIHhsaW5rOmhyZWY9IiNwYXRoLTEwIj48L3VzZT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L21hc2s+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGcgaWQ9IlNWR0lEXzFfIj48L2c+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0iTTQuNDM3NSwwIEMxLjk5Njg3NSwwIDAsMS45OTY4NzUgMCw0LjQzNzUgTDAsNC44MDcyOTE2NyBDMCwyLjM2NjY2NjY3IDEuOTk2ODc1LDAuMzY5NzkxNjY3IDQuNDM3NSwwLjM2OTc5MTY2NyBMMjkuNTgzMzMzMywwLjM2OTc5MTY2NyBMMjkuNTgzMzMzMywwIEw0LjQzNzUsMCBaIiBpZD0iUGF0aCIgZmlsbC1vcGFjaXR5PSIwLjIiIGZpbGw9IiNGRkZGRkYiIGZpbGwtcnVsZT0ibm9uemVybyIgbWFzaz0idXJsKCNtYXNrLTExKSI+PC9wYXRoPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9nPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPGcgaWQ9IkNsaXBwZWQiPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxtYXNrIGlkPSJtYXNrLTEzIiBmaWxsPSJ3aGl0ZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx1c2UgeGxpbms6aHJlZj0iI3BhdGgtMTIiPjwvdXNlPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvbWFzaz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZyBpZD0iU1ZHSURfMV8iPjwvZz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNNDIuODk1ODMzMyw2NC43MTM1NDE3IEw0LjQzNzUsNjQuNzEzNTQxNyBDMS45OTY4NzUsNjQuNzEzNTQxNyAwLDYyLjcxNjY2NjcgMCw2MC4yNzYwNDE3IEwwLDYwLjY0NTgzMzMgQzAsNjMuMDg2NDU4MyAxLjk5Njg3NSw2NS4wODMzMzMzIDQuNDM3NSw2NS4wODMzMzMzIEw0Mi44OTU4MzMzLDY1LjA4MzMzMzMgQzQ1LjMzNjQ1ODMsNjUuMDgzMzMzMyA0Ny4zMzMzMzMzLDYzLjA4NjQ1ODMgNDcuMzMzMzMzMyw2MC42NDU4MzMzIEw0Ny4zMzMzMzMzLDYwLjI3NjA0MTcgQzQ3LjMzMzMzMzMsNjIuNzE2NjY2NyA0NS4zMzY0NTgzLDY0LjcxMzU0MTcgNDIuODk1ODMzMyw2NC43MTM1NDE3IFoiIGlkPSJQYXRoIiBmaWxsLW9wYWNpdHk9IjAuMiIgZmlsbD0iIzI2MzIzOCIgZmlsbC1ydWxlPSJub256ZXJvIiBtYXNrPSJ1cmwoI21hc2stMTMpIj48L3BhdGg+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2c+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZyBpZD0iQ2xpcHBlZCI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPG1hc2sgaWQ9Im1hc2stMTUiIGZpbGw9IndoaXRlIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHVzZSB4bGluazpocmVmPSIjcGF0aC0xNCI+PC91c2U+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9tYXNrPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxnIGlkPSJTVkdJRF8xXyI+PC9nPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxwYXRoIGQ9Ik0zNC4wMjA4MzMzLDE3Ljc1IEMzMS41NjkxMTQ2LDE3Ljc1IDI5LjU4MzMzMzMsMTUuNzY0MjE4OCAyOS41ODMzMzMzLDEzLjMxMjUgTDI5LjU4MzMzMzMsMTMuNjgyMjkxNyBDMjkuNTgzMzMzMywxNi4xMzQwMTA0IDMxLjU2OTExNDYsMTguMTE5NzkxNyAzNC4wMjA4MzMzLDE4LjExOTc5MTcgTDQ3LjMzMzMzMzMsMTguMTE5NzkxNyBMNDcuMzMzMzMzMywxNy43NSBMMzQuMDIwODMzMywxNy43NSBaIiBpZD0iUGF0aCIgZmlsbC1vcGFjaXR5PSIwLjEiIGZpbGw9IiMyNjMyMzgiIGZpbGwtcnVsZT0ibm9uemVybyIgbWFzaz0idXJsKCNtYXNrLTE1KSI+PC9wYXRoPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9nPgogICAgICAgICAgICAgICAgICAgICAgICA8L2c+CiAgICAgICAgICAgICAgICAgICAgICAgIDxwYXRoIGQ9Ik0yOS41ODMzMzMzLDAgTDQuNDM3NSwwIEMxLjk5Njg3NSwwIDAsMS45OTY4NzUgMCw0LjQzNzUgTDAsNjAuNjQ1ODMzMyBDMCw2My4wODY0NTgzIDEuOTk2ODc1LDY1LjA4MzMzMzMgNC40Mzc1LDY1LjA4MzMzMzMgTDQyLjg5NTgzMzMsNjUuMDgzMzMzMyBDNDUuMzM2NDU4Myw2NS4wODMzMzMzIDQ3LjMzMzMzMzMsNjMuMDg2NDU4MyA0Ny4zMzMzMzMzLDYwLjY0NTgzMzMgTDQ3LjMzMzMzMzMsMTcuNzUgTDI5LjU4MzMzMzMsMCBaIiBpZD0iUGF0aCIgZmlsbD0idXJsKCNyYWRpYWxHcmFkaWVudC0xNikiIGZpbGwtcnVsZT0ibm9uemVybyI+PC9wYXRoPgogICAgICAgICAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgPC9nPgogICAgICAgIDwvZz4KICAgIDwvZz4KPC9zdmc+">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:google-sheets:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="bearer" target="authentication.authType" />
+          <zeebe:input source="&#60;YOUR TOKEN&#62;" target="authentication.bearerToken" />
+          <zeebe:input source="createRow" target="operation.type" />
+          <zeebe:input source="&#60;YOUR SPREADSHEET ID&#62;" target="operation.spreadsheetId" />
+          <zeebe:input source="worksheetname" target="operation.worksheetName" />
+          <zeebe:input source="2" target="operation.rowIndex" />
+          <zeebe:input source="=[first_name, last_name, email, phone_number, company, news_source, future_notifications]" target="operation.values" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_15hhweo</bpmn:incoming>
+      <bpmn:outgoing>Flow_06htesz</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_NotifyAttendee" name="Notify attendee of successful registration" zeebe:modelerTemplate="io.camunda.connectors.SendGrid.v2" zeebe:modelerTemplateVersion="3" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxwYXRoIGQ9Ik0wLjI4NTcwNiA1LjQwODQ3SDUuNDM4MzdWMTAuNTYxMUgwLjI4NTcwNlY1LjQwODQ3WiIgZmlsbD0id2hpdGUiLz4KICAgIDxwYXRoIGQ9Ik0wLjI4NTcwNiA1LjQwODQ3SDUuNDM4MzdWMTAuNTYxMUgwLjI4NTcwNlY1LjQwODQ3WiIgZmlsbD0iIzk5RTFGNCIvPgogICAgPHBhdGggZD0iTTUuNDM4MzcgMTAuNTYxMUwxMC41NjExIDEwLjU2MTZWMTUuNjg0NEg1LjQzODM3VjEwLjU2MTFaIiBmaWxsPSJ3aGl0ZSIvPgogICAgPHBhdGggZD0iTTUuNDM4MzcgMTAuNTYxMUwxMC41NjExIDEwLjU2MTZWMTUuNjg0NEg1LjQzODM3VjEwLjU2MTFaIiBmaWxsPSIjOTlFMUY0Ii8+CiAgICA8cGF0aCBkPSJNMC4yODU3MDYgMTUuNjg0Nkw1LjQzODM3IDE1LjY4NDRWMTUuNzE0M0gwLjI4NTcwNlYxNS42ODQ2Wk0wLjI4NTcwNiAxMC41NjE5SDUuNDM4MzdWMTUuNjg0NEwwLjI4NTcwNiAxNS42ODQ2VjEwLjU2MTlaIiBmaWxsPSIjMUE4MkUyIi8+CiAgICA8cGF0aCBkPSJNNS40MzgzNyAwLjI4NTcwNkgxMC41NjExVjUuNDA4NDdINS40MzgzN1YwLjI4NTcwNlpNMTAuNTYxNiA1LjQzODM3SDE1LjcxNDNWMTAuNTYxMUgxMC41NjE2VjUuNDM4MzdaIiBmaWxsPSIjMDBCM0UzIi8+CiAgICA8cGF0aCBkPSJNNS40MzgzNyAxMC41NjExTDEwLjU2MTEgMTAuNTYxNlY1LjQwODQ3SDUuNDM4MzdWMTAuNTYxMVoiIGZpbGw9IiMwMDlERDkiLz4KICAgIDxwYXRoIGQ9Ik0xMC41NjExIDAuMjg1NzA2SDE1LjcxNDNWNS40MDg0N0gxMC41NjExVjAuMjg1NzA2WiIgZmlsbD0iIzFBODJFMiIvPgogICAgPHBhdGggZD0iTTEwLjU2MTEgNS40MDg0N0gxNS43MTQzVjUuNDM4MzdIMTAuNTYxNkwxMC41NjExIDUuNDA4NDdaIiBmaWxsPSIjMUE4MkUyIi8+Cjwvc3ZnPg==">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:sendgrid:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="&#60;YOUR API KEY&#62;" target="apiKey" />
+          <zeebe:input source="&#60;YOUR NAME&#62;" target="from.name" />
+          <zeebe:input source="&#60;YOUR EMAIL&#62;" target="from.email" />
+          <zeebe:input source="=first_name + &#34; &#34; + last_name" target="to.name" />
+          <zeebe:input source="=email" target="to.email" />
+          <zeebe:input source="mail" target="unMappedFieldNotUseInModel.mailType" />
+          <zeebe:input source="You are registered!" target="content.subject" />
+          <zeebe:input source="text/plain" target="content.type" />
+          <zeebe:input source="We confirm your registration to our event. Looking forward to see you soon!" target="content.value" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_06htesz</bpmn:incoming>
+      <bpmn:outgoing>Flow_05vjl7d</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_0u6owc4" name="Opt-In to future notifications?" default="Flow_0j25dn6">
+      <bpmn:incoming>Flow_05vjl7d</bpmn:incoming>
+      <bpmn:outgoing>Flow_1pjwdwi</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0j25dn6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_AddToNewsletter" name="Add to newsletter list">
+      <bpmn:incoming>Flow_1pjwdwi</bpmn:incoming>
+      <bpmn:outgoing>Flow_05qqgi8</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1df2u8n">
+        <bpmn:targetRef>DataStoreReference_1s94j66</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_0k2t6ga">
+      <bpmn:incoming>Flow_05qqgi8</bpmn:incoming>
+      <bpmn:incoming>Flow_0j25dn6</bpmn:incoming>
+      <bpmn:outgoing>Flow_1n8iwqt</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="Event_0kitru1" name="Attendee registered">
+      <bpmn:incoming>Flow_1n8iwqt</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:textAnnotation id="TextAnnotation_event_reg_intro">
+      <bpmn:text>Triggered when an attendee submits an event registration form. The happy-path outcome is the attendee confirmed, optionally added to the newsletter, and notified by email.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_event_reg_intro" associationDirection="None" sourceRef="StartEvent_Form" targetRef="TextAnnotation_event_reg_intro" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Collaboration_EventRegistration">
+    <bpmndi:BPMNPlane id="BPMNPlane_Collaboration_EventRegistration" bpmnElement="Collaboration_EventRegistration">
+      <bpmndi:BPMNShape id="BPMNShape_Participant_EventRegistration" bpmnElement="Participant_EventRegistration" isHorizontal="true">
+        <dc:Bounds x="340" y="220" width="1152" height="320" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Participant_1wawa2o" bpmnElement="Participant_1wawa2o" isHorizontal="true">
+        <dc:Bounds x="368" y="80" width="428" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1p4u8s4" bpmnElement="Flow_1p4u8s4">
+        <di:waypoint x="398" y="140" />
+        <di:waypoint x="398" y="282" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0belkav" bpmnElement="Flow_0belkav">
+        <di:waypoint x="766" y="260" />
+        <di:waypoint x="766" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_StartEvent_Form" bpmnElement="StartEvent_Form">
+        <dc:Bounds x="380" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_StoreRegistrations" bpmnElement="Activity_StoreRegistrations">
+        <dc:Bounds x="516" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_NotifyAttendee" bpmnElement="Activity_NotifyAttendee">
+        <dc:Bounds x="716" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gateway_0u6owc4" bpmnElement="Gateway_0u6owc4" isMarkerVisible="true">
+        <dc:Bounds x="916" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_AddToNewsletter" bpmnElement="Activity_AddToNewsletter">
+        <dc:Bounds x="1066" y="420" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gateway_0k2t6ga" bpmnElement="Gateway_0k2t6ga" isMarkerVisible="true">
+        <dc:Bounds x="1266" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_0kitru1" bpmnElement="Event_0kitru1">
+        <dc:Bounds x="1416" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_event_reg_intro" bpmnElement="TextAnnotation_event_reg_intro">
+        <dc:Bounds x="80" y="255" width="260" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_DataStoreReference_1s94j66" bpmnElement="DataStoreReference_1s94j66">
+        <dc:Bounds x="1091" y="350" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_15hhweo" bpmnElement="Flow_15hhweo">
+        <di:waypoint x="416" y="300" />
+        <di:waypoint x="516" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_05vjl7d" bpmnElement="Flow_05vjl7d">
+        <di:waypoint x="816" y="300" />
+        <di:waypoint x="916" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_06htesz" bpmnElement="Flow_06htesz">
+        <di:waypoint x="616" y="300" />
+        <di:waypoint x="716" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1n8iwqt" bpmnElement="Flow_1n8iwqt">
+        <di:waypoint x="1316" y="300" />
+        <di:waypoint x="1416" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0j25dn6" bpmnElement="Flow_0j25dn6">
+        <di:waypoint x="966" y="300" />
+        <di:waypoint x="1266" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1pjwdwi" bpmnElement="Flow_1pjwdwi">
+        <di:waypoint x="941" y="325" />
+        <di:waypoint x="941" y="460" />
+        <di:waypoint x="1066" y="460" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_05qqgi8" bpmnElement="Flow_05qqgi8">
+        <di:waypoint x="1166" y="460" />
+        <di:waypoint x="1291" y="460" />
+        <di:waypoint x="1291" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Association_event_reg_intro" bpmnElement="Association_event_reg_intro">
+        <di:waypoint x="380" y="300" />
+        <di:waypoint x="340" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_DataOutputAssociation_1df2u8n" bpmnElement="DataOutputAssociation_1df2u8n">
+        <di:waypoint x="1116" y="420" />
+        <di:waypoint x="1116" y="400" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

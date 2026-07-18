@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:collaboration id="Collaboration_0r5sgg0">
+    <bpmn:participant id="Participant_1gdgn8p" processRef="Process_1" />
+    <bpmn:participant id="Participant_1ufgmpc" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>A black-box participant emits without a process layout after the collaboration slice.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1x0gfv7</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_14qskt7">
+      <bpmn:incoming>Flow_1x0gfv7</bpmn:incoming>
+      <bpmn:outgoing>Flow_16xc0w2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_06jyyxs">
+      <bpmn:incoming>Flow_16xc0w2</bpmn:incoming>
+      <bpmn:outgoing>Flow_005ijz9</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_14zirwf">
+      <bpmn:incoming>Flow_005ijz9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1x0gfv7" sourceRef="StartEvent_1" targetRef="Activity_14qskt7" />
+    <bpmn:sequenceFlow id="Flow_16xc0w2" sourceRef="Activity_14qskt7" targetRef="Activity_06jyyxs" />
+    <bpmn:sequenceFlow id="Flow_005ijz9" sourceRef="Activity_06jyyxs" targetRef="Event_14zirwf" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0r5sgg0">
+      <bpmndi:BPMNShape id="Participant_1gdgn8p_di" bpmnElement="Participant_1gdgn8p" isHorizontal="true">
+        <dc:Bounds x="160" y="83" width="600" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="230" y="190" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_14qskt7_di" bpmnElement="Activity_14qskt7">
+        <dc:Bounds x="320" y="168" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_06jyyxs_di" bpmnElement="Activity_06jyyxs">
+        <dc:Bounds x="480" y="168" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_14zirwf_di" bpmnElement="Event_14zirwf">
+        <dc:Bounds x="642" y="190" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1x0gfv7_di" bpmnElement="Flow_1x0gfv7">
+        <di:waypoint x="266" y="208" />
+        <di:waypoint x="320" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16xc0w2_di" bpmnElement="Flow_16xc0w2">
+        <di:waypoint x="420" y="208" />
+        <di:waypoint x="480" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_005ijz9_di" bpmnElement="Flow_005ijz9">
+        <di:waypoint x="580" y="208" />
+        <di:waypoint x="642" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_0btg33i_di" bpmnElement="Participant_1ufgmpc" isHorizontal="true">
+        <dc:Bounds x="160" y="400" width="600" height="60" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

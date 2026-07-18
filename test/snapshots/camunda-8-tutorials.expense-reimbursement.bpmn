@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Web Modeler" exporterVersion="f22cba6" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0" camunda:diagramRelationId="bd841594-d085-49ff-9c7d-c5e43ba4631d">
+  <bpmn:collaboration id="ExpenseReimbursement">
+    <bpmn:participant id="Participant_ExpenseReimbursement" name="Expense Reimbursement" processRef="Process_ExpenseReimbursement-0yibie4" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_ExpenseReimbursement-0yibie4" name="Expense Reimbursement" isExecutable="true">
+    <bpmn:documentation>Reviews and reimburses an employee expense claim.</bpmn:documentation>
+    <bpmn:extensionElements />
+    <bpmn:laneSet id="LaneSet_1wg44px">
+      <bpmn:lane id="Lane_Finance" name="Finance Processing">
+        <bpmn:flowNodeRef>Gateway_1wrjn3x</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_12u444u</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_0hfb7dz</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ReviewExpenseReport_Finance</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_18ir29z</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ReimburseExpenses</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_0v75kn8</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_NotifyRejection</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1l5wj0t</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Manager" name="Manager">
+        <bpmn:flowNodeRef>Activity_ReviewExpenseReport_Manager</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Employee" name="Employee">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_CreateExpenseReport</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:sequenceFlow id="Flow_1vaffxg" sourceRef="StartEvent_1" targetRef="Activity_CreateExpenseReport" />
+    <bpmn:sequenceFlow id="Flow_0od82be" sourceRef="Activity_CreateExpenseReport" targetRef="Activity_ReviewExpenseReport_Manager" />
+    <bpmn:startEvent id="StartEvent_1" name="Expense approval requested">
+      <bpmn:outgoing>Flow_1vaffxg</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_1wrjn3x" name="Report approved?" default="Flow_07hh01v">
+      <bpmn:incoming>Flow_0mbdt0u</bpmn:incoming>
+      <bpmn:outgoing>Flow_07hh01v</bpmn:outgoing>
+      <bpmn:outgoing>Flow_07yvuxk</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="Event_12u444u" name="Expense reimbursement rejected">
+      <bpmn:incoming>Flow_02funv0</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="Event_0hfb7dz" name="Expenses reimbursed">
+      <bpmn:incoming>Flow_07w4wvi</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Activity_ReviewExpenseReport_Finance" name="Review expense report - finance">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:assignmentDefinition candidateGroups="Finance" />
+        <zeebe:formDefinition formId="ReviewExpenseReport" />
+        <zeebe:ioMapping>
+          <zeebe:output source="=reviewOutcome" target="financeReviewOutcome" />
+          <zeebe:output source="=if reviewOutcome = &#34;rejected&#34; then rejectionReason else &#34;&#34;" target="rejectionReason" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_07yvuxk</bpmn:incoming>
+      <bpmn:outgoing>Flow_0tqbv24</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_18ir29z" name="Report approved?" default="Flow_0zibli6">
+      <bpmn:incoming>Flow_0tqbv24</bpmn:incoming>
+      <bpmn:outgoing>Flow_1lsaytj</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0zibli6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_ReimburseExpenses" name="Reimburse expenses">
+      <bpmn:incoming>Flow_0j33fwr</bpmn:incoming>
+      <bpmn:outgoing>Flow_07w4wvi</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_0v75kn8">
+      <bpmn:incoming>Flow_07hh01v</bpmn:incoming>
+      <bpmn:incoming>Flow_0zibli6</bpmn:incoming>
+      <bpmn:outgoing>Flow_185jnzm</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_NotifyRejection" name="Notify about rejection">
+      <bpmn:incoming>Flow_185jnzm</bpmn:incoming>
+      <bpmn:outgoing>Flow_02funv0</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1l5wj0t" name="Notify about approval">
+      <bpmn:incoming>Flow_1lsaytj</bpmn:incoming>
+      <bpmn:outgoing>Flow_0j33fwr</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Activity_ReviewExpenseReport_Manager" name="Review expense report - manager">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:assignmentDefinition candidateGroups="Manager" candidateUsers="=[supervisorEmail]" />
+        <zeebe:formDefinition formId="ReviewExpenseReport" />
+        <zeebe:ioMapping>
+          <zeebe:output source="=reviewOutcome" target="managerReviewOutcome" />
+          <zeebe:output source="=if reviewOutcome = &#34;rejected&#34; then rejectionReason else &#34;&#34;" target="rejectionReason" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0od82be</bpmn:incoming>
+      <bpmn:outgoing>Flow_0mbdt0u</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0mbdt0u" sourceRef="Activity_ReviewExpenseReport_Manager" targetRef="Gateway_1wrjn3x" />
+    <bpmn:sequenceFlow id="Flow_07yvuxk" name="Approved" sourceRef="Gateway_1wrjn3x" targetRef="Activity_ReviewExpenseReport_Finance">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=managerReviewOutcome = "approved"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_07hh01v" name="Rejected" sourceRef="Gateway_1wrjn3x" targetRef="Gateway_0v75kn8" />
+    <bpmn:sequenceFlow id="Flow_02funv0" sourceRef="Activity_NotifyRejection" targetRef="Event_12u444u" />
+    <bpmn:sequenceFlow id="Flow_07w4wvi" sourceRef="Activity_ReimburseExpenses" targetRef="Event_0hfb7dz" />
+    <bpmn:sequenceFlow id="Flow_0tqbv24" sourceRef="Activity_ReviewExpenseReport_Finance" targetRef="Gateway_18ir29z" />
+    <bpmn:sequenceFlow id="Flow_1lsaytj" name="Approved" sourceRef="Gateway_18ir29z" targetRef="Activity_1l5wj0t">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=financeReviewOutcome = "approved"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0zibli6" name="Rejected" sourceRef="Gateway_18ir29z" targetRef="Gateway_0v75kn8" />
+    <bpmn:sequenceFlow id="Flow_0j33fwr" sourceRef="Activity_1l5wj0t" targetRef="Activity_ReimburseExpenses" />
+    <bpmn:sequenceFlow id="Flow_185jnzm" sourceRef="Gateway_0v75kn8" targetRef="Activity_NotifyRejection" />
+    <bpmn:userTask id="Activity_CreateExpenseReport" name="Create expense report">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="CreateExpenseReport" />
+        <zeebe:properties>
+          <zeebe:property name="camundaModeler:exampleOutputJson" value="{&#10;  &#34;firstName&#34;: &#34;John&#34;,&#10;  &#34;lastName&#34;: &#34;Doe&#34;,&#10;  &#34;email&#34;: &#34;john.doe@camunda.com&#34;,&#10;  &#34;department&#34;: &#34;finance&#34;,&#10;  &#34;supervisorEmail&#34;: &#34;jane.doe@camunda.com&#34;,&#10;  &#34;expenseDate&#34;: &#34;2023-06-09&#34;,&#10;  &#34;expenseType&#34;: &#34;travel&#34;,&#10;  &#34;travelStart&#34;: &#34;2023-06-06&#34;,&#10;  &#34;travelEnd&#34;: &#34;2023-06-09&#34;,&#10;  &#34;travelLocation&#34;: &#34;Berlin&#34;,&#10;  &#34;expensePurpose&#34;: &#34;Travel to Berlin Office&#34;,&#10;  &#34;expenseAmount&#34;: 650&#10;}" />
+        </zeebe:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1vaffxg</bpmn:incoming>
+      <bpmn:outgoing>Flow_0od82be</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:textAnnotation id="TextAnnotation_02rliy5">
+      <bpmn:text>Automate this task using your payroll process</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_0k4qsxw">
+      <bpmn:text>Use a connector or service task to send a notification through your preferred channel.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_12m4aqv" sourceRef="Activity_ReimburseExpenses" targetRef="TextAnnotation_02rliy5" />
+    <bpmn:association id="Association_1c7637v" sourceRef="TextAnnotation_0k4qsxw" targetRef="Activity_1l5wj0t" />
+    <bpmn:textAnnotation id="TextAnnotation_expense_intro">
+      <bpmn:text>Triggered when an employee submits an expense report for reimbursement. The happy-path outcome is the report approved by manager and finance, expenses reimbursed, and employee notified.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_expense_intro" associationDirection="None" sourceRef="StartEvent_1" targetRef="TextAnnotation_expense_intro" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ExpenseReimbursement">
+    <bpmndi:BPMNPlane id="BPMNPlane_ExpenseReimbursement" bpmnElement="ExpenseReimbursement">
+      <bpmndi:BPMNShape id="BPMNShape_Participant_ExpenseReimbursement" bpmnElement="Participant_ExpenseReimbursement" isHorizontal="true">
+        <dc:Bounds x="390" y="80" width="1582" height="880" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_Finance" bpmnElement="Lane_Finance" isHorizontal="true">
+        <dc:Bounds x="420" y="80" width="1552" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_Manager" bpmnElement="Lane_Manager" isHorizontal="true">
+        <dc:Bounds x="420" y="480" width="1552" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_Employee" bpmnElement="Lane_Employee" isHorizontal="true">
+        <dc:Bounds x="420" y="720" width="1552" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
+        <dc:Bounds x="460" y="822" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gateway_1wrjn3x" bpmnElement="Gateway_1wrjn3x" isMarkerVisible="true">
+        <dc:Bounds x="996" y="175" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_12u444u" bpmnElement="Event_12u444u">
+        <dc:Bounds x="1896" y="182" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_0hfb7dz" bpmnElement="Event_0hfb7dz">
+        <dc:Bounds x="1896" y="342" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_ReviewExpenseReport_Finance" bpmnElement="Activity_ReviewExpenseReport_Finance">
+        <dc:Bounds x="1146" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gateway_18ir29z" bpmnElement="Gateway_18ir29z" isMarkerVisible="true">
+        <dc:Bounds x="1346" y="175" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_ReimburseExpenses" bpmnElement="Activity_ReimburseExpenses">
+        <dc:Bounds x="1696" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gateway_0v75kn8" bpmnElement="Gateway_0v75kn8" isMarkerVisible="true">
+        <dc:Bounds x="1521" y="175" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_NotifyRejection" bpmnElement="Activity_NotifyRejection">
+        <dc:Bounds x="1696" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_1l5wj0t" bpmnElement="Activity_1l5wj0t">
+        <dc:Bounds x="1496" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_ReviewExpenseReport_Manager" bpmnElement="Activity_ReviewExpenseReport_Manager">
+        <dc:Bounds x="796" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_CreateExpenseReport" bpmnElement="Activity_CreateExpenseReport">
+        <dc:Bounds x="596" y="800" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_expense_intro" bpmnElement="TextAnnotation_expense_intro">
+        <dc:Bounds x="80" y="788" width="300" height="104" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_0k4qsxw" bpmnElement="TextAnnotation_0k4qsxw">
+        <dc:Bounds x="1256" y="382" width="220" height="76" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_02rliy5" bpmnElement="TextAnnotation_02rliy5">
+        <dc:Bounds x="1656" y="480" width="180" height="62" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1vaffxg" bpmnElement="Flow_1vaffxg">
+        <di:waypoint x="496" y="840" />
+        <di:waypoint x="596" y="840" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0od82be" bpmnElement="Flow_0od82be">
+        <di:waypoint x="696" y="840" />
+        <di:waypoint x="846" y="840" />
+        <di:waypoint x="846" y="640" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0mbdt0u" bpmnElement="Flow_0mbdt0u">
+        <di:waypoint x="896" y="600" />
+        <di:waypoint x="1021" y="600" />
+        <di:waypoint x="1021" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_07hh01v" bpmnElement="Flow_07hh01v">
+        <di:waypoint x="1021" y="175" />
+        <di:waypoint x="1021" y="140" />
+        <di:waypoint x="1546" y="140" />
+        <di:waypoint x="1546" y="175" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_02funv0" bpmnElement="Flow_02funv0">
+        <di:waypoint x="1796" y="200" />
+        <di:waypoint x="1896" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_185jnzm" bpmnElement="Flow_185jnzm">
+        <di:waypoint x="1571" y="200" />
+        <di:waypoint x="1696" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0zibli6" bpmnElement="Flow_0zibli6">
+        <di:waypoint x="1396" y="200" />
+        <di:waypoint x="1521" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_07yvuxk" bpmnElement="Flow_07yvuxk">
+        <di:waypoint x="1046" y="200" />
+        <di:waypoint x="1146" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1lsaytj" bpmnElement="Flow_1lsaytj">
+        <di:waypoint x="1371" y="225" />
+        <di:waypoint x="1371" y="360" />
+        <di:waypoint x="1496" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_07w4wvi" bpmnElement="Flow_07w4wvi">
+        <di:waypoint x="1796" y="360" />
+        <di:waypoint x="1896" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0tqbv24" bpmnElement="Flow_0tqbv24">
+        <di:waypoint x="1246" y="200" />
+        <di:waypoint x="1346" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0j33fwr" bpmnElement="Flow_0j33fwr">
+        <di:waypoint x="1596" y="360" />
+        <di:waypoint x="1696" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Association_expense_intro" bpmnElement="Association_expense_intro">
+        <di:waypoint x="460" y="840" />
+        <di:waypoint x="380" y="840" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Association_1c7637v" bpmnElement="Association_1c7637v">
+        <di:waypoint x="1476" y="420" />
+        <di:waypoint x="1496" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Association_12m4aqv" bpmnElement="Association_12m4aqv">
+        <di:waypoint x="1746" y="400" />
+        <di:waypoint x="1746" y="480" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

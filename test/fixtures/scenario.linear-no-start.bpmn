@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1ax5owc" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.47.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.9.0">
+  <bpmn:process id="Process_0n303lh" isExecutable="true">
+    <bpmn:documentation>With no start event, the earliest declared flow node begins the spine.</bpmn:documentation>
+    <bpmn:task id="Activity_05280wk">
+      <bpmn:outgoing>Flow_0vfi2hv</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1azbcwt" name="Foo">
+      <bpmn:incoming>Flow_0vfi2hv</bpmn:incoming>
+      <bpmn:outgoing>Flow_11ptxm5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0vfi2hv" sourceRef="Activity_05280wk" targetRef="Activity_1azbcwt" />
+    <bpmn:endEvent id="Event_0ap1078" name="Bar">
+      <bpmn:incoming>Flow_11ptxm5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_11ptxm5" sourceRef="Activity_1azbcwt" targetRef="Event_0ap1078" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_0n303lh">
+      <bpmndi:BPMNShape id="Activity_05280wk_di" bpmnElement="Activity_05280wk">
+        <dc:Bounds x="160" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1azbcwt_di" bpmnElement="Activity_1azbcwt">
+        <dc:Bounds x="320" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ap1078_di" bpmnElement="Event_0ap1078">
+        <dc:Bounds x="482" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="491" y="145" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0vfi2hv_di" bpmnElement="Flow_0vfi2hv">
+        <di:waypoint x="260" y="120" />
+        <di:waypoint x="320" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11ptxm5_di" bpmnElement="Flow_11ptxm5">
+        <di:waypoint x="420" y="120" />
+        <di:waypoint x="482" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
