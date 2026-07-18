@@ -15,24 +15,24 @@
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_Process_0q24st2">
     <bpmndi:BPMNPlane id="BPMNPlane_Process_0q24st2" bpmnElement="Process_0q24st2">
-      <bpmndi:BPMNShape id="Event_1vp4jvc_di" bpmnElement="Event_1vp4jvc">
-        <dc:Bounds x="57" y="52" width="36" height="36" />
+      <bpmndi:BPMNShape id="BPMNShape_Gateway_1wpffqc" bpmnElement="Gateway_1wpffqc" isMarkerVisible="true">
+        <dc:Bounds x="80" y="95" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1wpffqc_di" bpmnElement="Gateway_1wpffqc" isMarkerVisible="true">
-        <dc:Bounds x="50" y="185" width="50" height="50" />
+      <bpmndi:BPMNShape id="BPMNShape_Activity_09kkekv" bpmnElement="Activity_09kkekv">
+        <dc:Bounds x="230" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_09kkekv_di" bpmnElement="Activity_09kkekv">
-        <dc:Bounds x="175" y="170" width="100" height="80" />
+      <bpmndi:BPMNShape id="BPMNShape_Event_1vp4jvc" bpmnElement="Event_1vp4jvc">
+        <dc:Bounds x="80" y="320" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_0qxg6ou_di" bpmnElement="Flow_0qxg6ou">
-        <di:waypoint x="100" y="210" />
-        <di:waypoint x="175" y="210" />
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0qxg6ou" bpmnElement="Flow_0qxg6ou">
+        <di:waypoint x="130" y="120" />
+        <di:waypoint x="230" y="120" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_128ka86_di" bpmnElement="Flow_128ka86">
-        <di:waypoint x="225" y="250" />
-        <di:waypoint x="225" y="280" />
-        <di:waypoint x="75" y="280" />
-        <di:waypoint x="75" y="235" />
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_128ka86" bpmnElement="Flow_128ka86">
+        <di:waypoint x="280" y="160" />
+        <di:waypoint x="280" y="180" />
+        <di:waypoint x="105" y="180" />
+        <di:waypoint x="105" y="145" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
