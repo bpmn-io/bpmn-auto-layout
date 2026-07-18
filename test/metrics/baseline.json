@@ -1,0 +1,1031 @@
+{
+  "artifact.association.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 280
+  },
+  "artifact.group.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 300
+  },
+  "artifact.without-core-flow.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 0
+  },
+  "blueprint.ai-email-support-agent.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 4385
+  },
+  "blueprint.bank-customer-complaint-dispute-handling.bpmn": {
+    "crossings": 1,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 8598
+  },
+  "blueprint.capital-market-trade-exception-remediation-processing.bpmn": {
+    "crossings": 6,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 8870
+  },
+  "blueprint.car-rental-booking-process.bpmn": {
+    "crossings": 5,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 20140
+  },
+  "blueprint.communication-agent.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1420
+  },
+  "blueprint.enforcing-sla.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1556
+  },
+  "blueprint.event-registration.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1838
+  },
+  "blueprint.fraud-detection-process.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 3891
+  },
+  "blueprint.intelligent-routing-with-openai.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 5290
+  },
+  "blueprint.safeguard-agent.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 4710
+  },
+  "blueprint.servicenow-integration-blueprint.bpmn": {
+    "crossings": 5,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 12318
+  },
+  "blueprint.telco-service-order-fulfillment-retail.bpmn": {
+    "crossings": 4,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 15969
+  },
+  "boundary-event.back-loop.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1446
+  },
+  "boundary-event.error-no-ref.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 584
+  },
+  "boundary-event.error.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 584
+  },
+  "boundary-event.escalation-no-ref.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 652
+  },
+  "boundary-event.escalation.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 584
+  },
+  "boundary-event.forward-modeling.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 548
+  },
+  "boundary-event.handler-loop.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 2003
+  },
+  "boundary-event.handler-rejoin.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1316
+  },
+  "boundary-event.message-or-timer.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 652
+  },
+  "boundary-event.mixed.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1104
+  },
+  "boundary-event.multiple-errors.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1264
+  },
+  "boundary-event.multiple-escalations.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1196
+  },
+  "boundary-event.multiple.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1314
+  },
+  "boundary-event.on-expanded-sub-process.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 788
+  },
+  "boundary-event.self-loop.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 288
+  },
+  "boundary-event.simple.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 452
+  },
+  "camunda-8-tutorials.absence-request.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 3951
+  },
+  "camunda-8-tutorials.ai-agent-chat-with-mcp.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 4926
+  },
+  "camunda-8-tutorials.ai-agent-chat-with-tools.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1800
+  },
+  "camunda-8-tutorials.ai-intelligent-routing-azure-ai.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 5290
+  },
+  "camunda-8-tutorials.ai-intelligent-routing-huggingface.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 5290
+  },
+  "camunda-8-tutorials.ai-intelligent-routing-openai.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 5290
+  },
+  "camunda-8-tutorials.bank-ai-loan-approval.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 4385
+  },
+  "camunda-8-tutorials.bank-customer-complaint-dispute-handling.bpmn": {
+    "crossings": 1,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 8598
+  },
+  "camunda-8-tutorials.bank-loan-origination-and-processing.bpmn": {
+    "crossings": 3,
+    "overlaps": 0,
+    "edgeShapeIntersections": 1,
+    "wrongWayDockings": 0,
+    "edgeLength": 12198
+  },
+  "camunda-8-tutorials.capital-market-exception-processing.bpmn": {
+    "crossings": 6,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 8870
+  },
+  "camunda-8-tutorials.car-rental-booking-process.bpmn": {
+    "crossings": 5,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 20140
+  },
+  "camunda-8-tutorials.ci-cd.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 9639
+  },
+  "camunda-8-tutorials.enforcing-sla.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1556
+  },
+  "camunda-8-tutorials.error-handling.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 2580
+  },
+  "camunda-8-tutorials.event-registration.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1838
+  },
+  "camunda-8-tutorials.expense-reimbursement.bpmn": {
+    "crossings": 1,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 2842
+  },
+  "camunda-8-tutorials.insurance-personal-property-damage-claim-handling.bpmn": {
+    "crossings": 1,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 6420
+  },
+  "camunda-8-tutorials.order-fulfillment.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 3318
+  },
+  "camunda-8-tutorials.telco-service-order-fulfillment-retail.bpmn": {
+    "crossings": 4,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 15969
+  },
+  "camunda-8-tutorials.ticket-booking.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1916
+  },
+  "collaboration.black-box-participant.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 300
+  },
+  "collaboration.message-flow-between-pools.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 560
+  },
+  "collaboration.message-flows.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1240
+  },
+  "collaboration.multiple-participants.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 600
+  },
+  "collaboration.single-participant.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 200
+  },
+  "data-object-and-store.basic.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 360
+  },
+  "data-object-and-store.reference.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 675
+  },
+  "event-sub-process.basic.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 400
+  },
+  "event-sub-process.multiple.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 600
+  },
+  "gateway.exclusive-default.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 892
+  },
+  "gateway.exclusive-no-default.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 960
+  },
+  "gateway.future-incoming.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1520
+  },
+  "gateway.inclusive-split-join.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1284
+  },
+  "gateway.loop-back.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 630
+  },
+  "gateway.multiple-branches.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 2004
+  },
+  "gateway.multiple-complex.bpmn": {
+    "crossings": 3,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 6170
+  },
+  "gateway.multiple-incoming-future-node.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1620
+  },
+  "gateway.multiple-with-tasks.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1816
+  },
+  "gateway.multiple.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 2482
+  },
+  "gateway.nested.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 2565
+  },
+  "gateway.parallel-split-join.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1284
+  },
+  "gateway.parallel.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 2385
+  },
+  "gateway.unstructured-convergence.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 930
+  },
+  "lane.cross-lane-sequence-flow.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 582
+  },
+  "lane.empty.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 300
+  },
+  "lane.error-handler.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 952
+  },
+  "lane.multiple.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 550
+  },
+  "lane.nested.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 550
+  },
+  "lane.redundant-ancestor-membership.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 200
+  },
+  "lane.single.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 300
+  },
+  "link-event.basic.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 920
+  },
+  "link-event.loop.bpmn": {
+    "crossings": 2,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1312
+  },
+  "link-event.throw-catch.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 400
+  },
+  "link-event.with-ordinary-flow.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1069
+  },
+  "process.application-processing.bpmn": {
+    "crossings": 41,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 48573
+  },
+  "process.error-handling.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 4098
+  },
+  "process.independent-flows.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 400
+  },
+  "process.joining-flows.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 416
+  },
+  "scenario.declaration-order-ties.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1440
+  },
+  "scenario.default-loop.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 730
+  },
+  "scenario.determinism.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 2989
+  },
+  "scenario.disconnected-component-stability.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1602
+  },
+  "scenario.disconnected-components.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1602
+  },
+  "scenario.disconnected-loop-boundary.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1324
+  },
+  "scenario.disconnected-loop.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 330
+  },
+  "scenario.empty-definitions.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 0
+  },
+  "scenario.empty-process.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 0
+  },
+  "scenario.happy-path.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 830
+  },
+  "scenario.idempotence.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 2989
+  },
+  "scenario.implicit-start.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 907
+  },
+  "scenario.input-expansion-state.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 400
+  },
+  "scenario.input-with-arbitrary-di.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 300
+  },
+  "scenario.input-with-multiple-diagrams.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 200
+  },
+  "scenario.integer-geometry.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 300
+  },
+  "scenario.irreducible-cycle.bpmn": {
+    "crossings": 1,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1472
+  },
+  "scenario.issue-100.bpmn": {
+    "crossings": 2,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 4712
+  },
+  "scenario.issue-131.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 5587
+  },
+  "scenario.issue-79-1.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 604
+  },
+  "scenario.issue-79-2.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 604
+  },
+  "scenario.issue-79-3.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 604
+  },
+  "scenario.linear-no-start.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 200
+  },
+  "scenario.linear.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 300
+  },
+  "scenario.long-branch-edge.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 2540
+  },
+  "scenario.loop.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 630
+  },
+  "scenario.multiple-ad-hoc.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 4590
+  },
+  "scenario.multiple-event-starts.bpmn": {
+    "crossings": 1,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1478
+  },
+  "scenario.multiple-start-events.bpmn": {
+    "crossings": 3,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 2852
+  },
+  "scenario.multiple-starts.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1894
+  },
+  "scenario.multiple-sub-processes.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 6233
+  },
+  "scenario.multiple-task-gateways-columns.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 3310
+  },
+  "scenario.no-outgoing.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 812
+  },
+  "scenario.self-loop.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 916
+  },
+  "scenario.simple.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 300
+  },
+  "scenario.sink-less-cycle.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 730
+  },
+  "scenario.source-less-cycle.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 630
+  },
+  "scenario.translated-origin.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 200
+  },
+  "scenario.unrelated-input-plane.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 400
+  },
+  "sub-process.ad-hoc.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 200
+  },
+  "sub-process.collapsed.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1060
+  },
+  "sub-process.empty.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 0
+  },
+  "sub-process.expanded-01-hour.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1600
+  },
+  "sub-process.expanded-03-hour.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1103
+  },
+  "sub-process.expanded-04-hour.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 1628
+  },
+  "sub-process.expanded-06-hour.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 3688
+  },
+  "sub-process.expanded-09-hour.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 3516
+  },
+  "sub-process.expanded-empty.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 200
+  },
+  "sub-process.expanded-self-loop.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 438
+  },
+  "sub-process.expanded.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 400
+  },
+  "sub-process.mixed.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 2404
+  },
+  "sub-process.nested-expanded.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 600
+  },
+  "sub-process.nested.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 600
+  },
+  "sub-process.parent-child-flow.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 500
+  },
+  "sub-process.transaction.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 200
+  },
+  "task.default-flow.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 760
+  },
+  "text-annotation.basic.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 280
+  },
+  "text-annotation.positioning.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 280
+  }
+}

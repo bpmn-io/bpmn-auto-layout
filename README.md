@@ -22,16 +22,27 @@ console.log(diagramWithLayoutXML);
 
 ## Limitations
 
-* Given a collaboration only the first participant's process will be laid out
-* Sub-processes will be laid out as collapsed sub-processes
-* The following elements are not laid out:
-  * Groups
-  * Text annotations
-  * Associations
-  * Message flows
+Layout is greenfield: existing DI coordinates, waypoints, dimensions, and labels
+are replaced. Existing DI only determines whether an embedded sub-process is
+expanded.
+
+The layouter supports process flow, boundary events, collapsed and expanded
+sub-processes, event sub-processes, horizontal lanes, and collaboration pools.
+It lays out each participant with a process reference; black-box participants
+remain empty pools.
+
+Groups remain semantic-only because BPMN semantics do not identify their visual
+members. Artifacts are placed after process flow and do not affect its ranks or
+bands. Message flows whose endpoints receive geometry are routed through pool
+gutters or outside channels.
+
+Unsupported visual elements fail with an exported `LayoutError` rather than
+receiving invented geometry. See the [layout engine guide](./docs/LAYOUT.md) for
+the algorithm and geometry contract.
 
 ## Resources
 
+* [Layout engine](./docs/LAYOUT.md) — design, algorithm, and geometry rules
 * [Issues](https://github.com/bpmn-io/bpmn-auto-layout/issues)
 
 ## Build and Run
@@ -63,6 +74,8 @@ npm run test:update-snapshots
 ```
 
 Add new test cases to [`test/fixtures`](./test/fixtures) and they will be picked up automatically.
+
+See [`test/README.md`](./test/README.md) for how the snapshot tests work in detail.
 
 ## License
 
