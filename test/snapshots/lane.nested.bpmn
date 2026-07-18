@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:collaboration id="Collaboration_1mpzzem">
+    <bpmn:participant id="Participant_0jurzbu" processRef="Process_1" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>Child lanes recursively partition their parent.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_0mh8m7x">
+      <bpmn:lane id="Lane_14g40xx" />
+      <bpmn:lane id="Lane_0xuerpu">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0op6ndt</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1yq0rcp</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_048jaza</bpmn:flowNodeRef>
+        <bpmn:childLaneSet id="LaneSet_1joldt4">
+          <bpmn:lane id="Lane_0sw8m9d">
+            <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+            <bpmn:flowNodeRef>Activity_0op6ndt</bpmn:flowNodeRef>
+          </bpmn:lane>
+          <bpmn:lane id="Lane_1idq4d3">
+            <bpmn:flowNodeRef>Activity_1yq0rcp</bpmn:flowNodeRef>
+            <bpmn:flowNodeRef>Event_048jaza</bpmn:flowNodeRef>
+          </bpmn:lane>
+        </bpmn:childLaneSet>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0s667bt</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_0op6ndt">
+      <bpmn:incoming>Flow_0s667bt</bpmn:incoming>
+      <bpmn:outgoing>Flow_1l04nek</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0s667bt" sourceRef="StartEvent_1" targetRef="Activity_0op6ndt" />
+    <bpmn:task id="Activity_1yq0rcp">
+      <bpmn:incoming>Flow_1l04nek</bpmn:incoming>
+      <bpmn:outgoing>Flow_0zyf444</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1l04nek" sourceRef="Activity_0op6ndt" targetRef="Activity_1yq0rcp" />
+    <bpmn:endEvent id="Event_048jaza">
+      <bpmn:incoming>Flow_0zyf444</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0zyf444" sourceRef="Activity_1yq0rcp" targetRef="Event_048jaza" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Collaboration_1mpzzem">
+    <bpmndi:BPMNPlane id="BPMNPlane_Collaboration_1mpzzem" bpmnElement="Collaboration_1mpzzem">
+      <bpmndi:BPMNShape id="BPMNShape_Participant_0jurzbu" bpmnElement="Participant_0jurzbu" isHorizontal="true">
+        <dc:Bounds x="80" y="80" width="682" height="540" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_14g40xx" bpmnElement="Lane_14g40xx" isHorizontal="true">
+        <dc:Bounds x="110" y="80" width="652" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_0xuerpu" bpmnElement="Lane_0xuerpu" isHorizontal="true">
+        <dc:Bounds x="110" y="140" width="652" height="480" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_0sw8m9d" bpmnElement="Lane_0sw8m9d" isHorizontal="true">
+        <dc:Bounds x="110" y="140" width="652" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_1idq4d3" bpmnElement="Lane_1idq4d3" isHorizontal="true">
+        <dc:Bounds x="110" y="380" width="652" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
+        <dc:Bounds x="150" y="242" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_0op6ndt" bpmnElement="Activity_0op6ndt">
+        <dc:Bounds x="286" y="220" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_1yq0rcp" bpmnElement="Activity_1yq0rcp">
+        <dc:Bounds x="486" y="460" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_048jaza" bpmnElement="Event_048jaza">
+        <dc:Bounds x="686" y="482" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0s667bt" bpmnElement="Flow_0s667bt">
+        <di:waypoint x="186" y="260" />
+        <di:waypoint x="286" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1l04nek" bpmnElement="Flow_1l04nek">
+        <di:waypoint x="386" y="260" />
+        <di:waypoint x="536" y="260" />
+        <di:waypoint x="536" y="460" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0zyf444" bpmnElement="Flow_0zyf444">
+        <di:waypoint x="586" y="500" />
+        <di:waypoint x="686" y="500" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

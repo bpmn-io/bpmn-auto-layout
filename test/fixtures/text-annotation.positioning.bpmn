@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>An annotation has a legal nearby position; no explicit label DI is emitted.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_15mqd2k</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_0guwzdt">
+      <bpmn:incoming>Flow_15mqd2k</bpmn:incoming>
+      <bpmn:outgoing>Flow_15qrh0z</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_15mqd2k" sourceRef="StartEvent_1" targetRef="Activity_0guwzdt" />
+    <bpmn:endEvent id="Event_11p7apu">
+      <bpmn:incoming>Flow_15qrh0z</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_15qrh0z" sourceRef="Activity_0guwzdt" targetRef="Event_11p7apu" />
+    <bpmn:textAnnotation id="TextAnnotation_0efhpjt">
+      <bpmn:text>Foobar</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1kb9jbi" associationDirection="None" sourceRef="Activity_0guwzdt" targetRef="TextAnnotation_0efhpjt" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="160" y="200" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0guwzdt_di" bpmnElement="Activity_0guwzdt">
+        <dc:Bounds x="250" y="178" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_11p7apu_di" bpmnElement="Event_11p7apu">
+        <dc:Bounds x="412" y="200" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1kb9jbi_di" bpmnElement="Association_1kb9jbi">
+        <di:waypoint x="334" y="178" />
+        <di:waypoint x="383" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15mqd2k_di" bpmnElement="Flow_15mqd2k">
+        <di:waypoint x="196" y="218" />
+        <di:waypoint x="250" y="218" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0efhpjt_di" bpmnElement="TextAnnotation_0efhpjt">
+        <dc:Bounds x="350" y="80" width="102" height="40" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_15qrh0z_di" bpmnElement="Flow_15qrh0z">
+        <di:waypoint x="350" y="218" />
+        <di:waypoint x="412" y="218" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

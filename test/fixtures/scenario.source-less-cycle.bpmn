@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>A cycle without a start uses the earliest declared node as provisional-spine origin.</bpmn:documentation>
+    <bpmn:task id="Activity_0hj7d4w">
+      <bpmn:incoming>Flow_0hheopt</bpmn:incoming>
+      <bpmn:outgoing>Flow_193tj58</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_1p6i34h">
+      <bpmn:incoming>Flow_193tj58</bpmn:incoming>
+      <bpmn:outgoing>Flow_171luj8</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_193tj58" sourceRef="Activity_0hj7d4w" targetRef="Activity_1p6i34h" />
+    <bpmn:exclusiveGateway id="Gateway_07zgbv2">
+      <bpmn:incoming>Flow_171luj8</bpmn:incoming>
+      <bpmn:outgoing>Flow_0hheopt</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_171luj8" sourceRef="Activity_1p6i34h" targetRef="Gateway_07zgbv2" />
+    <bpmn:sequenceFlow id="Flow_0hheopt" sourceRef="Gateway_07zgbv2" targetRef="Activity_0hj7d4w" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="Activity_0hj7d4w_di" bpmnElement="Activity_0hj7d4w">
+        <dc:Bounds x="190" y="78" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1p6i34h_di" bpmnElement="Activity_1p6i34h">
+        <dc:Bounds x="340" y="78" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_07zgbv2_di" bpmnElement="Gateway_07zgbv2" isMarkerVisible="true">
+        <dc:Bounds x="495" y="93" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_193tj58_di" bpmnElement="Flow_193tj58">
+        <di:waypoint x="290" y="118" />
+        <di:waypoint x="340" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_171luj8_di" bpmnElement="Flow_171luj8">
+        <di:waypoint x="440" y="118" />
+        <di:waypoint x="495" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0hheopt_di" bpmnElement="Flow_0hheopt">
+        <di:waypoint x="520" y="143" />
+        <di:waypoint x="520" y="240" />
+        <di:waypoint x="240" y="240" />
+        <di:waypoint x="240" y="158" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

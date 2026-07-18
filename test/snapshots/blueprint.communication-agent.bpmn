@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0d9altk" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Web Modeler" exporterVersion="0a0ba04" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.9.0">
+  <bpmn:process id="communication-agent" isExecutable="true">
+    <bpmn:startEvent id="Event_CustomerMessageReceived" name="Customer message received">
+      <bpmn:extensionElements>
+        <zeebe:ioMapping>
+          <zeebe:output source="=customerContext" target="customerContext" />
+          <zeebe:output source="=messageContext" target="messageContext" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_0t3eedz</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1e3rubz" messageRef="Message_3mdd6nm" />
+    </bpmn:startEvent>
+    <bpmn:adHocSubProcess id="Activity_CommunicationAgent" name="Communication Agent" zeebe:modelerTemplate="io.camunda.connectors.agenticai.aiagent.jobworker.v1" zeebe:modelerTemplateVersion="6" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNBNTZFRkYiLz4KPG1hc2sgaWQ9InBhdGgtMi1vdXRzaWRlLTFfMTg1XzYiIG1hc2tVbml0cz0idXNlclNwYWNlT25Vc2UiIHg9IjQiIHk9IjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0iYmxhY2siPgo8cmVjdCBmaWxsPSJ3aGl0ZSIgeD0iNCIgeT0iNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjAuMDEwNSAxMi4wOTg3QzE4LjQ5IDEwLjU4OTQgMTcuMTU5NCA4LjEwODE0IDE2LjE3OTkgNi4wMTEwM0MxNi4xNTIgNi4wMDQ1MSAxNi4xMTc2IDYgMTYuMDc5NCA2QzE2LjA0MTEgNiAxNi4wMDY2IDYuMDA0NTEgMTUuOTc4OCA2LjAxMTA0QzE0Ljk5OTQgOC4xMDgxNCAxMy42Njk3IDEwLjU4ODkgMTIuMTQ4MSAxMi4wOTgxQzEwLjYyNjkgMTMuNjA3MSA4LjEyNTY4IDE0LjkyNjQgNi4wMTE1NyAxNS44OTgxQzYuMDA0NzQgMTUuOTI2MSA2IDE1Ljk2MTEgNiAxNkM2IDE2LjAzODcgNi4wMDQ2OCAxNi4wNzM2IDYuMDExNDQgMTYuMTAxNEM4LjEyNTE5IDE3LjA3MjkgMTAuNjI2MiAxOC4zOTE5IDEyLjE0NzcgMTkuOTAxNkMxMy42Njk3IDIxLjQxMDcgMTQuOTk5NiAyMy44OTIgMTUuOTc5MSAyNS45ODlDMTYuMDA2OCAyNS45OTU2IDE2LjA0MTEgMjYgMTYuMDc5MyAyNkMxNi4xMTc1IDI2IDE2LjE1MTkgMjUuOTk1NCAxNi4xNzk2IDI1Ljk4OUMxNy4xNTkxIDIzLjg5MiAxOC40ODg4IDIxLjQxMSAyMC4wMDk5IDE5LjkwMjFNMjAuMDA5OSAxOS45MDIxQzIxLjUyNTMgMTguMzk4NyAyMy45NDY1IDE3LjA2NjkgMjUuOTkxNSAxNi4wODI0QzI1Ljk5NjUgMTYuMDU5MyAyNiAxNi4wMzEgMjYgMTUuOTk5N0MyNiAxNS45Njg0IDI1Ljk5NjUgMTUuOTQwMyAyNS45OTE1IDE1LjkxNzFDMjMuOTQ3NCAxNC45MzI3IDIxLjUyNTkgMTMuNjAxIDIwLjAxMDUgMTIuMDk4NyIvPgo8L21hc2s+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjAuMDEwNSAxMi4wOTg3QzE4LjQ5IDEwLjU4OTQgMTcuMTU5NCA4LjEwODE0IDE2LjE3OTkgNi4wMTEwM0MxNi4xNTIgNi4wMDQ1MSAxNi4xMTc2IDYgMTYuMDc5NCA2QzE2LjA0MTEgNiAxNi4wMDY2IDYuMDA0NTEgMTUuOTc4OCA2LjAxMTA0QzE0Ljk5OTQgOC4xMDgxNCAxMy42Njk3IDEwLjU4ODkgMTIuMTQ4MSAxMi4wOTgxQzEwLjYyNjkgMTMuNjA3MSA4LjEyNTY4IDE0LjkyNjQgNi4wMTE1NyAxNS44OTgxQzYuMDA0NzQgMTUuOTI2MSA2IDE1Ljk2MTEgNiAxNkM2IDE2LjAzODcgNi4wMDQ2OCAxNi4wNzM2IDYuMDExNDQgMTYuMTAxNEM4LjEyNTE5IDE3LjA3MjkgMTAuNjI2MiAxOC4zOTE5IDEyLjE0NzcgMTkuOTAxNkMxMy42Njk3IDIxLjQxMDcgMTQuOTk5NiAyMy44OTIgMTUuOTc5MSAyNS45ODlDMTYuMDA2OCAyNS45OTU2IDE2LjA0MTEgMjYgMTYuMDc5MyAyNkMxNi4xMTc1IDI2IDE2LjE1MTkgMjUuOTk1NCAxNi4xNzk2IDI1Ljk4OUMxNy4xNTkxIDIzLjg5MiAxOC40ODg4IDIxLjQxMSAyMC4wMDk5IDE5LjkwMjFNMjAuMDA5OSAxOS45MDIxQzIxLjUyNTMgMTguMzk4NyAyMy45NDY1IDE3LjA2NjkgMjUuOTkxNSAxNi4wODI0QzI1Ljk5NjUgMTYuMDU5MyAyNiAxNi4wMzEgMjYgMTUuOTk5N0MyNiAxNS45Njg0IDI1Ljk5NjUgMTUuOTQwMyAyNS45OTE1IDE1LjkxNzFDMjMuOTQ3NCAxNC45MzI3IDIxLjUyNTkgMTMuNjAxIDIwLjAxMDUgMTIuMDk4NyIgZmlsbD0id2hpdGUiLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0yMC4wMTA1IDEyLjA5ODdDMTguNDkgMTAuNTg5NCAxNy4xNTk0IDguMTA4MTQgMTYuMTc5OSA2LjAxMTAzQzE2LjE1MiA2LjAwNDUxIDE2LjExNzYgNiAxNi4wNzk0IDZDMTYuMDQxMSA2IDE2LjAwNjYgNi4wMDQ1MSAxNS45Nzg4IDYuMDExMDRDMTQuOTk5NCA4LjEwODE0IDEzLjY2OTcgMTAuNTg4OSAxMi4xNDgxIDEyLjA5ODFDMTAuNjI2OSAxMy42MDcxIDguMTI1NjggMTQuOTI2NCA2LjAxMTU3IDE1Ljg5ODFDNi4wMDQ3NCAxNS45MjYxIDYgMTUuOTYxMSA2IDE2QzYgMTYuMDM4NyA2LjAwNDY4IDE2LjA3MzYgNi4wMTE0NCAxNi4xMDE0QzguMTI1MTkgMTcuMDcyOSAxMC42MjYyIDE4LjM5MTkgMTIuMTQ3NyAxOS45MDE2QzEzLjY2OTcgMjEuNDEwNyAxNC45OTk2IDIzLjg5MiAxNS45NzkxIDI1Ljk4OUMxNi4wMDY4IDI1Ljk5NTYgMTYuMDQxMSAyNiAxNi4wNzkzIDI2QzE2LjExNzUgMjYgMTYuMTUxOSAyNS45OTU0IDE2LjE3OTYgMjUuOTg5QzE3LjE1OTEgMjMuODkyIDE4LjQ4ODggMjEuNDExIDIwLjAwOTkgMTkuOTAyMU0yMC4wMDk5IDE5LjkwMjFDMjEuNTI1MyAxOC4zOTg3IDIzLjk0NjUgMTcuMDY2OSAyNS45OTE1IDE2LjA4MjRDMjUuOTk2NSAxNi4wNTkzIDI2IDE2LjAzMSAyNiAxNS45OTk3QzI2IDE1Ljk2ODQgMjUuOTk2NSAxNS45NDAzIDI1Ljk5MTUgMTUuOTE3MUMyMy45NDc0IDE0LjkzMjcgMjEuNTI1OSAxMy42MDEgMjAuMDEwNSAxMi4wOTg3IiBzdHJva2U9IiM0OTFEOEIiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgbWFzaz0idXJsKCNwYXRoLTItb3V0c2lkZS0xXzE4NV82KSIvPgo8L3N2Zz4K">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda.agenticai:aiagent-job-worker:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="bedrock" target="provider.type" />
+          <zeebe:input source="eu-west-1" target="provider.bedrock.region" />
+          <zeebe:input source="credentials" target="provider.bedrock.authentication.type" />
+          <zeebe:input source="{{ secrets.AWS_ACCESS_KEY }}" target="provider.bedrock.authentication.accessKey" />
+          <zeebe:input source="{{ secrets.AWS_SECRET_KEY }}" target="provider.bedrock.authentication.secretKey" />
+          <zeebe:input source="global.anthropic.claude-sonnet-4-5-20250929-v1:0" target="provider.bedrock.model.model" />
+          <zeebe:input source="=&#34;You are **Communication Agent**, a helpful chat agent that can handle a wide variety of customer requests by forwarding to specialized business agents and any tools explicitly provided to you at runtime.&#10;&#10;The general procedure will be like this:&#10;1. You are initially triggered by a message of a customer.&#10;2. You must try to find the concrete intent of the customer, i.e., by mapping their request to the business agents available to you. You may ask clarifying questions to the customer at any time and wait for their reply.&#10;3. Once an intent is clear, forward the customer message to the respective business agent.&#10;4. You will then receive business-initiated messages from business agents to the customer. Make sure to forward them to the customer if necessary when you receive them. Feel free to adapt the wording to make the overall experience for the customer consistent and seamless.&#10;5. Subsequent messages from the customer may be forwarded to those business agents then if they are replies to clarifying questions of the agents.&#10;6. Business agents may continue running until they explicitly message you via the &#39;Business agent finished&#39; message event. If the customer indicates that they do not need help from an agent anymore or close the overall session, you MUST notify all running agents of this via forwarding a message to them.&#10;7. When you think you have satisfied all the customer requests and you are awaiting no reply by a business agent anymore, you may ask the customer whether it is okay to close the session now. If any agents are still running, be sure to notify them that they can also close their session.&#10;&#10;There can be multiple business agents running at the same time, and business agents can be run multiple times if the customer so desires. Make sure you try to map each message to the correct business agent.&#10;&#10;You must follow a number of rules:&#10;- Never guess an answer. Use only the tools and specialized business agents available to you.&#10;- Feel free to adapt the business agent messages to make the overall experience for the customer consistent and seamless. Do NOT change the content of the messages.&#10;- You can call the same tool multiple times by providing different input values.&#10;- Don&#39;t guess any tools which were not explicitly configured.&#10;- If no tool matches the request or you cannot find an agent to handle the request, return with a message explaining why you cannot handle the customer request.&#10;&#10;You have information about the customer you are currently dealing with. You will only be dealing with exactly one customer at a time, but messages may come from different channels. Use the &#39;Reply to Customer&#39; tool to send messages back to the customer if you think this is necessary. The available channels for the particular customer are part of your user prompt.&#10;&#10;You may elect to send your own messages to the customer to ask for more information or provide an answer if you feel like you have resolved a question. There are various channels available for you to send messages. If you are unsure, prefer to send messages rather than wait.&#10;&#10;If possible, prefer to use the same channel to message the customer as they used to message you. You may choose to send messages through other channels as well, particularly if they are more suitable that way. For example, you may want to just send a short acknowledgement via chat and then send a full reply via email.&#10;&#10;Make sure that the customer gets some kind of feedback via the channel the messaged was received and tell them if you want to contact them using another channel as well. You may send more than one message through the same or different channels.&#10;&#10;Always (!) wait for a reply by using the tool for that purpose if you expect there to be any further customer communication. If you are unsure, ask the customer whether they are done.&#10; &#10;Wrap minimal, inspectable reasoning in *exactly* this XML template:&#10;&#10;&#60;thinking&#62;&#10;&#60;context&#62;…briefly state the customer’s need and current state…&#60;/context&#62;&#10;&#60;reflection&#62;…list candidate tools, justify which you will call next and why…&#60;/reflection&#62;&#10;&#60;/thinking&#62;&#10;&#10;Reveal **no** additional private reasoning outside these tags.&#34;" target="data.systemPrompt.prompt" />
+          <zeebe:input source="={&#10;  messageContext: messageContext,&#10;  customerContext: customerContext&#10;}" target="data.userPrompt.prompt" />
+          <zeebe:input source="=agent.context" target="agentContext" />
+          <zeebe:input source="in-process" target="data.memory.storage.type" />
+          <zeebe:input source="=20" target="data.memory.contextWindowSize" />
+          <zeebe:input source="=100" target="data.limits.maxModelCalls" />
+          <zeebe:input source="WAIT_FOR_TOOL_CALL_RESULTS" target="data.events.behavior" />
+          <zeebe:input source="text" target="data.response.format.type" />
+          <zeebe:input source="=false" target="data.response.format.parseJson" />
+          <zeebe:input source="=false" target="data.response.includeAssistantMessage" />
+          <zeebe:input source="=true" target="data.response.includeAgentContext" />
+          <zeebe:output source="=agent" target="agent" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="elementTemplateVersion" value="6" />
+          <zeebe:header key="elementTemplateId" value="io.camunda.connectors.agenticai.aiagent.jobworker.v1" />
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+        <zeebe:adHoc outputCollection="toolCallResults" outputElement="={&#10;  id: toolCall._meta.id,&#10;  name: toolCall._meta.name,&#10;  content: toolCallResult&#10;}" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0t3eedz</bpmn:incoming>
+      <bpmn:outgoing>Flow_0hi0b0d</bpmn:outgoing>
+      <bpmn:intermediateCatchEvent id="Event_NextCustomerMessageReceived" name="Next customer message received">
+        <bpmn:extensionElements>
+          <zeebe:ioMapping>
+            <zeebe:output source="={&#10;  messageContext: messageContext&#10;}" target="toolCallResult" />
+          </zeebe:ioMapping>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_04ormsw</bpmn:incoming>
+        <bpmn:messageEventDefinition id="MessageEventDefinition_1feemka" messageRef="Message_3mdd6nm" />
+      </bpmn:intermediateCatchEvent>
+      <bpmn:eventBasedGateway id="Tool_WaitForNextMessage" name="Wait for next message">
+        <bpmn:outgoing>Flow_04ormsw</bpmn:outgoing>
+        <bpmn:outgoing>Flow_11fduhz</bpmn:outgoing>
+        <bpmn:outgoing>Flow_1dyx9jy</bpmn:outgoing>
+        <bpmn:outgoing>Flow_1suzs5x</bpmn:outgoing>
+      </bpmn:eventBasedGateway>
+      <bpmn:sequenceFlow id="Flow_04ormsw" sourceRef="Tool_WaitForNextMessage" targetRef="Event_NextCustomerMessageReceived" />
+      <bpmn:sendTask id="Activity_ToolForwardMessageToCalculatorAgent" name="Forward to &#34;Calculator Agent&#34;" zeebe:modelerTemplate="io.camunda.connectors.message.sendtask.v1" zeebe:modelerTemplateVersion="0" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PHN2ZwogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHdpZHRoPSIyMDAwIgogICBoZWlnaHQ9IjIwMDAiCiAgIHZpZXdCb3g9IjAgMCAyMDAwIDIwMDAiCiAgIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIj4KICA8cGF0aAogICAgIHN0eWxlPSJjb2xvcjojMDAwMDAwIgogICAgIGQ9Im0gMCwyODQgMjAwMCwwIC0xMDAwLDU1NCB6Ii8+CiAgPHBhdGgKICAgICBzdHlsZT0iY29sb3I6IzAwMDAwMCIKICAgICBkPSJtIDAsNDUyIDEwMDAsNTQ4IDEwMDAsLTU0OCAwLDEwOTYgLTIwMDAsMCB6Ii8+Cjwvc3ZnPgo=">
+        <bpmn:documentation>Use this tool to forward a customer message to "Calculator Agent", an agent specialized in calculator activities, e.g., resolving math problems like addition, subtraction, multiplication and division.</bpmn:documentation>
+        <bpmn:extensionElements>
+          <zeebe:taskDefinition type="io.camunda:sendMessage:1" retries="3" />
+          <zeebe:ioMapping>
+            <zeebe:input source="message-communication-agent-to-business-agent-calculator" target="messageName" />
+            <zeebe:input source="=customerContext.id" target="correlationKey" />
+            <zeebe:input source="={&#10;  customerMessage: fromAi(toolCall.customerMessage, &#34;A summary of the message or multiple messages of the customer that led you to contact the case agent. Include as much detail as you think is necessary for the case agent to handle to case, including verbatim messages if necessary.&#34;),&#10;  customerContext: customerContext&#10;}" target="variables" />
+            <zeebe:input source="publish" target="correlationType.type" />
+          </zeebe:ioMapping>
+          <zeebe:taskHeaders>
+            <zeebe:header key="elementTemplateVersion" value="0" />
+            <zeebe:header key="elementTemplateId" value="io.camunda.connectors.message.v1" />
+            <zeebe:header key="resultExpression" value="={&#10;  toolCallResult: &#34;Message forwarded to Calculator Agent&#34;&#10;}" />
+            <zeebe:header key="retryBackoff" value="PT0S" />
+          </zeebe:taskHeaders>
+        </bpmn:extensionElements>
+      </bpmn:sendTask>
+      <bpmn:intermediateCatchEvent id="Event_ReplyFromBusinessAgentReceived" name="Reply from business agent received">
+        <bpmn:extensionElements>
+          <zeebe:ioMapping>
+            <zeebe:output source="={&#10;  businessAgentType: businessAgentType,&#10;  businessAgentReply: businessAgentReply&#10;}" target="toolCallResult" />
+          </zeebe:ioMapping>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_11fduhz</bpmn:incoming>
+        <bpmn:messageEventDefinition id="MessageEventDefinition_0v7by3e" messageRef="Message_3bs2ufo" />
+      </bpmn:intermediateCatchEvent>
+      <bpmn:sequenceFlow id="Flow_11fduhz" sourceRef="Tool_WaitForNextMessage" targetRef="Event_ReplyFromBusinessAgentReceived" />
+      <bpmn:callActivity id="Activity_ToolReplyToCustomer" name="Reply to customer">
+        <bpmn:documentation>Use this activity to reply to the customer to ask questions, inform them of results and clarify requirements. The tool will not return a response from the customer directly, but you have to wait for that in the next message. Choose the outbound channel based on the channels of the messages that the customer initially sent and subsequently wishes to use.</bpmn:documentation>
+        <bpmn:extensionElements>
+          <zeebe:calledElement processId="message-outbound" propagateAllChildVariables="false" propagateAllParentVariables="false" />
+          <zeebe:ioMapping>
+            <zeebe:input source="=customerContext" target="customerContext" />
+            <zeebe:input source="={&#10;  channel: fromAi(toolCall.outboundChannel, &#34;The output channel of the outbound communication which you would prefer to be used. ONLY (!) use channels which you know are available via your input variables, and use the exact qualifier for each channel&#34;),&#10;  subject: fromAi(toolCall.outboundSubject, &#34;The subject of the reply to the customer, keep it short and consider that it may not actually be seen by the customer (e.g., in case of SMS). Refer back to previous subjects for consistent communication.&#34;),&#10;  message: fromAi(toolCall.outboundMessage, &#34;The message body of the reply to the customer, follow the guidelines given to you regarding length and tone. If you get the message from a business agent to forward to the customer, forward it verbatim without changes.&#34;)&#10;}" target="outboundMessageContext" />
+            <zeebe:output source="=outboundMessageResult" target="toolCallResult" />
+          </zeebe:ioMapping>
+        </bpmn:extensionElements>
+      </bpmn:callActivity>
+      <bpmn:sendTask id="Activity_ToolForwardMessageToTranslatorAgent" name="Forward to &#34;Translator Agent&#34;" zeebe:modelerTemplate="io.camunda.connectors.message.sendtask.v1" zeebe:modelerTemplateVersion="0" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PHN2ZwogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHdpZHRoPSIyMDAwIgogICBoZWlnaHQ9IjIwMDAiCiAgIHZpZXdCb3g9IjAgMCAyMDAwIDIwMDAiCiAgIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIj4KICA8cGF0aAogICAgIHN0eWxlPSJjb2xvcjojMDAwMDAwIgogICAgIGQ9Im0gMCwyODQgMjAwMCwwIC0xMDAwLDU1NCB6Ii8+CiAgPHBhdGgKICAgICBzdHlsZT0iY29sb3I6IzAwMDAwMCIKICAgICBkPSJtIDAsNDUyIDEwMDAsNTQ4IDEwMDAsLTU0OCAwLDEwOTYgLTIwMDAsMCB6Ii8+Cjwvc3ZnPgo=">
+        <bpmn:documentation>Use this tool to forward a customer message to "Translator Agent", an agent specialized in translation activities, e.g., translating individual sentences or words from one language to the other.</bpmn:documentation>
+        <bpmn:extensionElements>
+          <zeebe:taskDefinition type="io.camunda:sendMessage:1" retries="3" />
+          <zeebe:ioMapping>
+            <zeebe:input source="message-communication-agent-to-business-agent-translator" target="messageName" />
+            <zeebe:input source="=customerContext.id" target="correlationKey" />
+            <zeebe:input source="={&#10;  customerMessage: fromAi(toolCall.customerMessage, &#34;A summary of the message or multiple messages of the customer that led you to contact the case agent. Include as much detail as you think is necessary for the case agent to handle to case, including verbatim messages if necessary.&#34;),&#10;  customerContext: customerContext&#10;}" target="variables" />
+            <zeebe:input source="publish" target="correlationType.type" />
+          </zeebe:ioMapping>
+          <zeebe:taskHeaders>
+            <zeebe:header key="elementTemplateVersion" value="0" />
+            <zeebe:header key="elementTemplateId" value="io.camunda.connectors.message.v1" />
+            <zeebe:header key="resultExpression" value="={&#10;  toolCallResult: &#34;Message forwarded to Translator Agent&#34;&#10;}" />
+            <zeebe:header key="retryBackoff" value="PT0S" />
+          </zeebe:taskHeaders>
+        </bpmn:extensionElements>
+      </bpmn:sendTask>
+      <bpmn:intermediateCatchEvent id="Event_BusinessAgentFinished" name="Business agent finished">
+        <bpmn:extensionElements>
+          <zeebe:ioMapping>
+            <zeebe:output source="=&#34;Business agent &#39;&#34; + businessAgentType + &#34;&#39; finished&#34;" target="toolCallResult" />
+          </zeebe:ioMapping>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_1dyx9jy</bpmn:incoming>
+        <bpmn:messageEventDefinition id="MessageEventDefinition_17kav5k" messageRef="Message_0mfbuns" />
+      </bpmn:intermediateCatchEvent>
+      <bpmn:sequenceFlow id="Flow_1dyx9jy" sourceRef="Tool_WaitForNextMessage" targetRef="Event_BusinessAgentFinished" />
+      <bpmn:intermediateCatchEvent id="Event_Timeout" name="Timeout after 5 minutes">
+        <bpmn:incoming>Flow_1suzs5x</bpmn:incoming>
+        <bpmn:timerEventDefinition id="TimerEventDefinition_0y9y4yp">
+          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT300S</bpmn:timeDuration>
+        </bpmn:timerEventDefinition>
+      </bpmn:intermediateCatchEvent>
+      <bpmn:sequenceFlow id="Flow_1suzs5x" sourceRef="Tool_WaitForNextMessage" targetRef="Event_Timeout" />
+    </bpmn:adHocSubProcess>
+    <bpmn:sequenceFlow id="Flow_0t3eedz" sourceRef="Event_CustomerMessageReceived" targetRef="Activity_CommunicationAgent" />
+    <bpmn:endEvent id="Event_SessionEnded" name="Session ended">
+      <bpmn:incoming>Flow_0hi0b0d</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0hi0b0d" sourceRef="Activity_CommunicationAgent" targetRef="Event_SessionEnded" />
+    <bpmn:textAnnotation id="TextAnnotation_1dtxdbk">
+      <bpmn:text>Add more business agents to satisfy your business demands. Business agents may be deterministic or AI agents themselves, as long as they implement the message contract with the communication agent.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:textAnnotation id="TextAnnotation_1vbhn1y">
+      <bpmn:text>The Communication Agent encapsulates all communication between the customer and any potential business agent. It keeps track of running agents and routes customer messages, independent of their source channel, to the appropriate agent.
+
+The communication agent also wraps all outgoing communication to keep it consistent towards the customer.</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1a7z278" associationDirection="None" sourceRef="Activity_CommunicationAgent" targetRef="TextAnnotation_1vbhn1y" />
+    <bpmn:association id="Association_1pksk1j" associationDirection="None" sourceRef="Activity_ToolForwardMessageToCalculatorAgent" targetRef="TextAnnotation_1dtxdbk" />
+    <bpmn:textAnnotation id="TextAnnotation_1id1jzh">
+      <bpmn:text>TODO: Notify customer after timeout</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1yacse6" associationDirection="None" sourceRef="Event_Timeout" targetRef="TextAnnotation_1id1jzh" />
+  </bpmn:process>
+  <bpmn:message id="Message_3mdd6nm" name="message-intake-to-communication-agent">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=customerContext.id" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_0mfbuns" name="message-business-agent-to-communication-agent-termination">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=customerContext.id" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_3bs2ufo" name="message-business-agent-to-communication-agent">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=customerContext.id" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_30u9dbb" name="message-communication-agent-to-customer">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=customerContext.testHandle" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_communication-agent">
+    <bpmndi:BPMNPlane id="BPMNPlane_communication-agent" bpmnElement="communication-agent">
+      <bpmndi:BPMNShape id="BPMNShape_Event_CustomerMessageReceived" bpmnElement="Event_CustomerMessageReceived">
+        <dc:Bounds x="80" y="560" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_CommunicationAgent" bpmnElement="Activity_CommunicationAgent" isExpanded="true">
+        <dc:Bounds x="216" y="280" width="491" height="596" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_SessionEnded" bpmnElement="Event_SessionEnded">
+        <dc:Bounds x="807" y="560" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_1vbhn1y" bpmnElement="TextAnnotation_1vbhn1y">
+        <dc:Bounds x="292" y="80" width="340" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_1dtxdbk" bpmnElement="TextAnnotation_1dtxdbk">
+        <dc:Bounds x="640" y="110" width="300" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_1id1jzh" bpmnElement="TextAnnotation_1id1jzh">
+        <dc:Bounds x="80" y="138" width="140" height="62" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0t3eedz" bpmnElement="Flow_0t3eedz">
+        <di:waypoint x="116" y="578" />
+        <di:waypoint x="216" y="578" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0hi0b0d" bpmnElement="Flow_0hi0b0d">
+        <di:waypoint x="707" y="578" />
+        <di:waypoint x="807" y="578" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Association_1a7z278" bpmnElement="Association_1a7z278">
+        <di:waypoint x="462" y="280" />
+        <di:waypoint x="462" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_Event_NextCustomerMessageReceived" bpmnElement="Event_NextCustomerMessageReceived">
+        <dc:Bounds x="431" y="480" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Tool_WaitForNextMessage" bpmnElement="Tool_WaitForNextMessage" isMarkerVisible="true">
+        <dc:Bounds x="256" y="473" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_ToolForwardMessageToCalculatorAgent" bpmnElement="Activity_ToolForwardMessageToCalculatorAgent">
+        <dc:Bounds x="567" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_ReplyFromBusinessAgentReceived" bpmnElement="Event_ReplyFromBusinessAgentReceived">
+        <dc:Bounds x="431" y="640" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_ToolReplyToCustomer" bpmnElement="Activity_ToolReplyToCustomer">
+        <dc:Bounds x="567" y="480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_ToolForwardMessageToTranslatorAgent" bpmnElement="Activity_ToolForwardMessageToTranslatorAgent">
+        <dc:Bounds x="567" y="640" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_BusinessAgentFinished" bpmnElement="Event_BusinessAgentFinished">
+        <dc:Bounds x="431" y="320" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_Timeout" bpmnElement="Event_Timeout">
+        <dc:Bounds x="431" y="800" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_04ormsw" bpmnElement="Flow_04ormsw">
+        <di:waypoint x="306" y="498" />
+        <di:waypoint x="431" y="498" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_11fduhz" bpmnElement="Flow_11fduhz">
+        <di:waypoint x="281" y="523" />
+        <di:waypoint x="281" y="658" />
+        <di:waypoint x="431" y="658" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1dyx9jy" bpmnElement="Flow_1dyx9jy">
+        <di:waypoint x="281" y="473" />
+        <di:waypoint x="281" y="338" />
+        <di:waypoint x="431" y="338" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1suzs5x" bpmnElement="Flow_1suzs5x">
+        <di:waypoint x="281" y="523" />
+        <di:waypoint x="281" y="818" />
+        <di:waypoint x="431" y="818" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

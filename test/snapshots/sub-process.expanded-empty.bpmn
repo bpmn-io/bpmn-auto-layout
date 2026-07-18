@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>An explicitly expanded empty subprocess stays expanded at minimum container size.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1vy6mhe</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:subProcess id="Activity_0g804yd">
+      <bpmn:incoming>Flow_1vy6mhe</bpmn:incoming>
+      <bpmn:outgoing>Flow_0wkekn2</bpmn:outgoing>
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_1vy6mhe" sourceRef="StartEvent_1" targetRef="Activity_0g804yd" />
+    <bpmn:endEvent id="Event_1aeye8h">
+      <bpmn:incoming>Flow_0wkekn2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0wkekn2" sourceRef="Activity_0g804yd" targetRef="Event_1aeye8h" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Process_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Process_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
+        <dc:Bounds x="80" y="122" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_0g804yd" bpmnElement="Activity_0g804yd" isExpanded="true">
+        <dc:Bounds x="216" y="80" width="140" height="120" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_1aeye8h" bpmnElement="Event_1aeye8h">
+        <dc:Bounds x="456" y="122" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1vy6mhe" bpmnElement="Flow_1vy6mhe">
+        <di:waypoint x="116" y="140" />
+        <di:waypoint x="216" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0wkekn2" bpmnElement="Flow_0wkekn2">
+        <di:waypoint x="356" y="140" />
+        <di:waypoint x="456" y="140" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>The main flow remains left-to-right; feedback uses an outer back-edge channel.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1ndvy7w</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_0c766pc">
+      <bpmn:incoming>Flow_1ndvy7w</bpmn:incoming>
+      <bpmn:outgoing>Flow_0cenxo9</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1ndvy7w" sourceRef="StartEvent_1" targetRef="Activity_0c766pc" />
+    <bpmn:task id="Activity_1br1ny9">
+      <bpmn:incoming>Flow_0cenxo9</bpmn:incoming>
+      <bpmn:incoming>Flow_14nqi09</bpmn:incoming>
+      <bpmn:outgoing>Flow_1sozs8w</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0cenxo9" sourceRef="Activity_0c766pc" targetRef="Activity_1br1ny9" />
+    <bpmn:exclusiveGateway id="Gateway_1sv8jbb">
+      <bpmn:incoming>Flow_1sozs8w</bpmn:incoming>
+      <bpmn:outgoing>Flow_14nqi09</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0lfwmv6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1sozs8w" sourceRef="Activity_1br1ny9" targetRef="Gateway_1sv8jbb" />
+    <bpmn:sequenceFlow id="Flow_14nqi09" sourceRef="Gateway_1sv8jbb" targetRef="Activity_1br1ny9" />
+    <bpmn:endEvent id="Event_1ta3aty">
+      <bpmn:incoming>Flow_0lfwmv6</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0lfwmv6" sourceRef="Gateway_1sv8jbb" targetRef="Event_1ta3aty" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Process_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Process_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_0c766pc" bpmnElement="Activity_0c766pc">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_1br1ny9" bpmnElement="Activity_1br1ny9">
+        <dc:Bounds x="416" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gateway_1sv8jbb" bpmnElement="Gateway_1sv8jbb" isMarkerVisible="true">
+        <dc:Bounds x="616" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_1ta3aty" bpmnElement="Event_1ta3aty">
+        <dc:Bounds x="766" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1ndvy7w" bpmnElement="Flow_1ndvy7w">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0cenxo9" bpmnElement="Flow_0cenxo9">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1sozs8w" bpmnElement="Flow_1sozs8w">
+        <di:waypoint x="516" y="120" />
+        <di:waypoint x="616" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0lfwmv6" bpmnElement="Flow_0lfwmv6">
+        <di:waypoint x="666" y="120" />
+        <di:waypoint x="766" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_14nqi09" bpmnElement="Flow_14nqi09">
+        <di:waypoint x="641" y="145" />
+        <di:waypoint x="641" y="180" />
+        <di:waypoint x="466" y="180" />
+        <di:waypoint x="466" y="160" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

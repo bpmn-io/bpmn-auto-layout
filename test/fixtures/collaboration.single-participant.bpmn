@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:collaboration id="Collaboration_1qhrnex">
+    <bpmn:participant id="Participant_1qffct1" processRef="Process_1" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>Before the collaboration slice, select the first declared participant process and emit no pool or message-flow DI.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0t7cgsb</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_0j1q7z6">
+      <bpmn:incoming>Flow_0t7cgsb</bpmn:incoming>
+      <bpmn:outgoing>Flow_1qpjym9</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_0ogg6hh">
+      <bpmn:incoming>Flow_1qpjym9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0t7cgsb" sourceRef="StartEvent_1" targetRef="Activity_0j1q7z6" />
+    <bpmn:sequenceFlow id="Flow_1qpjym9" sourceRef="Activity_0j1q7z6" targetRef="Event_0ogg6hh" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1qhrnex">
+      <bpmndi:BPMNShape id="Participant_1qffct1_di" bpmnElement="Participant_1qffct1" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="600" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="250" y="180" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0j1q7z6_di" bpmnElement="Activity_0j1q7z6">
+        <dc:Bounds x="340" y="158" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ogg6hh_di" bpmnElement="Event_0ogg6hh">
+        <dc:Bounds x="502" y="180" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0t7cgsb_di" bpmnElement="Flow_0t7cgsb">
+        <di:waypoint x="286" y="198" />
+        <di:waypoint x="340" y="198" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1qpjym9_di" bpmnElement="Flow_1qpjym9">
+        <di:waypoint x="440" y="198" />
+        <di:waypoint x="502" y="198" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

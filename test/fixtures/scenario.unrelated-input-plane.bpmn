@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>Expansion state on a plane for another root is ignored.</bpmn:documentation>
+    <bpmn:subProcess id="Activity_1c61i62">
+      <bpmn:endEvent id="Event_1ymvgjl">
+        <bpmn:incoming>Flow_1lmhrd6</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:task id="Activity_12ef3t7">
+        <bpmn:incoming>Flow_1rs7ikg</bpmn:incoming>
+        <bpmn:outgoing>Flow_1lmhrd6</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:sequenceFlow id="Flow_1lmhrd6" sourceRef="Activity_12ef3t7" targetRef="Event_1ymvgjl" />
+      <bpmn:startEvent id="Event_1wq0tzk">
+        <bpmn:outgoing>Flow_1rs7ikg</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="Flow_1rs7ikg" sourceRef="Event_1wq0tzk" targetRef="Activity_12ef3t7" />
+    </bpmn:subProcess>
+    <bpmn:subProcess id="Activity_13gc6rq">
+      <bpmn:endEvent id="Event_1r05nu6">
+        <bpmn:incoming>Flow_0t5vlqi</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:task id="Activity_0p006gj">
+        <bpmn:incoming>Flow_0nq17dy</bpmn:incoming>
+        <bpmn:outgoing>Flow_0t5vlqi</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:sequenceFlow id="Flow_0t5vlqi" sourceRef="Activity_0p006gj" targetRef="Event_1r05nu6" />
+      <bpmn:startEvent id="Event_15ge30d">
+        <bpmn:outgoing>Flow_0nq17dy</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="Flow_0nq17dy" sourceRef="Event_15ge30d" targetRef="Activity_0p006gj" />
+    </bpmn:subProcess>
+  </bpmn:process>
+  <bpmn:process id="Process_2" isExecutable="false">
+    <bpmn:subProcess id="UnrelatedSubprocess">
+      <bpmn:startEvent id="UnrelatedStartEvent" />
+    </bpmn:subProcess>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="Activity_13gc6rq_di" bpmnElement="Activity_13gc6rq" isExpanded="true">
+        <dc:Bounds x="160" y="78" width="350" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_15ge30d_di" bpmnElement="Event_15ge30d">
+        <dc:Bounds x="200" y="160" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0p006gj_di" bpmnElement="Activity_0p006gj">
+        <dc:Bounds x="290" y="138" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1r05nu6_di" bpmnElement="Event_1r05nu6">
+        <dc:Bounds x="452" y="160" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0nq17dy_di" bpmnElement="Flow_0nq17dy">
+        <di:waypoint x="236" y="178" />
+        <di:waypoint x="290" y="178" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0t5vlqi_di" bpmnElement="Flow_0t5vlqi">
+        <di:waypoint x="390" y="178" />
+        <di:waypoint x="452" y="178" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_144yiun" bpmnElement="Activity_1c61i62" isExpanded="false">
+        <dc:Bounds x="725" y="138" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_14xiy5w">
+    <bpmndi:BPMNPlane id="BPMNPlane_1ehqsqx" bpmnElement="Process_2">
+      <bpmndi:BPMNShape id="UnrelatedSubprocess_di" bpmnElement="UnrelatedSubprocess" isExpanded="true">
+        <dc:Bounds x="120" y="120" width="400" height="160" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

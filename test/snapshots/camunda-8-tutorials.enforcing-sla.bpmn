@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_0zs23xl" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.22.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0" camunda:diagramRelationId="b71876bd-b49d-44df-ab35-7ca911533dad">
+  <bpmn:process id="template-enforcing-sla-1ktq8my" name="Enforcing SLA Example" isExecutable="true">
+    <bpmn:extensionElements />
+    <bpmn:startEvent id="InquiryFromUserReceivedStartEvent" name="Inquiry from user received">
+      <bpmn:extensionElements>
+        <zeebe:ioMapping>
+          <zeebe:output source="=if is defined(inquiry) then&#10; inquiry&#10;else&#10; &#34;This is an example. Set the inquiry, when starting the process&#34;" target="inquiry" />
+          <zeebe:output source="=&#34;exampleKey&#34;" target="key" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_14lnez5</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_14lnez5" sourceRef="InquiryFromUserReceivedStartEvent" targetRef="AnswerInquireTask" />
+    <bpmn:subProcess id="SLACheckEventSubprocess" name="SLA Check" triggeredByEvent="true">
+      <bpmn:startEvent id="EveryTwoDaysStartEvent" name="Every 2 days" isInterrupting="false">
+        <bpmn:outgoing>Flow_066due0</bpmn:outgoing>
+        <bpmn:timerEventDefinition id="TimerEventDefinition_0v9hws4">
+          <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">R/P2D</bpmn:timeCycle>
+        </bpmn:timerEventDefinition>
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="Flow_066due0" sourceRef="EveryTwoDaysStartEvent" targetRef="SendEscalationEmailTask" />
+      <bpmn:endEvent id="EscalationEmailSentEndEvent" name="Escalation email sent">
+        <bpmn:incoming>Flow_1pqpsx6</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_1pqpsx6" sourceRef="SendEscalationEmailTask" targetRef="EscalationEmailSentEndEvent" />
+      <bpmn:serviceTask id="SendEscalationEmailTask" name="Send escalation email" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="7" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE3LjAzMzUgOC45OTk5N0MxNy4wMzM1IDEzLjQ0NzUgMTMuNDI4MSAxNy4wNTI5IDguOTgwNjUgMTcuMDUyOUM0LjUzMzE2IDE3LjA1MjkgMC45Mjc3NjUgMTMuNDQ3NSAwLjkyNzc2NSA4Ljk5OTk3QzAuOTI3NzY1IDQuNTUyNDggNC41MzMxNiAwLjk0NzA4MyA4Ljk4MDY1IDAuOTQ3MDgzQzEzLjQyODEgMC45NDcwODMgMTcuMDMzNSA0LjU1MjQ4IDE3LjAzMzUgOC45OTk5N1oiIGZpbGw9IiM1MDU1NjIiLz4KPHBhdGggZD0iTTQuOTMxMjYgMTQuMTU3MUw2Ljc4MTA2IDMuNzE0NzFIMTAuMTM3NUMxMS4xOTE3IDMuNzE0NzEgMTEuOTgyNCAzLjk4MzIzIDEyLjUwOTUgNC41MjAyN0MxMy4wNDY1IDUuMDQ3MzYgMTMuMzE1IDUuNzMzNTggMTMuMzE1IDYuNTc4OTJDMTMuMzE1IDcuNDQ0MTQgMTMuMDcxNCA4LjE1NTIyIDEyLjU4NDEgOC43MTIxNUMxMi4xMDY3IDkuMjU5MTMgMTEuNDU1MyA5LjYzNzA1IDEwLjYyOTggOS44NDU5TDEyLjA2MTkgMTQuMTU3MUgxMC4zMzE1TDkuMDMzNjQgMTAuMDI0OUg3LjI0MzUxTDYuNTEyNTQgMTQuMTU3MUg0LjkzMTI2Wk03LjQ5NzExIDguNTkyODFIOS4yNDI0OEM5Ljk5ODMyIDguNTkyODEgMTAuNTkwMSA4LjQyMzc0IDExLjAxNzcgOC4wODU2MUMxMS40NTUzIDcuNzM3NTMgMTEuNjc0MSA3LjI2NTEzIDExLjY3NDEgNi42Njg0MkMxMS42NzQxIDYuMTkxMDYgMTEuNTI0OSA1LjgxODExIDExLjIyNjUgNS41NDk1OUMxMC45MjgyIDUuMjcxMTMgMTAuNDU1OCA1LjEzMTkgOS44MDkzNiA1LjEzMTlIOC4xMDg3NEw3LjQ5NzExIDguNTkyODFaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K">
+        <bpmn:extensionElements>
+          <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+          <zeebe:ioMapping>
+            <zeebe:input source="noAuth" target="authentication.type" />
+            <zeebe:input source="GET" target="method" />
+            <zeebe:input source="https://b6907c60-dba0-49ff-bbb3-9599981ad398.mock.pstmn.io/sendEscalationEmail" target="url" />
+            <zeebe:input source="20" target="connectionTimeoutInSeconds" />
+            <zeebe:input source="20" target="readTimeoutInSeconds" />
+          </zeebe:ioMapping>
+          <zeebe:taskHeaders>
+            <zeebe:header key="resultVariable" />
+            <zeebe:header key="resultExpression" />
+            <zeebe:header key="retryBackoff" value="PT0S" />
+          </zeebe:taskHeaders>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_066due0</bpmn:incoming>
+        <bpmn:outgoing>Flow_1pqpsx6</bpmn:outgoing>
+      </bpmn:serviceTask>
+    </bpmn:subProcess>
+    <bpmn:userTask id="AnswerInquireTask" name="Answer inquiry">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="AnswerInquiry" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_14lnez5</bpmn:incoming>
+      <bpmn:outgoing>Flow_0y68b2d</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0y68b2d" sourceRef="AnswerInquireTask" targetRef="SendResponseTask" />
+    <bpmn:sequenceFlow id="Flow_0wpqg90" sourceRef="SendResponseTask" targetRef="Gateway_17pv522" />
+    <bpmn:sequenceFlow id="Flow_1mx0msm" sourceRef="RetractionReceivedEvent" targetRef="Event_0mvom7y" />
+    <bpmn:eventBasedGateway id="Gateway_17pv522">
+      <bpmn:documentation>The event-based gateway is followed by a Timer Event and a Message Event. Whichever event happens first will determine the path that will be followed. If we receive a message, we'll go on to the log reply task. But if the timer expires before we get a reply, the process will end.</bpmn:documentation>
+      <bpmn:incoming>Flow_0wpqg90</bpmn:incoming>
+      <bpmn:outgoing>Flow_1m81m17</bpmn:outgoing>
+      <bpmn:outgoing>Flow_10zyhsd</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="OneDayTimer" name="1 day">
+      <bpmn:incoming>Flow_1m81m17</bpmn:incoming>
+      <bpmn:outgoing>Flow_1n9j4kd</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_10wslmh">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P1D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_1m81m17" sourceRef="Gateway_17pv522" targetRef="OneDayTimer" />
+    <bpmn:intermediateCatchEvent id="ReplyReceivedMessage" name="Reply received">
+      <bpmn:documentation>You can correlate this message with: zbctl publish message Reply --correlationKey="yourCaseId" --variables '{"reply":"some reply text"}'</bpmn:documentation>
+      <bpmn:extensionElements>
+        <zeebe:ioMapping>
+          <zeebe:output source="=if is defined(reply) then reply else &#34;&#34;" target="reply" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_10zyhsd</bpmn:incoming>
+      <bpmn:outgoing>Flow_1jz5jec</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_17auy5p" messageRef="Message_2ks70it" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_10zyhsd" sourceRef="Gateway_17pv522" targetRef="ReplyReceivedMessage" />
+    <bpmn:endEvent id="ReplyNotReceivedEvent" name="Reply not received">
+      <bpmn:incoming>Flow_1n9j4kd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1n9j4kd" sourceRef="OneDayTimer" targetRef="ReplyNotReceivedEvent" />
+    <bpmn:sequenceFlow id="Flow_1jz5jec" sourceRef="ReplyReceivedMessage" targetRef="LogReplyTask" />
+    <bpmn:endEvent id="ReplyLoggedEvent" name="Reply logged">
+      <bpmn:incoming>Flow_0vrum88</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0vrum88" sourceRef="LogReplyTask" targetRef="ReplyLoggedEvent" />
+    <bpmn:userTask id="LogReplyTask" name="Log reply">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="LogReply" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1jz5jec</bpmn:incoming>
+      <bpmn:outgoing>Flow_0vrum88</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_0mvom7y" name="Inquiry retracted">
+      <bpmn:incoming>Flow_1mx0msm</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:boundaryEvent id="RetractionReceivedEvent" name="Retraction received" attachedToRef="AnswerInquireTask">
+      <bpmn:outgoing>Flow_1mx0msm</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0r37972" messageRef="Message_39pjslo" />
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="SendResponseTask" name="Send response" zeebe:modelerTemplate="io.camunda.connectors.HttpJson.v2" zeebe:modelerTemplateVersion="7" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE3LjAzMzUgOC45OTk5N0MxNy4wMzM1IDEzLjQ0NzUgMTMuNDI4MSAxNy4wNTI5IDguOTgwNjUgMTcuMDUyOUM0LjUzMzE2IDE3LjA1MjkgMC45Mjc3NjUgMTMuNDQ3NSAwLjkyNzc2NSA4Ljk5OTk3QzAuOTI3NzY1IDQuNTUyNDggNC41MzMxNiAwLjk0NzA4MyA4Ljk4MDY1IDAuOTQ3MDgzQzEzLjQyODEgMC45NDcwODMgMTcuMDMzNSA0LjU1MjQ4IDE3LjAzMzUgOC45OTk5N1oiIGZpbGw9IiM1MDU1NjIiLz4KPHBhdGggZD0iTTQuOTMxMjYgMTQuMTU3MUw2Ljc4MTA2IDMuNzE0NzFIMTAuMTM3NUMxMS4xOTE3IDMuNzE0NzEgMTEuOTgyNCAzLjk4MzIzIDEyLjUwOTUgNC41MjAyN0MxMy4wNDY1IDUuMDQ3MzYgMTMuMzE1IDUuNzMzNTggMTMuMzE1IDYuNTc4OTJDMTMuMzE1IDcuNDQ0MTQgMTMuMDcxNCA4LjE1NTIyIDEyLjU4NDEgOC43MTIxNUMxMi4xMDY3IDkuMjU5MTMgMTEuNDU1MyA5LjYzNzA1IDEwLjYyOTggOS44NDU5TDEyLjA2MTkgMTQuMTU3MUgxMC4zMzE1TDkuMDMzNjQgMTAuMDI0OUg3LjI0MzUxTDYuNTEyNTQgMTQuMTU3MUg0LjkzMTI2Wk03LjQ5NzExIDguNTkyODFIOS4yNDI0OEM5Ljk5ODMyIDguNTkyODEgMTAuNTkwMSA4LjQyMzc0IDExLjAxNzcgOC4wODU2MUMxMS40NTUzIDcuNzM3NTMgMTEuNjc0MSA3LjI2NTEzIDExLjY3NDEgNi42Njg0MkMxMS42NzQxIDYuMTkxMDYgMTEuNTI0OSA1LjgxODExIDExLjIyNjUgNS41NDk1OUMxMC45MjgyIDUuMjcxMTMgMTAuNDU1OCA1LjEzMTkgOS44MDkzNiA1LjEzMTlIOC4xMDg3NEw3LjQ5NzExIDguNTkyODFaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="noAuth" target="authentication.type" />
+          <zeebe:input source="GET" target="method" />
+          <zeebe:input source="https://b6907c60-dba0-49ff-bbb3-9599981ad398.mock.pstmn.io/sendEnquiryResponse" target="url" />
+          <zeebe:input source="20" target="connectionTimeoutInSeconds" />
+          <zeebe:input source="20" target="readTimeoutInSeconds" />
+        </zeebe:ioMapping>
+        <zeebe:taskHeaders>
+          <zeebe:header key="resultVariable" />
+          <zeebe:header key="resultExpression" />
+          <zeebe:header key="retryBackoff" value="PT0S" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0y68b2d</bpmn:incoming>
+      <bpmn:outgoing>Flow_0wpqg90</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:textAnnotation id="TextAnnotation_1x50j3c">
+      <bpmn:text>Triggered when a user inquiry is received. The process assigns the inquiry to a support agent and escalates via email every 2 days until a reply is received; the happy-path outcome is the reply logged. Start with payload: {"inquiry": "some meaningful text here..."}</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1ceuiaz" sourceRef="InquiryFromUserReceivedStartEvent" targetRef="TextAnnotation_1x50j3c" />
+  </bpmn:process>
+  <bpmn:message id="Message_2ks70it" name="Reply">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=key" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_39pjslo" name="Retraction">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=key" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_template-enforcing-sla-1ktq8my">
+    <bpmndi:BPMNPlane id="BPMNPlane_template-enforcing-sla-1ktq8my" bpmnElement="template-enforcing-sla-1ktq8my">
+      <bpmndi:BPMNShape id="BPMNShape_InquiryFromUserReceivedStartEvent" bpmnElement="InquiryFromUserReceivedStartEvent">
+        <dc:Bounds x="460" y="121" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_AnswerInquireTask" bpmnElement="AnswerInquireTask">
+        <dc:Bounds x="596" y="99" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gateway_17pv522" bpmnElement="Gateway_17pv522" isMarkerVisible="true">
+        <dc:Bounds x="996" y="114" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_OneDayTimer" bpmnElement="OneDayTimer">
+        <dc:Bounds x="1146" y="121" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ReplyReceivedMessage" bpmnElement="ReplyReceivedMessage">
+        <dc:Bounds x="1146" y="281" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ReplyNotReceivedEvent" bpmnElement="ReplyNotReceivedEvent">
+        <dc:Bounds x="1314" y="121" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ReplyLoggedEvent" bpmnElement="ReplyLoggedEvent">
+        <dc:Bounds x="1482" y="281" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_LogReplyTask" bpmnElement="LogReplyTask">
+        <dc:Bounds x="1282" y="259" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_0mvom7y" bpmnElement="Event_0mvom7y">
+        <dc:Bounds x="828" y="281" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SendResponseTask" bpmnElement="SendResponseTask">
+        <dc:Bounds x="796" y="99" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_RetractionReceivedEvent" bpmnElement="RetractionReceivedEvent">
+        <dc:Bounds x="628" y="161" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SLACheckEventSubprocess" bpmnElement="SLACheckEventSubprocess" isExpanded="true">
+        <dc:Bounds x="460" y="419" width="452" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_1x50j3c" bpmnElement="TextAnnotation_1x50j3c">
+        <dc:Bounds x="80" y="80" width="340" height="118" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_14lnez5" bpmnElement="Flow_14lnez5">
+        <di:waypoint x="496" y="139" />
+        <di:waypoint x="596" y="139" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0y68b2d" bpmnElement="Flow_0y68b2d">
+        <di:waypoint x="696" y="139" />
+        <di:waypoint x="796" y="139" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0wpqg90" bpmnElement="Flow_0wpqg90">
+        <di:waypoint x="896" y="139" />
+        <di:waypoint x="996" y="139" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1m81m17" bpmnElement="Flow_1m81m17">
+        <di:waypoint x="1046" y="139" />
+        <di:waypoint x="1146" y="139" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1n9j4kd" bpmnElement="Flow_1n9j4kd">
+        <di:waypoint x="1182" y="139" />
+        <di:waypoint x="1314" y="139" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_10zyhsd" bpmnElement="Flow_10zyhsd">
+        <di:waypoint x="1021" y="164" />
+        <di:waypoint x="1021" y="299" />
+        <di:waypoint x="1146" y="299" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1jz5jec" bpmnElement="Flow_1jz5jec">
+        <di:waypoint x="1182" y="299" />
+        <di:waypoint x="1282" y="299" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0vrum88" bpmnElement="Flow_0vrum88">
+        <di:waypoint x="1382" y="299" />
+        <di:waypoint x="1482" y="299" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1mx0msm" bpmnElement="Flow_1mx0msm">
+        <di:waypoint x="646" y="197" />
+        <di:waypoint x="646" y="299" />
+        <di:waypoint x="828" y="299" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Association_1ceuiaz" bpmnElement="Association_1ceuiaz">
+        <di:waypoint x="460" y="139" />
+        <di:waypoint x="420" y="139" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_EveryTwoDaysStartEvent" bpmnElement="EveryTwoDaysStartEvent">
+        <dc:Bounds x="500" y="481" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_EscalationEmailSentEndEvent" bpmnElement="EscalationEmailSentEndEvent">
+        <dc:Bounds x="836" y="481" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_SendEscalationEmailTask" bpmnElement="SendEscalationEmailTask">
+        <dc:Bounds x="636" y="459" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_066due0" bpmnElement="Flow_066due0">
+        <di:waypoint x="536" y="499" />
+        <di:waypoint x="636" y="499" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1pqpsx6" bpmnElement="Flow_1pqpsx6">
+        <di:waypoint x="736" y="499" />
+        <di:waypoint x="836" y="499" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
