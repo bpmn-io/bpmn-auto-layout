@@ -3,6 +3,8 @@
     <title>bpmn-auto-layout - Visual Test</title>
     <style>
       body {
+        margin: 0;
+        overflow: hidden;
         font-family: monospace;
         font-weight: bold;
         font-size: 12px;
@@ -17,7 +19,59 @@
       }
 
       .title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 8px;
         margin-bottom: 10px;
+        padding: 8px 10px;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        background: #fafafa;
+      }
+
+      .fixture-status {
+        flex: none;
+      }
+
+      .fixture-name {
+        min-width: 0;
+      }
+
+      .metric-badge {
+        color: #444;
+        font-weight: normal;
+      }
+
+      .metric-badge.metric-defect {
+        border-color: #fed7aa;
+        background: #fff7ed;
+        color: #c2410c;
+      }
+
+      .copy-path-button {
+        box-sizing: border-box;
+        flex: none;
+        height: 24px;
+        padding: 0;
+      }
+
+      .copy-path-button svg {
+        width: 14px;
+        height: 14px;
+        margin-right: 0;
+      }
+
+      .copy-path-button.copied {
+        border-color: #bbf7d0 !important;
+        background: #f0fdf4 !important;
+        color: #166534 !important;
+      }
+
+      .description {
+        flex-basis: 100%;
+        color: #555;
+        font-weight: normal;
       }
 
       .container-parent {
@@ -31,10 +85,16 @@
         flex-grow: 1;
         height: 400px;
         border: solid 1px #CCC;
+        border-radius: 8px;
+        overflow: hidden;
       }
 
       .container + .container {
         margin-left: 10px;
+      }
+
+      .container.after {
+        z-index: 0;
       }
 
       .sub-container {
@@ -45,8 +105,19 @@
         bottom: 0;
       }
 
-      .snapshot-mismatch .output .djs-shape {
+      .maximize-button {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 100;
+      }
+
+      body:not(.no-overlay) .snapshot-mismatch .output .djs-shape {
         opacity: 75%;
+      }
+
+      .output {
+        z-index: 1;
       }
 
       .sub-container.snapshot .bjs-powered-by {
@@ -65,24 +136,28 @@
       }
 
       .snapshot {
+        display: none;
         pointer-events: none;
-        z-index: -1;
+        z-index: 0;
       }
 
       .snapshot-match:not(:has(.error)) .snapshot {
-        background: rgba(0, 255, 0, 0.25);
+        background: transparent;
       }
 
       .snapshot-match:not(:has(.error)) .container.after {
-        border-color: #0F0;
+        border-color: #86efac;
+        background: linear-gradient(135deg, #fff 0%, #f0fdf4 100%);
       }
 
       .snapshot-mismatch:not(:has(.error)) .snapshot {
-        background: rgba(255, 0, 0, 0.25);
+        display: block;
+        background: transparent;
       }
 
       .snapshot-mismatch:not(:has(.error)) .container.after {
-        border-color: #F00;
+        border-color: #fca5a5;
+        background: linear-gradient(135deg, #fff 0%, #fef2f2 100%);
       }
 
       #scroll-container {
@@ -90,38 +165,277 @@
         overflow-y: auto;
       }
 
+      .inspect-content {
+        padding: 0 16px;
+      }
+
       .statistic {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        z-index: 100;
+        position: sticky;
+        top: 0;
+        z-index: 101;
+        box-sizing: border-box;
+        min-height: 40px;
+        padding: 8px 16px;
+        border-bottom: 1px solid #e5e5e5;
+        background: white;
         font-size: large;
         display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .statistic-summary {
+        display: flex;
+        align-items: center;
         gap: 10px;
       }
 
-      #fail {
-        color: red;
+      .statistic-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
       }
 
-      #pass {
-        color: green;
+      .path-filter-wrapper {
+        position: relative;
       }
 
-      #new {
-        color: blue;
+      .path-filter {
+        box-sizing: border-box;
+        width: 240px;
+        height: 32px;
+        padding: 0 46px 0 10px;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        background: #fff;
+        color: #171717;
+        font: inherit;
+        font-size: 12px;
+        font-weight: normal;
+      }
+
+      .path-filter:focus {
+        border-color: #93c5fd;
+        outline: 2px solid #dbeafe;
+        outline-offset: 1px;
+      }
+
+      .clear-path-filter {
+        position: absolute;
+        right: 4px !important;
+        top: 4px !important;
+        height: 24px !important;
+        background: transparent !important;
+        border-radius: 5px !important;
+
+        &:hover {
+          background: #f5f5f5 !important;
+        }
+      }
+
+      .clear-path-filter svg {
+        width: 14px;
+        height: 14px;
+        margin-right: 0 !important;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 32px;
+        padding: 0 12px;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        background: #fff;
+        color: #171717;
+        font: inherit;
+        font-size: 12px;
+        font-weight: bold;
+        line-height: 1;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .button[hidden] {
+        display: none;
+      }
+
+      .button svg {
+        width: 14px;
+        height: 14px;
+        margin-right: 6px;
+      }
+
+      .button.icon-button {
+        width: 32px;
+        padding: 0;
+      }
+
+      .button.icon-button svg {
+        margin-right: 0;
+      }
+
+      .button:hover {
+        background: #f5f5f5;
+      }
+
+      .button[aria-pressed="true"] {
+        border-color: #e5e5e5;
+        background: #f5f5f5;
+        color: #171717;
+      }
+
+      .overlay-toggle[aria-pressed="true"] {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        height: 20px;
+        padding: 0 8px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: bold;
+        line-height: 1;
+      }
+
+      .filter-toggle {
+        cursor: pointer;
+      }
+
+      .filter-toggle[aria-pressed="false"] {
+        opacity: 0.45;
+      }
+
+      .badge svg {
+        width: 14px;
+        height: 14px;
+        margin-right: 4px;
+      }
+
+      .badge-success {
+        border-color: #bbf7d0;
+        background: #f0fdf4;
+        color: #166534;
+      }
+
+      .badge-destructive {
+        border-color: #fecaca;
+        background: #fef2f2;
+        color: #dc2626;
+      }
+
+      .badge-secondary {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+
+      body.no-overlay .sub-container.snapshot {
+        display: none;
+      }
+
+      #maximize-dialog {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: white;
+      }
+
+      #maximize-dialog[hidden] {
+        display: none;
+      }
+
+      #maximize-container {
+        position: absolute;
+        inset: 0;
+      }
+
+      .maximize-viewer {
+        position: absolute;
+        inset: 0;
+      }
+
+      .maximize-snapshot {
+        pointer-events: none;
+      }
+
+      #maximize-dialog.snapshot-match {
+        background: linear-gradient(135deg, #fff 0%, #f0fdf4 100%);
+        box-shadow: inset 0 0 0 2px #86efac;
+      }
+
+      #maximize-dialog.snapshot-mismatch {
+        background: linear-gradient(135deg, #fff 0%, #fef2f2 100%);
+        box-shadow: inset 0 0 0 2px #fca5a5;
+      }
+
+      #maximize-dialog.snapshot-mismatch .maximize-output .djs-shape {
+        opacity: 75%;
+      }
+
+      #minimize-button {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 1;
+      }
+
+      #maximize-overlay-toggle {
+        position: absolute;
+        top: 8px;
+        right: 48px;
+        z-index: 1;
+      }
+
+      #maximize-dialog.no-overlay .maximize-snapshot {
+        display: none;
+      }
+
+      #maximize-dialog.no-overlay {
+        background: #fff;
+      }
+
+      #maximize-dialog.no-overlay .maximize-output .djs-shape {
+        opacity: 100%;
+      }
+
+      .djs-container svg:focus {
+        outline: none !important;
       }
     </style>
     <link rel="stylesheet" href="https://unpkg.com/bpmn-js/dist/assets/diagram-js.css">
     <link rel="stylesheet" href="https://unpkg.com/bpmn-js/dist/assets/bpmn-js.css">
   </head>
   <body>
-    <div class="statistic">
-      <div id="pass"></div>
-      <div id="fail"></div>
-      <div id="new"></div>
+    <div id="scroll-container">
+      <div class="statistic">
+        <div class="statistic-summary">
+          <button id="pass" class="badge badge-success filter-toggle" type="button" aria-pressed="true"></button>
+          <button id="fail" class="badge badge-destructive filter-toggle" type="button" aria-pressed="true"></button>
+          <button id="new" class="badge badge-secondary filter-toggle" type="button" aria-pressed="true"></button>
+          <button id="geometry-stat" class="badge metric-badge filter-toggle" type="button" aria-pressed="false"></button>
+        </div>
+        <div class="statistic-actions">
+          <div class="path-filter-wrapper">
+            <input id="path-filter" class="path-filter" type="text" placeholder="Filter fixtures" aria-label="Filter fixtures by path">
+            <button id="clear-path-filter" class="button clear-path-filter" type="button" title="Clear fixture filter" aria-label="Clear fixture filter" hidden><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+          </div>
+          <button id="overlay-toggle" class="button overlay-toggle" type="button" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7"/><circle cx="15" cy="15" r="7"/></svg>Overlay</button>
+        </div>
+      </div>
+      <div id="inspect-content" class="inspect-content"></div>
     </div>
-    <div id="scroll-container"></div>
+    <div id="maximize-dialog" hidden>
+      <div id="maximize-container"></div>
+      <button id="maximize-overlay-toggle" class="button overlay-toggle" type="button" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7"/><circle cx="15" cy="15" r="7"/></svg>Overlay</button>
+      <button id="minimize-button" class="button icon-button" type="button" title="Minimize diagram" aria-label="Minimize diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 10 7-7"/><path d="M20 10h-6V4"/><path d="m3 21 7-7"/><path d="M4 14h6v6"/></svg></button>
+    </div>
     <script src="https://unpkg.com/bpmn-js/dist/bpmn-navigated-viewer.development.js"></script>
     <script>
       /* results-start */
@@ -580,6 +894,142 @@
       /* results-end */
 
       const scrollContainer = document.getElementById('scroll-container')
+      const inspectContent = document.getElementById('inspect-content');
+      const maximizeDialog = document.getElementById('maximize-dialog');
+      const maximizeContainer = document.getElementById('maximize-container');
+      const minimizeButton = document.getElementById('minimize-button');
+      const maximizeOverlayToggle = document.getElementById('maximize-overlay-toggle');
+      let maximizedViewers = [];
+
+      function applyMaximizeOverlay() {
+        maximizeDialog.classList.toggle('no-overlay', maximizeOverlayToggle.getAttribute('aria-pressed') === 'false');
+      }
+
+      function minimizeDiagram() {
+        maximizedViewers.forEach(viewer => viewer.destroy());
+        maximizedViewers = [];
+        maximizeContainer.replaceChildren();
+        maximizeDialog.classList.remove('snapshot-match', 'snapshot-mismatch');
+        maximizeOverlayToggle.hidden = true;
+        maximizeOverlayToggle.setAttribute('aria-pressed', 'true');
+        applyMaximizeOverlay();
+        maximizeDialog.hidden = true;
+      }
+
+      async function maximizeDiagram(xml, options = {}) {
+        minimizeDiagram();
+        maximizeOverlayToggle.hidden = true;
+        maximizeDialog.hidden = false;
+        const maximizedViewer = new BpmnJS({
+          container: maximizeContainer,
+          ...options
+        });
+        maximizedViewers = [ maximizedViewer ];
+
+        try {
+          const { warnings } = await maximizedViewer.importXML(xml);
+
+          if (warnings.length) {
+            console.warn(warnings);
+          }
+
+          maximizedViewer.get('canvas').zoom('fit-viewport');
+        } catch (error) {
+          console.error('Maximized viewer render error', error);
+          minimizeDiagram();
+        }
+      }
+
+      async function maximizeComparison(outputXml, snapshotXml, snapshotMatches) {
+        minimizeDiagram();
+        maximizeDialog.hidden = false;
+        maximizeOverlayToggle.hidden = snapshotMatches;
+        maximizeDialog.classList.add(snapshotMatches ? 'snapshot-match' : 'snapshot-mismatch');
+
+        const outputContainer = document.createElement('div');
+        outputContainer.className = 'maximize-viewer maximize-output';
+
+        let snapshotViewer;
+
+        if (!snapshotMatches) {
+          const snapshotContainer = document.createElement('div');
+          snapshotContainer.className = 'maximize-viewer maximize-snapshot';
+          maximizeContainer.appendChild(snapshotContainer);
+          snapshotViewer = new BpmnJS({
+            container: snapshotContainer,
+            bpmnRenderer: {
+              defaultStrokeColor: 'red'
+            }
+          });
+        }
+
+        maximizeContainer.appendChild(outputContainer);
+
+        const outputViewer = new BpmnJS({
+          container: outputContainer
+        });
+        maximizedViewers = snapshotViewer ? [ snapshotViewer, outputViewer ] : [ outputViewer ];
+
+        try {
+          const results = await Promise.all([
+            outputViewer.importXML(outputXml),
+            ...(snapshotViewer ? [ snapshotViewer.importXML(snapshotXml) ] : [])
+          ]);
+
+          results.forEach(({ warnings }) => {
+            if (warnings.length) {
+              console.warn(warnings);
+            }
+          });
+
+          const outputCanvas = outputViewer.get('canvas');
+          outputCanvas.zoom('fit-viewport');
+
+          if (snapshotViewer) {
+            snapshotViewer.get('canvas').viewbox(outputCanvas.viewbox());
+
+            let isSyncing = false;
+            outputViewer.on('canvas.viewbox.changed', () => {
+              if (isSyncing) {
+                return;
+              }
+
+              isSyncing = true;
+              snapshotViewer.get('canvas').viewbox(outputCanvas.viewbox());
+              isSyncing = false;
+            });
+          }
+        } catch (error) {
+          console.error('Maximized comparison render error', error);
+          minimizeDiagram();
+        }
+      }
+
+      minimizeButton.addEventListener('click', minimizeDiagram);
+      maximizeOverlayToggle.addEventListener('click', () => {
+        maximizeOverlayToggle.setAttribute('aria-pressed', String(maximizeOverlayToggle.getAttribute('aria-pressed') !== 'true'));
+        applyMaximizeOverlay();
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !maximizeDialog.hidden) {
+          minimizeDiagram();
+        }
+      });
+
+      maximizeDialog.addEventListener('wheel', event => {
+        if (!event.ctrlKey) {
+          event.stopImmediatePropagation();
+        }
+      }, { capture: true });
+
+      // toggle the ghosted overlay (red snapshot/grid behind the output)
+      const overlayToggle = document.getElementById('overlay-toggle');
+      const applyOverlay = () => document.body.classList.toggle('no-overlay', overlayToggle.getAttribute('aria-pressed') === 'false');
+      overlayToggle.addEventListener('click', () => {
+        overlayToggle.setAttribute('aria-pressed', String(overlayToggle.getAttribute('aria-pressed') !== 'true'));
+        applyOverlay();
+      });
+      applyOverlay();
 
       // save scroll position before unload
       window.addEventListener('beforeunload', () => {
@@ -607,36 +1057,238 @@
       const passCount = results.filter(element => element.diagramSnapshotMatching).length
       const failCount = results.filter(element => element.diagramSnapshotMatching === false).length
       const newCount = results.filter(element => element.diagramSnapshotMatching === null).length
+      const geometryDefectCount = results.filter(element => hasGeometryDefect(element.metrics)).length
 
       const failStat = document.getElementById('fail')
-      failStat.textContent = `fail: ${failCount}`
+      failStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>' + failCount
+      failStat.setAttribute('aria-label', `Show failed fixtures (${failCount})`)
 
       const passStat = document.getElementById('pass')
-      passStat.textContent = `pass: ${passCount}`
+      passStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>' + passCount
+      passStat.setAttribute('aria-label', `Show passed fixtures (${passCount})`)
 
       const newStat = document.getElementById('new')
-      newStat.textContent = `new: ${newCount}`
+      newStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>' + newCount
+      newStat.setAttribute('aria-label', `Show new fixtures (${newCount})`)
+
+      const geometryStat = document.getElementById('geometry-stat');
+      geometryStat.innerHTML = geometryDefectCount
+        ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>' + `${geometryDefectCount} geometry defect${geometryDefectCount === 1 ? '' : 's'}`
+        : 'Geometry clean';
+      geometryStat.classList.toggle('metric-defect', geometryDefectCount > 0);
+      geometryStat.setAttribute('aria-label', `Show only fixtures with geometry defects (${geometryDefectCount})`);
+
+      const resultFilters = [
+        [ 'passed', passStat ],
+        [ 'failed', failStat ],
+        [ 'new', newStat ]
+      ];
+      const pathFilter = document.getElementById('path-filter');
+      const clearPathFilter = document.getElementById('clear-path-filter');
+
+      function applyResultFilters() {
+        const query = pathFilter.value.trim().toLowerCase();
+
+        clearPathFilter.hidden = !query;
+
+        document.querySelectorAll('.parent').forEach(parent => {
+          const filter = resultFilters.find(([ status ]) => status === parent.dataset.status);
+          const isStatusVisible = filter[1].getAttribute('aria-pressed') === 'true';
+          const isPathVisible = !query || parent.dataset.path.toLowerCase().includes(query);
+          const isGeometryVisible = geometryStat.getAttribute('aria-pressed') !== 'true' || parent.dataset.geometry === 'defect';
+          parent.hidden = !isStatusVisible || !isPathVisible || !isGeometryVisible;
+        });
+      }
+
+      resultFilters.forEach(([ status, filter ]) => {
+        filter.addEventListener('click', () => {
+          filter.setAttribute('aria-pressed', String(filter.getAttribute('aria-pressed') !== 'true'));
+          filter.setAttribute('aria-label', `${filter.getAttribute('aria-pressed') === 'true' ? 'Hide' : 'Show'} ${status} fixtures`);
+          applyResultFilters();
+        });
+      });
+
+      pathFilter.addEventListener('input', applyResultFilters);
+      clearPathFilter.addEventListener('click', () => {
+        pathFilter.value = '';
+        applyResultFilters();
+        pathFilter.focus();
+      });
+
+      geometryStat.addEventListener('click', () => {
+        const isFiltering = geometryStat.getAttribute('aria-pressed') !== 'true';
+        geometryStat.setAttribute('aria-pressed', String(isFiltering));
+        geometryStat.setAttribute('aria-label', isFiltering
+          ? 'Show all fixtures'
+          : `Show only fixtures with geometry defects (${geometryDefectCount})`);
+        applyResultFilters();
+      });
+
+      function getProcessDocumentation(xml) {
+        const document = new DOMParser().parseFromString(xml, 'application/xml');
+        const process = Array.from(document.getElementsByTagName('*')).find(element => element.localName === 'process');
+
+        if (!process) {
+          return null;
+        }
+
+        const documentation = Array.from(process.children).find(element => element.localName === 'documentation');
+
+        return documentation?.textContent.trim() || null;
+      }
+
+      function hasGeometryDefect(metrics) {
+        return metrics?.current && (
+          metrics.current.overlaps !== 0 ||
+          metrics.current.edgeShapeIntersections !== 0 ||
+          metrics.current.wrongWayDockings !== 0
+        );
+      }
+
+      function formatMetric(value, delta) {
+        if (delta === null || delta === undefined || delta === 0) {
+          return String(value);
+        }
+
+        return `${value} (${delta > 0 ? '+' : ''}${delta})`;
+      }
+
+      async function copyPath(path) {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(path);
+          return;
+        }
+
+        const textarea = document.createElement('textarea');
+        textarea.value = path;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+      }
 
       for (const {
         diagram,
         diagramOutput,
         diagramSnapshot,
         diagramSnapshotMatching,
+        metrics,
         name
       } of results) {
         const parent = document.createElement('div');
 
         parent.className = 'parent';
+        parent.dataset.geometry = hasGeometryDefect(metrics) ? 'defect' : 'clean';
 
         if (diagramSnapshotMatching === true) {
+          parent.dataset.status = 'passed';
           parent.classList.add('snapshot-match');
         } else if (diagramSnapshotMatching === false) {
+          parent.dataset.status = 'failed';
           parent.classList.add('snapshot-mismatch');
+        } else {
+          parent.dataset.status = 'new';
         }
 
         const title = document.createElement('div');
         title.className = 'title';
-        title.textContent = 'test/fixtures/' + name;
+
+        const status = document.createElement('span');
+        status.className = 'badge fixture-status';
+
+        if (diagramSnapshotMatching === true) {
+          status.classList.add('badge-success');
+          status.title = 'Passed';
+          status.setAttribute('aria-label', 'Passed');
+          status.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Passed';
+        } else if (diagramSnapshotMatching === false) {
+          status.classList.add('badge-destructive');
+          status.title = 'Failed';
+          status.setAttribute('aria-label', 'Failed');
+          status.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Failed';
+        } else {
+          status.classList.add('badge-secondary');
+          status.title = 'New';
+          status.setAttribute('aria-label', 'New');
+          status.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>New';
+        }
+
+        const fixtureName = document.createElement('span');
+        fixtureName.className = 'fixture-name';
+        const fixturePath = 'test/fixtures/' + name;
+        parent.dataset.path = fixturePath;
+        fixtureName.textContent = fixturePath;
+
+        const copyPathButton = document.createElement('button');
+        copyPathButton.className = 'button copy-path-button';
+        copyPathButton.type = 'button';
+        copyPathButton.title = 'Copy fixture path';
+        copyPathButton.setAttribute('aria-label', 'Copy fixture path');
+        copyPathButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>Copy';
+        let copiedTimeout;
+        copyPathButton.addEventListener('click', async () => {
+          try {
+            await copyPath(fixturePath);
+            clearTimeout(copiedTimeout);
+            copyPathButton.classList.add('copied');
+            copyPathButton.title = 'Copied';
+            copyPathButton.setAttribute('aria-label', 'Fixture path copied');
+            copiedTimeout = setTimeout(() => {
+              copyPathButton.classList.remove('copied');
+              copyPathButton.title = 'Copy fixture path';
+              copyPathButton.setAttribute('aria-label', 'Copy fixture path');
+            }, 600);
+          } catch (error) {
+            console.error('Could not copy fixture path', error);
+          }
+        });
+
+        title.appendChild(status);
+        title.appendChild(fixtureName);
+        title.appendChild(copyPathButton);
+
+        if (metrics?.error) {
+          const metricError = document.createElement('span');
+          metricError.className = 'badge metric-badge metric-defect';
+          metricError.textContent = 'Metrics unavailable';
+          metricError.title = metrics.error;
+          title.appendChild(metricError);
+        } else if (metrics?.current) {
+          const geometry = document.createElement('span');
+          const geometryDefect = hasGeometryDefect(metrics);
+          geometry.className = `badge metric-badge ${geometryDefect ? 'metric-defect' : 'badge-success'}`;
+          if (geometryDefect) {
+            geometry.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>' + `${metrics.current.overlaps} overlap${metrics.current.overlaps === 1 ? '' : 's'}, ${metrics.current.edgeShapeIntersections} intersection${metrics.current.edgeShapeIntersections === 1 ? '' : 's'}, ${metrics.current.wrongWayDockings} wrong-way docking${metrics.current.wrongWayDockings === 1 ? '' : 's'}`;
+          } else {
+            geometry.textContent = 'Geometry clean';
+          }
+          title.appendChild(geometry);
+
+          const crossings = document.createElement('span');
+          crossings.className = `badge metric-badge ${metrics.current.crossings === 0 ? 'badge-success' : 'metric-defect'}`;
+          crossings.textContent = `Crossings ${formatMetric(metrics.current.crossings, metrics.delta?.crossings)}`;
+          title.appendChild(crossings);
+
+          const edgeLength = document.createElement('span');
+          const edgeLengthDelta = metrics.delta?.edgeLength;
+          const edgeLengthState = edgeLengthDelta === undefined
+            ? 'badge-secondary'
+            : edgeLengthDelta > 0 ? 'metric-defect' : 'badge-success';
+          edgeLength.className = `badge metric-badge ${edgeLengthState}`;
+          edgeLength.textContent = `Edge length ${formatMetric(metrics.current.edgeLength, metrics.delta?.edgeLength)}`;
+          title.appendChild(edgeLength);
+        }
+
+        const description = getProcessDocumentation(diagram);
+
+        if (description) {
+          const descriptionElement = document.createElement('div');
+          descriptionElement.className = 'description';
+          descriptionElement.textContent = description;
+          title.appendChild(descriptionElement);
+        }
 
         const containerParent = document.createElement('div');
         containerParent.className = 'container-parent';
@@ -653,7 +1305,7 @@
         containerParent.appendChild(containerBefore);
         containerParent.appendChild(containerAfter);
 
-        scrollContainer.appendChild(parent);
+        inspectContent.appendChild(parent);
 
         const subContainerDiagram = document.createElement('div');
         subContainerDiagram.className = 'sub-container diagram';
@@ -668,11 +1320,45 @@
         containerAfter.appendChild(subContainerOutput);
         containerAfter.appendChild(subContainerSnapshot);
 
-        const diagramViewer = new BpmnJS({
-          container: subContainerDiagram,
-          zoomScroll: {
-            enabled: false
+        const viewerContainers = diagramSnapshot
+          ? [ subContainerDiagram, subContainerOutput, subContainerSnapshot ]
+          : [ subContainerDiagram, subContainerOutput ];
+
+        viewerContainers.forEach(container => {
+          const maximizeButton = document.createElement('button');
+          maximizeButton.className = 'maximize-button button icon-button';
+          maximizeButton.type = 'button';
+          maximizeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="m21 3-7 7"/><path d="m3 21 7-7"/><path d="M9 21H3v-6"/></svg>';
+          maximizeButton.title = 'Maximize diagram';
+          maximizeButton.setAttribute('aria-label', 'Maximize diagram');
+
+          if (container === subContainerSnapshot) {
+            containerAfter.appendChild(maximizeButton);
+          } else {
+            container.appendChild(maximizeButton);
           }
+
+          const xml = container === subContainerDiagram ? diagram : container === subContainerOutput ? diagramOutput : diagramSnapshot;
+
+          maximizeButton.addEventListener('click', () => {
+            if (container === subContainerSnapshot) {
+              maximizeComparison(diagramOutput, diagramSnapshot, diagramSnapshotMatching === true);
+            } else {
+              maximizeDiagram(xml);
+            }
+          });
+        });
+
+        [ containerBefore, containerAfter ].forEach(container => {
+          container.addEventListener('wheel', event => {
+            if (!event.ctrlKey) {
+              event.stopImmediatePropagation();
+            }
+          }, { capture: true });
+        });
+
+        const diagramViewer = new BpmnJS({
+          container: subContainerDiagram
         });
 
         const diagramSnapshotViewer = new BpmnJS({
@@ -683,10 +1369,7 @@
         });
 
         const diagramOutputViewer = new BpmnJS({
-          container: subContainerOutput,
-          zoomScroll: {
-            enabled: false
-          }
+          container: subContainerOutput
         });
 
         const errors = Promise.all([
@@ -729,7 +1412,7 @@
               console.warn(warnings);
             }
 
-            diagramSnapshotViewer.get('canvas').zoom('fit-viewport');
+            diagramSnapshotViewer.get('canvas').viewbox(diagramOutputViewer.get('canvas').viewbox());
           }).catch(err => {
             console.error('Snapshot render error', err);
           });
