@@ -1916,6 +1916,9 @@ describe('Layout', function() {
       `const results = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob('${ serializedResults }'), character => character.charCodeAt(0))));`
     );
 
+    assert.ok(index.includes('createMetricsPanel'));
+    assert.ok(index.includes('branchSymmetry'));
+
     fs.writeFileSync(path.join(outputDirectory, 'index.html'), index, 'utf8');
   });
 

@@ -49,6 +49,80 @@
         color: #c2410c;
       }
 
+      .metrics-panel {
+        flex-basis: 100%;
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        background: #fff;
+        color: #444;
+        font-weight: normal;
+      }
+
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 6px;
+        padding: 8px;
+      }
+
+      .metric {
+        min-width: 0;
+        padding: 6px 8px;
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        background: #fafafa;
+      }
+
+      .metric.metric-good {
+        border-color: #bbf7d0;
+        background: #f0fdf4;
+        color: #166534;
+      }
+
+      .metric.metric-warning {
+        border-color: #fed7aa;
+        background: #fff7ed;
+        color: #c2410c;
+      }
+
+      .metric.metric-defect {
+        border-color: #fecaca;
+        background: #fef2f2;
+        color: #dc2626;
+      }
+
+      .metrics-error {
+        margin: 0;
+        padding: 0 8px 8px;
+        color: #dc2626;
+      }
+
+      .metric-name,
+      .metric-delta {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .metric-name {
+        color: #555;
+        font-size: 11px;
+      }
+
+      .metric-value {
+        display: block;
+        margin: 2px 0;
+        color: #171717;
+        font-size: 14px;
+        font-weight: bold;
+      }
+
+      .metric-delta {
+        color: #666;
+        font-size: 11px;
+      }
+
       .copy-path-button {
         box-sizing: border-box;
         flex: none;
@@ -1145,12 +1219,96 @@
         );
       }
 
-      function formatMetric(value, delta) {
-        if (delta === null || delta === undefined || delta === 0) {
-          return String(value);
+      const metricDefinitions = [
+        { key: 'crossings', label: 'Crossings', lowerIsBetter: true, zeroIsGood: true },
+        { key: 'overlaps', label: 'Shape-shape overlaps', lowerIsBetter: true, zeroIsGood: true, isDefect: true },
+        { key: 'labelShapeOverlaps', label: 'Label-shape overlaps', lowerIsBetter: true, zeroIsGood: true },
+        { key: 'edgeShapeIntersections', label: 'Shape intersections', lowerIsBetter: true, zeroIsGood: true, isDefect: true },
+        { key: 'wrongWayDockings', label: 'Wrong-way dockings', lowerIsBetter: true, zeroIsGood: true, isDefect: true },
+        { key: 'bendCount', label: 'Bends', lowerIsBetter: true, zeroIsGood: true },
+        { key: 'edgeLength', label: 'Edge length', lowerIsBetter: true, unit: ' px' },
+        { key: 'edgeSegmentLengthDeviation', label: 'Segment deviation', lowerIsBetter: true, unit: ' px' },
+        { key: 'compactness', label: 'Compactness', lowerIsBetter: false, unit: '%' },
+        { key: 'gridAlignment', label: 'Grid alignment', lowerIsBetter: false, unit: '%' },
+        { key: 'branchSymmetry', label: 'Branch symmetry', lowerIsBetter: false, unit: '%' }
+      ];
+
+      function metricState(definition, value, delta) {
+        if (definition.zeroIsGood) {
+          if (value === 0) {
+            return 'metric-good';
+          }
+
+          return definition.isDefect ? 'metric-defect' : 'metric-warning';
         }
 
-        return `${value} (${delta > 0 ? '+' : ''}${delta})`;
+        if (delta === null || delta === undefined || delta === 0) {
+          return '';
+        }
+
+        const improved = definition.lowerIsBetter ? delta < 0 : delta > 0;
+
+        return improved ? 'metric-good' : 'metric-warning';
+      }
+
+      function formatMetricDelta(delta) {
+        if (delta === null || delta === undefined) {
+          return 'No baseline';
+        }
+
+        if (delta === 0) {
+          return 'No change';
+        }
+
+        return `Baseline ${delta > 0 ? '+' : ''}${delta}`;
+      }
+
+      function createMetricsPanel(metrics) {
+        const panel = document.createElement('section');
+        panel.className = 'metrics-panel';
+
+        if (metrics.error) {
+          const error = document.createElement('p');
+          error.className = 'metrics-error';
+          error.textContent = `Metrics unavailable: ${metrics.error}`;
+          panel.appendChild(error);
+
+          return panel;
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'metrics-grid';
+
+        for (const definition of metricDefinitions) {
+          const value = metrics.current[definition.key];
+          const delta = metrics.delta?.[definition.key];
+          const metric = document.createElement('div');
+          metric.className = `metric ${metricState(definition, value, delta)}`;
+          metric.title = definition.lowerIsBetter
+            ? 'Lower is better'
+            : 'Higher is better';
+
+          const name = document.createElement('span');
+          name.className = 'metric-name';
+          name.textContent = definition.label;
+
+          const metricValue = document.createElement('span');
+          metricValue.className = 'metric-value';
+          metricValue.textContent = `${value}${definition.unit || ''}`;
+
+          const metricDelta = document.createElement('span');
+          metricDelta.className = 'metric-delta';
+          metricDelta.textContent = formatMetricDelta(delta);
+
+          metric.appendChild(name);
+          metric.appendChild(metricValue);
+          metric.appendChild(metricDelta);
+          grid.appendChild(metric);
+        }
+
+        panel.appendChild(grid);
+
+        return panel;
       }
 
       async function copyPath(path) {
@@ -1249,36 +1407,8 @@
         title.appendChild(fixtureName);
         title.appendChild(copyPathButton);
 
-        if (metrics?.error) {
-          const metricError = document.createElement('span');
-          metricError.className = 'badge metric-badge metric-defect';
-          metricError.textContent = 'Metrics unavailable';
-          metricError.title = metrics.error;
-          title.appendChild(metricError);
-        } else if (metrics?.current) {
-          const geometry = document.createElement('span');
-          const geometryDefect = hasGeometryDefect(metrics);
-          geometry.className = `badge metric-badge ${geometryDefect ? 'metric-defect' : 'badge-success'}`;
-          if (geometryDefect) {
-            geometry.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>' + `${metrics.current.overlaps} overlap${metrics.current.overlaps === 1 ? '' : 's'}, ${metrics.current.edgeShapeIntersections} intersection${metrics.current.edgeShapeIntersections === 1 ? '' : 's'}, ${metrics.current.wrongWayDockings} wrong-way docking${metrics.current.wrongWayDockings === 1 ? '' : 's'}`;
-          } else {
-            geometry.textContent = 'Geometry clean';
-          }
-          title.appendChild(geometry);
-
-          const crossings = document.createElement('span');
-          crossings.className = `badge metric-badge ${metrics.current.crossings === 0 ? 'badge-success' : 'metric-defect'}`;
-          crossings.textContent = `Crossings ${formatMetric(metrics.current.crossings, metrics.delta?.crossings)}`;
-          title.appendChild(crossings);
-
-          const edgeLength = document.createElement('span');
-          const edgeLengthDelta = metrics.delta?.edgeLength;
-          const edgeLengthState = edgeLengthDelta === undefined
-            ? 'badge-secondary'
-            : edgeLengthDelta > 0 ? 'metric-defect' : 'badge-success';
-          edgeLength.className = `badge metric-badge ${edgeLengthState}`;
-          edgeLength.textContent = `Edge length ${formatMetric(metrics.current.edgeLength, metrics.delta?.edgeLength)}`;
-          title.appendChild(edgeLength);
+        if (metrics) {
+          title.appendChild(createMetricsPanel(metrics));
         }
 
         const description = getProcessDocumentation(diagram);
