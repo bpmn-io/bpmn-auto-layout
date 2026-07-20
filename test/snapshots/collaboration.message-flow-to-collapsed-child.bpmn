@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration">
+    <bpmn:participant id="Sender" processRef="SenderProcess" />
+    <bpmn:participant id="Receiver" processRef="ReceiverProcess" />
+    <bpmn:messageFlow id="MessageFlow" sourceRef="HiddenTask" targetRef="ReceiveTask" />
+  </bpmn:collaboration>
+  <bpmn:process id="SenderProcess">
+    <bpmn:documentation>A message flow to a collapsed subprocess child docks at the visible subprocess.</bpmn:documentation>
+    <bpmn:startEvent id="Start">
+      <bpmn:outgoing>StartToSubProcess</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:subProcess id="CollapsedSubProcess">
+      <bpmn:task id="HiddenTask" />
+    </bpmn:subProcess>
+    <bpmn:endEvent id="End">
+      <bpmn:incoming>SubProcessToEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="StartToSubProcess" sourceRef="Start" targetRef="CollapsedSubProcess" />
+    <bpmn:sequenceFlow id="SubProcessToEnd" sourceRef="CollapsedSubProcess" targetRef="End" />
+  </bpmn:process>
+  <bpmn:process id="ReceiverProcess">
+    <bpmn:documentation>The receiving process provides visible message-flow geometry.</bpmn:documentation>
+    <bpmn:task id="ReceiveTask" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Collaboration">
+    <bpmndi:BPMNPlane id="BPMNPlane_Collaboration" bpmnElement="Collaboration">
+      <bpmndi:BPMNShape id="BPMNShape_Sender" bpmnElement="Sender" isHorizontal="true">
+        <dc:Bounds x="80" y="80" width="452" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Receiver" bpmnElement="Receiver" isHorizontal="true">
+        <dc:Bounds x="80" y="320" width="300" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_MessageFlow" bpmnElement="MessageFlow">
+        <di:waypoint x="306" y="200" />
+        <di:waypoint x="306" y="280" />
+        <di:waypoint x="170" y="280" />
+        <di:waypoint x="170" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_Start" bpmnElement="Start">
+        <dc:Bounds x="120" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_CollapsedSubProcess" bpmnElement="CollapsedSubProcess">
+        <dc:Bounds x="256" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End" bpmnElement="End">
+        <dc:Bounds x="456" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_StartToSubProcess" bpmnElement="StartToSubProcess">
+        <di:waypoint x="156" y="160" />
+        <di:waypoint x="256" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_SubProcessToEnd" bpmnElement="SubProcessToEnd">
+        <di:waypoint x="356" y="160" />
+        <di:waypoint x="456" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_ReceiveTask" bpmnElement="ReceiveTask">
+        <dc:Bounds x="120" y="360" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_CollapsedSubProcess">
+    <bpmndi:BPMNPlane id="BPMNPlane_CollapsedSubProcess" bpmnElement="CollapsedSubProcess">
+      <bpmndi:BPMNShape id="BPMNShape_HiddenTask" bpmnElement="HiddenTask">
+        <dc:Bounds x="80" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

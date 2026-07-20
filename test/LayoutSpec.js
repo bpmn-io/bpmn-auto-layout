@@ -1090,6 +1090,31 @@ describe('Layout', function() {
       assert.strictEqual(edge.waypoint[1].y, edge.waypoint[2].y);
     });
 
+    it('should route message flows from collapsed subprocess children at the subprocess', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'collaboration.message-flow-to-collapsed-child.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new Map(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const edge = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === 'MessageFlow';
+      });
+      const source = shapes.get('CollapsedSubProcess');
+      const target = shapes.get('ReceiveTask');
+
+      assert.ok(!shapes.has('HiddenTask'));
+      assert.strictEqual(edge.waypoint[0].x, source.x + source.width / 2);
+      assert.strictEqual(edge.waypoint[0].y, source.y + source.height);
+      assert.strictEqual(edge.waypoint.at(-1).x, target.x + target.width / 2);
+      assert.strictEqual(edge.waypoint.at(-1).y, target.y);
+    });
+
     it('should optimize connected participant geometry', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'blueprint.bank-customer-complaint-dispute-handling.bpmn'),

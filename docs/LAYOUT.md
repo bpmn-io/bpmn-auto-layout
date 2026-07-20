@@ -318,11 +318,12 @@ deterministic score combining vertical message-flow travel and bend cost:
 - up to eight participants use exhaustive permutation search;
 - larger collaborations use deterministic greedy insertion.
 
-Message flows are generated when both endpoints have layout geometry. Opposing
-directions receive stable channel offsets. Adjacent pools use their shared
-gutter; non-adjacent pools may use an outside channel. Routes avoid process-node
-obstacles, and obstacle-avoiding route legs consider previously allocated
-message flows.
+Message flows are generated when both endpoints resolve to visible layout
+geometry. An endpoint inside a collapsed sub-process resolves to its nearest
+visible collapsed ancestor. Opposing directions receive stable channel offsets.
+Adjacent pools use their shared gutter; non-adjacent pools may use an outside
+channel. Routes avoid process-node obstacles, and obstacle-avoiding route legs
+consider previously allocated message flows.
 
 Black-box pool sizing and message routing form a fixed point:
 
