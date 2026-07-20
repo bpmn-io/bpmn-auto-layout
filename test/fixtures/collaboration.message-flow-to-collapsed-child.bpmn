@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration">
+    <bpmn:participant id="Sender" processRef="SenderProcess" />
+    <bpmn:participant id="Receiver" processRef="ReceiverProcess" />
+    <bpmn:messageFlow id="MessageFlow" sourceRef="HiddenTask" targetRef="ReceiveTask" />
+  </bpmn:collaboration>
+  <bpmn:process id="SenderProcess">
+    <bpmn:documentation>A message flow to a collapsed subprocess child docks at the visible subprocess.</bpmn:documentation>
+    <bpmn:startEvent id="Start">
+      <bpmn:outgoing>StartToSubProcess</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:subProcess id="CollapsedSubProcess">
+      <bpmn:task id="HiddenTask" />
+    </bpmn:subProcess>
+    <bpmn:endEvent id="End">
+      <bpmn:incoming>SubProcessToEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="StartToSubProcess" sourceRef="Start" targetRef="CollapsedSubProcess" />
+    <bpmn:sequenceFlow id="SubProcessToEnd" sourceRef="CollapsedSubProcess" targetRef="End" />
+  </bpmn:process>
+  <bpmn:process id="ReceiverProcess">
+    <bpmn:documentation>The receiving process provides visible message-flow geometry.</bpmn:documentation>
+    <bpmn:task id="ReceiveTask" />
+  </bpmn:process>
+</bpmn:definitions>
