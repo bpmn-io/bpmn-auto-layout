@@ -4,7 +4,7 @@ import url from 'node:url';
 
 import { layoutProcess } from '../lib/index.js';
 
-import { evaluateMetrics } from './metrics/evaluateMetrics.js';
+import { evaluateMetrics, hasBandADefect } from './metrics/evaluateMetrics.js';
 
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,7 +64,7 @@ export async function run() {
 
   printTable(rows);
   assertLayoutErrors(errors);
-  assertNoWrongWayDockings(results);
+  assertNoBandADefects(results);
 
   if (UPDATE_BASELINE) {
     fs.writeFileSync(baselineFile, JSON.stringify(results, null, 2) + '\n', 'utf8');
@@ -81,13 +81,17 @@ export async function run() {
     }
   }
 
-  function assertNoWrongWayDockings(results) {
+  function assertNoBandADefects(results) {
     const defects = Object.entries(results)
-      .filter(([, metrics ]) => metrics.wrongWayDockings !== 0)
-      .map(([ name, metrics ]) => `${name}: ${metrics.wrongWayDockings}`);
+      .filter(([, metrics ]) => hasBandADefect({ current: metrics, error: null }))
+      .map(([ name, metrics ]) => {
+        return `${name}: overlaps=${metrics.overlaps}, ` +
+          `edgeShapeIntersections=${metrics.edgeShapeIntersections}, ` +
+          `wrongWayDockings=${metrics.wrongWayDockings}`;
+      });
 
     if (defects.length) {
-      throw new Error(`Wrong-way dockings found:\n${defects.join('\n')}`);
+      throw new Error(`Band-A geometry defects found:\n${defects.join('\n')}`);
     }
   }
 }

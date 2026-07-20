@@ -4,7 +4,7 @@
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 280
+    "edgeLength": 240
   },
   "artifact.group.bpmn": {
     "crossings": 0,
@@ -25,49 +25,49 @@
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4385
+    "edgeLength": 4225
   },
   "blueprint.bank-customer-complaint-dispute-handling.bpmn": {
     "crossings": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 8598
+    "edgeLength": 8558
   },
   "blueprint.capital-market-trade-exception-remediation-processing.bpmn": {
-    "crossings": 6,
+    "crossings": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 8870
+    "edgeLength": 8481
   },
   "blueprint.car-rental-booking-process.bpmn": {
     "crossings": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 20140
+    "edgeLength": 18480
   },
   "blueprint.communication-agent.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1420
+    "edgeLength": 1380
   },
   "blueprint.enforcing-sla.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1556
+    "edgeLength": 1516
   },
   "blueprint.event-registration.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1838
+    "edgeLength": 1542
   },
   "blueprint.fraud-detection-process.bpmn": {
     "crossings": 0,
@@ -81,28 +81,28 @@
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 5290
+    "edgeLength": 5250
   },
   "blueprint.safeguard-agent.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4710
+    "edgeLength": 4706
   },
   "blueprint.servicenow-integration-blueprint.bpmn": {
     "crossings": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 12318
+    "edgeLength": 12484
   },
   "blueprint.telco-service-order-fulfillment-retail.bpmn": {
     "crossings": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 15969
+    "edgeLength": 15923
   },
   "boundary-event.back-loop.bpmn": {
     "crossings": 0,
@@ -221,119 +221,119 @@
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 3951
+    "edgeLength": 3904
   },
   "camunda-8-tutorials.ai-agent-chat-with-mcp.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4926
+    "edgeLength": 4886
   },
   "camunda-8-tutorials.ai-agent-chat-with-tools.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1800
+    "edgeLength": 1720
   },
   "camunda-8-tutorials.ai-intelligent-routing-azure-ai.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 5290
+    "edgeLength": 5250
   },
   "camunda-8-tutorials.ai-intelligent-routing-huggingface.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 5290
+    "edgeLength": 5250
   },
   "camunda-8-tutorials.ai-intelligent-routing-openai.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 5290
+    "edgeLength": 5250
   },
   "camunda-8-tutorials.bank-ai-loan-approval.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4385
+    "edgeLength": 4225
   },
   "camunda-8-tutorials.bank-customer-complaint-dispute-handling.bpmn": {
     "crossings": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 8598
+    "edgeLength": 8558
   },
   "camunda-8-tutorials.bank-loan-origination-and-processing.bpmn": {
-    "crossings": 3,
-    "overlaps": 0,
-    "edgeShapeIntersections": 1,
-    "wrongWayDockings": 0,
-    "edgeLength": 12198
-  },
-  "camunda-8-tutorials.capital-market-exception-processing.bpmn": {
-    "crossings": 6,
+    "crossings": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 8870
+    "edgeLength": 8564
+  },
+  "camunda-8-tutorials.capital-market-exception-processing.bpmn": {
+    "crossings": 5,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 8481
   },
   "camunda-8-tutorials.car-rental-booking-process.bpmn": {
     "crossings": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 20140
+    "edgeLength": 18480
   },
   "camunda-8-tutorials.ci-cd.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 9639
+    "edgeLength": 9495
   },
   "camunda-8-tutorials.enforcing-sla.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1556
+    "edgeLength": 1516
   },
   "camunda-8-tutorials.error-handling.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2580
+    "edgeLength": 2540
   },
   "camunda-8-tutorials.event-registration.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1838
+    "edgeLength": 1542
   },
   "camunda-8-tutorials.expense-reimbursement.bpmn": {
-    "crossings": 1,
+    "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2842
+    "edgeLength": 2778
   },
   "camunda-8-tutorials.insurance-personal-property-damage-claim-handling.bpmn": {
-    "crossings": 1,
+    "crossings": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 6420
+    "edgeLength": 6459
   },
   "camunda-8-tutorials.order-fulfillment.bpmn": {
     "crossings": 0,
@@ -347,14 +347,14 @@
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 15969
+    "edgeLength": 15923
   },
   "camunda-8-tutorials.ticket-booking.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1916
+    "edgeLength": 1582
   },
   "collaboration.black-box-participant.bpmn": {
     "crossings": 0,
@@ -369,6 +369,13 @@
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
     "edgeLength": 560
+  },
+  "collaboration.message-flow-to-collapsed-child.bpmn": {
+    "crossings": 0,
+    "overlaps": 0,
+    "edgeShapeIntersections": 0,
+    "wrongWayDockings": 0,
+    "edgeLength": 496
   },
   "collaboration.message-flows.bpmn": {
     "crossings": 0,
@@ -396,14 +403,14 @@
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 360
+    "edgeLength": 260
   },
   "data-object-and-store.reference.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 675
+    "edgeLength": 444
   },
   "event-sub-process.basic.bpmn": {
     "crossings": 0,
@@ -574,11 +581,11 @@
     "edgeLength": 920
   },
   "link-event.loop.bpmn": {
-    "crossings": 2,
+    "crossings": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1312
+    "edgeLength": 1398
   },
   "link-event.throw-catch.bpmn": {
     "crossings": 0,
@@ -595,18 +602,18 @@
     "edgeLength": 1069
   },
   "process.application-processing.bpmn": {
-    "crossings": 41,
+    "crossings": 37,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 48573
+    "edgeLength": 48441
   },
   "process.error-handling.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4098
+    "edgeLength": 4156
   },
   "process.independent-flows.bpmn": {
     "crossings": 0,
@@ -809,21 +816,21 @@
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4590
+    "edgeLength": 4658
   },
   "scenario.multiple-event-starts.bpmn": {
-    "crossings": 1,
+    "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1478
+    "edgeLength": 1546
   },
   "scenario.multiple-start-events.bpmn": {
-    "crossings": 3,
+    "crossings": 6,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2852
+    "edgeLength": 3010
   },
   "scenario.multiple-starts.bpmn": {
     "crossings": 0,
@@ -942,7 +949,7 @@
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 3688
+    "edgeLength": 3838
   },
   "sub-process.expanded-09-hour.bpmn": {
     "crossings": 0,
@@ -1019,13 +1026,13 @@
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 280
+    "edgeLength": 240
   },
   "text-annotation.positioning.bpmn": {
     "crossings": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 280
+    "edgeLength": 240
   }
 }

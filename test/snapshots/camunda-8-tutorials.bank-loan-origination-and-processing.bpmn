@@ -354,12 +354,8 @@
         <di:waypoint x="1302" y="978" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0f3lnsg" bpmnElement="Flow_0f3lnsg">
-        <di:waypoint x="966" y="480" />
-        <di:waypoint x="966" y="918" />
-        <di:waypoint x="2420" y="918" />
-        <di:waypoint x="2420" y="1098" />
-        <di:waypoint x="966" y="1098" />
-        <di:waypoint x="966" y="1118" />
+        <di:waypoint x="936" y="480" />
+        <di:waypoint x="936" y="1118" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1g5gvdp" bpmnElement="Flow_1g5gvdp">
         <di:waypoint x="776" y="1118" />

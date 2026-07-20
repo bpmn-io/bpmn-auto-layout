@@ -5,7 +5,7 @@ This directory contains two complementary ways to evaluate layout output:
 | Check | Command | Purpose | Gate |
 | --- | --- | --- | --- |
 | Snapshot regression suite | `npm test` | Detect every byte-level change to generated BPMN XML. | yes |
-| Layout-quality metrics | `npm test` or `npm run metrics` | Report ambiguity defects and narrative/polish deltas. | no |
+| Layout-quality metrics | `npm test` or `npm run metrics` | Reject ambiguity defects and report narrative/polish deltas. | yes |
 
 Both use every `.bpmn` file in [`fixtures/`](fixtures). Snapshot tests protect
 against unintended changes; metrics indicate whether an intentional change
@@ -117,9 +117,9 @@ and `<fixture>.{png,svg}` from the current layouter output to
 `npm test` runs `pretest` (`rollup -c`) first, so the snapshot suite always
 tests freshly built `dist/`, not stale output. Mocha discovers both
 [LayoutSpec.js](LayoutSpec.js) and [metrics.mjs](metrics.mjs): it enforces the
-snapshot assertions and runs the metrics harness. A metrics execution error, overlap, or edge/shape intersection fails the
-command. Crossing count and edge-length changes remain review signals, not
-gates.
+snapshot assertions and runs the metrics harness. A metrics execution error or
+Band-A defect fails the command. Crossing count and edge-length changes remain
+review signals, not gates.
 
 ## Updating snapshots
 
@@ -192,12 +192,11 @@ in [metrics.mjs](metrics.mjs). The recorded baseline is
 [metrics/baseline.json](metrics/baseline.json) — every later "this is better"
 claim is a diff against those numbers, shown in the `Δ` column.
 
-Overlaps and edge/shape intersections are geometry warnings. Wrong-way docking
-is a hard zero-defect gate; diagonal segments are valid when they point outward,
-but tangent endpoint segments are not. Crossing count and edge length are
-quality signals to review before updating [metrics/baseline.json](metrics/baseline.json).
-Use both: snapshots guard exact output; metrics enforce validity and grade visual
-quality.
+Overlaps, edge/shape intersections, and wrong-way docking are hard zero-defect
+gates. Diagonal segments are valid when they point outward, but tangent endpoint
+segments are not. Crossing count and edge length are quality signals to review
+before updating [metrics/baseline.json](metrics/baseline.json). Use both:
+snapshots guard exact output; metrics enforce validity and grade visual quality.
 
 ## Adding a new test case
 
