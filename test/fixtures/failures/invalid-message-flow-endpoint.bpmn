@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration">
+    <bpmn:participant id="Participant" processRef="Process" />
+    <bpmn:messageFlow id="MessageFlow" sourceRef="MissingTask" targetRef="Task" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process">
+    <bpmn:task id="Task" />
+  </bpmn:process>
+</bpmn:definitions>

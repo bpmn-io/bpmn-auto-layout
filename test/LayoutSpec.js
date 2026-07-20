@@ -42,6 +42,7 @@ describe('Layout', function() {
       'duplicate-link-catch.bpmn': 'INVALID_LINK_EVENT_PAIR',
       'invalid-boundary-host.bpmn': 'INVALID_BOUNDARY_HOST',
       'invalid-lane-membership.bpmn': 'INVALID_LANE_MEMBERSHIP',
+      'invalid-message-flow-endpoint.bpmn': 'INVALID_MESSAGE_FLOW_ENDPOINT',
       'invalid-participant-process-reference.bpmn': 'INVALID_PARTICIPANT_PROCESS_REFERENCE',
       'invalid-sequence-flow-endpoint.bpmn': 'INVALID_SEQUENCE_FLOW_ENDPOINT',
       'routing-impossible.bpmn': 'ROUTING_FAILED',

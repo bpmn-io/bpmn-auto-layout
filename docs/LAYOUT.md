@@ -60,6 +60,7 @@ The engine rejects input for which valid geometry would be misleading or
 undefined. [`LayoutError`](../lib/LayoutError.js) provides stable codes for:
 
 - invalid or cross-scope sequence flows;
+- invalid message-flow endpoints;
 - invalid boundary-event hosts;
 - incompatible lane membership;
 - invalid link-event pairs;
