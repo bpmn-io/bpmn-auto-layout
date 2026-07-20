@@ -20,8 +20,20 @@ const moddle = new BpmnModdle();
  *
  * Band-C (polish — informational) numbers:
  *
- * - `crossings`  — number of edge-segment pairs that properly cross.
- * - `edgeLength` — total length of all edge waypoint polylines (rounded).
+ * - `crossings`                   — edge-segment pairs that properly cross.
+ * - `bendCount`                   — direction changes in edge waypoint paths.
+ * - `edgeLength`                  — total edge waypoint-polyline length.
+ * - `edgeSegmentLengthDeviation`  — standard deviation of segment lengths.
+ * - `labelShapeOverlaps`          — external labels that overlap flow-node
+ *                                   shapes.
+ * - `compactness`                 — flow-node area as a percentage of the
+ *                                   flow-node and sequence-flow bounding box.
+ * - `gridAlignment`               — percentage of flow nodes participating in
+ *                                   a horizontal or vertical alignment of at
+ *                                   least three nodes.
+ * - `branchSymmetry`              — percentage of targets in non-default
+ *                                   gateway fans that reflect across the
+ *                                   gateway's horizontal axis.
  *
  * @param {string} xml laid-out BPMN 2.0 XML
  * @return {Promise<{
@@ -31,7 +43,13 @@ const moddle = new BpmnModdle();
  *   overlaps: number,
  *   edgeShapeIntersections: number,
  *   wrongWayDockings: number,
- *   edgeLength: number
+ *   bendCount: number,
+ *   edgeLength: number,
+ *   edgeSegmentLengthDeviation: number,
+ *   labelShapeOverlaps: number,
+ *   compactness: number,
+ *   gridAlignment: number,
+ *   branchSymmetry: number
  * }>}
  */
 export async function computeMetrics(xml) {
@@ -67,7 +85,13 @@ export async function computeMetrics(xml) {
     overlaps: sum(planes, plane => countOverlaps(plane.shapes)),
     edgeShapeIntersections: sum(planes, plane => countEdgeShapeIntersections(plane.edges, plane.shapes)),
     wrongWayDockings: sum(planes, plane => countWrongWayDockings(plane.edges, plane.shapes)),
-    edgeLength: Math.round(sum(planes, plane => totalEdgeLength(plane.edges)))
+    bendCount: sum(planes, plane => countBends(plane.edges)),
+    edgeLength: Math.round(sum(planes, plane => totalEdgeLength(plane.edges))),
+    edgeSegmentLengthDeviation: roundScore(segmentLengthDeviation(planes)),
+    labelShapeOverlaps: sum(planes, plane => countLabelShapeOverlaps(plane.shapes, plane.edges)),
+    compactness: roundScore(compactness(planes)),
+    gridAlignment: roundScore(gridAlignment(planes)),
+    branchSymmetry: roundScore(branchSymmetry(planes))
   };
 }
 
@@ -85,6 +109,9 @@ function toShape(di) {
   return {
     id: element && element.id,
     x, y, width, height,
+    isFlowNode: !!element && element.$instanceOf('bpmn:FlowNode'),
+    isGateway: !!element && element.$instanceOf('bpmn:Gateway'),
+    labelBounds: toLabelBounds(di.label),
     isBoundary: !!element && element.$instanceOf('bpmn:BoundaryEvent'),
     isArtifact: !!element && (
       element.$instanceOf('bpmn:TextAnnotation') ||
@@ -109,8 +136,23 @@ function toEdge(di) {
     id: element && element.id,
     sourceId: source && source.id,
     targetId: target && target.id,
+    isSequenceFlow: !!element && element.$instanceOf('bpmn:SequenceFlow'),
+    hasLabel: typeof element?.name === 'string' && element.name.trim().length > 0,
+    name: element && element.name,
+    isDefault: !!source && source.default === element,
+    labelBounds: toLabelBounds(di.label),
     waypoints: di.waypoint.map(({ x, y }) => ({ x, y }))
   };
+}
+
+function toLabelBounds(label) {
+  if (!label?.bounds) {
+    return null;
+  }
+
+  const { x, y, width, height } = label.bounds;
+
+  return { x, y, width, height };
 }
 
 
@@ -419,4 +461,280 @@ function totalEdgeLength(edges) {
   }
 
   return total;
+}
+
+
+// label/shape overlaps /////////////////////////////////////////////
+
+const FLOW_LABEL_INDENT = 15;
+const FLOW_LABEL_MAX_WIDTH = 90;
+const FLOW_LABEL_HEIGHT = 14;
+const FLOW_LABEL_CHARACTER_WIDTH = 6;
+
+function countLabelShapeOverlaps(shapes, edges) {
+  const labels = [
+    ...shapes.map(shape => shape.labelBounds).filter(Boolean),
+    ...edges.flatMap(edge => {
+      const bounds = edge.labelBounds || implicitFlowLabelBounds(edge);
+
+      return bounds ? [ bounds ] : [];
+    })
+  ];
+  const obstacles = shapes.filter(shape => {
+    return shape.isFlowNode && !shape.isBoundary && !shape.isArtifact;
+  });
+
+  let count = 0;
+
+  for (const label of labels) {
+    for (const shape of obstacles) {
+      if (rectanglesOverlap(label, shape)) {
+        count++;
+      }
+    }
+  }
+
+  return count;
+}
+
+function implicitFlowLabelBounds(edge) {
+  if (!edge.hasLabel || !edge.waypoints.length) {
+    return null;
+  }
+
+  const position = flowLabelPosition(edge.waypoints);
+  const { width, height } = estimateFlowLabelSize(edge.name);
+
+  return {
+    x: position.x - width / 2,
+    y: position.y - height / 2,
+    width,
+    height
+  };
+}
+
+function flowLabelPosition(waypoints) {
+  const mid = waypoints.length / 2 - 1;
+  const first = waypoints[Math.floor(mid)];
+  const second = waypoints[Math.ceil(mid + 0.01)];
+  const x = first.x + (second.x - first.x) / 2;
+  const y = first.y + (second.y - first.y) / 2;
+
+  return Math.abs(second.y - first.y) <= Math.abs(second.x - first.x)
+    ? { x, y: y - FLOW_LABEL_INDENT }
+    : { x: x + FLOW_LABEL_INDENT, y };
+}
+
+function estimateFlowLabelSize(text) {
+  const words = text.trim().split(/\s+/);
+  const lines = [];
+  let line = '';
+
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+
+    if (line && candidate.length * FLOW_LABEL_CHARACTER_WIDTH > FLOW_LABEL_MAX_WIDTH) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+
+  if (line) {
+    lines.push(line);
+  }
+
+  return {
+    width: Math.min(
+      FLOW_LABEL_MAX_WIDTH,
+      Math.max(...lines.map(line => line.length * FLOW_LABEL_CHARACTER_WIDTH))
+    ),
+    height: lines.length * FLOW_LABEL_HEIGHT
+  };
+}
+
+
+// polish metrics ///////////////////////////////////////////////////
+
+const ALIGNMENT_SIZE = 3;
+const POSITION_TOLERANCE = 1;
+const SCORE_SCALE = 100;
+const SCORE_PRECISION = 1;
+
+function countBends(edges) {
+  return sum(edges, edge => {
+    const waypoints = removeConsecutiveDuplicates(edge.waypoints);
+    let bends = 0;
+
+    for (let i = 1; i < waypoints.length - 1; i++) {
+      if (changesDirection(waypoints[i - 1], waypoints[i], waypoints[i + 1])) {
+        bends++;
+      }
+    }
+
+    return bends;
+  });
+}
+
+function changesDirection(a, b, c) {
+  const incoming = { x: b.x - a.x, y: b.y - a.y };
+  const outgoing = { x: c.x - b.x, y: c.y - b.y };
+  const cross = incoming.x * outgoing.y - incoming.y * outgoing.x;
+  const dot = incoming.x * outgoing.x + incoming.y * outgoing.y;
+
+  return cross !== 0 || dot < 0;
+}
+
+function removeConsecutiveDuplicates(points) {
+  return points.filter((point, index) => {
+    return index === 0 ||
+      point.x !== points[index - 1].x ||
+      point.y !== points[index - 1].y;
+  });
+}
+
+function segmentLengthDeviation(planes) {
+  const lengths = planes.flatMap(plane => {
+    return plane.edges.flatMap(edge => {
+      return toSegments(removeConsecutiveDuplicates(edge.waypoints))
+        .map(([ a, b ]) => Math.hypot(b.x - a.x, b.y - a.y))
+        .filter(length => length > 0);
+    });
+  });
+
+  if (!lengths.length) {
+    return 0;
+  }
+
+  const mean = sum(lengths, length => length) / lengths.length;
+  const variance = sum(lengths, length => (length - mean) ** 2) / lengths.length;
+
+  return Math.sqrt(variance);
+}
+
+function compactness(planes) {
+  let occupiedArea = 0;
+  let boundingArea = 0;
+
+  for (const plane of planes) {
+    const shapes = qualityShapes(plane.shapes);
+
+    if (!shapes.length) {
+      continue;
+    }
+
+    const points = shapes.flatMap(shape => [
+      { x: shape.x, y: shape.y },
+      { x: shape.x + shape.width, y: shape.y + shape.height }
+    ]);
+
+    for (const edge of plane.edges) {
+      if (edge.isSequenceFlow) {
+        points.push(...edge.waypoints);
+      }
+    }
+
+    const xs = points.map(point => point.x);
+    const ys = points.map(point => point.y);
+    const width = Math.max(...xs) - Math.min(...xs);
+    const height = Math.max(...ys) - Math.min(...ys);
+
+    occupiedArea += sum(shapes, shape => shape.width * shape.height);
+    boundingArea += width * height;
+  }
+
+  return boundingArea ? occupiedArea / boundingArea * SCORE_SCALE : 0;
+}
+
+function gridAlignment(planes) {
+  let aligned = 0;
+  let total = 0;
+
+  for (const plane of planes) {
+    const shapes = qualityShapes(plane.shapes);
+
+    total += shapes.length;
+    aligned += shapes.filter(shape => {
+      const shapeCenter = center(shape);
+
+      return alignmentSize(shapes, candidate => center(candidate).x, shapeCenter.x) >= ALIGNMENT_SIZE ||
+        alignmentSize(shapes, candidate => center(candidate).y, shapeCenter.y) >= ALIGNMENT_SIZE;
+    }).length;
+  }
+
+  return total ? aligned / total * SCORE_SCALE : 0;
+}
+
+function branchSymmetry(planes) {
+  let symmetricTargets = 0;
+  let totalTargets = 0;
+
+  for (const plane of planes) {
+    const shapeById = new Map(plane.shapes.map(shape => [ shape.id, shape ]));
+    const outgoing = new Map();
+
+    for (const edge of plane.edges) {
+      if (!edge.isSequenceFlow) {
+        continue;
+      }
+
+      const edges = outgoing.get(edge.sourceId) || [];
+      edges.push(edge);
+      outgoing.set(edge.sourceId, edges);
+    }
+
+    for (const [ sourceId, edges ] of outgoing) {
+      const source = shapeById.get(sourceId);
+
+      if (!source?.isGateway || edges.length < 2 || edges.some(edge => edge.isDefault)) {
+        continue;
+      }
+
+      const targets = edges
+        .map(edge => shapeById.get(edge.targetId))
+        .filter(Boolean);
+      const sourceCenter = center(source);
+
+      totalTargets += targets.length;
+      symmetricTargets += targets.filter(target => {
+        const targetCenter = center(target);
+        const reflectedY = 2 * sourceCenter.y - targetCenter.y;
+
+        return targets.some(candidate => {
+          const candidateCenter = center(candidate);
+
+          return closePosition(candidateCenter.x, targetCenter.x) &&
+            closePosition(candidateCenter.y, reflectedY);
+        });
+      }).length;
+    }
+  }
+
+  return totalTargets ? symmetricTargets / totalTargets * SCORE_SCALE : SCORE_SCALE;
+}
+
+function qualityShapes(shapes) {
+  return shapes.filter(shape => shape.isFlowNode && !shape.isBoundary);
+}
+
+function alignmentSize(items, coordinate, value) {
+  return items.filter(item => closePosition(coordinate(item), value)).length;
+}
+
+function closePosition(a, b) {
+  return Math.abs(a - b) <= POSITION_TOLERANCE;
+}
+
+function center(shape) {
+  return {
+    x: shape.x + shape.width / 2,
+    y: shape.y + shape.height / 2
+  };
+}
+
+function roundScore(value) {
+  const factor = 10 ** SCORE_PRECISION;
+
+  return Math.round(value * factor) / factor;
 }

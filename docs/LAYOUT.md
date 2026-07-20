@@ -393,7 +393,9 @@ For an intentional behavior change:
 3. review the corpus metrics;
 4. update this document when the rule or mechanism changed.
 
-Snapshots record exact geometry. Metrics report crossings, shape overlaps,
-edge/shape intersections, wrong-way endpoint dockings, and total edge length.
-Wrong-way docking must remain zero across the fixture corpus. Neither snapshots
-nor metrics replace visual review.
+Snapshots record exact geometry. Metrics report crossings, bends, shape
+overlaps, edge/shape intersections, label/shape overlaps, wrong-way endpoint
+dockings, edge length and segment-length variation, compactness, grid
+alignment, and non-default gateway-fan symmetry. Wrong-way docking must remain
+zero across the fixture corpus. Neither snapshots nor metrics replace visual
+review.

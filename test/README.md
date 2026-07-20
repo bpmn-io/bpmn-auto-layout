@@ -10,7 +10,9 @@ This directory contains two complementary ways to evaluate layout output:
 Both use every `.bpmn` file in [`fixtures/`](fixtures). Snapshot tests protect
 against unintended changes; metrics indicate whether an intentional change
 improves or regresses layout quality. The visual inspector supports review of
-the snapshot suite.
+the snapshot suite. Each fixture header also shows its generated layout metrics
+and the delta from the recorded metrics baseline; green and orange metric cards
+indicate an improvement or regression for that metric's preferred direction.
 
 ## Snapshot regression suite
 
@@ -118,8 +120,8 @@ and `<fixture>.{png,svg}` from the current layouter output to
 tests freshly built `dist/`, not stale output. Mocha discovers both
 [LayoutSpec.js](LayoutSpec.js) and [metrics.mjs](metrics.mjs): it enforces the
 snapshot assertions and runs the metrics harness. A metrics execution error or
-Band-A defect fails the command. Crossing count and edge-length changes remain
-review signals, not gates.
+Band-A defect fails the command. Polish-metric changes remain review signals,
+not gates.
 
 ## Updating snapshots
 
@@ -175,7 +177,7 @@ isolates it while you iterate. Remember to rename it back before committing.
 
 Snapshot tests tell you that output *changed*; they do not tell you whether it
 got *better*. The metrics harness, which is also run by `npm test`, fills that
-gap. It lays out every fixture and computes five numbers per diagram from the
+gap. It lays out every fixture and computes eleven numbers per diagram from the
 generated DI:
 
 | Metric | Meaning | Lower is better |
@@ -184,7 +186,13 @@ generated DI:
 | `overlaps` | node-pair bounds overlaps, excluding container nesting, boundary-on-host, and artifacts | yes |
 | `edgeShapeIntersections` | edge interiors that pass through unrelated non-container, non-boundary, non-artifact shapes | yes |
 | `wrongWayDockings` | endpoints off their shape perimeter or whose adjacent segment lacks an outward component normal to the docked side | yes |
+| `bendCount` | direction changes in edge waypoint paths | yes |
 | `edgeLength` | total length of all edge waypoint polylines | yes |
+| `edgeSegmentLengthDeviation` | standard deviation of positive edge-segment lengths | yes |
+| `labelShapeOverlaps` | explicit or renderer-derived external labels overlapping flow-node shapes | yes |
+| `compactness` | flow-node area as a percentage of the flow-node and sequence-flow bounding box; diagrams without flow nodes score 0 | no |
+| `gridAlignment` | flow nodes participating, within 1 px, in an alignment of at least three nodes, as a percentage; diagrams without flow nodes score 0 | no |
+| `branchSymmetry` | targets reflected within 1 px across their gateway axis in non-default gateway fans, as a percentage; diagrams without eligible fans score 100 | no |
 
 The pure computation lives in
 [metrics/computeMetrics.js](metrics/computeMetrics.js); the runner and table are
@@ -194,8 +202,8 @@ claim is a diff against those numbers, shown in the `Δ` column.
 
 Overlaps, edge/shape intersections, and wrong-way docking are hard zero-defect
 gates. Diagonal segments are valid when they point outward, but tangent endpoint
-segments are not. Crossing count and edge length are quality signals to review
-before updating [metrics/baseline.json](metrics/baseline.json). Use both:
+segments are not. All other metrics are quality signals to review before
+updating [metrics/baseline.json](metrics/baseline.json). Use both:
 snapshots guard exact output; metrics enforce validity and grade visual quality.
 
 ## Adding a new test case

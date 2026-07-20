@@ -1,1038 +1,1926 @@
 {
   "artifact.association.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 240
+    "edgeLength": 240,
+    "edgeSegmentLengthDeviation": 28.3,
+    "labelShapeOverlaps": 0,
+    "compactness": 35.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "artifact.group.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 300
+    "edgeLength": 300,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 40.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "artifact.without-core-flow.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 0
+    "edgeLength": 0,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 0,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "blueprint.ai-email-support-agent.bpmn": {
     "crossings": 0,
+    "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4225
+    "edgeLength": 4225,
+    "edgeSegmentLengthDeviation": 66.7,
+    "labelShapeOverlaps": 5,
+    "compactness": 35.2,
+    "gridAlignment": 93.3,
+    "branchSymmetry": 75
   },
   "blueprint.bank-customer-complaint-dispute-handling.bpmn": {
     "crossings": 1,
+    "bendCount": 9,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 8558
+    "edgeLength": 8558,
+    "edgeSegmentLengthDeviation": 106.2,
+    "labelShapeOverlaps": 2,
+    "compactness": 26.3,
+    "gridAlignment": 88.2,
+    "branchSymmetry": 100
   },
   "blueprint.capital-market-trade-exception-remediation-processing.bpmn": {
     "crossings": 5,
+    "bendCount": 14,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 8481
+    "edgeLength": 8481,
+    "edgeSegmentLengthDeviation": 167.7,
+    "labelShapeOverlaps": 3,
+    "compactness": 12.6,
+    "gridAlignment": 96.7,
+    "branchSymmetry": 50
   },
   "blueprint.car-rental-booking-process.bpmn": {
     "crossings": 5,
+    "bendCount": 26,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 18480
+    "edgeLength": 18480,
+    "edgeSegmentLengthDeviation": 112.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 8.4,
+    "gridAlignment": 92.4,
+    "branchSymmetry": 50
   },
   "blueprint.communication-agent.bpmn": {
     "crossings": 0,
+    "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1380
+    "edgeLength": 1380,
+    "edgeSegmentLengthDeviation": 61.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 71.9,
+    "gridAlignment": 90.9,
+    "branchSymmetry": 75
   },
   "blueprint.enforcing-sla.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1516
+    "edgeLength": 1516,
+    "edgeSegmentLengthDeviation": 29.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 23.1,
+    "gridAlignment": 100,
+    "branchSymmetry": 50
   },
   "blueprint.event-registration.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1542
+    "edgeLength": 1542,
+    "edgeSegmentLengthDeviation": 62.9,
+    "labelShapeOverlaps": 0,
+    "compactness": 12.3,
+    "gridAlignment": 85.7,
+    "branchSymmetry": 100
   },
   "blueprint.fraud-detection-process.bpmn": {
     "crossings": 0,
+    "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 3891
+    "edgeLength": 3891,
+    "edgeSegmentLengthDeviation": 292.5,
+    "labelShapeOverlaps": 3,
+    "compactness": 33.2,
+    "gridAlignment": 81.3,
+    "branchSymmetry": 100
   },
   "blueprint.intelligent-routing-with-openai.bpmn": {
     "crossings": 0,
+    "bendCount": 10,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 5250
+    "edgeLength": 5250,
+    "edgeSegmentLengthDeviation": 136.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 6.4,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "blueprint.safeguard-agent.bpmn": {
     "crossings": 0,
+    "bendCount": 9,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4706
+    "edgeLength": 4706,
+    "edgeSegmentLengthDeviation": 201.8,
+    "labelShapeOverlaps": 0,
+    "compactness": 5.4,
+    "gridAlignment": 85.7,
+    "branchSymmetry": 100
   },
   "blueprint.servicenow-integration-blueprint.bpmn": {
     "crossings": 5,
+    "bendCount": 21,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 12484
+    "edgeLength": 12484,
+    "edgeSegmentLengthDeviation": 439,
+    "labelShapeOverlaps": 0,
+    "compactness": 3.9,
+    "gridAlignment": 80,
+    "branchSymmetry": 100
   },
   "blueprint.telco-service-order-fulfillment-retail.bpmn": {
     "crossings": 4,
+    "bendCount": 18,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 15923
+    "edgeLength": 15923,
+    "edgeSegmentLengthDeviation": 198,
+    "labelShapeOverlaps": 0,
+    "compactness": 13.6,
+    "gridAlignment": 87,
+    "branchSymmetry": 50
   },
   "boundary-event.back-loop.bpmn": {
     "crossings": 0,
+    "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1446
+    "edgeLength": 1446,
+    "edgeSegmentLengthDeviation": 53.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 12.7,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "boundary-event.error-no-ref.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 584
+    "edgeLength": 584,
+    "edgeSegmentLengthDeviation": 20.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 14.5,
+    "gridAlignment": 60,
+    "branchSymmetry": 100
   },
   "boundary-event.error.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 584
+    "edgeLength": 584,
+    "edgeSegmentLengthDeviation": 20.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 14.5,
+    "gridAlignment": 60,
+    "branchSymmetry": 100
   },
   "boundary-event.escalation-no-ref.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 652
+    "edgeLength": 652,
+    "edgeSegmentLengthDeviation": 18.5,
+    "labelShapeOverlaps": 0,
+    "compactness": 20.3,
+    "gridAlignment": 66.7,
+    "branchSymmetry": 100
   },
   "boundary-event.escalation.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 584
+    "edgeLength": 584,
+    "edgeSegmentLengthDeviation": 20.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 14.5,
+    "gridAlignment": 60,
+    "branchSymmetry": 100
   },
   "boundary-event.forward-modeling.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 548
+    "edgeLength": 548,
+    "edgeSegmentLengthDeviation": 47.9,
+    "labelShapeOverlaps": 0,
+    "compactness": 21.3,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "boundary-event.handler-loop.bpmn": {
     "crossings": 0,
+    "bendCount": 6,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2003
+    "edgeLength": 2003,
+    "edgeSegmentLengthDeviation": 49.3,
+    "labelShapeOverlaps": 0,
+    "compactness": 10.5,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "boundary-event.handler-rejoin.bpmn": {
     "crossings": 0,
+    "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1316
+    "edgeLength": 1316,
+    "edgeSegmentLengthDeviation": 99.7,
+    "labelShapeOverlaps": 0,
+    "compactness": 23.3,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "boundary-event.message-or-timer.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 652
+    "edgeLength": 652,
+    "edgeSegmentLengthDeviation": 18.5,
+    "labelShapeOverlaps": 0,
+    "compactness": 20.3,
+    "gridAlignment": 66.7,
+    "branchSymmetry": 100
   },
   "boundary-event.mixed.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1104
+    "edgeLength": 1104,
+    "edgeSegmentLengthDeviation": 19.8,
+    "labelShapeOverlaps": 0,
+    "compactness": 14.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "boundary-event.multiple-errors.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1264
+    "edgeLength": 1264,
+    "edgeSegmentLengthDeviation": 50.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 14.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "boundary-event.multiple-escalations.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1196
+    "edgeLength": 1196,
+    "edgeSegmentLengthDeviation": 51.1,
+    "labelShapeOverlaps": 0,
+    "compactness": 12,
+    "gridAlignment": 75,
+    "branchSymmetry": 100
   },
   "boundary-event.multiple.bpmn": {
     "crossings": 0,
+    "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1314
+    "edgeLength": 1314,
+    "edgeSegmentLengthDeviation": 108.8,
+    "labelShapeOverlaps": 0,
+    "compactness": 13.6,
+    "gridAlignment": 60,
+    "branchSymmetry": 100
   },
   "boundary-event.on-expanded-sub-process.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 788
+    "edgeLength": 788,
+    "edgeSegmentLengthDeviation": 88.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 36.1,
+    "gridAlignment": 71.4,
+    "branchSymmetry": 100
   },
   "boundary-event.self-loop.bpmn": {
     "crossings": 0,
+    "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 288
+    "edgeLength": 288,
+    "edgeSegmentLengthDeviation": 32.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 33.4,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "boundary-event.simple.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 452
+    "edgeLength": 452,
+    "edgeSegmentLengthDeviation": 21.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 14.7,
+    "gridAlignment": 75,
+    "branchSymmetry": 100
   },
   "camunda-8-tutorials.absence-request.bpmn": {
     "crossings": 0,
+    "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 3904
+    "edgeLength": 3904,
+    "edgeSegmentLengthDeviation": 132.2,
+    "labelShapeOverlaps": 1,
+    "compactness": 6.3,
+    "gridAlignment": 92.3,
+    "branchSymmetry": 66.7
   },
   "camunda-8-tutorials.ai-agent-chat-with-mcp.bpmn": {
     "crossings": 0,
+    "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4886
+    "edgeLength": 4886,
+    "edgeSegmentLengthDeviation": 328.8,
+    "labelShapeOverlaps": 4,
+    "compactness": 69.3,
+    "gridAlignment": 95.2,
+    "branchSymmetry": 75
   },
   "camunda-8-tutorials.ai-agent-chat-with-tools.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1720
+    "edgeLength": 1720,
+    "edgeSegmentLengthDeviation": 222.3,
+    "labelShapeOverlaps": 1,
+    "compactness": 43.2,
+    "gridAlignment": 60,
+    "branchSymmetry": 100
   },
   "camunda-8-tutorials.ai-intelligent-routing-azure-ai.bpmn": {
     "crossings": 0,
+    "bendCount": 10,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 5250
+    "edgeLength": 5250,
+    "edgeSegmentLengthDeviation": 136.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 6.4,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "camunda-8-tutorials.ai-intelligent-routing-huggingface.bpmn": {
     "crossings": 0,
+    "bendCount": 10,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 5250
+    "edgeLength": 5250,
+    "edgeSegmentLengthDeviation": 136.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 6.4,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "camunda-8-tutorials.ai-intelligent-routing-openai.bpmn": {
     "crossings": 0,
+    "bendCount": 10,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 5250
+    "edgeLength": 5250,
+    "edgeSegmentLengthDeviation": 136.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 6.4,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "camunda-8-tutorials.bank-ai-loan-approval.bpmn": {
     "crossings": 0,
+    "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4225
+    "edgeLength": 4225,
+    "edgeSegmentLengthDeviation": 66.7,
+    "labelShapeOverlaps": 5,
+    "compactness": 35.2,
+    "gridAlignment": 93.3,
+    "branchSymmetry": 75
   },
   "camunda-8-tutorials.bank-customer-complaint-dispute-handling.bpmn": {
     "crossings": 1,
+    "bendCount": 9,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 8558
+    "edgeLength": 8558,
+    "edgeSegmentLengthDeviation": 106.2,
+    "labelShapeOverlaps": 2,
+    "compactness": 26.3,
+    "gridAlignment": 88.2,
+    "branchSymmetry": 100
   },
   "camunda-8-tutorials.bank-loan-origination-and-processing.bpmn": {
     "crossings": 2,
+    "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 8564
+    "edgeLength": 8564,
+    "edgeSegmentLengthDeviation": 133.5,
+    "labelShapeOverlaps": 0,
+    "compactness": 16.6,
+    "gridAlignment": 85.7,
+    "branchSymmetry": 50
   },
   "camunda-8-tutorials.capital-market-exception-processing.bpmn": {
     "crossings": 5,
+    "bendCount": 14,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 8481
+    "edgeLength": 8481,
+    "edgeSegmentLengthDeviation": 167.7,
+    "labelShapeOverlaps": 3,
+    "compactness": 12.6,
+    "gridAlignment": 96.7,
+    "branchSymmetry": 50
   },
   "camunda-8-tutorials.car-rental-booking-process.bpmn": {
     "crossings": 5,
+    "bendCount": 26,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 18480
+    "edgeLength": 18480,
+    "edgeSegmentLengthDeviation": 112.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 8.4,
+    "gridAlignment": 92.4,
+    "branchSymmetry": 50
   },
   "camunda-8-tutorials.ci-cd.bpmn": {
     "crossings": 0,
+    "bendCount": 21,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 9495
+    "edgeLength": 9495,
+    "edgeSegmentLengthDeviation": 62.1,
+    "labelShapeOverlaps": 0,
+    "compactness": 11.1,
+    "gridAlignment": 93.2,
+    "branchSymmetry": 62.5
   },
   "camunda-8-tutorials.enforcing-sla.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1516
+    "edgeLength": 1516,
+    "edgeSegmentLengthDeviation": 29.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 23.1,
+    "gridAlignment": 100,
+    "branchSymmetry": 50
   },
   "camunda-8-tutorials.error-handling.bpmn": {
     "crossings": 0,
+    "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2540
+    "edgeLength": 2540,
+    "edgeSegmentLengthDeviation": 105,
+    "labelShapeOverlaps": 0,
+    "compactness": 29.2,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "camunda-8-tutorials.event-registration.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1542
+    "edgeLength": 1542,
+    "edgeSegmentLengthDeviation": 62.9,
+    "labelShapeOverlaps": 0,
+    "compactness": 12.3,
+    "gridAlignment": 85.7,
+    "branchSymmetry": 100
   },
   "camunda-8-tutorials.expense-reimbursement.bpmn": {
     "crossings": 0,
+    "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2778
+    "edgeLength": 2778,
+    "edgeSegmentLengthDeviation": 112.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 5.5,
+    "gridAlignment": 75,
+    "branchSymmetry": 100
   },
   "camunda-8-tutorials.insurance-personal-property-damage-claim-handling.bpmn": {
     "crossings": 2,
+    "bendCount": 7,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 6459
+    "edgeLength": 6459,
+    "edgeSegmentLengthDeviation": 101.5,
+    "labelShapeOverlaps": 0,
+    "compactness": 10.5,
+    "gridAlignment": 91.3,
+    "branchSymmetry": 100
   },
   "camunda-8-tutorials.order-fulfillment.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 3318
+    "edgeLength": 3318,
+    "edgeSegmentLengthDeviation": 119.1,
+    "labelShapeOverlaps": 0,
+    "compactness": 14.6,
+    "gridAlignment": 77.8,
+    "branchSymmetry": 100
   },
   "camunda-8-tutorials.telco-service-order-fulfillment-retail.bpmn": {
     "crossings": 4,
+    "bendCount": 18,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 15923
+    "edgeLength": 15923,
+    "edgeSegmentLengthDeviation": 198,
+    "labelShapeOverlaps": 0,
+    "compactness": 13.6,
+    "gridAlignment": 87,
+    "branchSymmetry": 50
   },
   "camunda-8-tutorials.ticket-booking.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1582
+    "edgeLength": 1582,
+    "edgeSegmentLengthDeviation": 64.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 16.9,
+    "gridAlignment": 85.7,
+    "branchSymmetry": 100
   },
   "collaboration.black-box-participant.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 300
+    "edgeLength": 300,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 40.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "collaboration.message-flow-between-pools.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 560
+    "edgeLength": 560,
+    "edgeSegmentLengthDeviation": 24,
+    "labelShapeOverlaps": 0,
+    "compactness": 17.8,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "collaboration.message-flow-to-collapsed-child.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 496
+    "edgeLength": 496,
+    "edgeSegmentLengthDeviation": 20.5,
+    "labelShapeOverlaps": 0,
+    "compactness": 20.9,
+    "gridAlignment": 60,
+    "branchSymmetry": 100
   },
   "collaboration.message-flows.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1240
+    "edgeLength": 1240,
+    "edgeSegmentLengthDeviation": 144,
+    "labelShapeOverlaps": 0,
+    "compactness": 15.9,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "collaboration.multiple-participants.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 600
+    "edgeLength": 600,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 20.3,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "collaboration.single-participant.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 200
+    "edgeLength": 200,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 35.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "data-object-and-store.basic.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 260
+    "edgeLength": 260,
+    "edgeSegmentLengthDeviation": 35.7,
+    "labelShapeOverlaps": 0,
+    "compactness": 35.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "data-object-and-store.reference.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 444
+    "edgeLength": 444,
+    "edgeSegmentLengthDeviation": 26.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 40.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "event-sub-process.basic.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 400
+    "edgeLength": 400,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 64.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "event-sub-process.multiple.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 600
+    "edgeLength": 600,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 69.7,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "gateway.exclusive-default.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 892
+    "edgeLength": 892,
+    "edgeSegmentLengthDeviation": 15.1,
+    "labelShapeOverlaps": 0,
+    "compactness": 17.3,
+    "gridAlignment": 75,
+    "branchSymmetry": 100
   },
   "gateway.exclusive-no-default.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 960
+    "edgeLength": 960,
+    "edgeSegmentLengthDeviation": 12.7,
+    "labelShapeOverlaps": 0,
+    "compactness": 21,
+    "gridAlignment": 100,
+    "branchSymmetry": 50
   },
   "gateway.future-incoming.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1520
+    "edgeLength": 1520,
+    "edgeSegmentLengthDeviation": 116.9,
+    "labelShapeOverlaps": 0,
+    "compactness": 15.4,
+    "gridAlignment": 100,
+    "branchSymmetry": 50
   },
   "gateway.inclusive-split-join.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1284
+    "edgeLength": 1284,
+    "edgeSegmentLengthDeviation": 19.7,
+    "labelShapeOverlaps": 0,
+    "compactness": 15.9,
+    "gridAlignment": 77.8,
+    "branchSymmetry": 50
   },
   "gateway.loop-back.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 630
+    "edgeLength": 630,
+    "edgeSegmentLengthDeviation": 47.1,
+    "labelShapeOverlaps": 0,
+    "compactness": 29.2,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "gateway.multiple-branches.bpmn": {
     "crossings": 0,
+    "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2004
+    "edgeLength": 2004,
+    "edgeSegmentLengthDeviation": 54.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 11.4,
+    "gridAlignment": 90,
+    "branchSymmetry": 100
   },
   "gateway.multiple-complex.bpmn": {
     "crossings": 3,
+    "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 6170
+    "edgeLength": 6170,
+    "edgeSegmentLengthDeviation": 381.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 18,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "gateway.multiple-incoming-future-node.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1620
+    "edgeLength": 1620,
+    "edgeSegmentLengthDeviation": 112.5,
+    "labelShapeOverlaps": 0,
+    "compactness": 15.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 50
   },
   "gateway.multiple-with-tasks.bpmn": {
     "crossings": 0,
+    "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1816
+    "edgeLength": 1816,
+    "edgeSegmentLengthDeviation": 86.8,
+    "labelShapeOverlaps": 0,
+    "compactness": 10.8,
+    "gridAlignment": 100,
+    "branchSymmetry": 80
   },
   "gateway.multiple.bpmn": {
     "crossings": 0,
+    "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2482
+    "edgeLength": 2482,
+    "edgeSegmentLengthDeviation": 201.9,
+    "labelShapeOverlaps": 0,
+    "compactness": 11.8,
+    "gridAlignment": 100,
+    "branchSymmetry": 50
   },
   "gateway.nested.bpmn": {
     "crossings": 0,
+    "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2565
+    "edgeLength": 2565,
+    "edgeSegmentLengthDeviation": 101.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 11.6,
+    "gridAlignment": 92.3,
+    "branchSymmetry": 50
   },
   "gateway.parallel-split-join.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1284
+    "edgeLength": 1284,
+    "edgeSegmentLengthDeviation": 19.7,
+    "labelShapeOverlaps": 0,
+    "compactness": 15.9,
+    "gridAlignment": 77.8,
+    "branchSymmetry": 50
   },
   "gateway.parallel.bpmn": {
     "crossings": 0,
+    "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2385
+    "edgeLength": 2385,
+    "edgeSegmentLengthDeviation": 117.9,
+    "labelShapeOverlaps": 0,
+    "compactness": 10.5,
+    "gridAlignment": 88.9,
+    "branchSymmetry": 60
   },
   "gateway.unstructured-convergence.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 930
+    "edgeLength": 930,
+    "edgeSegmentLengthDeviation": 18.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 16.8,
+    "gridAlignment": 83.3,
+    "branchSymmetry": 50
   },
   "lane.cross-lane-sequence-flow.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 582
+    "edgeLength": 582,
+    "edgeSegmentLengthDeviation": 36.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 7.9,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "lane.empty.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 300
+    "edgeLength": 300,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 40.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "lane.error-handler.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 952
+    "edgeLength": 952,
+    "edgeSegmentLengthDeviation": 15.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 16.9,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "lane.multiple.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 550
+    "edgeLength": 550,
+    "edgeSegmentLengthDeviation": 41.5,
+    "labelShapeOverlaps": 0,
+    "compactness": 10.2,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "lane.nested.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 550
+    "edgeLength": 550,
+    "edgeSegmentLengthDeviation": 41.5,
+    "labelShapeOverlaps": 0,
+    "compactness": 10.2,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "lane.redundant-ancestor-membership.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 200
+    "edgeLength": 200,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 35.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "lane.single.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 300
+    "edgeLength": 300,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 40.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "link-event.basic.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 920
+    "edgeLength": 920,
+    "edgeSegmentLengthDeviation": 15.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 12.4,
+    "gridAlignment": 71.4,
+    "branchSymmetry": 50
   },
   "link-event.loop.bpmn": {
     "crossings": 1,
+    "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1398
+    "edgeLength": 1398,
+    "edgeSegmentLengthDeviation": 133.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 15,
+    "gridAlignment": 71.4,
+    "branchSymmetry": 50
   },
   "link-event.throw-catch.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 400
+    "edgeLength": 400,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 17.8,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "link-event.with-ordinary-flow.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1069
+    "edgeLength": 1069,
+    "edgeSegmentLengthDeviation": 21.7,
+    "labelShapeOverlaps": 0,
+    "compactness": 7.7,
+    "gridAlignment": 55.6,
+    "branchSymmetry": 50
   },
   "process.application-processing.bpmn": {
     "crossings": 37,
+    "bendCount": 63,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 48441
+    "edgeLength": 48441,
+    "edgeSegmentLengthDeviation": 387.1,
+    "labelShapeOverlaps": 7,
+    "compactness": 10.7,
+    "gridAlignment": 100,
+    "branchSymmetry": 54.1
   },
   "process.error-handling.bpmn": {
     "crossings": 0,
+    "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4156
+    "edgeLength": 4156,
+    "edgeSegmentLengthDeviation": 152.9,
+    "labelShapeOverlaps": 0,
+    "compactness": 19.1,
+    "gridAlignment": 90,
+    "branchSymmetry": 100
   },
   "process.independent-flows.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 400
+    "edgeLength": 400,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 17.8,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "process.joining-flows.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 416
+    "edgeLength": 416,
+    "edgeSegmentLengthDeviation": 12.7,
+    "labelShapeOverlaps": 0,
+    "compactness": 12.5,
+    "gridAlignment": 75,
+    "branchSymmetry": 100
   },
   "scenario.declaration-order-ties.bpmn": {
     "crossings": 0,
+    "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1440
+    "edgeLength": 1440,
+    "edgeSegmentLengthDeviation": 14.7,
+    "labelShapeOverlaps": 0,
+    "compactness": 11.8,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.default-loop.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 730
+    "edgeLength": 730,
+    "edgeSegmentLengthDeviation": 44.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 31.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.determinism.bpmn": {
     "crossings": 0,
+    "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2989
+    "edgeLength": 2989,
+    "edgeSegmentLengthDeviation": 237.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 11.9,
+    "gridAlignment": 83.3,
+    "branchSymmetry": 100
   },
   "scenario.disconnected-component-stability.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1602
+    "edgeLength": 1602,
+    "edgeSegmentLengthDeviation": 17.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 19.8,
+    "gridAlignment": 80,
+    "branchSymmetry": 50
   },
   "scenario.disconnected-components.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1602
+    "edgeLength": 1602,
+    "edgeSegmentLengthDeviation": 17.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 19.8,
+    "gridAlignment": 80,
+    "branchSymmetry": 50
   },
   "scenario.disconnected-loop-boundary.bpmn": {
     "crossings": 0,
+    "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1324
+    "edgeLength": 1324,
+    "edgeSegmentLengthDeviation": 116.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 14,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "scenario.disconnected-loop.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 330
+    "edgeLength": 330,
+    "edgeSegmentLengthDeviation": 61.3,
+    "labelShapeOverlaps": 0,
+    "compactness": 17.1,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "scenario.empty-definitions.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 0
+    "edgeLength": 0,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 0,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "scenario.empty-process.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 0
+    "edgeLength": 0,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 0,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "scenario.happy-path.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 830
+    "edgeLength": 830,
+    "edgeSegmentLengthDeviation": 109.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 40.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.idempotence.bpmn": {
     "crossings": 0,
+    "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2989
+    "edgeLength": 2989,
+    "edgeSegmentLengthDeviation": 237.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 11.9,
+    "gridAlignment": 83.3,
+    "branchSymmetry": 100
   },
   "scenario.implicit-start.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 907
+    "edgeLength": 907,
+    "edgeSegmentLengthDeviation": 55.5,
+    "labelShapeOverlaps": 0,
+    "compactness": 11.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.input-expansion-state.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 400
+    "edgeLength": 400,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 48.2,
+    "gridAlignment": 87.5,
+    "branchSymmetry": 100
   },
   "scenario.input-with-arbitrary-di.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 300
+    "edgeLength": 300,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 31.4,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.input-with-multiple-diagrams.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 200
+    "edgeLength": 200,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 35.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.integer-geometry.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 300
+    "edgeLength": 300,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 40.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.irreducible-cycle.bpmn": {
     "crossings": 1,
+    "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1472
+    "edgeLength": 1472,
+    "edgeSegmentLengthDeviation": 129,
+    "labelShapeOverlaps": 0,
+    "compactness": 14.1,
+    "gridAlignment": 87.5,
+    "branchSymmetry": 75
   },
   "scenario.issue-100.bpmn": {
     "crossings": 2,
+    "bendCount": 12,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4712
+    "edgeLength": 4712,
+    "edgeSegmentLengthDeviation": 221.7,
+    "labelShapeOverlaps": 0,
+    "compactness": 9.1,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.issue-131.bpmn": {
     "crossings": 0,
+    "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 5587
+    "edgeLength": 5587,
+    "edgeSegmentLengthDeviation": 161.8,
+    "labelShapeOverlaps": 0,
+    "compactness": 6.4,
+    "gridAlignment": 84.2,
+    "branchSymmetry": 50
   },
   "scenario.issue-79-1.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 604
+    "edgeLength": 604,
+    "edgeSegmentLengthDeviation": 27.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 13.1,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "scenario.issue-79-2.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 604
+    "edgeLength": 604,
+    "edgeSegmentLengthDeviation": 27.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 13.6,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "scenario.issue-79-3.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 604
+    "edgeLength": 604,
+    "edgeSegmentLengthDeviation": 27.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 16.5,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "scenario.linear-no-start.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 200
+    "edgeLength": 200,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 49.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.linear.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 300
+    "edgeLength": 300,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 40.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.long-branch-edge.bpmn": {
     "crossings": 0,
+    "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2540
+    "edgeLength": 2540,
+    "edgeSegmentLengthDeviation": 187.9,
+    "labelShapeOverlaps": 0,
+    "compactness": 30.7,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.loop.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 630
+    "edgeLength": 630,
+    "edgeSegmentLengthDeviation": 47.1,
+    "labelShapeOverlaps": 0,
+    "compactness": 29.2,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.multiple-ad-hoc.bpmn": {
     "crossings": 0,
+    "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 4658
+    "edgeLength": 4658,
+    "edgeSegmentLengthDeviation": 196,
+    "labelShapeOverlaps": 0,
+    "compactness": 96.8,
+    "gridAlignment": 64,
+    "branchSymmetry": 0
   },
   "scenario.multiple-event-starts.bpmn": {
     "crossings": 0,
+    "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1546
+    "edgeLength": 1546,
+    "edgeSegmentLengthDeviation": 194.9,
+    "labelShapeOverlaps": 0,
+    "compactness": 19.7,
+    "gridAlignment": 87.5,
+    "branchSymmetry": 100
   },
   "scenario.multiple-start-events.bpmn": {
     "crossings": 6,
+    "bendCount": 14,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 3010
+    "edgeLength": 3010,
+    "edgeSegmentLengthDeviation": 113.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 21.1,
+    "gridAlignment": 84.6,
+    "branchSymmetry": 50
   },
   "scenario.multiple-starts.bpmn": {
     "crossings": 0,
+    "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1894
+    "edgeLength": 1894,
+    "edgeSegmentLengthDeviation": 64.5,
+    "labelShapeOverlaps": 0,
+    "compactness": 13.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 75
   },
   "scenario.multiple-sub-processes.bpmn": {
     "crossings": 0,
+    "bendCount": 12,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 6233
+    "edgeLength": 6233,
+    "edgeSegmentLengthDeviation": 228.5,
+    "labelShapeOverlaps": 0,
+    "compactness": 66.6,
+    "gridAlignment": 96.6,
+    "branchSymmetry": 72.7
   },
   "scenario.multiple-task-gateways-columns.bpmn": {
     "crossings": 0,
+    "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 3310
+    "edgeLength": 3310,
+    "edgeSegmentLengthDeviation": 139.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 10.1,
+    "gridAlignment": 92.9,
+    "branchSymmetry": 66.7
   },
   "scenario.no-outgoing.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 812
+    "edgeLength": 812,
+    "edgeSegmentLengthDeviation": 19.1,
+    "labelShapeOverlaps": 0,
+    "compactness": 11.4,
+    "gridAlignment": 66.7,
+    "branchSymmetry": 50
   },
   "scenario.self-loop.bpmn": {
     "crossings": 0,
+    "bendCount": 9,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 916
+    "edgeLength": 916,
+    "edgeSegmentLengthDeviation": 33,
+    "labelShapeOverlaps": 0,
+    "compactness": 26.1,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.simple.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 300
+    "edgeLength": 300,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 66.4,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.sink-less-cycle.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 730
+    "edgeLength": 730,
+    "edgeSegmentLengthDeviation": 117.9,
+    "labelShapeOverlaps": 0,
+    "compactness": 33.8,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.source-less-cycle.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 630
+    "edgeLength": 630,
+    "edgeSegmentLengthDeviation": 128.7,
+    "labelShapeOverlaps": 0,
+    "compactness": 41.1,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.translated-origin.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 200
+    "edgeLength": 200,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 35.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "scenario.unrelated-input-plane.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 400
+    "edgeLength": 400,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 48.2,
+    "gridAlignment": 87.5,
+    "branchSymmetry": 100
   },
   "sub-process.ad-hoc.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 200
+    "edgeLength": 200,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 49.5,
+    "gridAlignment": 60,
+    "branchSymmetry": 100
   },
   "sub-process.collapsed.bpmn": {
     "crossings": 0,
+    "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1060
+    "edgeLength": 1060,
+    "edgeSegmentLengthDeviation": 12.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 22.4,
+    "gridAlignment": 81.8,
+    "branchSymmetry": 50
   },
   "sub-process.empty.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 0
+    "edgeLength": 0,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 136.2,
+    "gridAlignment": 66.7,
+    "branchSymmetry": 100
   },
   "sub-process.expanded-01-hour.bpmn": {
     "crossings": 0,
+    "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1600
+    "edgeLength": 1600,
+    "edgeSegmentLengthDeviation": 70.8,
+    "labelShapeOverlaps": 0,
+    "compactness": 20.9,
+    "gridAlignment": 33.3,
+    "branchSymmetry": 100
   },
   "sub-process.expanded-03-hour.bpmn": {
     "crossings": 0,
+    "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1103
+    "edgeLength": 1103,
+    "edgeSegmentLengthDeviation": 59.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 20.8,
+    "gridAlignment": 70,
+    "branchSymmetry": 100
   },
   "sub-process.expanded-04-hour.bpmn": {
     "crossings": 0,
+    "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 1628
+    "edgeLength": 1628,
+    "edgeSegmentLengthDeviation": 45.7,
+    "labelShapeOverlaps": 0,
+    "compactness": 15.2,
+    "gridAlignment": 80,
+    "branchSymmetry": 100
   },
   "sub-process.expanded-06-hour.bpmn": {
     "crossings": 0,
+    "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 3838
+    "edgeLength": 3838,
+    "edgeSegmentLengthDeviation": 98.5,
+    "labelShapeOverlaps": 0,
+    "compactness": 12.2,
+    "gridAlignment": 85.7,
+    "branchSymmetry": 100
   },
   "sub-process.expanded-09-hour.bpmn": {
     "crossings": 0,
+    "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 3516
+    "edgeLength": 3516,
+    "edgeSegmentLengthDeviation": 143.2,
+    "labelShapeOverlaps": 0,
+    "compactness": 18.6,
+    "gridAlignment": 90,
+    "branchSymmetry": 100
   },
   "sub-process.expanded-empty.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 200
+    "edgeLength": 200,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 39.2,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "sub-process.expanded-self-loop.bpmn": {
     "crossings": 0,
+    "bendCount": 6,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 438
+    "edgeLength": 438,
+    "edgeSegmentLengthDeviation": 35,
+    "labelShapeOverlaps": 0,
+    "compactness": 51.6,
+    "gridAlignment": 0,
+    "branchSymmetry": 100
   },
   "sub-process.expanded.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 400
+    "edgeLength": 400,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 73.8,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "sub-process.mixed.bpmn": {
     "crossings": 0,
+    "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 2404
+    "edgeLength": 2404,
+    "edgeSegmentLengthDeviation": 72.6,
+    "labelShapeOverlaps": 0,
+    "compactness": 24.4,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "sub-process.nested-expanded.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 600
+    "edgeLength": 600,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 108.8,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "sub-process.nested.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 600
+    "edgeLength": 600,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 108.8,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "sub-process.parent-child-flow.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 500
+    "edgeLength": 500,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 84.9,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "sub-process.transaction.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 200
+    "edgeLength": 200,
+    "edgeSegmentLengthDeviation": 0,
+    "labelShapeOverlaps": 0,
+    "compactness": 43.1,
+    "gridAlignment": 60,
+    "branchSymmetry": 100
   },
   "task.default-flow.bpmn": {
     "crossings": 0,
+    "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 760
+    "edgeLength": 760,
+    "edgeSegmentLengthDeviation": 32.4,
+    "labelShapeOverlaps": 0,
+    "compactness": 19.4,
+    "gridAlignment": 71.4,
+    "branchSymmetry": 100
   },
   "text-annotation.basic.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 240
+    "edgeLength": 240,
+    "edgeSegmentLengthDeviation": 28.3,
+    "labelShapeOverlaps": 0,
+    "compactness": 35.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   },
   "text-annotation.positioning.bpmn": {
     "crossings": 0,
+    "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "wrongWayDockings": 0,
-    "edgeLength": 240
+    "edgeLength": 240,
+    "edgeSegmentLengthDeviation": 28.3,
+    "labelShapeOverlaps": 0,
+    "compactness": 35.6,
+    "gridAlignment": 100,
+    "branchSymmetry": 100
   }
 }

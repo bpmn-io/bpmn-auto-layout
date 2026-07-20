@@ -2,10 +2,16 @@ import { computeMetrics } from './computeMetrics.js';
 
 export const METRIC_KEYS = [
   'crossings',
+  'bendCount',
   'overlaps',
   'edgeShapeIntersections',
   'wrongWayDockings',
-  'edgeLength'
+  'edgeLength',
+  'edgeSegmentLengthDeviation',
+  'labelShapeOverlaps',
+  'compactness',
+  'gridAlignment',
+  'branchSymmetry'
 ];
 
 export async function evaluateMetrics(xml, baseline = null) {

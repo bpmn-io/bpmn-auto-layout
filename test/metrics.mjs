@@ -4,7 +4,7 @@ import url from 'node:url';
 
 import { layoutProcess } from '../lib/index.js';
 
-import { evaluateMetrics, hasBandADefect } from './metrics/evaluateMetrics.js';
+import { evaluateMetrics, hasBandADefect, METRIC_KEYS } from './metrics/evaluateMetrics.js';
 
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,14 +48,11 @@ export async function run() {
       results[fileName] = metrics.current;
       rows.push(formatRow(fileName, metrics.current, metrics.baseline));
     } catch (err) {
-      rows.push({
-        fixture: fileName,
-        crossings: 'ERROR',
-        overlaps: err.message,
-        edgeShapeIntersections: '',
-        wrongWayDockings: '',
-        edgeLength: ''
-      });
+      const row = Object.fromEntries(METRIC_KEYS.map(key => [ key, '' ]));
+      row.fixture = fileName;
+      row.crossings = 'ERROR';
+      row.overlaps = err.message;
+      rows.push(row);
       errors.push(`${fileName}: ${err.message}`);
     }
   }
@@ -103,31 +100,43 @@ function formatRow(fixture, metrics, base) {
 
   return {
     fixture,
-    crossings: cell('crossings'),
-    overlaps: cell('overlaps'),
-    edgeShapeIntersections: cell('edgeShapeIntersections'),
-    wrongWayDockings: cell('wrongWayDockings'),
-    edgeLength: cell('edgeLength')
+    ...Object.fromEntries(METRIC_KEYS.map(key => [ key, cell(key) ]))
   };
 }
 
 function formatTotalRow(results, baseline) {
-  const sum = key => Object.values(results).reduce((acc, m) => acc + m[key], 0);
-  const baseSum = key => baseline
-    ? Object.keys(results).reduce((acc, name) => acc + (baseline[name]?.[key] ?? 0), 0)
+  const averageKeys = new Set([
+    'edgeSegmentLengthDeviation',
+    'compactness',
+    'gridAlignment',
+    'branchSymmetry'
+  ]);
+  const aggregate = (metrics, key) => {
+    const values = Object.values(metrics)
+      .map(item => item[key])
+      .filter(value => typeof value === 'number');
+
+    if (!values.length) {
+      return 0;
+    }
+
+    const total = values.reduce((acc, value) => acc + value, 0);
+
+    return averageKeys.has(key)
+      ? Math.round(total / values.length * 10) / 10
+      : total;
+  };
+  const baselineMetrics = baseline
+    ? Object.fromEntries(Object.keys(results).map(name => [ name, baseline[name] || {} ]))
     : null;
 
   const cell = key => baseline
-    ? `${ sum(key) } (${ delta(sum(key) - baseSum(key)) })`
-    : `${ sum(key) }`;
+    ? `${ aggregate(results, key) } (${ delta(aggregate(results, key) - aggregate(baselineMetrics, key)) })`
+    : `${ aggregate(results, key) }`;
 
   return {
     fixture: 'TOTAL',
-    crossings: cell('crossings'),
-    overlaps: cell('overlaps'),
-    edgeShapeIntersections: cell('edgeShapeIntersections'),
-    wrongWayDockings: cell('wrongWayDockings'),
-    edgeLength: cell('edgeLength')
+    ...Object.fromEntries(METRIC_KEYS.map(key => [ key, cell(key) ]))
   };
 }
 
@@ -142,11 +151,7 @@ function delta(n) {
 function printTable(rows) {
   const columns = [
     'fixture',
-    'crossings',
-    'overlaps',
-    'edgeShapeIntersections',
-    'wrongWayDockings',
-    'edgeLength'
+    ...METRIC_KEYS
   ];
   const widths = columns.reduce((acc, col) => {
     acc[col] = Math.max(col.length, ...rows.map(r => String(r[col] ?? '').length));
