@@ -13,6 +13,8 @@ improves or regresses layout quality. The visual inspector supports review of
 the snapshot suite. Each fixture header also shows its generated layout metrics
 and the delta from the recorded metrics baseline; green and orange metric cards
 indicate an improvement or regression for metrics with a preferred direction.
+Non-fatal layout warnings are shown below the metrics for the fixture that
+produced them.
 
 ## Snapshot regression suite
 

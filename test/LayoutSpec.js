@@ -33,6 +33,7 @@ const snapshotsDirectory = path.join(__dirname, 'snapshots');
 const metricsBaselineFile = path.join(__dirname, 'metrics', 'baseline.json');
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === 'true';
+const layoutWarningsByFixture = new Map();
 
 async function layoutProcess(xml) {
   return (await layoutProcessResult(xml)).xml;
@@ -1922,15 +1923,17 @@ describe('Layout', function() {
 
     it('should warn when a group has no visible explicit members', async function() {
       const xml = fs.readFileSync(
-        path.join(fixturesDirectory, 'artifact.group.bpmn'),
+        path.join(fixturesDirectory, 'artifact.group-without-members.bpmn'),
         'utf8'
-      ).replace(
-        /\s*<bpmn2:categoryValueRef>CategoryValue_0nc43zx<\/bpmn2:categoryValueRef>/g,
-        ''
       );
       const result = await layoutProcessResult(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(result.xml);
+      const group = rootElement.diagrams[0].plane.planeElement.find(element => {
+        return element.bpmnElement.$instanceOf('bpmn:Group');
+      });
 
       assert.ok(typeof result.xml === 'string');
+      assert.strictEqual(group, undefined);
       assert.strictEqual(result.warnings.length, 1);
       assert.ok(result.warnings[0] instanceof LayoutWarning);
       assert.deepStrictEqual(
@@ -2162,7 +2165,15 @@ describe('Layout', function() {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
 
         // when
-        const output = await layoutProcess(xml);
+        const result = await layoutProcessResult(xml);
+        const output = result.xml;
+
+        layoutWarningsByFixture.set(fileName, result.warnings.map(warning => ({
+          code: warning.code,
+          elementId: warning.elementId,
+          message: warning.message,
+          relatedElementIds: warning.relatedElementIds
+        })));
 
         fs.writeFileSync(path.join(outputDirectory, fileName), output, 'utf8');
 
@@ -2213,7 +2224,8 @@ describe('Layout', function() {
         diagramSnapshot,
         diagramSnapshotMatching,
         metrics: await evaluateMetrics(diagramOutput, metricsBaseline[fileName]),
-        name: fileName
+        name: fileName,
+        warnings: layoutWarningsByFixture.get(fileName) || []
       };
     }));
 
@@ -2226,6 +2238,16 @@ describe('Layout', function() {
     );
 
     assert.ok(index.includes('createMetricsPanel'));
+    assert.ok(index.includes('createWarningsPanel'));
+    assert.deepStrictEqual(
+      results.find(result => result.name === 'artifact.group-without-members.bpmn').warnings,
+      [ {
+        code: 'GROUP_MEMBERS_NOT_FOUND',
+        elementId: 'Group_0z7n6ui',
+        message: 'Group Group_0z7n6ui has no visible explicitly referenced members and was omitted.',
+        relatedElementIds: []
+      } ]
+    );
     assert.ok(index.includes('branchSymmetry'));
     assert.ok(index.includes('labelEdgeOverlaps'));
     assert.ok(index.includes('metric-filter-badges'));
