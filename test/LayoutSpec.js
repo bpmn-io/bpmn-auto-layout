@@ -2012,6 +2012,8 @@ describe('Layout', function() {
     assert.ok(index.includes('labelEdgeOverlaps'));
     assert.ok(index.includes('metric-filter-badges'));
     assert.ok(index.includes('metricFilterCounts'));
+    assert.ok(index.includes('hasMetricFilterResults'));
+    assert.ok(index.includes('metric.disabled = !hasMetricFilterResults(definition.key)'));
     assert.ok(index.includes('createMetricHighlighter'));
     assert.ok(index.includes('for (const metric of activeMetricFilters)'));
 
