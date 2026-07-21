@@ -1924,6 +1924,11 @@ describe('Layout', function() {
 
     assert.ok(index.includes('createMetricsPanel'));
     assert.ok(index.includes('branchSymmetry'));
+    assert.ok(index.includes('labelEdgeOverlaps'));
+    assert.ok(index.includes('metric-filter-badges'));
+    assert.ok(index.includes('metricFilterCounts'));
+    assert.ok(index.includes('createMetricHighlighter'));
+    assert.ok(index.includes('for (const metric of activeMetricFilters)'));
 
     fs.writeFileSync(path.join(outputDirectory, 'index.html'), index, 'utf8');
   });

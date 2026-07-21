@@ -399,7 +399,7 @@ For an intentional behavior change:
 
 Snapshots record exact geometry. Metrics report crossings, bends, shape
 overlaps, edge/shape intersections, label/shape overlaps, wrong-way endpoint
-dockings, edge length and segment-length variation, compactness, grid
+dockings, label/edge overlaps, average edge length and segment-length variation, compactness, grid
 alignment, and non-default gateway-fan symmetry. Wrong-way docking must remain
 zero across the fixture corpus. Neither snapshots nor metrics replace visual
 review.

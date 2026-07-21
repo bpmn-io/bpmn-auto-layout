@@ -1,4 +1,4 @@
-import { computeMetrics } from './computeMetrics.js';
+import { analyzeMetrics } from './computeMetrics.js';
 
 export const METRIC_KEYS = [
   'crossings',
@@ -6,9 +6,10 @@ export const METRIC_KEYS = [
   'overlaps',
   'edgeShapeIntersections',
   'wrongWayDockings',
-  'edgeLength',
+  'averageEdgeLength',
   'edgeSegmentLengthDeviation',
   'labelShapeOverlaps',
+  'labelEdgeOverlaps',
   'compactness',
   'gridAlignment',
   'branchSymmetry'
@@ -16,13 +17,14 @@ export const METRIC_KEYS = [
 
 export async function evaluateMetrics(xml, baseline = null) {
   try {
-    const computed = await computeMetrics(xml);
-    const current = pick(computed, METRIC_KEYS);
+    const { metrics, findings } = await analyzeMetrics(xml);
+    const current = pick(metrics, METRIC_KEYS);
 
     return {
       baseline,
       current,
       delta: baseline ? delta(current, baseline) : null,
+      findings,
       error: null
     };
   } catch (error) {
@@ -30,6 +32,7 @@ export async function evaluateMetrics(xml, baseline = null) {
       baseline,
       current: null,
       delta: null,
+      findings: null,
       error: error.message
     };
   }

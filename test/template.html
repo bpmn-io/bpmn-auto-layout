@@ -2,6 +2,11 @@
   <head>
     <title>bpmn-auto-layout - Visual Test</title>
     <style>
+      :root {
+        --issue-stroke: #c2410c;
+        --issue-background: #fff7ed;
+      }
+
       body {
         margin: 0;
         overflow: hidden;
@@ -38,17 +43,6 @@
         min-width: 0;
       }
 
-      .metric-badge {
-        color: #444;
-        font-weight: normal;
-      }
-
-      .metric-badge.metric-defect {
-        border-color: #fed7aa;
-        background: #fff7ed;
-        color: #c2410c;
-      }
-
       .metrics-panel {
         flex-basis: 100%;
         border: 1px solid #e5e5e5;
@@ -73,6 +67,18 @@
         background: #fafafa;
       }
 
+      button.metric {
+        width: 100%;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+      }
+
+      button.metric.metric-filter-active {
+        border-color: var(--issue-stroke);
+      }
+
       .metric.metric-good {
         border-color: #bbf7d0;
         background: #f0fdf4;
@@ -81,8 +87,8 @@
 
       .metric.metric-warning {
         border-color: #fed7aa;
-        background: #fff7ed;
-        color: #c2410c;
+        background: var(--issue-background);
+        color: var(--issue-stroke);
       }
 
       .metric.metric-defect {
@@ -121,6 +127,12 @@
       .metric-delta {
         color: #666;
         font-size: 11px;
+      }
+
+      .metric-filter-badges {
+        display: flex;
+        align-items: center;
+        gap: 10px;
       }
 
       .copy-path-button {
@@ -361,16 +373,42 @@
       }
 
       .overlay-toggle[aria-pressed="true"] {
-        border-color: #bfdbfe;
-        background: #eff6ff;
-        color: #1d4ed8;
+        border-color: #fecaca;
+        background: #fef2f2;
+        color: #dc2626;
+      }
+
+      .djs-element[class*="metric-highlight-"] .djs-visual > :first-child,
+      .djs-connection[class*="metric-highlight-"] .djs-visual > path {
+        stroke: var(--issue-stroke) !important;
+        stroke-width: 3px !important;
+      }
+
+      .metric-highlight-geometry {
+        pointer-events: none;
+        stroke: var(--issue-stroke);
+        stroke-width: 2px;
+      }
+
+      .metric-highlight-area {
+        fill: var(--issue-background);
+        fill-opacity: 0.7;
+      }
+
+      .metric-highlight-point {
+        fill: var(--issue-background);
+      }
+
+      .metric-highlight-crossing {
+        fill: none;
       }
 
       .badge {
         display: inline-flex;
         align-items: center;
-        height: 20px;
-        padding: 0 8px;
+        box-sizing: border-box;
+        height: 22px;
+        padding: 1px 8px 0;
         border: 1px solid transparent;
         border-radius: 999px;
         font-size: 12px;
@@ -408,6 +446,20 @@
         border-color: #bfdbfe;
         background: #eff6ff;
         color: #1d4ed8;
+      }
+
+      .issue-filter-badge:not(:disabled) {
+        border-color: var(--issue-stroke);
+        background: var(--issue-background);
+        color: var(--issue-stroke);
+      }
+
+      button.badge:disabled {
+        cursor: not-allowed;
+        border-color: #e5e5e5;
+        background: #f5f5f5;
+        color: #737373;
+        opacity: 1;
       }
 
       body.no-overlay .sub-container.snapshot {
@@ -493,21 +545,21 @@
           <button id="pass" class="badge badge-success filter-toggle" type="button" aria-pressed="true"></button>
           <button id="fail" class="badge badge-destructive filter-toggle" type="button" aria-pressed="true"></button>
           <button id="new" class="badge badge-secondary filter-toggle" type="button" aria-pressed="true"></button>
-          <button id="geometry-stat" class="badge metric-badge filter-toggle" type="button" aria-pressed="false"></button>
+          <div id="metric-filter-badges" class="metric-filter-badges" aria-label="Issue filters"></div>
         </div>
         <div class="statistic-actions">
           <div class="path-filter-wrapper">
             <input id="path-filter" class="path-filter" type="text" placeholder="Filter fixtures" aria-label="Filter fixtures by path">
             <button id="clear-path-filter" class="button clear-path-filter" type="button" title="Clear fixture filter" aria-label="Clear fixture filter" hidden><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
           </div>
-          <button id="overlay-toggle" class="button overlay-toggle" type="button" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7"/><circle cx="15" cy="15" r="7"/></svg>Overlay</button>
+          <button id="overlay-toggle" class="button overlay-toggle" type="button" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7"/><circle cx="15" cy="15" r="7"/></svg>Show snapshot failure overlay</button>
         </div>
       </div>
       <div id="inspect-content" class="inspect-content"></div>
     </div>
     <div id="maximize-dialog" hidden>
       <div id="maximize-container"></div>
-      <button id="maximize-overlay-toggle" class="button overlay-toggle" type="button" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7"/><circle cx="15" cy="15" r="7"/></svg>Overlay</button>
+      <button id="maximize-overlay-toggle" class="button overlay-toggle" type="button" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7"/><circle cx="15" cy="15" r="7"/></svg>Show snapshot failure overlay</button>
       <button id="minimize-button" class="button icon-button" type="button" title="Minimize diagram" aria-label="Minimize diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 10 7-7"/><path d="M20 10h-6V4"/><path d="m3 21 7-7"/><path d="M4 14h6v6"/></svg></button>
     </div>
     <script src="https://unpkg.com/bpmn-js/dist/bpmn-navigated-viewer.development.js"></script>
@@ -980,6 +1032,8 @@
       }
 
       function minimizeDiagram() {
+        maximizedHighlighter?.destroy();
+        maximizedHighlighter = null;
         maximizedViewers.forEach(viewer => viewer.destroy());
         maximizedViewers = [];
         maximizeContainer.replaceChildren();
@@ -994,9 +1048,10 @@
         minimizeDiagram();
         maximizeOverlayToggle.hidden = true;
         maximizeDialog.hidden = false;
+        const { findings, ...viewerOptions } = options;
         const maximizedViewer = new BpmnJS({
           container: maximizeContainer,
-          ...options
+          ...viewerOptions
         });
         maximizedViewers = [ maximizedViewer ];
 
@@ -1008,13 +1063,18 @@
           }
 
           maximizedViewer.get('canvas').zoom('fit-viewport');
+
+          if (findings) {
+            maximizedHighlighter = createMetricHighlighter(maximizedViewer, findings);
+            maximizedHighlighter.update();
+          }
         } catch (error) {
           console.error('Maximized viewer render error', error);
           minimizeDiagram();
         }
       }
 
-      async function maximizeComparison(outputXml, snapshotXml, snapshotMatches) {
+      async function maximizeComparison(outputXml, snapshotXml, snapshotMatches, findings) {
         minimizeDiagram();
         maximizeDialog.hidden = false;
         maximizeOverlayToggle.hidden = snapshotMatches;
@@ -1072,6 +1132,11 @@
               snapshotViewer.get('canvas').viewbox(outputCanvas.viewbox());
               isSyncing = false;
             });
+          }
+
+          if (findings) {
+            maximizedHighlighter = createMetricHighlighter(outputViewer, findings);
+            maximizedHighlighter.update();
           }
         } catch (error) {
           console.error('Maximized comparison render error', error);
@@ -1131,7 +1196,6 @@
       const passCount = results.filter(element => element.diagramSnapshotMatching).length
       const failCount = results.filter(element => element.diagramSnapshotMatching === false).length
       const newCount = results.filter(element => element.diagramSnapshotMatching === null).length
-      const geometryDefectCount = results.filter(element => hasGeometryDefect(element.metrics)).length
 
       const failStat = document.getElementById('fail')
       failStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>' + failCount
@@ -1145,13 +1209,6 @@
       newStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>' + newCount
       newStat.setAttribute('aria-label', `Show new fixtures (${newCount})`)
 
-      const geometryStat = document.getElementById('geometry-stat');
-      geometryStat.innerHTML = geometryDefectCount
-        ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>' + `${geometryDefectCount} geometry defect${geometryDefectCount === 1 ? '' : 's'}`
-        : 'Geometry clean';
-      geometryStat.classList.toggle('metric-defect', geometryDefectCount > 0);
-      geometryStat.setAttribute('aria-label', `Show only fixtures with geometry defects (${geometryDefectCount})`);
-
       const resultFilters = [
         [ 'passed', passStat ],
         [ 'failed', failStat ],
@@ -1159,6 +1216,8 @@
       ];
       const pathFilter = document.getElementById('path-filter');
       const clearPathFilter = document.getElementById('clear-path-filter');
+      const activeMetricFilters = new Set();
+      const metricFilterBadges = document.getElementById('metric-filter-badges');
 
       function applyResultFilters() {
         const query = pathFilter.value.trim().toLowerCase();
@@ -1169,9 +1228,42 @@
           const filter = resultFilters.find(([ status ]) => status === parent.dataset.status);
           const isStatusVisible = filter[1].getAttribute('aria-pressed') === 'true';
           const isPathVisible = !query || parent.dataset.path.toLowerCase().includes(query);
-          const isGeometryVisible = geometryStat.getAttribute('aria-pressed') !== 'true' || parent.dataset.geometry === 'defect';
-          parent.hidden = !isStatusVisible || !isPathVisible || !isGeometryVisible;
+          const issueMetrics = new Set((parent.dataset.issueMetrics || '').split(' ').filter(Boolean));
+          const isMetricVisible = [ ...activeMetricFilters ].every(key => issueMetrics.has(key));
+          parent.hidden = !isStatusVisible || !isPathVisible || !isMetricVisible;
         });
+      }
+
+      function updateMetricFilterUI() {
+        document.querySelectorAll('[data-metric-filter]').forEach(metric => {
+          const active = activeMetricFilters.has(metric.dataset.metricFilter);
+
+          metric.classList.toggle('metric-filter-active', active);
+          metric.setAttribute('aria-pressed', String(active));
+
+          if (metric.disabled) {
+            metric.title = `No fixtures with ${metric.dataset.metricLabel.toLowerCase()}`;
+            metric.setAttribute('aria-label', metric.title);
+            return;
+          }
+
+          metric.title = active
+            ? `Remove ${metric.dataset.metricLabel} filter`
+            : `Show only fixtures with ${metric.dataset.metricLabel.toLowerCase()}`;
+        });
+
+        updateMetricHighlights();
+      }
+
+      function toggleMetricFilter(key) {
+        if (activeMetricFilters.has(key)) {
+          activeMetricFilters.delete(key);
+        } else {
+          activeMetricFilters.add(key);
+        }
+
+        updateMetricFilterUI();
+        applyResultFilters();
       }
 
       resultFilters.forEach(([ status, filter ]) => {
@@ -1189,15 +1281,6 @@
         pathFilter.focus();
       });
 
-      geometryStat.addEventListener('click', () => {
-        const isFiltering = geometryStat.getAttribute('aria-pressed') !== 'true';
-        geometryStat.setAttribute('aria-pressed', String(isFiltering));
-        geometryStat.setAttribute('aria-label', isFiltering
-          ? 'Show all fixtures'
-          : `Show only fixtures with geometry defects (${geometryDefectCount})`);
-        applyResultFilters();
-      });
-
       function getProcessDocumentation(xml) {
         const document = new DOMParser().parseFromString(xml, 'application/xml');
         const process = Array.from(document.getElementsByTagName('*')).find(element => element.localName === 'process');
@@ -1211,29 +1294,145 @@
         return documentation?.textContent.trim() || null;
       }
 
-      function hasGeometryDefect(metrics) {
-        return metrics?.current && (
-          metrics.current.overlaps !== 0 ||
-          metrics.current.edgeShapeIntersections !== 0 ||
-          metrics.current.wrongWayDockings !== 0
-        );
-      }
-
       const metricDefinitions = [
-        { key: 'crossings', label: 'Crossings', lowerIsBetter: true, zeroIsGood: true },
-        { key: 'overlaps', label: 'Shape-shape overlaps', lowerIsBetter: true, zeroIsGood: true, isDefect: true },
-        { key: 'labelShapeOverlaps', label: 'Label-shape overlaps', lowerIsBetter: true, zeroIsGood: true },
-        { key: 'edgeShapeIntersections', label: 'Shape intersections', lowerIsBetter: true, zeroIsGood: true, isDefect: true },
-        { key: 'wrongWayDockings', label: 'Wrong-way dockings', lowerIsBetter: true, zeroIsGood: true, isDefect: true },
-        { key: 'bendCount', label: 'Bends', lowerIsBetter: true, zeroIsGood: true },
-        { key: 'edgeLength', label: 'Edge length', lowerIsBetter: true, unit: ' px' },
+        { key: 'crossings', label: 'Crossings', lowerIsBetter: true, zeroIsGood: true, filterable: true },
+        { key: 'overlaps', label: 'Shape-shape overlaps', lowerIsBetter: true, zeroIsGood: true, isDefect: true, filterable: true },
+        { key: 'labelShapeOverlaps', label: 'Label-shape overlaps', lowerIsBetter: true, zeroIsGood: true, filterable: true },
+        { key: 'labelEdgeOverlaps', label: 'Label-edge overlaps', lowerIsBetter: true, zeroIsGood: true, filterable: true },
+        { key: 'edgeShapeIntersections', label: 'Shape intersections', lowerIsBetter: true, zeroIsGood: true, isDefect: true, filterable: true },
+        { key: 'wrongWayDockings', label: 'Wrong-way dockings', lowerIsBetter: true, zeroIsGood: true, isDefect: true, filterable: true },
+        { key: 'bendCount', label: 'Bends', directional: false },
+        { key: 'averageEdgeLength', label: 'Average edge length', lowerIsBetter: true, unit: ' px' },
         { key: 'edgeSegmentLengthDeviation', label: 'Segment deviation', lowerIsBetter: true, unit: ' px' },
         { key: 'compactness', label: 'Compactness', lowerIsBetter: false, unit: '%' },
         { key: 'gridAlignment', label: 'Grid alignment', lowerIsBetter: false, unit: '%' },
         { key: 'branchSymmetry', label: 'Branch symmetry', lowerIsBetter: false, unit: '%' }
       ];
 
+      const outputHighlighters = new Set();
+      let maximizedHighlighter = null;
+      const metricFilterCounts = new Map(metricDefinitions
+        .filter(definition => definition.filterable)
+        .map(definition => [ definition.key, results.filter(result => {
+          return result.metrics?.current?.[definition.key] > 0;
+        }).length ]));
+
+      metricFilterBadges.replaceChildren(...metricDefinitions
+        .filter(definition => definition.filterable)
+        .map(definition => {
+          const badge = document.createElement('button');
+          const count = metricFilterCounts.get(definition.key);
+
+          badge.className = 'badge badge-secondary filter-toggle issue-filter-badge';
+          badge.type = 'button';
+          badge.dataset.metricFilter = definition.key;
+          badge.dataset.metricLabel = definition.label;
+          badge.disabled = count === 0;
+          badge.setAttribute('aria-pressed', 'false');
+          badge.textContent = `${ definition.label } ${ count }`;
+          badge.addEventListener('click', () => toggleMetricFilter(definition.key));
+
+          return badge;
+        }));
+
+      function updateMetricHighlights() {
+        outputHighlighters.forEach(highlighter => highlighter.update());
+        maximizedHighlighter?.update();
+      }
+
+      function createMetricHighlighter(viewer, findings) {
+        const canvas = viewer.get('canvas');
+        const elementRegistry = viewer.get('elementRegistry');
+        const layer = canvas.getLayer('metric-highlights');
+        const markers = [];
+
+        function mark(elementId, metric) {
+          if (!elementId || !elementRegistry.get(elementId)) {
+            return;
+          }
+
+          const marker = `metric-highlight-${ metric }`;
+          canvas.addMarker(elementId, marker);
+          markers.push([ elementId, marker ]);
+        }
+
+        function appendOverlay(name, attributes, className) {
+          const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+          element.setAttribute('class', `metric-highlight-geometry ${ className }`);
+
+          Object.entries(attributes).forEach(([ key, value ]) => {
+            element.setAttribute(key, value);
+          });
+
+          layer.appendChild(element);
+        }
+
+        function addArea(bounds) {
+          appendOverlay('rect', bounds, 'metric-highlight-area');
+        }
+
+        function addPoint(point, className = 'metric-highlight-point') {
+          if (!point) {
+            return;
+          }
+
+          appendOverlay('circle', {
+            cx: point.x,
+            cy: point.y,
+            r: 8
+          }, className);
+        }
+
+        function clear() {
+          markers.splice(0).forEach(([ elementId, marker ]) => {
+            canvas.removeMarker(elementId, marker);
+          });
+          layer.replaceChildren();
+        }
+
+        return {
+          update() {
+            clear();
+
+            for (const metric of activeMetricFilters) {
+              for (const finding of findings?.[metric] || []) {
+                if (metric === 'crossings') {
+                  finding.edgeIds.forEach(id => mark(id, metric));
+                  addPoint(finding.point, 'metric-highlight-crossing');
+                } else if (metric === 'overlaps') {
+                  finding.shapeIds.forEach(id => mark(id, metric));
+                  addArea(finding.bounds);
+                } else if (metric === 'labelShapeOverlaps') {
+                  mark(finding.label.ownerId, metric);
+                  mark(finding.shapeId, metric);
+                  addArea(finding.label);
+                } else if (metric === 'labelEdgeOverlaps') {
+                  mark(finding.label.ownerId, metric);
+                  mark(finding.edgeId, metric);
+                  addArea(finding.label);
+                } else if (metric === 'edgeShapeIntersections') {
+                  mark(finding.edgeId, metric);
+                  mark(finding.shapeId, metric);
+                  addArea(finding.bounds);
+                } else if (metric === 'wrongWayDockings') {
+                  mark(finding.edgeId, metric);
+                  mark(finding.shapeId, metric);
+                  addPoint(finding.endpoint);
+                }
+              }
+            }
+          },
+          destroy() {
+            clear();
+          }
+        };
+      }
+
       function metricState(definition, value, delta) {
+        if (definition.directional === false) {
+          return '';
+        }
+
         if (definition.zeroIsGood) {
           if (value === 0) {
             return 'metric-good';
@@ -1282,11 +1481,21 @@
         for (const definition of metricDefinitions) {
           const value = metrics.current[definition.key];
           const delta = metrics.delta?.[definition.key];
-          const metric = document.createElement('div');
+          const metric = document.createElement(definition.filterable ? 'button' : 'div');
           metric.className = `metric ${metricState(definition, value, delta)}`;
-          metric.title = definition.lowerIsBetter
-            ? 'Lower is better'
-            : 'Higher is better';
+          metric.title = definition.directional === false
+            ? 'Informational metric'
+            : definition.lowerIsBetter
+              ? 'Lower is better'
+              : 'Higher is better';
+
+          if (definition.filterable) {
+            metric.type = 'button';
+            metric.dataset.metricFilter = definition.key;
+            metric.dataset.metricLabel = definition.label;
+            metric.setAttribute('aria-pressed', 'false');
+            metric.addEventListener('click', () => toggleMetricFilter(definition.key));
+          }
 
           const name = document.createElement('span');
           name.className = 'metric-name';
@@ -1338,7 +1547,10 @@
         const parent = document.createElement('div');
 
         parent.className = 'parent';
-        parent.dataset.geometry = hasGeometryDefect(metrics) ? 'defect' : 'clean';
+        parent.dataset.issueMetrics = metricDefinitions
+          .filter(definition => definition.filterable && metrics?.current?.[definition.key] > 0)
+          .map(definition => definition.key)
+          .join(' ');
 
         if (diagramSnapshotMatching === true) {
           parent.dataset.status = 'passed';
@@ -1472,9 +1684,16 @@
 
           maximizeButton.addEventListener('click', () => {
             if (container === subContainerSnapshot) {
-              maximizeComparison(diagramOutput, diagramSnapshot, diagramSnapshotMatching === true);
+              maximizeComparison(
+                diagramOutput,
+                diagramSnapshot,
+                diagramSnapshotMatching === true,
+                metrics?.findings
+              );
             } else {
-              maximizeDiagram(xml);
+              maximizeDiagram(xml, container === subContainerOutput ? {
+                findings: metrics?.findings
+              } : {});
             }
           });
         });
@@ -1524,6 +1743,10 @@
             }
 
             diagramOutputViewer.get('canvas').zoom('fit-viewport');
+
+            const highlighter = createMetricHighlighter(diagramOutputViewer, metrics?.findings);
+            outputHighlighters.add(highlighter);
+            highlighter.update();
 
             if (diagramSnapshot) {
               diagramSnapshotViewer.get('canvas').viewbox(diagramOutputViewer.get('canvas').viewbox());
@@ -1588,6 +1811,8 @@
           isSyncing = false;
         });
       }
+
+      updateMetricFilterUI();
     </script>
   </body>
 </html>
