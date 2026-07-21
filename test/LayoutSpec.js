@@ -7,6 +7,7 @@ import { BpmnModdle } from 'bpmn-moddle';
 
 import { layoutProcess } from 'bpmn-auto-layout';
 
+import { EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE } from '../lib/layout/Constants.js';
 import { evaluateMetrics } from './metrics/evaluateMetrics.js';
 
 const __filename = url.fileURLToPath(import.meta.url);
@@ -1470,6 +1471,41 @@ describe('Layout', function() {
       assert.strictEqual(edge.waypoint.at(-1).y, annotation.y + annotation.height);
     });
 
+    it('should associate parent-scope annotations with expanded subprocess contents', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'text-annotation.expanded-subprocess.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new Map(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const edge = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === 'Association_002a1rl';
+      });
+      const task = shapes.get('Activity_1mn3r19');
+      const annotation = shapes.get('TextAnnotation_0422590');
+      const isOnBoundary = (point, bounds) => {
+        const withinHorizontalBounds = point.x >= bounds.x && point.x <= bounds.x + bounds.width;
+        const withinVerticalBounds = point.y >= bounds.y && point.y <= bounds.y + bounds.height;
+
+        return (
+          (withinHorizontalBounds && (point.y === bounds.y || point.y === bounds.y + bounds.height)) ||
+          (withinVerticalBounds && (point.x === bounds.x || point.x === bounds.x + bounds.width))
+        );
+      };
+
+      assert.ok(task);
+      assert.ok(annotation);
+      assert.ok(edge);
+      assert.ok(edge.waypoint.length >= 2);
+      assert.ok(isOnBoundary(edge.waypoint[0], task));
+      assert.ok(isOnBoundary(edge.waypoint.at(-1), annotation));
+    });
+
     it('should emit activity-owned data association DI', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'data-object-and-store.reference.bpmn'),
@@ -1710,12 +1746,17 @@ describe('Layout', function() {
       const execution = shapes.get('Gateway_0fgu5ui');
       const join = shapes.get('Gateway_join_FS');
       const centerY = shape => shape.y + shape.height / 2;
+      const annotation = shapes.get('TextAnnotation_1rkjf45');
 
       assert.ok(aspectRatio < 2);
       assert.strictEqual(new Set(toolXs).size, toolXs.length);
       assert.strictEqual(centerY(split), centerY(confirmation));
       assert.strictEqual(centerY(confirmation), centerY(execution));
       assert.strictEqual(centerY(execution), centerY(join));
+      assert.ok(annotation.x >= adHoc.x);
+      assert.ok(annotation.y >= adHoc.y);
+      assert.ok(annotation.x + annotation.width <= adHoc.x + adHoc.width);
+      assert.ok(annotation.y + annotation.height <= adHoc.y + adHoc.height);
 
       for (const flowId of [ 'Flow_19yhpei', 'Flow_0jw5z8p', 'Flow_0688ffj' ]) {
         const waypoints = edges.get(flowId);
@@ -1727,6 +1768,25 @@ describe('Layout', function() {
       const metrics = await evaluateMetrics(output);
 
       assert.strictEqual(metrics.current.crossings, 0);
+    });
+
+    it('should leave text annotations clear of expanded subprocess borders', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'blueprint.communication-agent.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const subProcess = shapes.get('Activity_CommunicationAgent');
+      const annotation = shapes.get('TextAnnotation_1dtxdbk');
+
+      assert.ok(
+        annotation.x >= subProcess.x + subProcess.width +
+          EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE
+      );
     });
 
     it('should account for gaps when packing disconnected ad hoc activities', async function() {

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0wjcb46" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.9.0">
+  <bpmn:process id="Process_040shl6" isExecutable="true">
+    <bpmn:documentation>A parent-scope text annotation remains associated with a task inside an expanded subprocess.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0sjosnp</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:subProcess id="Activity_13pz66z">
+      <bpmn:incoming>Flow_0sjosnp</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ll9auo</bpmn:outgoing>
+      <bpmn:startEvent id="Event_1eptajo">
+        <bpmn:outgoing>Flow_1o2x71e</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:task id="Activity_1mn3r19">
+        <bpmn:incoming>Flow_1o2x71e</bpmn:incoming>
+        <bpmn:outgoing>Flow_1uztl7q</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:sequenceFlow id="Flow_1o2x71e" sourceRef="Event_1eptajo" targetRef="Activity_1mn3r19" />
+      <bpmn:endEvent id="Event_1buxb1t">
+        <bpmn:incoming>Flow_1uztl7q</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_1uztl7q" sourceRef="Activity_1mn3r19" targetRef="Event_1buxb1t" />
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_0sjosnp" sourceRef="StartEvent_1" targetRef="Activity_13pz66z" />
+    <bpmn:endEvent id="Event_1o3ea85">
+      <bpmn:incoming>Flow_1ll9auo</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1ll9auo" sourceRef="Activity_13pz66z" targetRef="Event_1o3ea85" />
+    <bpmn:textAnnotation id="TextAnnotation_0422590">
+      <bpmn:text>Foobar</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_002a1rl" associationDirection="None" sourceRef="Activity_1mn3r19" targetRef="TextAnnotation_0422590" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_040shl6">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="182" y="232" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1o3ea85_di" bpmnElement="Event_1o3ea85">
+        <dc:Bounds x="792" y="232" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_13pz66z_di" bpmnElement="Activity_13pz66z" isExpanded="true">
+        <dc:Bounds x="330" y="150" width="350" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1eptajo_di" bpmnElement="Event_1eptajo">
+        <dc:Bounds x="370" y="232" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1mn3r19_di" bpmnElement="Activity_1mn3r19">
+        <dc:Bounds x="460" y="210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1buxb1t_di" bpmnElement="Event_1buxb1t">
+        <dc:Bounds x="622" y="232" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1o2x71e_di" bpmnElement="Flow_1o2x71e">
+        <di:waypoint x="406" y="250" />
+        <di:waypoint x="460" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1uztl7q_di" bpmnElement="Flow_1uztl7q">
+        <di:waypoint x="560" y="250" />
+        <di:waypoint x="622" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_002a1rl_di" bpmnElement="Association_002a1rl">
+        <di:waypoint x="541" y="210" />
+        <di:waypoint x="612" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0sjosnp_di" bpmnElement="Flow_0sjosnp">
+        <di:waypoint x="218" y="250" />
+        <di:waypoint x="330" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ll9auo_di" bpmnElement="Flow_1ll9auo">
+        <di:waypoint x="680" y="250" />
+        <di:waypoint x="792" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0422590_di" bpmnElement="TextAnnotation_0422590">
+        <dc:Bounds x="578" y="80" width="102" height="40" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
