@@ -944,7 +944,7 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
         <omgdc:Bounds x="976" y="1576" width="140" height="40" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_sid-86AEF0B1-9EB6-45FD-B9A3-DAE6F5ED71A4" bpmnElement="sid-86AEF0B1-9EB6-45FD-B9A3-DAE6F5ED71A4">
-        <omgdc:Bounds x="976" y="1714" width="140" height="40" />
+        <omgdc:Bounds x="976" y="1874" width="140" height="40" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_sid-9B744161-CE38-41EC-847E-D264A5BFA9CC" bpmnElement="sid-9B744161-CE38-41EC-847E-D264A5BFA9CC">
         <omgdc:Bounds x="478" y="5472" width="100" height="40" />
@@ -1151,8 +1151,8 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
         <omgdi:waypoint x="1046" y="1616" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-7164D016-D299-4243-A9FE-75910B69E8F4" bpmnElement="sid-7164D016-D299-4243-A9FE-75910B69E8F4">
-        <omgdi:waypoint x="1046" y="1774" />
-        <omgdi:waypoint x="1046" y="1754" />
+        <omgdi:waypoint x="1046" y="1854" />
+        <omgdi:waypoint x="1046" y="1874" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-E9D52506-E99F-412F-803B-0A7BB95CFA2D" bpmnElement="sid-E9D52506-E99F-412F-803B-0A7BB95CFA2D">
         <omgdi:waypoint x="528" y="5532" />
@@ -1663,7 +1663,7 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
       <bpmndi:BPMNShape id="BPMNShape_sid-BEC67F12-04E9-4AE2-B59E-FEB109CD3DF8" bpmnElement="sid-BEC67F12-04E9-4AE2-B59E-FEB109CD3DF8">
         <omgdc:Bounds x="1028" y="1636" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds x="1069" y="1640" width="90" height="28" />
+          <omgdc:Bounds x="1001" y="1677" width="90" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_sid-303796CF-BA87-40A7-B2EC-9F6E10BD1060" bpmnElement="sid-303796CF-BA87-40A7-B2EC-9F6E10BD1060">
@@ -1690,7 +1690,7 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
       <bpmndi:BPMNShape id="BPMNShape_sid-8D8BD39F-1B08-433F-8F93-A1FF7520BA8B" bpmnElement="sid-8D8BD39F-1B08-433F-8F93-A1FF7520BA8B">
         <omgdc:Bounds x="1018" y="1714" width="36" height="50" />
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds x="991" y="1689" width="90" height="14" />
+          <omgdc:Bounds x="923" y="1732" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-F3E23BCC-F29B-444C-BF2B-C2AA7D9D0DEF" bpmnElement="sid-F3E23BCC-F29B-444C-BF2B-C2AA7D9D0DEF">
@@ -1705,7 +1705,7 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
         <omgdi:waypoint x="896" y="1654" />
         <omgdi:waypoint x="1028" y="1654" />
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds x="917" y="1662" width="90" height="14" />
+          <omgdc:Bounds x="877" y="1572" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-3EB9F09F-9E44-4200-A845-09B78E5F6BA8" bpmnElement="sid-3EB9F09F-9E44-4200-A845-09B78E5F6BA8">
@@ -1713,7 +1713,7 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
         <omgdi:waypoint x="871" y="1814" />
         <omgdi:waypoint x="996" y="1814" />
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds x="876" y="1740" width="90" height="14" />
+          <omgdc:Bounds x="776" y="1740" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-BDC5800E-05A9-4D22-BA46-474DD7EBFF31" bpmnElement="sid-BDC5800E-05A9-4D22-BA46-474DD7EBFF31">

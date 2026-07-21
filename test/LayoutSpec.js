@@ -1536,6 +1536,46 @@ describe('Layout', function() {
       }
     });
 
+    it('should keep artifacts clear across semantic scopes', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'blueprint.servicenow-integration-blueprint.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const artifactShapes = rootElement.diagrams[0].plane.planeElement.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNShape') && (
+          element.bpmnElement.$instanceOf('bpmn:TextAnnotation') ||
+          element.bpmnElement.$instanceOf('bpmn:DataObjectReference') ||
+          element.bpmnElement.$instanceOf('bpmn:DataStoreReference')
+        );
+      });
+      const annotations = artifactShapes.filter(element => {
+        return element.bpmnElement.$instanceOf('bpmn:TextAnnotation');
+      });
+      const otherArtifacts = artifactShapes.filter(element => {
+        return !element.bpmnElement.$instanceOf('bpmn:TextAnnotation');
+      });
+
+      for (const annotation of annotations) {
+        for (const artifact of otherArtifacts) {
+          const overlaps = annotation.bounds.x <
+              artifact.bounds.x + artifact.bounds.width &&
+            artifact.bounds.x <
+              annotation.bounds.x + annotation.bounds.width &&
+            annotation.bounds.y <
+              artifact.bounds.y + artifact.bounds.height &&
+            artifact.bounds.y <
+              annotation.bounds.y + annotation.bounds.height;
+
+          assert.strictEqual(overlaps, false, [
+            annotation.bpmnElement.id,
+            artifact.bpmnElement.id
+          ].join(' / '));
+        }
+      }
+    });
+
     it('should route artifact associations without bendpoints', async function() {
       for (const fixture of [
         'camunda-8-tutorials.order-fulfillment.bpmn',

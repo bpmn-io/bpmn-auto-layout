@@ -271,7 +271,8 @@ the same content extents and padding as final participant sizing.
 Participant bounds are derived from process containers and flow shapes rather
 than exterior decorations, while participant spacing still accounts for the
 decorations' complete footprint. Data object references remain fully contained
-in their owner's lane.
+in their owner's lane. All artifacts emitted on the same BPMN plane share one
+collision domain regardless of semantic ownership or declaration scope.
 
 Data object and data store references retain their standard dimensions but use
 the same obstacle-aware search. Resolvable associations are routed after both
