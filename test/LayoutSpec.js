@@ -2109,6 +2109,9 @@ describe('Layout', function() {
     assert.ok(index.includes('metric.disabled = !hasMetricFilterResults(definition.key)'));
     assert.ok(index.includes('createMetricHighlighter'));
     assert.ok(index.includes('for (const metric of activeMetricFilters)'));
+    assert.ok(index.includes("outputViewer.on('canvas.viewbox.changing', syncSnapshotViewport)"));
+    assert.ok(index.includes("outputViewer.on('canvas.viewbox.changed', syncSnapshotViewport)"));
+    assert.ok(index.includes('snapshotViewport.setAttribute('));
 
     fs.writeFileSync(path.join(outputDirectory, 'index.html'), index, 'utf8');
   });
