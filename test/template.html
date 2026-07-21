@@ -75,6 +75,10 @@
         text-align: left;
       }
 
+      button.metric:disabled {
+        cursor: not-allowed;
+      }
+
       button.metric.metric-filter-active {
         border-color: var(--issue-stroke);
       }
@@ -130,12 +134,7 @@
       }
 
       .metric-filter-badges {
-        display: flex;
-        align-items: center;
-        flex: 1 1 500px;
-        flex-wrap: wrap;
-        gap: 10px;
-        min-width: 0;
+        display: contents;
       }
 
       .copy-path-button {
@@ -269,7 +268,7 @@
         background: white;
         font-size: large;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         flex-wrap: wrap;
         gap: 8px 10px;
       }
@@ -285,7 +284,7 @@
 
       .statistic-actions {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         flex-wrap: wrap;
         gap: 10px;
         margin-left: auto;
@@ -1294,6 +1293,10 @@
       }
 
       function toggleMetricFilter(key) {
+        if (!hasMetricFilterResults(key)) {
+          return;
+        }
+
         if (activeMetricFilters.has(key)) {
           activeMetricFilters.delete(key);
         } else {
@@ -1354,6 +1357,7 @@
         .map(definition => [ definition.key, results.filter(result => {
           return result.metrics?.current?.[definition.key] > 0;
         }).length ]));
+      const hasMetricFilterResults = key => metricFilterCounts.get(key) > 0;
 
       metricFilterBadges.replaceChildren(...metricDefinitions
         .filter(definition => definition.filterable)
@@ -1365,10 +1369,12 @@
           badge.type = 'button';
           badge.dataset.metricFilter = definition.key;
           badge.dataset.metricLabel = definition.label;
-          badge.disabled = count === 0;
+          badge.disabled = !hasMetricFilterResults(definition.key);
           badge.setAttribute('aria-pressed', 'false');
           badge.textContent = `${ definition.label } ${ count }`;
-          badge.addEventListener('click', () => toggleMetricFilter(definition.key));
+          if (!badge.disabled) {
+            badge.addEventListener('click', () => toggleMetricFilter(definition.key));
+          }
 
           return badge;
         }));
@@ -1531,8 +1537,11 @@
             metric.type = 'button';
             metric.dataset.metricFilter = definition.key;
             metric.dataset.metricLabel = definition.label;
+            metric.disabled = !hasMetricFilterResults(definition.key);
             metric.setAttribute('aria-pressed', 'false');
-            metric.addEventListener('click', () => toggleMetricFilter(definition.key));
+            if (!metric.disabled) {
+              metric.addEventListener('click', () => toggleMetricFilter(definition.key));
+            }
           }
 
           const name = document.createElement('span');
