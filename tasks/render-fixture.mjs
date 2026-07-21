@@ -33,7 +33,7 @@ try {
 }
 
 const fixtureXml = await readFile(fixturePath, 'utf8');
-const layoutXml = await layoutProcess(fixtureXml);
+const { xml: layoutXml, warnings } = await layoutProcess(fixtureXml);
 const fixtureName = basename(fixtureRelativePath, '.bpmn');
 
 await mkdir(renderedDirectory, { recursive: true });
@@ -58,6 +58,9 @@ await convertAll([ {
 });
 
 console.log(`Rendered ${fixtureRelativePath}`);
+if (warnings.length) {
+  console.warn('Layout warnings:', warnings);
+}
 console.log(`  ${relative(projectRoot, inputPngPath)}`);
 console.log(`  ${relative(projectRoot, inputSvgPath)}`);
 console.log(`  ${relative(projectRoot, renderedPngPath)}`);

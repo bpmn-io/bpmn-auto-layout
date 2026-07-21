@@ -57,7 +57,7 @@ waypoints, child layouts, and the BPMN plane on which each child is emitted.
 
 [`layoutProcess`](../lib/index.js) parses XML with `bpmn-moddle`, selects a
 collaboration when one exists or otherwise the first process, removes existing
-diagrams, generates new geometry, and serializes the result.
+diagrams, generates new geometry, and resolves with `{ xml, warnings }`.
 
 The engine rejects input for which valid geometry would be misleading or
 undefined. [`LayoutError`](../lib/LayoutError.js) provides stable codes for:

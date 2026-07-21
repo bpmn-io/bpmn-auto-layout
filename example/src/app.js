@@ -29,7 +29,14 @@ const viewer = new Viewer({
 const update = async () => {
   const { xml } = await modeler.saveXML({ format: true });
 
-  const xmlWithLayout = await layoutProcess(xml);
+  const {
+    xml: xmlWithLayout,
+    warnings: layoutWarnings
+  } = await layoutProcess(xml);
+
+  if (layoutWarnings.length) {
+    console.warn(layoutWarnings);
+  }
 
   viewer
     .importXML(xmlWithLayout)
