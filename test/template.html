@@ -1063,12 +1063,18 @@
       const minimizeButton = document.getElementById('minimize-button');
       const maximizeOverlayToggle = document.getElementById('maximize-overlay-toggle');
       let maximizedViewers = [];
+      let maximizeSyncFrame = null;
 
       function applyMaximizeOverlay() {
         maximizeDialog.classList.toggle('no-overlay', maximizeOverlayToggle.getAttribute('aria-pressed') === 'false');
       }
 
       function minimizeDiagram() {
+        if (maximizeSyncFrame !== null) {
+          cancelAnimationFrame(maximizeSyncFrame);
+          maximizeSyncFrame = null;
+        }
+
         maximizedHighlighter?.destroy();
         maximizedHighlighter = null;
         maximizedViewers.forEach(viewer => viewer.destroy());
@@ -1157,18 +1163,33 @@
           outputCanvas.zoom('fit-viewport');
 
           if (snapshotViewer) {
-            snapshotViewer.get('canvas').viewbox(outputCanvas.viewbox());
-
-            let isSyncing = false;
-            outputViewer.on('canvas.viewbox.changed', () => {
-              if (isSyncing) {
-                return;
+            const outputViewport = outputContainer.querySelector('svg .viewport');
+            const snapshotViewport = snapshotViewer
+              .get('canvas')
+              .getContainer()
+              .querySelector('svg .viewport');
+            const syncSnapshotViewport = () => {
+              if (maximizeSyncFrame !== null) {
+                cancelAnimationFrame(maximizeSyncFrame);
               }
 
-              isSyncing = true;
-              snapshotViewer.get('canvas').viewbox(outputCanvas.viewbox());
-              isSyncing = false;
-            });
+              maximizeSyncFrame = requestAnimationFrame(() => {
+                maximizeSyncFrame = null;
+
+                if (!outputViewport.isConnected || !snapshotViewport.isConnected) {
+                  return;
+                }
+
+                snapshotViewport.setAttribute(
+                  'transform',
+                  outputViewport.getAttribute('transform') || ''
+                );
+              });
+            };
+
+            syncSnapshotViewport();
+            outputViewer.on('canvas.viewbox.changing', syncSnapshotViewport);
+            outputViewer.on('canvas.viewbox.changed', syncSnapshotViewport);
           }
 
           if (findings) {
