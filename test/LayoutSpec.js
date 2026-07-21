@@ -1122,7 +1122,7 @@ describe('Layout', function() {
       assert.strictEqual(edge.waypoint[0].x, edge.waypoint[1].x);
     });
 
-    it('should route message flows from collapsed subprocess children at the subprocess', async function() {
+    it('should route message flows to collapsed subprocesses', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'collaboration.message-flow-to-collapsed-child.bpmn'),
         'utf8'
@@ -1135,16 +1135,16 @@ describe('Layout', function() {
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const edge = elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
-          element.bpmnElement.id === 'MessageFlow';
+          element.bpmnElement.id === 'Flow_193bw3h';
       });
-      const source = shapes.get('CollapsedSubProcess');
-      const target = shapes.get('ReceiveTask');
+      const source = shapes.get('Participant_1qdn8qg');
+      const target = shapes.get('Activity_0qw608m');
 
-      assert.ok(!shapes.has('HiddenTask'));
-      assert.strictEqual(edge.waypoint[0].x, source.x + source.width / 2);
-      assert.strictEqual(edge.waypoint[0].y, source.y + source.height);
+      assert.ok(!shapes.has('Event_0m9ntx1'));
+      assert.strictEqual(edge.waypoint[0].x, target.x + target.width / 2);
+      assert.strictEqual(edge.waypoint[0].y, source.y);
       assert.strictEqual(edge.waypoint.at(-1).x, target.x + target.width / 2);
-      assert.strictEqual(edge.waypoint.at(-1).y, target.y);
+      assert.strictEqual(edge.waypoint.at(-1).y, target.y + target.height);
     });
 
     it('should optimize connected participant geometry', async function() {

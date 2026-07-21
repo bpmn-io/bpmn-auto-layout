@@ -1,26 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions" targetNamespace="http://bpmn.io/schema/bpmn">
-  <bpmn:collaboration id="Collaboration">
-    <bpmn:participant id="Sender" processRef="SenderProcess" />
-    <bpmn:participant id="Receiver" processRef="ReceiverProcess" />
-    <bpmn:messageFlow id="MessageFlow" sourceRef="HiddenTask" targetRef="ReceiveTask" />
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0c3q6b6" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.9.0">
+  <bpmn:collaboration id="Collaboration_1ag29uj">
+    <bpmn:participant id="Participant_0dwrwgx" processRef="Process_0gllg7f" />
+    <bpmn:participant id="Participant_1qdn8qg" processRef="Process_1lt0rvh" />
+    <bpmn:messageFlow id="Flow_193bw3h" sourceRef="Participant_1qdn8qg" targetRef="Activity_0qw608m" />
   </bpmn:collaboration>
-  <bpmn:process id="SenderProcess">
-    <bpmn:documentation>A message flow to a collapsed subprocess child docks at the visible subprocess.</bpmn:documentation>
-    <bpmn:startEvent id="Start">
-      <bpmn:outgoing>StartToSubProcess</bpmn:outgoing>
-    </bpmn:startEvent>
-    <bpmn:subProcess id="CollapsedSubProcess">
-      <bpmn:task id="HiddenTask" />
+  <bpmn:process id="Process_0gllg7f" isExecutable="true">
+    <bpmn:documentation>A message flow from another participant docks at a collapsed subprocess.</bpmn:documentation>
+    <bpmn:subProcess id="Activity_0qw608m">
+      <bpmn:startEvent id="Event_0m9ntx1" />
     </bpmn:subProcess>
-    <bpmn:endEvent id="End">
-      <bpmn:incoming>SubProcessToEnd</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:sequenceFlow id="StartToSubProcess" sourceRef="Start" targetRef="CollapsedSubProcess" />
-    <bpmn:sequenceFlow id="SubProcessToEnd" sourceRef="CollapsedSubProcess" targetRef="End" />
   </bpmn:process>
-  <bpmn:process id="ReceiverProcess">
-    <bpmn:documentation>The receiving process provides visible message-flow geometry.</bpmn:documentation>
-    <bpmn:task id="ReceiveTask" />
-  </bpmn:process>
+  <bpmn:process id="Process_1lt0rvh" isExecutable="false" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1ag29uj">
+      <bpmndi:BPMNShape id="Participant_0dwrwgx_di" bpmnElement="Participant_0dwrwgx" isHorizontal="true">
+        <dc:Bounds x="132" y="55" width="600" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0qw608m_di" bpmnElement="Activity_0qw608m" isExpanded="false">
+        <dc:Bounds x="345" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_1qdn8qg_di" bpmnElement="Participant_1qdn8qg" isHorizontal="true">
+        <dc:Bounds x="132" y="370" width="600" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_193bw3h_di" bpmnElement="Flow_193bw3h">
+        <di:waypoint x="395" y="370" />
+        <di:waypoint x="395" y="210" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_0x3gztr">
+    <bpmndi:BPMNPlane id="BPMNPlane_1bw9pr7" bpmnElement="Activity_0qw608m">
+      <bpmndi:BPMNShape id="Event_0m9ntx1_di" bpmnElement="Event_0m9ntx1">
+        <dc:Bounds x="180" y="160" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
 </bpmn:definitions>
