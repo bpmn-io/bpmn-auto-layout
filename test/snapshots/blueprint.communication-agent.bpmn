@@ -178,12 +178,18 @@ The communication agent also wraps all outgoing communication to keep it consist
     <bpmndi:BPMNPlane id="BPMNPlane_communication-agent" bpmnElement="communication-agent">
       <bpmndi:BPMNShape id="BPMNShape_Event_CustomerMessageReceived" bpmnElement="Event_CustomerMessageReceived">
         <dc:Bounds x="80" y="560" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="53" y="601" width="90" height="42" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_CommunicationAgent" bpmnElement="Activity_CommunicationAgent" isExpanded="true">
         <dc:Bounds x="216" y="280" width="491" height="596" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_SessionEnded" bpmnElement="Event_SessionEnded">
         <dc:Bounds x="807" y="560" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="780" y="601" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_1vbhn1y" bpmnElement="TextAnnotation_1vbhn1y">
         <dc:Bounds x="292" y="80" width="340" height="160" />
@@ -216,15 +222,24 @@ The communication agent also wraps all outgoing communication to keep it consist
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BPMNShape_Event_NextCustomerMessageReceived" bpmnElement="Event_NextCustomerMessageReceived">
         <dc:Bounds x="431" y="480" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="404" y="521" width="90" height="56" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Tool_WaitForNextMessage" bpmnElement="Tool_WaitForNextMessage" isMarkerVisible="true">
         <dc:Bounds x="256" y="473" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="296" y="528" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_ToolForwardMessageToCalculatorAgent" bpmnElement="Activity_ToolForwardMessageToCalculatorAgent">
         <dc:Bounds x="567" y="320" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_ReplyFromBusinessAgentReceived" bpmnElement="Event_ReplyFromBusinessAgentReceived">
         <dc:Bounds x="431" y="640" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="404" y="681" width="90" height="56" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_ToolReplyToCustomer" bpmnElement="Activity_ToolReplyToCustomer">
         <dc:Bounds x="567" y="480" width="100" height="80" />
@@ -234,9 +249,15 @@ The communication agent also wraps all outgoing communication to keep it consist
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_BusinessAgentFinished" bpmnElement="Event_BusinessAgentFinished">
         <dc:Bounds x="431" y="320" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="404" y="361" width="90" height="42" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_Timeout" bpmnElement="Event_Timeout">
         <dc:Bounds x="431" y="800" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="404" y="753" width="90" height="42" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_04ormsw" bpmnElement="Flow_04ormsw">
         <di:waypoint x="306" y="498" />

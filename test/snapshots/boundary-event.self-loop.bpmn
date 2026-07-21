@@ -24,6 +24,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_BoundaryEvent_1" bpmnElement="BoundaryEvent_1">
         <dc:Bounds x="248" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="221" y="203" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1t9f51i" bpmnElement="Flow_1t9f51i">
         <di:waypoint x="116" y="120" />

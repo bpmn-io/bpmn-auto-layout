@@ -11,7 +11,12 @@ import {
   getExternalLabelText,
   isExternalLabelOwner
 } from '../lib/layout/BpmnUtil.js';
-import { EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE } from '../lib/layout/Constants.js';
+import {
+  EXTERNAL_LABEL_CLEARANCE,
+  EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE,
+  EXPANDED_SUBPROCESS_LABEL_HEIGHT,
+  SUB_PROCESS_PADDING
+} from '../lib/layout/Constants.js';
 import { evaluateMetrics } from './metrics/evaluateMetrics.js';
 
 const __filename = url.fileURLToPath(import.meta.url);
@@ -1735,7 +1740,8 @@ describe('Layout', function() {
       const shapes = new Map(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(rootElement.diagrams[0].plane.planeElement
+      const planeElements = rootElement.diagrams[0].plane.planeElement;
+      const edges = new Map(planeElements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const centerY = id => {
@@ -1746,6 +1752,30 @@ describe('Layout', function() {
 
       assert.strictEqual(centerY('Gateway_1whb5u5'), centerY('Activity_062h34x'));
       assert.strictEqual(centerY('Activity_062h34x'), centerY('Gateway_join_specialist'));
+
+      const subprocess = planeElements.find(element => {
+        return element.bpmnElement.id === 'Activity_04glkkx';
+      });
+      const gateway = planeElements.find(element => {
+        return element.bpmnElement.id === 'Gateway_1whb5u5';
+      });
+      const childShapes = planeElements.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNShape') &&
+          element.bpmnElement.$parent === subprocess.bpmnElement &&
+          !element.bpmnElement.$instanceOf('bpmn:BoundaryEvent');
+      });
+      const titleBottom = subprocess.bounds.y + EXPANDED_SUBPROCESS_LABEL_HEIGHT;
+      const reservedTop = subprocess.bounds.y +
+        SUB_PROCESS_PADDING +
+        EXPANDED_SUBPROCESS_LABEL_HEIGHT;
+
+      assert.ok(gateway.label.bounds.y >= titleBottom);
+      assert.strictEqual(
+        gateway.bounds.y -
+          (gateway.label.bounds.y + gateway.label.bounds.height),
+        EXTERNAL_LABEL_CLEARANCE
+      );
+      assert.ok(childShapes.every(shape => shape.bounds.y >= reservedTop));
 
       for (const flowId of [ 'Flow_1mudddl', 'Flow_0j63wm9' ]) {
         const waypoints = edges.get(flowId);

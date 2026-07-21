@@ -47,6 +47,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_BoundaryEvent_1" bpmnElement="BoundaryEvent_1">
         <dc:Bounds x="226" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="139" y="183" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_1nxutwo" bpmnElement="Event_1nxutwo">
         <dc:Bounds x="270" y="142" width="36" height="36" />

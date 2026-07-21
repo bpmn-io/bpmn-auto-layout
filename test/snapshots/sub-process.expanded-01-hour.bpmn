@@ -50,12 +50,18 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_0gectvf" bpmnElement="Event_0gectvf">
         <dc:Bounds x="132" y="322" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="105" y="363" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_14u68gq" bpmnElement="Activity_14u68gq">
         <dc:Bounds x="340" y="100" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_1jun0cy" bpmnElement="Event_1jun0cy">
         <dc:Bounds x="112" y="560" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="85" y="601" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_19bdhhe" bpmnElement="Activity_19bdhhe" isExpanded="true">
         <dc:Bounds x="300" y="518" width="140" height="120" />

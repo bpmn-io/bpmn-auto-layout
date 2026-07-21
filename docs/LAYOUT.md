@@ -180,6 +180,7 @@ Geometry uses these base constants:
 | Vertical gap | 80 px |
 | Plane margin | 80 px |
 | Expanded sub-process padding | 40 px |
+| Named expanded sub-process title band | 28 px |
 | Routing margin | 20 px |
 | Participant header width | 30 px |
 | Lane content padding | 40 px |
@@ -210,8 +211,12 @@ Connected components still preserve their sequence-flow order.
 ### Sub-processes
 
 An expanded embedded sub-process is sized around its child layout with 40 px
-padding and a minimum size of 140 x 120 px. Parent sequence flows dock at its
-perimeter; child flows remain inside.
+padding and a minimum size of 140 x 120 px. A named sub-process reserves a
+centered, fixed-height 28 px title area inside its top padding; multiline titles
+do not enlarge this area. If an external label has no close preferred position
+other than that title area, the complete child layout moves down by 28 px so the
+label can remain adjacent to its owner. Parent sequence flows dock at the
+sub-process perimeter; child flows remain inside.
 
 A collapsed sub-process uses normal activity dimensions in its parent. Its child
 plane is normalized independently and has no coordinate relationship to the
@@ -376,14 +381,23 @@ receive explicit external label DI after final connection docking on each
 diagram plane. Element labels try below, above, left, then right. Labels on
 horizontal connection segments try above then below; labels on vertical
 segments try right then left. Connection candidates begin at the central
-segment and move toward neighboring segments and segment ends.
+segment and move toward neighboring segments and segment ends. Collinearly
+shared portions are deferred until every unique portion of the owning
+connection has been tried, so a label remains attributable when several flows
+share a trunk.
 
 Candidates may not overlap non-container shapes, connection interiors, or
 already placed labels. They may not straddle lane, participant, or expanded
-sub-process borders, and participant headers remain clear. If every preferred
-position is occupied, an expanding search chooses the nearest collision-free
-position without changing connection routes. Unknown visual elements do not
-receive task-sized fallback geometry.
+sub-process borders; participant headers and named expanded-subprocess title
+areas remain clear. Title areas use a fixed 28 px height and a centered width
+derived from the subprocess name; multiline titles do not increase the reserved
+height. The shortest straight attachment from a label to its
+owning shape or connection may not enter an unrelated non-container shape. If every preferred position is
+occupied, an expanding search preserves the nearest conventional fallback
+when its attachment remains clear. If that fallback would be visually
+detached, the search chooses the collision-free candidate nearest to the owner
+without changing connection routes. Unknown visual elements do not receive
+task-sized fallback geometry.
 
 ## Implementation map
 

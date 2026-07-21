@@ -57,27 +57,45 @@
     <bpmndi:BPMNPlane id="BPMNPlane_Process_1" bpmnElement="Process_1">
       <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
         <dc:Bounds x="80" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="53" y="143" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_ExclusiveGateway_1pew5ft" bpmnElement="ExclusiveGateway_1pew5ft" isMarkerVisible="true">
         <dc:Bounds x="216" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="196" y="76" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Task_0dqmpit" bpmnElement="Task_0dqmpit">
         <dc:Bounds x="366" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_ExclusiveGateway_17yfy5y" bpmnElement="ExclusiveGateway_17yfy5y" isMarkerVisible="true">
         <dc:Bounds x="766" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="746" y="76" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_EndEvent_1spdoas" bpmnElement="EndEvent_1spdoas">
         <dc:Bounds x="916" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="889" y="143" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_ExclusiveGateway_1gto2rc" bpmnElement="ExclusiveGateway_1gto2rc" isMarkerVisible="true">
         <dc:Bounds x="391" y="255" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="371" y="236" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Task_1w6vgtl" bpmnElement="Task_1w6vgtl">
         <dc:Bounds x="566" y="240" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_ExclusiveGateway_0f2qh4c" bpmnElement="ExclusiveGateway_0f2qh4c" isMarkerVisible="true">
         <dc:Bounds x="766" y="255" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="821" y="273" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Task_09y0vk9" bpmnElement="Task_09y0vk9">
         <dc:Bounds x="566" y="400" width="100" height="80" />

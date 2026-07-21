@@ -143,6 +143,9 @@
     <bpmndi:BPMNPlane id="BPMNPlane_template-enforcing-sla-1ktq8my" bpmnElement="template-enforcing-sla-1ktq8my">
       <bpmndi:BPMNShape id="BPMNShape_InquiryFromUserReceivedStartEvent" bpmnElement="InquiryFromUserReceivedStartEvent">
         <dc:Bounds x="460" y="121" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="433" y="162" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_AnswerInquireTask" bpmnElement="AnswerInquireTask">
         <dc:Bounds x="596" y="99" width="100" height="80" />
@@ -152,27 +155,45 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_OneDayTimer" bpmnElement="OneDayTimer">
         <dc:Bounds x="1146" y="121" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1119" y="162" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_ReplyReceivedMessage" bpmnElement="ReplyReceivedMessage">
         <dc:Bounds x="1146" y="281" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1119" y="322" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_ReplyNotReceivedEvent" bpmnElement="ReplyNotReceivedEvent">
         <dc:Bounds x="1314" y="121" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1287" y="162" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_ReplyLoggedEvent" bpmnElement="ReplyLoggedEvent">
         <dc:Bounds x="1482" y="281" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1455" y="322" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_LogReplyTask" bpmnElement="LogReplyTask">
         <dc:Bounds x="1282" y="259" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_0mvom7y" bpmnElement="Event_0mvom7y">
         <dc:Bounds x="828" y="281" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="801" y="322" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_SendResponseTask" bpmnElement="SendResponseTask">
         <dc:Bounds x="796" y="99" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_RetractionReceivedEvent" bpmnElement="RetractionReceivedEvent">
         <dc:Bounds x="628" y="161" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="541" y="202" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_SLACheckEventSubprocess" bpmnElement="SLACheckEventSubprocess" isExpanded="true">
         <dc:Bounds x="460" y="419" width="452" height="160" />
@@ -224,9 +245,15 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BPMNShape_EveryTwoDaysStartEvent" bpmnElement="EveryTwoDaysStartEvent">
         <dc:Bounds x="500" y="481" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="473" y="522" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_EscalationEmailSentEndEvent" bpmnElement="EscalationEmailSentEndEvent">
         <dc:Bounds x="836" y="481" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="809" y="522" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_SendEscalationEmailTask" bpmnElement="SendEscalationEmailTask">
         <dc:Bounds x="636" y="459" width="100" height="80" />
