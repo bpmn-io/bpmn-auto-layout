@@ -45,7 +45,6 @@ describe('Layout', function() {
       'invalid-message-flow-endpoint.bpmn': 'INVALID_MESSAGE_FLOW_ENDPOINT',
       'invalid-participant-process-reference.bpmn': 'INVALID_PARTICIPANT_PROCESS_REFERENCE',
       'invalid-sequence-flow-endpoint.bpmn': 'INVALID_SEQUENCE_FLOW_ENDPOINT',
-      'routing-impossible.bpmn': 'ROUTING_FAILED',
       'unknown-visual-type.bpmn': 'UNSUPPORTED_ELEMENT',
       'unmatched-link-event.bpmn': 'INVALID_LINK_EVENT_PAIR',
       'unsupported-visual-element.bpmn': 'UNSUPPORTED_ELEMENT'
@@ -1512,6 +1511,92 @@ describe('Layout', function() {
         );
 
       assert.strictEqual(sideCenter, true);
+    });
+
+    it('should route sequence flows across intervening lanes', async function() {
+      const xml = fs.readFileSync(path.join(fixturesDirectory, 'lane.skipping-lanes.bpmn'), 'utf8');
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new Map(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const edges = new Map(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
+        .map(element => [ element.bpmnElement.id, element ]));
+      const flowIds = [ 'Flow_1lf50qy', 'Flow_04isu9o', 'Flow_1h8ne59', 'Flow_0z6vw5i' ];
+      const skippingFlowIds = [ 'Flow_1lf50qy', 'Flow_0z6vw5i' ];
+      const laneIds = [ 'Lane_1aqmqfw', 'Lane_1lthzsc', 'Lane_0ejty5h' ];
+      const laneMembership = new Map([
+        [ 'StartEvent_1', 'Lane_1aqmqfw' ],
+        [ 'Event_09mzq9k', 'Lane_1aqmqfw' ],
+        [ 'Activity_0a9f0ti', 'Lane_1lthzsc' ],
+        [ 'Activity_01w7lv4', 'Lane_0ejty5h' ],
+        [ 'Activity_0p343mz', 'Lane_0ejty5h' ]
+      ]);
+
+      assert.ok(flowIds.every(flowId => edges.has(flowId)));
+
+      for (const edge of edges.values()) {
+        assert.ok(edge.waypoint.every((point, index) => {
+          if (index === 0) {
+            return true;
+          }
+
+          const previous = edge.waypoint[index - 1];
+
+          return point.x === previous.x || point.y === previous.y;
+        }));
+      }
+
+      for (const flowId of skippingFlowIds) {
+        const edge = edges.get(flowId);
+        const source = shapes.get(edge.bpmnElement.sourceRef.id);
+        const target = shapes.get(edge.bpmnElement.targetRef.id);
+        const start = edge.waypoint[0];
+        const afterStart = edge.waypoint[1];
+        const beforeEnd = edge.waypoint.at(-2);
+        const end = edge.waypoint.at(-1);
+        const startsOutward =
+          (start.y === source.y && afterStart.y < start.y) ||
+          (start.y === source.y + source.height && afterStart.y > start.y) ||
+          (start.x === source.x && afterStart.x < start.x) ||
+          (start.x === source.x + source.width && afterStart.x > start.x);
+        const endsOutward =
+          (end.y === target.y && beforeEnd.y < end.y) ||
+          (end.y === target.y + target.height && beforeEnd.y > end.y) ||
+          (end.x === target.x && beforeEnd.x < end.x) ||
+          (end.x === target.x + target.width && beforeEnd.x > end.x);
+
+        assert.ok(startsOutward);
+        assert.ok(endsOutward);
+      }
+
+      for (const [ nodeId, laneId ] of laneMembership) {
+        const node = shapes.get(nodeId);
+        const lane = shapes.get(laneId);
+
+        assert.ok(node.x >= lane.x);
+        assert.ok(node.y >= lane.y);
+        assert.ok(node.x + node.width <= lane.x + lane.width);
+        assert.ok(node.y + node.height <= lane.y + lane.height);
+      }
+
+      const participant = shapes.get('Participant_0ii8jx1');
+
+      for (const laneId of laneIds) {
+        const lane = shapes.get(laneId);
+
+        assert.ok(lane.x >= participant.x);
+        assert.ok(lane.y >= participant.y);
+        assert.ok(lane.x + lane.width <= participant.x + participant.width);
+        assert.ok(lane.y + lane.height <= participant.y + participant.height);
+      }
+
+      const metrics = await evaluateMetrics(output);
+
+      assert.strictEqual(metrics.current.edgeShapeIntersections, 0);
+      assert.strictEqual(metrics.current.wrongWayDockings, 0);
     });
 
     it('should preserve semantic rows inside lanes', async function() {
