@@ -1,5 +1,8 @@
 import { BpmnModdle } from 'bpmn-moddle';
 
+import { FLOW_LABEL_INDENT } from '../../lib/layout/Constants.js';
+import { externalLabelSize } from '../../lib/layout/LabelLayouter.js';
+
 const moddle = new BpmnModdle();
 
 /**
@@ -537,11 +540,6 @@ function averageEdgeLength(edges) {
 
 // label/shape overlaps /////////////////////////////////////////////
 
-const FLOW_LABEL_INDENT = 15;
-const FLOW_LABEL_MAX_WIDTH = 90;
-const FLOW_LABEL_HEIGHT = 14;
-const FLOW_LABEL_CHARACTER_WIDTH = 6;
-
 function findLabelShapeOverlaps(shapes, edges) {
   const labels = collectLabelBounds(shapes, edges);
   const obstacles = shapes.filter(shape => {
@@ -607,7 +605,7 @@ function implicitFlowLabelBounds(edge) {
   }
 
   const position = flowLabelPosition(edge.waypoints);
-  const { width, height } = estimateFlowLabelSize(edge.name);
+  const { width, height } = externalLabelSize(edge.name);
 
   return {
     x: position.x - width / 2,
@@ -628,36 +626,6 @@ function flowLabelPosition(waypoints) {
     ? { x, y: y - FLOW_LABEL_INDENT }
     : { x: x + FLOW_LABEL_INDENT, y };
 }
-
-function estimateFlowLabelSize(text) {
-  const words = text.trim().split(/\s+/);
-  const lines = [];
-  let line = '';
-
-  for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word;
-
-    if (line && candidate.length * FLOW_LABEL_CHARACTER_WIDTH > FLOW_LABEL_MAX_WIDTH) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = candidate;
-    }
-  }
-
-  if (line) {
-    lines.push(line);
-  }
-
-  return {
-    width: Math.min(
-      FLOW_LABEL_MAX_WIDTH,
-      Math.max(...lines.map(line => line.length * FLOW_LABEL_CHARACTER_WIDTH))
-    ),
-    height: lines.length * FLOW_LABEL_HEIGHT
-  };
-}
-
 
 // polish metrics ///////////////////////////////////////////////////
 

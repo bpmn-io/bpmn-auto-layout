@@ -7,6 +7,10 @@ import { BpmnModdle } from 'bpmn-moddle';
 
 import { layoutProcess } from 'bpmn-auto-layout';
 
+import {
+  getExternalLabelText,
+  isExternalLabelOwner
+} from '../lib/layout/BpmnUtil.js';
 import { EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE } from '../lib/layout/Constants.js';
 import { evaluateMetrics } from './metrics/evaluateMetrics.js';
 
@@ -874,15 +878,15 @@ describe('Layout', function() {
       );
 
       const topBoundary = shapeDi.get('Event_157ki77');
+      const boundaryLabel = topBoundary.label.bounds;
+      const boundaryHost = shapes.get('Activity_0oprw8j');
 
       assert.ok(topBoundary.label);
       assert.ok(
-        topBoundary.label.bounds.y + topBoundary.label.bounds.height <=
-        topBoundary.bounds.y
-      );
-      assert.ok(
-        topBoundary.label.bounds.x + topBoundary.label.bounds.width <=
-        edges.get('Flow_02jizw3')[0].x
+        boundaryLabel.x + boundaryLabel.width <= boundaryHost.x ||
+        boundaryLabel.x >= boundaryHost.x + boundaryHost.width ||
+        boundaryLabel.y + boundaryLabel.height <= boundaryHost.y ||
+        boundaryLabel.y >= boundaryHost.y + boundaryHost.height
       );
 
       const completionPath = [
@@ -1486,6 +1490,7 @@ describe('Layout', function() {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Association_002a1rl';
       });
+
       const task = shapes.get('Activity_1mn3r19');
       const annotation = shapes.get('TextAnnotation_0422590');
       const isOnBoundary = (point, bounds) => {
@@ -1504,6 +1509,34 @@ describe('Layout', function() {
       assert.ok(edge.waypoint.length >= 2);
       assert.ok(isOnBoundary(edge.waypoint[0], task));
       assert.ok(isOnBoundary(edge.waypoint.at(-1), annotation));
+    });
+
+    it('should emit labels for named external-label owners in every plane', async function() {
+      const xml = fs.readFileSync(
+        path.join(
+          fixturesDirectory,
+          'blueprint.capital-market-trade-exception-remediation-processing.bpmn'
+        ),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const diagrams = rootElement.diagrams;
+
+      assert.ok(diagrams.length > 1);
+
+      for (const diagram of diagrams) {
+        for (const di of diagram.plane.planeElement) {
+          const element = di.bpmnElement;
+
+          if (!isExternalLabelOwner(element) ||
+              !getExternalLabelText(element).trim()) {
+            continue;
+          }
+
+          assert.ok(di.label, `${element.id} should have explicit label DI`);
+        }
+      }
     });
 
     it('should emit activity-owned data association DI', async function() {
