@@ -22,10 +22,11 @@ const moddle = new BpmnModdle();
  *
  * - `crossings`                   — edge-segment pairs that properly cross.
  * - `bendCount`                   — direction changes in edge waypoint paths.
- * - `edgeLength`                  — total edge waypoint-polyline length.
+ * - `averageEdgeLength`           — average edge waypoint-polyline length.
  * - `edgeSegmentLengthDeviation`  — standard deviation of segment lengths.
- * - `labelShapeOverlaps`          — external labels that overlap flow-node
- *                                   shapes.
+ * - `labelShapeOverlaps`          — external labels that overlap non-container
+ *                                   flow-node shapes.
+ * - `labelEdgeOverlaps`           — labels that overlap connection interiors.
  * - `compactness`                 — flow-node area as a percentage of the
  *                                   flow-node and sequence-flow bounding box.
  * - `gridAlignment`               — percentage of flow nodes participating in
@@ -44,15 +45,20 @@ const moddle = new BpmnModdle();
  *   edgeShapeIntersections: number,
  *   wrongWayDockings: number,
  *   bendCount: number,
- *   edgeLength: number,
+ *   averageEdgeLength: number,
  *   edgeSegmentLengthDeviation: number,
  *   labelShapeOverlaps: number,
+ *   labelEdgeOverlaps: number,
  *   compactness: number,
  *   gridAlignment: number,
  *   branchSymmetry: number
  * }>}
  */
 export async function computeMetrics(xml) {
+  return (await analyzeMetrics(xml)).metrics;
+}
+
+export async function analyzeMetrics(xml) {
   const { rootElement: definitions } = await moddle.fromXML(xml);
 
   const planes = [];
@@ -78,20 +84,33 @@ export async function computeMetrics(xml) {
     planes.push({ shapes, edges });
   }
 
+  const findings = {
+    crossings: planes.flatMap(plane => findCrossings(plane.edges)),
+    overlaps: planes.flatMap(plane => findOverlaps(plane.shapes)),
+    edgeShapeIntersections: planes.flatMap(plane => findEdgeShapeIntersections(plane.edges, plane.shapes)),
+    wrongWayDockings: planes.flatMap(plane => findWrongWayDockings(plane.edges, plane.shapes)),
+    labelShapeOverlaps: planes.flatMap(plane => findLabelShapeOverlaps(plane.shapes, plane.edges)),
+    labelEdgeOverlaps: planes.flatMap(plane => findLabelEdgeOverlaps(plane.shapes, plane.edges))
+  };
+
   return {
+    metrics: {
     shapeCount: sum(planes, plane => plane.shapes.length),
     edgeCount: sum(planes, plane => plane.edges.length),
-    crossings: sum(planes, plane => countCrossings(plane.edges)),
-    overlaps: sum(planes, plane => countOverlaps(plane.shapes)),
-    edgeShapeIntersections: sum(planes, plane => countEdgeShapeIntersections(plane.edges, plane.shapes)),
-    wrongWayDockings: sum(planes, plane => countWrongWayDockings(plane.edges, plane.shapes)),
+    crossings: findings.crossings.length,
+    overlaps: findings.overlaps.length,
+    edgeShapeIntersections: findings.edgeShapeIntersections.length,
+    wrongWayDockings: findings.wrongWayDockings.length,
     bendCount: sum(planes, plane => countBends(plane.edges)),
-    edgeLength: Math.round(sum(planes, plane => totalEdgeLength(plane.edges))),
+    averageEdgeLength: averageEdgeLength(planes.flatMap(plane => plane.edges)),
     edgeSegmentLengthDeviation: roundScore(segmentLengthDeviation(planes)),
-    labelShapeOverlaps: sum(planes, plane => countLabelShapeOverlaps(plane.shapes, plane.edges)),
+    labelShapeOverlaps: findings.labelShapeOverlaps.length,
+    labelEdgeOverlaps: findings.labelEdgeOverlaps.length,
     compactness: roundScore(compactness(planes)),
     gridAlignment: roundScore(gridAlignment(planes)),
     branchSymmetry: roundScore(branchSymmetry(planes))
+    },
+    findings
   };
 }
 
@@ -158,8 +177,8 @@ function toLabelBounds(label) {
 
 // node overlaps ///////////////////////////////////////////////////
 
-function countOverlaps(shapes) {
-  let count = 0;
+function findOverlaps(shapes) {
+  const findings = [];
 
   for (let i = 0; i < shapes.length; i++) {
     for (let j = i + 1; j < shapes.length; j++) {
@@ -184,11 +203,14 @@ function countOverlaps(shapes) {
         continue;
       }
 
-      count++;
+      findings.push({
+        shapeIds: [ a.id, b.id ],
+        bounds: intersectionBounds(a, b)
+      });
     }
   }
 
-  return count;
+  return findings;
 }
 
 function rectanglesOverlap(a, b) {
@@ -205,27 +227,42 @@ function contains(outer, inner) {
     inner.y + inner.height <= outer.y + outer.height;
 }
 
+function intersectionBounds(a, b) {
+  const x = Math.max(a.x, b.x);
+  const y = Math.max(a.y, b.y);
+
+  return {
+    x,
+    y,
+    width: Math.min(a.x + a.width, b.x + b.width) - x,
+    height: Math.min(a.y + a.height, b.y + b.height) - y
+  };
+}
+
 
 // edge crossings //////////////////////////////////////////////////
 
-function countCrossings(edges) {
+function findCrossings(edges) {
   const segments = edges.map(edge => toSegments(edge.waypoints));
 
-  let count = 0;
+  const findings = [];
 
   for (let i = 0; i < segments.length; i++) {
     for (let j = i + 1; j < segments.length; j++) {
       for (const s of segments[i]) {
         for (const t of segments[j]) {
           if (segmentsProperlyCross(s[0], s[1], t[0], t[1])) {
-            count++;
+            findings.push({
+              edgeIds: [ edges[i].id, edges[j].id ],
+              point: segmentIntersection(s[0], s[1], t[0], t[1])
+            });
           }
         }
       }
     }
   }
 
-  return count;
+  return findings;
 }
 
 function toSegments(waypoints) {
@@ -256,6 +293,20 @@ function direction(a, b, c) {
   return Math.sign((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x));
 }
 
+function segmentIntersection(a, b, c, d) {
+  const abX = b.x - a.x;
+  const abY = b.y - a.y;
+  const cdX = d.x - c.x;
+  const cdY = d.y - c.y;
+  const denominator = abX * cdY - abY * cdX;
+  const t = ((c.x - a.x) * cdY - (c.y - a.y) * cdX) / denominator;
+
+  return {
+    x: a.x + t * abX,
+    y: a.y + t * abY
+  };
+}
+
 
 // edge/shape intersections ////////////////////////////////////////
 
@@ -268,8 +319,8 @@ const INTERSECTION_MARGIN = 2;
  * shape. The edge's own source and target are excluded, as are containers and
  * boundary events and text annotations.
  */
-function countEdgeShapeIntersections(edges, shapes) {
-  let count = 0;
+function findEdgeShapeIntersections(edges, shapes) {
+  const findings = [];
 
   for (const edge of edges) {
     for (const shape of shapes) {
@@ -288,12 +339,16 @@ function countEdgeShapeIntersections(edges, shapes) {
       }
 
       if (edgeEntersRect(edge.waypoints, rect)) {
-        count++;
+        findings.push({
+          edgeId: edge.id,
+          shapeId: shape.id,
+          bounds: rect
+        });
       }
     }
   }
 
-  return count;
+  return findings;
 }
 
 function inset(shape, margin) {
@@ -368,13 +423,17 @@ function segmentEntersRect(p1, p2, rect) {
 
 const DOCKING_TOLERANCE = 1e-6;
 
-function countWrongWayDockings(edges, shapes) {
+function findWrongWayDockings(edges, shapes) {
   const shapeById = new Map(shapes.map(shape => [ shape.id, shape ]));
-  let count = 0;
+  const findings = [];
 
   for (const edge of edges) {
     if (edge.waypoints.length < 2) {
-      count++;
+      findings.push({
+        edgeId: edge.id,
+        endpoint: edge.waypoints[0] || null,
+        shapeId: null
+      });
       continue;
     }
 
@@ -383,7 +442,11 @@ function countWrongWayDockings(edges, shapes) {
 
     if (source && !source.isArtifact &&
         dockingIsWrong(edge.waypoints[0], edge.waypoints[1], source)) {
-      count++;
+      findings.push({
+        edgeId: edge.id,
+        endpoint: edge.waypoints[0],
+        shapeId: source.id
+      });
     }
 
     if (target && !target.isArtifact && dockingIsWrong(
@@ -391,11 +454,15 @@ function countWrongWayDockings(edges, shapes) {
       edge.waypoints.at(-2),
       target
     )) {
-      count++;
+      findings.push({
+        edgeId: edge.id,
+        endpoint: edge.waypoints.at(-1),
+        shapeId: target.id
+      });
     }
   }
 
-  return count;
+  return findings;
 }
 
 function dockingIsWrong(endpoint, adjacent, shape) {
@@ -446,9 +513,13 @@ function near(a, b) {
 }
 
 
-// edge length /////////////////////////////////////////////////////
+// average edge length /////////////////////////////////////////////
 
-function totalEdgeLength(edges) {
+function averageEdgeLength(edges) {
+  if (!edges.length) {
+    return 0;
+  }
+
   let total = 0;
 
   for (const { waypoints } of edges) {
@@ -460,7 +531,7 @@ function totalEdgeLength(edges) {
     }
   }
 
-  return total;
+  return roundScore(total / edges.length);
 }
 
 
@@ -471,30 +542,63 @@ const FLOW_LABEL_MAX_WIDTH = 90;
 const FLOW_LABEL_HEIGHT = 14;
 const FLOW_LABEL_CHARACTER_WIDTH = 6;
 
-function countLabelShapeOverlaps(shapes, edges) {
-  const labels = [
-    ...shapes.map(shape => shape.labelBounds).filter(Boolean),
-    ...edges.flatMap(edge => {
-      const bounds = edge.labelBounds || implicitFlowLabelBounds(edge);
-
-      return bounds ? [ bounds ] : [];
-    })
-  ];
+function findLabelShapeOverlaps(shapes, edges) {
+  const labels = collectLabelBounds(shapes, edges);
   const obstacles = shapes.filter(shape => {
-    return shape.isFlowNode && !shape.isBoundary && !shape.isArtifact;
+    return shape.isFlowNode && !shape.isContainer && !shape.isBoundary && !shape.isArtifact;
   });
 
-  let count = 0;
+  const findings = [];
 
   for (const label of labels) {
     for (const shape of obstacles) {
       if (rectanglesOverlap(label, shape)) {
-        count++;
+        findings.push({
+          label,
+          shapeId: shape.id
+        });
       }
     }
   }
 
-  return count;
+  return findings;
+}
+
+function findLabelEdgeOverlaps(shapes, edges) {
+  const labels = collectLabelBounds(shapes, edges);
+  const findings = [];
+
+  for (const label of labels) {
+    for (const edge of edges) {
+      if (edgeEntersRect(edge.waypoints, label)) {
+        findings.push({
+          label,
+          edgeId: edge.id
+        });
+      }
+    }
+  }
+
+  return findings;
+}
+
+function collectLabelBounds(shapes, edges) {
+  return [
+    ...shapes.flatMap(shape => {
+      return shape.labelBounds ? [ {
+        ...shape.labelBounds,
+        ownerId: shape.id
+      } ] : [];
+    }),
+    ...edges.flatMap(edge => {
+      const bounds = edge.labelBounds || implicitFlowLabelBounds(edge);
+
+      return bounds ? [ {
+        ...bounds,
+        ownerId: edge.id
+      } ] : [];
+    })
+  ];
 }
 
 function implicitFlowLabelBounds(edge) {

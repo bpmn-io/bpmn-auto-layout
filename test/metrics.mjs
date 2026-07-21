@@ -106,6 +106,7 @@ function formatRow(fixture, metrics, base) {
 
 function formatTotalRow(results, baseline) {
   const averageKeys = new Set([
+    'averageEdgeLength',
     'edgeSegmentLengthDeviation',
     'compactness',
     'gridAlignment',
