@@ -43,6 +43,7 @@ the algorithm and geometry contract.
 ## Resources
 
 * [Layout engine](./docs/LAYOUT.md) — design, algorithm, and geometry rules
+* [Layout walkthrough](./docs/WALKTHROUGH.md) — end-to-end boundary error-event example
 * [Issues](https://github.com/bpmn-io/bpmn-auto-layout/issues)
 
 ## Build and Run

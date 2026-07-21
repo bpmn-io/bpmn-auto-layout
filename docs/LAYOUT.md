@@ -1,10 +1,13 @@
-# BPMN layout engine
+# How layout works
 
 This document describes the layout produced by `bpmn-auto-layout` and the
 algorithm that produces it. The implementation is
 [`Layouter`](../lib/Layouter.js); executable behavior lives
 in [`LayoutSpec.js`](../test/LayoutSpec.js) and the reviewed
 [fixture corpus](../test/fixtures).
+
+For a concrete trace through every pipeline stage, see the
+[boundary-error-event walkthrough](./WALKTHROUGH.md).
 
 ## Contract
 
