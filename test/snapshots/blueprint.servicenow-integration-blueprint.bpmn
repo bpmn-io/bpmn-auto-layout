@@ -407,6 +407,15 @@ Sys ID</bpmn:text>
       <bpmndi:BPMNShape id="BPMNShape_Participant_0n8sxbs" bpmnElement="Participant_0n8sxbs" isHorizontal="true">
         <dc:Bounds x="80" y="170" width="484" height="880" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_0x7bk0n" bpmnElement="TextAnnotation_0x7bk0n">
+        <dc:Bounds x="80" y="102" width="140" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_16pogf8" bpmnElement="TextAnnotation_16pogf8">
+        <dc:Bounds x="220" y="102" width="140" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_03lm1hc" bpmnElement="TextAnnotation_03lm1hc">
+        <dc:Bounds x="360" y="110" width="140" height="40" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0poa6sl" bpmnElement="Flow_0poa6sl">
         <di:waypoint x="338" y="1010" />
         <di:waypoint x="338" y="1090" />
@@ -625,13 +634,13 @@ Sys ID</bpmn:text>
       <bpmndi:BPMNShape id="BPMNShape_DataStoreReference_1h5x2ab" bpmnElement="DataStoreReference_1h5x2ab">
         <dc:Bounds x="120" y="80" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="100" y="135" width="90" height="14" />
+          <dc:Bounds x="100" y="61" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_DataStoreReference_1xbhi43" bpmnElement="DataStoreReference_1xbhi43">
         <dc:Bounds x="180" y="80" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="160" y="61" width="90" height="14" />
+          <dc:Bounds x="240" y="75" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1fwd0pf" bpmnElement="Flow_1fwd0pf">

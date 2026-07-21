@@ -246,23 +246,28 @@ traversable; flow-node shapes in intervening lanes remain routing obstacles.
 ### Artifacts
 
 Text annotations, data object references, and data store references are a
-post-routing decoration pass. They do not affect ranks, bands, process-shape
-placement, or sequence-flow routing.
+post-routing decoration pass for process, sub-process, and collaboration
+scopes. They do not affect ranks, bands, process-shape placement, or
+sequence-flow routing.
 
 Text annotation dimensions are derived from deterministic word wrapping across
 several candidate widths. Placement evaluates positions above, below, left, and
-right of the associated owner, sliding along each side when needed. Candidates
-must stay clear of process shapes and previously placed artifacts. The score
-then minimizes process-edge intersections, association crossings and length,
-unreadable annotation aspect ratios, diagram expansion, and displacement from
-the preferred side. Boundary events reserve additional space for their outward
-handler channels. Long and multiply-associated artifacts are placed first.
-Text annotations and data store references prefer the nearest clear position
-inside an enclosing expanded subprocess or owner lane. An annotation associated
-with an expanded-subprocess child retains two routing-margin units of clearance
-from nearby elements and the subprocess border. They may be placed fully
-outside when that produces cleaner association geometry, but candidates may not straddle a
-subprocess or lane border, or overlap a participant header.
+right of the associated owner, sliding along each side when needed. Every
+artifact candidate must stay clear of process shapes, sequence flows, message
+flows, and previously placed artifacts. Among valid positions, routed
+association length is the
+primary cost, with a bounded penalty for non-straight associations so a
+near-shortest single horizontal or vertical segment is preferred over a
+diagonal or bent route. Readable annotation aspect ratio, association crossings,
+diagram expansion, and displacement from the preferred side break later ties.
+Boundary events reserve additional space for their outward handler channels.
+Long and multiply-associated artifacts are placed first. Text annotations may
+be placed in the outermost diagram scope regardless of their semantic owner.
+They must be wholly inside or wholly outside every subprocess, lane, and
+participant, never crossing a container edge. Participant header strips are
+also reserved. For process-owned annotations in a collaboration, the future
+participant boundary is derived before exterior artifacts are placed, using
+the same content extents and padding as final participant sizing.
 Participant bounds are derived from process containers and flow shapes rather
 than exterior decorations, while participant spacing still accounts for the
 decorations' complete footprint. Data object references remain fully contained
@@ -270,9 +275,13 @@ in their owner's lane.
 
 Data object and data store references retain their standard dimensions but use
 the same obstacle-aware search. Resolvable associations are routed after both
-bounds are known, including associations from a parent-scope artifact to a
-visible element inside an expanded subprocess. Connections still treat artifacts as transparent, and
-artifact intersections remain excluded from hard geometry defects.
+bounds are known, including associations from a parent- or collaboration-scope
+artifact to a visible element inside an expanded subprocess or participant
+process. Artifact placement admits only candidates whose direct association
+segments clear flow-node shapes, so associations always have exactly two
+waypoints and never introduce bendpoints. Connections still treat artifacts as
+transparent, and artifact
+intersections remain excluded from hard geometry defects.
 
 Groups are placed after artifacts and routing. Membership is explicit: a node
 or connection belongs to a group when its `categoryValueRef` contains the

@@ -24,24 +24,31 @@
   <bpmndi:BPMNDiagram id="BPMNDiagram_Collaboration_0miitr7">
     <bpmndi:BPMNPlane id="BPMNPlane_Collaboration_0miitr7" bpmnElement="Collaboration_0miitr7">
       <bpmndi:BPMNShape id="BPMNShape_Participant_0dn1mrm" bpmnElement="Participant_0dn1mrm" isHorizontal="true">
-        <dc:Bounds x="80" y="80" width="452" height="160" />
+        <dc:Bounds x="80" y="120" width="452" height="160" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_10vp4h9" bpmnElement="TextAnnotation_10vp4h9">
+        <dc:Bounds x="236" y="80" width="140" height="40" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Association_1hrjlgq" bpmnElement="Association_1hrjlgq">
+        <di:waypoint x="306" y="160" />
+        <di:waypoint x="306" y="120" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BPMNShape_Event_11e0moa" bpmnElement="Event_11e0moa">
-        <dc:Bounds x="120" y="142" width="36" height="36" />
+        <dc:Bounds x="120" y="182" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_0djri8w" bpmnElement="Activity_0djri8w">
-        <dc:Bounds x="256" y="120" width="100" height="80" />
+        <dc:Bounds x="256" y="160" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_0bf628h" bpmnElement="Event_0bf628h">
-        <dc:Bounds x="456" y="142" width="36" height="36" />
+        <dc:Bounds x="456" y="182" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0yc0bvj" bpmnElement="Flow_0yc0bvj">
-        <di:waypoint x="156" y="160" />
-        <di:waypoint x="256" y="160" />
+        <di:waypoint x="156" y="200" />
+        <di:waypoint x="256" y="200" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_00axdyc" bpmnElement="Flow_00axdyc">
-        <di:waypoint x="356" y="160" />
-        <di:waypoint x="456" y="160" />
+        <di:waypoint x="356" y="200" />
+        <di:waypoint x="456" y="200" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

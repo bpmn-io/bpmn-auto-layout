@@ -47,23 +47,6 @@ function getCollaborationArtifacts(rootElement) {
  return collaboration?.artifacts || [];
 }
 
-function getCollaborationArtifactWarnings(rootElement, includeMessage = false) {
- return getCollaborationArtifacts(rootElement)
-    .filter(element => {
-      return element.$instanceOf('bpmn:TextAnnotation') ||
-        element.$instanceOf('bpmn:Association');
-    })
-    .map(element => ({
-      code: 'DI_NOT_CREATED',
-      elementId: element.id,
-      ...(includeMessage ? {
-        message: `No BPMN DI was created for visual BPMN element "${ element.$type }".`
-      } : {}),
-      relatedElementIds: []
-    }));
-}
-
-
 describe('Layout', function() {
 
   before(function() {
@@ -1513,6 +1496,86 @@ describe('Layout', function() {
       assert.strictEqual(edge.waypoint.at(-1).y, annotation.y + annotation.height);
     });
 
+    it('should keep data artifacts clear of sequence flows', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'data-object-and-store.basic.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const artifacts = elements.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNShape') && (
+          element.bpmnElement.$instanceOf('bpmn:DataObjectReference') ||
+          element.bpmnElement.$instanceOf('bpmn:DataStoreReference')
+        );
+      });
+      const sequenceFlows = elements.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.$instanceOf('bpmn:SequenceFlow');
+      });
+
+      for (const { bounds } of artifacts) {
+        for (const { waypoint } of sequenceFlows) {
+          for (let index = 1; index < waypoint.length; index++) {
+            const start = waypoint[index - 1];
+            const end = waypoint[index];
+            const crossesInterior = start.x === end.x
+              ? start.x > bounds.x &&
+                start.x < bounds.x + bounds.width &&
+                Math.max(start.y, end.y) > bounds.y &&
+                Math.min(start.y, end.y) < bounds.y + bounds.height
+              : start.y > bounds.y &&
+                start.y < bounds.y + bounds.height &&
+                Math.max(start.x, end.x) > bounds.x &&
+                Math.min(start.x, end.x) < bounds.x + bounds.width;
+
+            assert.strictEqual(crossesInterior, false);
+          }
+        }
+      }
+    });
+
+    it('should route artifact associations without bendpoints', async function() {
+      for (const fixture of [
+        'camunda-8-tutorials.order-fulfillment.bpmn',
+        'camunda-8-tutorials.ai-agent-chat-with-tools.bpmn'
+      ]) {
+        const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
+        const output = await layoutProcess(xml);
+        const { rootElement } = await new BpmnModdle().fromXML(output);
+        const associations = rootElement.diagrams[0].plane.planeElement.filter(element => {
+          return element.$instanceOf('bpmndi:BPMNEdge') &&
+            element.bpmnElement.$instanceOf('bpmn:Association');
+        });
+
+        assert.ok(associations.length > 0);
+        assert.ok(associations.every(edge => edge.waypoint.length === 2), fixture);
+      }
+    });
+
+    it('should place tool annotations directly below their owner', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'camunda-8-tutorials.ai-agent-chat-with-tools.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new Map(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const edge = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === 'Association_1bz0b4g';
+      });
+      const task = shapes.get('Jokes_API');
+      const annotation = shapes.get('TextAnnotation_01jo4ud');
+
+      assert.ok(annotation.y >= task.y + task.height);
+      assert.strictEqual(edge.waypoint[0].x, edge.waypoint[1].x);
+    });
+
     it('should associate parent-scope annotations with expanded subprocess contents', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'text-annotation.expanded-subprocess.bpmn'),
@@ -1974,26 +2037,164 @@ describe('Layout', function() {
       );
     });
 
-    it('should warn for collaboration artifacts without generated DI', async function() {
+    it('should lay out collaboration artifacts', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'artifact.collaboration-association.bpmn'),
         'utf8'
       );
       const { rootElement } = await new BpmnModdle().fromXML(xml);
       const result = await layoutProcessResult(xml);
-      const expectedWarnings = getCollaborationArtifactWarnings(rootElement);
+      const { rootElement: outputRoot } = await new BpmnModdle().fromXML(result.xml);
+      const artifacts = getCollaborationArtifacts(rootElement);
+      const annotation = artifacts.find(element => {
+        return element.$instanceOf('bpmn:TextAnnotation');
+      });
+      const association = artifacts.find(element => {
+        return element.$instanceOf('bpmn:Association');
+      });
+      const elements = outputRoot.diagrams[0].plane.planeElement;
+      const annotationShape = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNShape') &&
+          element.bpmnElement.id === annotation.id;
+      });
+      const associationEdge = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === association.id;
+      });
 
       assert.deepStrictEqual(
-        getCollaborationArtifacts(rootElement).map(element => element.$type),
+        artifacts.map(element => element.$type),
         [ 'bpmn:TextAnnotation', 'bpmn:Association' ]
       );
-      assert.deepStrictEqual(
-        result.warnings.map(warning => ({
-          code: warning.code,
-          elementId: warning.elementId,
-          relatedElementIds: warning.relatedElementIds
-        })),
-        expectedWarnings
+      assert.ok(annotationShape);
+      assert.ok(associationEdge);
+      assert.ok(associationEdge.waypoint.length >= 2);
+      assert.deepStrictEqual(result.warnings, []);
+    });
+
+    it('should keep collaboration annotations clear of containers and flows', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'camunda-8-tutorials.order-fulfillment.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const planeElements = rootElement.diagrams[0].plane.planeElement;
+      const shapeElements = planeElements.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNShape');
+      });
+      const shapes = new Map(shapeElements
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const participants = shapeElements.filter(element => {
+        return element.bpmnElement.$instanceOf('bpmn:Participant');
+      }).map(element => element.bounds);
+      const annotations = shapeElements.filter(element => {
+        return element.bpmnElement.$instanceOf('bpmn:TextAnnotation');
+      }).map(element => element.bounds);
+      const flowEdges = planeElements.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') && (
+          element.bpmnElement.$instanceOf('bpmn:SequenceFlow') ||
+          element.bpmnElement.$instanceOf('bpmn:MessageFlow')
+        );
+      });
+      const overlaps = (a, b) => {
+        return a.x < b.x + b.width &&
+          b.x < a.x + a.width &&
+          a.y < b.y + b.height &&
+          b.y < a.y + a.height;
+      };
+      const isInside = (inner, outer) => {
+        return inner.x >= outer.x &&
+          inner.y >= outer.y &&
+          inner.x + inner.width <= outer.x + outer.width &&
+          inner.y + inner.height <= outer.y + outer.height;
+      };
+      for (const annotationId of [
+        'TextAnnotation_05h8woc',
+        'TextAnnotation_0gbm3kr',
+        'TextAnnotation_048ucyh',
+        'TextAnnotation_0nn4nw5'
+      ]) {
+        const annotation = shapes.get(annotationId);
+
+        assert.ok(participants.every(participant => {
+          return !overlaps(annotation, participant);
+        }), annotationId);
+      }
+
+      for (const annotation of annotations) {
+        for (const participant of participants) {
+          assert.ok(
+            isInside(annotation, participant) || !overlaps(annotation, participant)
+          );
+          assert.strictEqual(overlaps(annotation, {
+            x: participant.x,
+            y: participant.y,
+            width: 30,
+            height: participant.height
+          }), false);
+        }
+
+        for (const edge of flowEdges) {
+          for (let index = 1; index < edge.waypoint.length; index++) {
+            const start = edge.waypoint[index - 1];
+            const end = edge.waypoint[index];
+            const crossesInterior = start.x === end.x
+              ? start.x > annotation.x &&
+                start.x < annotation.x + annotation.width &&
+                Math.max(start.y, end.y) > annotation.y &&
+                Math.min(start.y, end.y) < annotation.y + annotation.height
+              : start.y > annotation.y &&
+                start.y < annotation.y + annotation.height &&
+                Math.max(start.x, end.x) > annotation.x &&
+                Math.min(start.x, end.x) < annotation.x + annotation.width;
+
+            assert.strictEqual(crossesInterior, false);
+          }
+        }
+      }
+    });
+
+    it('should keep process annotations clear of their future participant edge', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'blueprint.car-rental-booking-process.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const annotation = shapes.get('TextAnnotation_car_rental_intro');
+      const participant = shapes.get('Participant_0gpkl5f');
+      const overlaps = annotation.x < participant.x + participant.width &&
+        participant.x < annotation.x + annotation.width &&
+        annotation.y < participant.y + participant.height &&
+        participant.y < annotation.y + annotation.height;
+      const inside = annotation.x >= participant.x &&
+        annotation.y >= participant.y &&
+        annotation.x + annotation.width <= participant.x + participant.width &&
+        annotation.y + annotation.height <= participant.y + participant.height;
+
+      assert.ok(inside || !overlaps);
+    });
+
+    it('should prefer a near-shortest straight annotation association', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'camunda-8-tutorials.absence-request.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const association = rootElement.diagrams[0].plane.planeElement.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === 'Association_absence_intro';
+      });
+      const waypoints = association.waypoint;
+
+      assert.ok(
+        waypoints.every(({ x }) => x === waypoints[0].x) ||
+        waypoints.every(({ y }) => y === waypoints[0].y)
       );
     });
 
@@ -2306,14 +2507,7 @@ describe('Layout', function() {
     }
 
     if (collaborationArtifactWarningFixture) {
-      const { rootElement } = await new BpmnModdle().fromXML(
-        collaborationArtifactWarningFixture.diagram
-      );
-
-      assert.deepStrictEqual(
-        collaborationArtifactWarningFixture.warnings,
-        getCollaborationArtifactWarnings(rootElement, true)
-      );
+      assert.deepStrictEqual(collaborationArtifactWarningFixture.warnings, []);
     }
     assert.ok(index.includes('branchSymmetry'));
     assert.ok(index.includes('labelEdgeOverlaps'));
