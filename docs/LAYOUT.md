@@ -244,17 +244,21 @@ then minimizes process-edge intersections, association crossings and length,
 unreadable annotation aspect ratios, diagram expansion, and displacement from
 the preferred side. Boundary events reserve additional space for their outward
 handler channels. Long and multiply-associated artifacts are placed first.
-Text annotations and data store references may be placed fully outside their
-owner lane when that produces cleaner association geometry. Containment remains
-a soft preference, and candidates may not straddle a lane border or overlap a
-participant header. Participant bounds are derived from process containers and
-flow shapes rather than exterior decorations, while participant spacing still
-accounts for the decorations' complete footprint. Data object references remain
-fully contained in their owner's lane.
+Text annotations and data store references prefer the nearest clear position
+inside an enclosing expanded subprocess or owner lane. An annotation associated
+with an expanded-subprocess child retains two routing-margin units of clearance
+from nearby elements and the subprocess border. They may be placed fully
+outside when that produces cleaner association geometry, but candidates may not straddle a
+subprocess or lane border, or overlap a participant header.
+Participant bounds are derived from process containers and flow shapes rather
+than exterior decorations, while participant spacing still accounts for the
+decorations' complete footprint. Data object references remain fully contained
+in their owner's lane.
 
 Data object and data store references retain their standard dimensions but use
 the same obstacle-aware search. Resolvable associations are routed after both
-bounds are known. Connections still treat artifacts as transparent, and
+bounds are known, including associations from a parent-scope artifact to a
+visible element inside an expanded subprocess. Connections still treat artifacts as transparent, and
 artifact intersections remain excluded from hard geometry defects.
 
 Groups remain semantic-only because BPMN does not identify their visual members.

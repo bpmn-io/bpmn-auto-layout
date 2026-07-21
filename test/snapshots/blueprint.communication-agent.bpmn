@@ -189,10 +189,10 @@ The communication agent also wraps all outgoing communication to keep it consist
         <dc:Bounds x="292" y="80" width="340" height="160" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_1dtxdbk" bpmnElement="TextAnnotation_1dtxdbk">
-        <dc:Bounds x="640" y="110" width="300" height="90" />
+        <dc:Bounds x="747" y="315" width="300" height="90" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_1id1jzh" bpmnElement="TextAnnotation_1id1jzh">
-        <dc:Bounds x="80" y="138" width="140" height="62" />
+        <dc:Bounds x="507" y="767" width="140" height="62" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0t3eedz" bpmnElement="Flow_0t3eedz">
         <di:waypoint x="116" y="578" />
@@ -205,6 +205,14 @@ The communication agent also wraps all outgoing communication to keep it consist
       <bpmndi:BPMNEdge id="BPMNEdge_Association_1a7z278" bpmnElement="Association_1a7z278">
         <di:waypoint x="462" y="280" />
         <di:waypoint x="462" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Association_1pksk1j" bpmnElement="Association_1pksk1j">
+        <di:waypoint x="667" y="360" />
+        <di:waypoint x="747" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Association_1yacse6" bpmnElement="Association_1yacse6">
+        <di:waypoint x="467" y="818" />
+        <di:waypoint x="507" y="798" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BPMNShape_Event_NextCustomerMessageReceived" bpmnElement="Event_NextCustomerMessageReceived">
         <dc:Bounds x="431" y="480" width="36" height="36" />
