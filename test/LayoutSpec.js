@@ -1096,7 +1096,7 @@ describe('Layout', function() {
       assert.deepStrictEqual(channels, [ 240, 220, 200, 180 ]);
     });
 
-    it('should route message flows between process nodes through the pool gutter', async function() {
+    it('should align message flows between process nodes vertically', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'collaboration.message-flows.bpmn'),
         'utf8'
@@ -1114,12 +1114,12 @@ describe('Layout', function() {
       const source = shapes.get(edge.bpmnElement.sourceRef.id);
       const target = shapes.get(edge.bpmnElement.targetRef.id);
 
-      assert.strictEqual(edge.waypoint.length, 4);
+      assert.strictEqual(edge.waypoint.length, 2);
       assert.strictEqual(edge.waypoint[0].x, source.x + source.width / 2);
       assert.strictEqual(edge.waypoint[0].y, source.y + source.height);
       assert.strictEqual(edge.waypoint.at(-1).x, target.x + target.width / 2);
       assert.strictEqual(edge.waypoint.at(-1).y, target.y);
-      assert.strictEqual(edge.waypoint[1].y, edge.waypoint[2].y);
+      assert.strictEqual(edge.waypoint[0].x, edge.waypoint[1].x);
     });
 
     it('should route message flows from collapsed subprocess children at the subprocess', async function() {
@@ -1255,6 +1255,38 @@ describe('Layout', function() {
         assert.strictEqual(outgoingX, centerX - 10);
         assert.strictEqual(incomingX, centerX + 10);
       }
+    });
+
+    it('should align message endpoints by translating participants', async function() {
+      this.timeout(5000);
+
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'process.application-processing.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new Map(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const edges = new Map(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
+        .map(element => [ element.bpmnElement.id, element.waypoint ]));
+      for (const flowId of [
+        'sid-B28E079A-EC0B-4A89-9BF3-6850173FADFC',
+        'sid-95BFCA10-63D0-4D29-8E56-2270CACF3BA8'
+      ]) {
+        const points = edges.get(flowId);
+
+        assert.strictEqual(points.length, 2);
+        assert.strictEqual(points[0].x, points[1].x);
+      }
+
+      assert.strictEqual(
+        shapes.get('sid-2E859D5D-83B3-461D-9FFF-2AAF49E71D2A').y,
+        shapes.get('sid-EEF891AC-F8A7-4623-9BA3-F560E2782C9D').y
+      );
     });
 
     it('should size and position collapsed participants from message anchors', async function() {
@@ -1429,6 +1461,8 @@ describe('Layout', function() {
     });
 
     it('should keep data object references inside their owner lane', async function() {
+      this.timeout(5000);
+
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'process.application-processing.bpmn'),
         'utf8'

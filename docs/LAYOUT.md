@@ -349,12 +349,31 @@ Every participant with a process reference contains an independently laid-out
 process. Its pool is sized around that process. Black-box participants remain
 empty and are sized and positioned from message-flow anchors.
 
+After vertical ordering, expanded participants may move horizontally together
+with their complete process layouts. Candidate offsets come only from aligning
+the local centers of message-flow endpoints; no coordinate grid or authored DI
+is consulted. Deterministic coordinate descent accepts only moves that eliminate
+a bent message flow without adding a proper edge crossing. It minimizes bend
+count first, crossings second, and routed distance third; collaboration width is
+not constrained because pool alignment is more important than the overall
+footprint. Displacement from the initially left-aligned layout breaks otherwise
+equal alternatives. Black-box participant geometry is recomputed from its
+translated message anchors for every candidate.
+
 When black-box participants communicate directly, participant order first
 minimizes unrelated pools between connected pairs. It then minimizes a
 deterministic score combining vertical message-flow travel and bend cost:
 
 - up to eight participants use exhaustive permutation search;
-- larger collaborations use deterministic greedy insertion.
+- larger collaborations use deterministic greedy insertion followed by
+  remove-and-reinsert refinement.
+
+After horizontal alignment, consecutive black-box participants may share a
+vertical row when their horizontal bounds retain the normal horizontal gap.
+Expanded participants always occupy an exclusive row with their complete
+process footprint. Message-flow adjacency is computed by distinct participant
+rows, so multiple black-box pools on one row do not create fictitious
+intervening layers.
 
 Message flows are generated when both endpoints resolve to visible layout
 geometry. An endpoint inside a collapsed sub-process resolves to its nearest
