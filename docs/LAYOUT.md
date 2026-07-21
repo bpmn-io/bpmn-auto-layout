@@ -227,8 +227,8 @@ lane. Redundant membership in an ancestor lane is valid; membership in
 incomparable lanes is not.
 
 Nodes retain their semantic rows inside lanes, and lane bounds expand to contain
-them. A sequence flow may cross the borders of its source and target lanes, but
-not an unrelated lane.
+them. Sequence flows may cross any number of sibling lanes. Lane regions are
+traversable; flow-node shapes in intervening lanes remain routing obstacles.
 
 ### Artifacts
 
