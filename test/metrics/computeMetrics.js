@@ -138,13 +138,15 @@ function toShape(di) {
     isArtifact: !!element && (
       element.$instanceOf('bpmn:TextAnnotation') ||
       element.$instanceOf('bpmn:DataObjectReference') ||
-      element.$instanceOf('bpmn:DataStoreReference')
+      element.$instanceOf('bpmn:DataStoreReference') ||
+      element.$instanceOf('bpmn:Group')
     ),
     isContainer:
       di.isExpanded === true ||
       (!!element && (
         element.$instanceOf('bpmn:Participant') ||
-        element.$instanceOf('bpmn:Lane')
+        element.$instanceOf('bpmn:Lane') ||
+        element.$instanceOf('bpmn:Group')
       ))
   };
 }

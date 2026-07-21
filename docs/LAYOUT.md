@@ -71,6 +71,11 @@ undefined. [`LayoutError`](../lib/LayoutError.js) provides stable codes for:
 - collaborations without a laid-out process;
 - routes that cannot avoid unrelated shapes.
 
+Non-fatal omissions are reported as
+[`LayoutWarning`](../lib/LayoutWarning.js) instances. A group whose category
+value has no visible explicitly referenced members is omitted with
+`GROUP_MEMBERS_NOT_FOUND`.
+
 An empty definitions document remains valid and receives no invented process.
 
 ## Recursive scope layout
@@ -181,6 +186,7 @@ Geometry uses these base constants:
 | Plane margin | 80 px |
 | Expanded sub-process padding | 40 px |
 | Named expanded sub-process title band | 28 px |
+| Group padding | 40 px |
 | Routing margin | 20 px |
 | Participant header width | 30 px |
 | Lane content padding | 40 px |
@@ -266,8 +272,14 @@ bounds are known, including associations from a parent-scope artifact to a
 visible element inside an expanded subprocess. Connections still treat artifacts as transparent, and
 artifact intersections remain excluded from hard geometry defects.
 
-Groups remain semantic-only because BPMN does not identify their visual members.
-The engine does not infer group bounds from authored DI.
+Groups are placed after artifacts and routing. Membership is explicit: a node
+or connection belongs to a group when its `categoryValueRef` contains the
+group's category value. Group bounds are the union of member shape bounds and
+member connection waypoints, expanded by 40 px on every side. Groups are
+transparent to routing and hard overlap metrics. Their category value is shown
+as an external label above the group. Groups without visible explicit members
+remain semantic-only and are omitted; authored group DI is not used to infer
+membership.
 
 ## Sequence-flow routing
 
