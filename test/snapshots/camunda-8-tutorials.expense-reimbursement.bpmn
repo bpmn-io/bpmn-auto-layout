@@ -197,10 +197,10 @@
         <dc:Bounds x="80" y="788" width="300" height="104" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_0k4qsxw" bpmnElement="TextAnnotation_0k4qsxw">
-        <dc:Bounds x="1256" y="382" width="220" height="76" />
+        <dc:Bounds x="1416" y="238" width="260" height="62" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_02rliy5" bpmnElement="TextAnnotation_02rliy5">
-        <dc:Bounds x="1656" y="480" width="180" height="62" />
+        <dc:Bounds x="1636" y="420" width="220" height="48" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1vaffxg" bpmnElement="Flow_1vaffxg">
         <di:waypoint x="496" y="840" />
@@ -252,7 +252,7 @@
         <di:waypoint x="1371" y="360" />
         <di:waypoint x="1496" y="360" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1376" y="286" width="90" height="14" />
+          <dc:Bounds x="1276" y="286" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_07w4wvi" bpmnElement="Flow_07w4wvi">
@@ -272,12 +272,12 @@
         <di:waypoint x="380" y="840" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Association_1c7637v" bpmnElement="Association_1c7637v">
-        <di:waypoint x="1476" y="420" />
-        <di:waypoint x="1496" y="360" />
+        <di:waypoint x="1546" y="300" />
+        <di:waypoint x="1546" y="320" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Association_12m4aqv" bpmnElement="Association_12m4aqv">
         <di:waypoint x="1746" y="400" />
-        <di:waypoint x="1746" y="480" />
+        <di:waypoint x="1746" y="420" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
