@@ -130,7 +130,8 @@ Band `0` is the spine. Other bands encode branch meaning:
 - alternatives from an off-spine gateway fan farther away from the spine;
 - error handlers occupy lower bands;
 - escalation handlers occupy upper bands;
-- paired link events align on one band.
+- paired link events align the catch continuation with the throw until that
+  continuation rejoins other flow.
 
 A band reservation includes the ranks over which its path exists. Disjoint
 paths may reuse a physical band; overlapping narratives may not.
