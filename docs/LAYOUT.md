@@ -360,6 +360,11 @@ footprint. Displacement from the initially left-aligned layout breaks otherwise
 equal alternatives. Black-box participant geometry is recomputed from its
 translated message anchors for every candidate.
 
+Once internal offsets are fixed, each disconnected message-flow component is
+translated as a unit to the common left participant edge. This removes
+arbitrary global X offsets between unrelated participant groups without
+changing their internal message-flow geometry.
+
 When black-box participants communicate directly, participant order first
 minimizes unrelated pools between connected pairs. It then minimizes a
 deterministic score combining vertical message-flow travel and bend cost:
