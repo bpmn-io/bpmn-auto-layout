@@ -40,8 +40,9 @@ sub-processes, event sub-processes, horizontal lanes, and collaboration pools.
 It lays out each participant with a process reference; black-box participants
 remain empty pools.
 
-Groups remain semantic-only because BPMN semantics do not identify their visual
-members. Artifacts are placed after process flow and do not affect its ranks or
+Groups are generated when their members explicitly reference the group's
+category value. Groups without visible explicit members are omitted with a
+warning. Artifacts are placed after process flow and do not affect its ranks or
 bands. Message flows whose endpoints receive geometry are routed through pool
 gutters or outside channels.
 

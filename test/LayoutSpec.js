@@ -5,7 +5,10 @@ import url from 'node:url';
 
 import { BpmnModdle } from 'bpmn-moddle';
 
-import { layoutProcess as layoutProcessResult } from 'bpmn-auto-layout';
+import {
+  layoutProcess as layoutProcessResult,
+  LayoutWarning
+} from 'bpmn-auto-layout';
 
 import {
   getExternalLabelText,
@@ -15,6 +18,7 @@ import {
   EXTERNAL_LABEL_CLEARANCE,
   EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE,
   EXPANDED_SUBPROCESS_LABEL_HEIGHT,
+  GROUP_PADDING,
   SUB_PROCESS_PADDING
 } from '../lib/layout/Constants.js';
 import { evaluateMetrics } from './metrics/evaluateMetrics.js';
@@ -1853,6 +1857,93 @@ describe('Layout', function() {
       assert.ok(
         annotation.x >= subProcess.x + subProcess.width +
           EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE
+      );
+    });
+
+    it('should derive group bounds from explicit members', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'artifact.group.bpmn'),
+        'utf8'
+      );
+      const result = await layoutProcessResult(xml);
+      const output = result.xml;
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const group = elements.find(element => {
+        return element.bpmnElement.$instanceOf('bpmn:Group');
+      });
+      const categoryValue = group.bpmnElement.categoryValueRef;
+      const members = elements.filter(element => {
+        const references = element.bpmnElement.categoryValueRef;
+
+        return Array.isArray(references) &&
+          references.some(reference => reference === categoryValue);
+      });
+      const points = members.flatMap(member => {
+        if (member.bounds) {
+          return [
+            { x: member.bounds.x, y: member.bounds.y },
+            {
+              x: member.bounds.x + member.bounds.width,
+              y: member.bounds.y + member.bounds.height
+            }
+          ];
+        }
+
+        return member.waypoint || [];
+      });
+      const minX = Math.min(...points.map(point => point.x));
+      const minY = Math.min(...points.map(point => point.y));
+      const maxX = Math.max(...points.map(point => point.x));
+      const maxY = Math.max(...points.map(point => point.y));
+
+      assert.ok(members.length > 0);
+      assert.deepStrictEqual(
+        {
+          x: group.bounds.x,
+          y: group.bounds.y,
+          width: group.bounds.width,
+          height: group.bounds.height
+        },
+        {
+          x: minX - GROUP_PADDING,
+          y: minY - GROUP_PADDING,
+          width: maxX - minX + 2 * GROUP_PADDING,
+          height: maxY - minY + 2 * GROUP_PADDING
+        }
+      );
+      assert.strictEqual(
+        group.bounds.y -
+          (group.label.bounds.y + group.label.bounds.height),
+        EXTERNAL_LABEL_CLEARANCE
+      );
+      assert.deepStrictEqual(result.warnings, []);
+    });
+
+    it('should warn when a group has no visible explicit members', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'artifact.group.bpmn'),
+        'utf8'
+      ).replace(
+        /\s*<bpmn2:categoryValueRef>CategoryValue_0nc43zx<\/bpmn2:categoryValueRef>/g,
+        ''
+      );
+      const result = await layoutProcessResult(xml);
+
+      assert.ok(typeof result.xml === 'string');
+      assert.strictEqual(result.warnings.length, 1);
+      assert.ok(result.warnings[0] instanceof LayoutWarning);
+      assert.deepStrictEqual(
+        {
+          code: result.warnings[0].code,
+          elementId: result.warnings[0].elementId,
+          relatedElementIds: result.warnings[0].relatedElementIds
+        },
+        {
+          code: 'GROUP_MEMBERS_NOT_FOUND',
+          elementId: 'Group_0z7n6ui',
+          relatedElementIds: []
+        }
       );
     });
 
