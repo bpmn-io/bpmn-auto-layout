@@ -132,7 +132,10 @@
       .metric-filter-badges {
         display: flex;
         align-items: center;
+        flex: 1 1 500px;
+        flex-wrap: wrap;
         gap: 10px;
+        min-width: 0;
       }
 
       .copy-path-button {
@@ -267,19 +270,25 @@
         font-size: large;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px 10px;
       }
 
       .statistic-summary {
         display: flex;
         align-items: center;
+        flex: 1 1 700px;
+        flex-wrap: wrap;
         gap: 10px;
+        min-width: 0;
       }
 
       .statistic-actions {
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
         gap: 10px;
+        margin-left: auto;
       }
 
       .path-filter-wrapper {
@@ -414,6 +423,7 @@
         font-size: 12px;
         font-weight: bold;
         line-height: 1;
+        white-space: nowrap;
       }
 
       .filter-toggle {
@@ -460,6 +470,34 @@
         background: #f5f5f5;
         color: #737373;
         opacity: 1;
+      }
+
+      @media (max-width: 720px) {
+        .statistic {
+          padding: 8px 10px;
+        }
+
+        .statistic-summary,
+        .statistic-actions {
+          flex-basis: 100%;
+        }
+
+        .statistic-actions {
+          margin-left: 0;
+        }
+
+        .path-filter-wrapper {
+          flex: 1 1 200px;
+          min-width: 0;
+        }
+
+        .path-filter {
+          width: 100%;
+        }
+
+        .overlay-toggle {
+          flex: 1 1 100%;
+        }
       }
 
       body.no-overlay .sub-container.snapshot {
