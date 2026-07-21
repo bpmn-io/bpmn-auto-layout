@@ -39,7 +39,7 @@ For each `*.bpmn` file in `fixtures/`, the spec generates one `it(...)` case:
 ```mermaid
 flowchart TD
     A["read fixtures/&lt;name&gt;.bpmn"] --> B["layoutProcess(xml)"]
-    B --> C["write output/&lt;name&gt;.bpmn"]
+    B --> C["write result.xml to output/&lt;name&gt;.bpmn"]
     C --> D{"UPDATE_SNAPSHOTS?"}
     D -- "yes" --> E["overwrite snapshots/&lt;name&gt;.bpmn<br/>(no assertion)"]
     D -- "no" --> F{"snapshot exists?"}
@@ -75,7 +75,7 @@ the rendered layout against its purpose. For example:
 
 ### Pass / fail condition
 
-A test **passes** when `layoutProcess(fixture)` produces XML that is
+A test **passes** when `(await layoutProcess(fixture)).xml` produces XML that is
 **exactly equal** (`assert.strictEqual`) to the committed snapshot. Because the
 comparison is on the serialized string, *any* change — coordinates, waypoints,
 attribute order — is a mismatch. That strictness is deliberate: it makes every

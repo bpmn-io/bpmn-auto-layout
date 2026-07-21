@@ -6,6 +6,9 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+* `BREAKING`: `layoutProcess` now resolves with `{ xml, warnings }` instead of
+  the XML string.
+
 ## 1.3.0
 
 * `FEAT`: support ad-hoc subprocess and transaction ([#134](https://github.com/bpmn-io/bpmn-auto-layout/issues/134))

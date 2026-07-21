@@ -5,7 +5,7 @@ import url from 'node:url';
 
 import { BpmnModdle } from 'bpmn-moddle';
 
-import { layoutProcess } from 'bpmn-auto-layout';
+import { layoutProcess as layoutProcessResult } from 'bpmn-auto-layout';
 
 import {
   getExternalLabelText,
@@ -29,6 +29,10 @@ const snapshotsDirectory = path.join(__dirname, 'snapshots');
 const metricsBaselineFile = path.join(__dirname, 'metrics', 'baseline.json');
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === 'true';
+
+async function layoutProcess(xml) {
+  return (await layoutProcessResult(xml)).xml;
+}
 
 
 describe('Layout', function() {

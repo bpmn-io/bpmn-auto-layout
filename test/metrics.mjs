@@ -38,7 +38,7 @@ export async function run() {
     const xml = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
 
     try {
-      const output = await layoutProcess(xml);
+      const { xml: output } = await layoutProcess(xml);
       const metrics = await evaluateMetrics(output, baseline?.[fileName]);
 
       if (metrics.error) {

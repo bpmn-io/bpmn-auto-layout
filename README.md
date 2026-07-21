@@ -15,10 +15,19 @@ import { layoutProcess } from 'bpmn-auto-layout';
 
 import diagramXML from './diagram.bpmn';
 
-const diagramWithLayoutXML = await layoutProcess(diagramXML);
+const {
+  xml: diagramWithLayoutXML,
+  warnings
+} = await layoutProcess(diagramXML);
 
 console.log(diagramWithLayoutXML);
+console.warn(warnings);
 ```
+
+`layoutProcess` resolves with `{ xml, warnings }`. Warnings are exported
+`LayoutWarning` instances with stable `code`, `elementId`, `message`, and
+`relatedElementIds` fields. Fatal structural or geometry failures reject with
+an exported `LayoutError`.
 
 ## Limitations
 
