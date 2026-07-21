@@ -169,6 +169,10 @@ only fixtures with every selected issue. Each active issue filter also
 highlights the exact responsible geometry in generated-output viewers, including
 maximized output and output/snapshot comparisons.
 
+The warning badge shows how many fixtures produced non-fatal layout warnings.
+Select it to show only those fixtures; it combines with the status, path, and
+metric filters.
+
 ## Focusing and skipping fixtures
 
 Prefix a fixture's **filename** to control which cases run, without touching the

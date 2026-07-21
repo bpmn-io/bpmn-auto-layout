@@ -26,8 +26,9 @@ console.warn(warnings);
 
 `layoutProcess` resolves with `{ xml, warnings }`. Warnings are exported
 `LayoutWarning` instances with stable `code`, `elementId`, `message`, and
-`relatedElementIds` fields. Fatal structural or geometry failures reject with
-an exported `LayoutError`.
+`relatedElementIds` fields. `DI_NOT_CREATED` reports every supported visual
+semantic element for which the layout did not emit a BPMN shape or edge. Fatal
+structural or geometry failures reject with an exported `LayoutError`.
 
 ## Limitations
 

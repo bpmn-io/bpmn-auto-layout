@@ -39,6 +39,30 @@ async function layoutProcess(xml) {
   return (await layoutProcessResult(xml)).xml;
 }
 
+function getCollaborationArtifacts(rootElement) {
+  const collaboration = rootElement.rootElements.find(element => {
+    return element.$instanceOf('bpmn:Collaboration');
+  });
+
+ return collaboration?.artifacts || [];
+}
+
+function getCollaborationArtifactWarnings(rootElement, includeMessage = false) {
+ return getCollaborationArtifacts(rootElement)
+    .filter(element => {
+      return element.$instanceOf('bpmn:TextAnnotation') ||
+        element.$instanceOf('bpmn:Association');
+    })
+    .map(element => ({
+      code: 'DI_NOT_CREATED',
+      elementId: element.id,
+      ...(includeMessage ? {
+        message: `No BPMN DI was created for visual BPMN element "${ element.$type }".`
+      } : {}),
+      relatedElementIds: []
+    }));
+}
+
 
 describe('Layout', function() {
 
@@ -1950,6 +1974,29 @@ describe('Layout', function() {
       );
     });
 
+    it('should warn for collaboration artifacts without generated DI', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'artifact.collaboration-association.bpmn'),
+        'utf8'
+      );
+      const { rootElement } = await new BpmnModdle().fromXML(xml);
+      const result = await layoutProcessResult(xml);
+      const expectedWarnings = getCollaborationArtifactWarnings(rootElement);
+
+      assert.deepStrictEqual(
+        getCollaborationArtifacts(rootElement).map(element => element.$type),
+        [ 'bpmn:TextAnnotation', 'bpmn:Association' ]
+      );
+      assert.deepStrictEqual(
+        result.warnings.map(warning => ({
+          code: warning.code,
+          elementId: warning.elementId,
+          relatedElementIds: warning.relatedElementIds
+        })),
+        expectedWarnings
+      );
+    });
+
     it('should account for gaps when packing disconnected ad hoc activities', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'camunda-8-tutorials.ai-agent-chat-with-tools.bpmn'),
@@ -2239,21 +2286,51 @@ describe('Layout', function() {
 
     assert.ok(index.includes('createMetricsPanel'));
     assert.ok(index.includes('createWarningsPanel'));
-    assert.deepStrictEqual(
-      results.find(result => result.name === 'artifact.group-without-members.bpmn').warnings,
-      [ {
-        code: 'GROUP_MEMBERS_NOT_FOUND',
-        elementId: 'Group_0z7n6ui',
-        message: 'Group Group_0z7n6ui has no visible explicitly referenced members and was omitted.',
-        relatedElementIds: []
-      } ]
-    );
+    const groupWarningFixture = results.find(result => {
+      return result.name === 'artifact.group-without-members.bpmn';
+    });
+    const collaborationArtifactWarningFixture = results.find(result => {
+      return result.name === 'artifact.collaboration-association.bpmn';
+    });
+
+    if (groupWarningFixture) {
+      assert.deepStrictEqual(
+        groupWarningFixture.warnings,
+        [ {
+          code: 'GROUP_MEMBERS_NOT_FOUND',
+          elementId: 'Group_0z7n6ui',
+          message: 'Group Group_0z7n6ui has no visible explicitly referenced members and was omitted.',
+          relatedElementIds: []
+        } ]
+      );
+    }
+
+    if (collaborationArtifactWarningFixture) {
+      const { rootElement } = await new BpmnModdle().fromXML(
+        collaborationArtifactWarningFixture.diagram
+      );
+
+      assert.deepStrictEqual(
+        collaborationArtifactWarningFixture.warnings,
+        getCollaborationArtifactWarnings(rootElement, true)
+      );
+    }
     assert.ok(index.includes('branchSymmetry'));
     assert.ok(index.includes('labelEdgeOverlaps'));
     assert.ok(index.includes('metric-filter-badges'));
     assert.ok(index.includes('metricFilterCounts'));
     assert.ok(index.includes('hasMetricFilterResults'));
     assert.ok(index.includes('metric.disabled = !hasMetricFilterResults(definition.key)'));
+    assert.ok(index.includes('warning-filter-badge'));
+    assert.ok(index.includes('warningFilterCount'));
+    assert.ok(index.includes('isWarningVisible'));
+    assert.ok(index.includes('>Passed '));
+    assert.ok(index.includes('>Failed '));
+    assert.ok(index.includes('>New '));
+    assert.ok(
+      index.indexOf('id="warning-filter-badge"') <
+      index.indexOf('id="metric-filter-badges"')
+    );
     assert.ok(index.includes('createMetricHighlighter'));
     assert.ok(index.includes('for (const metric of activeMetricFilters)'));
     assert.ok(index.includes("outputViewer.on('canvas.viewbox.changing', syncSnapshotViewport)"));

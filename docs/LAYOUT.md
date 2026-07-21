@@ -72,9 +72,11 @@ undefined. [`LayoutError`](../lib/LayoutError.js) provides stable codes for:
 - routes that cannot avoid unrelated shapes.
 
 Non-fatal omissions are reported as
-[`LayoutWarning`](../lib/LayoutWarning.js) instances. A group whose category
-value has no visible explicitly referenced members is omitted with
-`GROUP_MEMBERS_NOT_FOUND`.
+[`LayoutWarning`](../lib/LayoutWarning.js) instances. After DI emission, the
+engine checks every supported visual shape and connection across all generated
+planes. `DI_NOT_CREATED` reports a semantic element for which no corresponding
+shape or edge was emitted. A group whose category value has no visible
+explicitly referenced members is omitted with `GROUP_MEMBERS_NOT_FOUND`.
 
 An empty definitions document remains valid and receives no invented process.
 

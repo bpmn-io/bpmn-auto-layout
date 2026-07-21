@@ -613,6 +613,7 @@
           <button id="pass" class="badge badge-success filter-toggle" type="button" aria-pressed="true"></button>
           <button id="fail" class="badge badge-destructive filter-toggle" type="button" aria-pressed="true"></button>
           <button id="new" class="badge badge-secondary filter-toggle" type="button" aria-pressed="true"></button>
+          <button id="warning-filter-badge" class="badge badge-secondary filter-toggle issue-filter-badge" type="button" aria-pressed="false"></button>
           <div id="metric-filter-badges" class="metric-filter-badges" aria-label="Issue filters"></div>
         </div>
         <div class="statistic-actions">
@@ -1287,15 +1288,15 @@
       const newCount = results.filter(element => element.diagramSnapshotMatching === null).length
 
       const failStat = document.getElementById('fail')
-      failStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>' + failCount
+      failStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Failed ' + failCount
       failStat.setAttribute('aria-label', `Show failed fixtures (${failCount})`)
 
       const passStat = document.getElementById('pass')
-      passStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>' + passCount
+      passStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Passed ' + passCount
       passStat.setAttribute('aria-label', `Show passed fixtures (${passCount})`)
 
       const newStat = document.getElementById('new')
-      newStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>' + newCount
+      newStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>New ' + newCount
       newStat.setAttribute('aria-label', `Show new fixtures (${newCount})`)
 
       const resultFilters = [
@@ -1307,6 +1308,8 @@
       const clearPathFilter = document.getElementById('clear-path-filter');
       const activeMetricFilters = new Set();
       const metricFilterBadges = document.getElementById('metric-filter-badges');
+      const warningFilterBadge = document.getElementById('warning-filter-badge');
+      const warningFilterCount = results.filter(result => result.warnings.length > 0).length;
 
       function applyResultFilters() {
         const query = pathFilter.value.trim().toLowerCase();
@@ -1319,8 +1322,28 @@
           const isPathVisible = !query || parent.dataset.path.toLowerCase().includes(query);
           const issueMetrics = new Set((parent.dataset.issueMetrics || '').split(' ').filter(Boolean));
           const isMetricVisible = [ ...activeMetricFilters ].every(key => issueMetrics.has(key));
-          parent.hidden = !isStatusVisible || !isPathVisible || !isMetricVisible;
+          const isWarningVisible = warningFilterBadge.getAttribute('aria-pressed') === 'false' ||
+            parent.dataset.hasWarnings === 'true';
+          parent.hidden = !isStatusVisible || !isPathVisible || !isMetricVisible || !isWarningVisible;
         });
+      }
+
+      function updateWarningFilterUI() {
+        const active = warningFilterBadge.getAttribute('aria-pressed') === 'true';
+
+        warningFilterBadge.disabled = warningFilterCount === 0;
+        warningFilterBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>Warnings ' + warningFilterCount;
+
+        if (warningFilterBadge.disabled) {
+          warningFilterBadge.title = 'No fixtures with layout warnings';
+          warningFilterBadge.setAttribute('aria-label', warningFilterBadge.title);
+          return;
+        }
+
+        warningFilterBadge.title = active
+          ? 'Show all fixtures'
+          : 'Show only fixtures with layout warnings';
+        warningFilterBadge.setAttribute('aria-label', `${warningFilterBadge.title} (${warningFilterCount})`);
       }
 
       function updateMetricFilterUI() {
@@ -1365,6 +1388,19 @@
           filter.setAttribute('aria-label', `${filter.getAttribute('aria-pressed') === 'true' ? 'Hide' : 'Show'} ${status} fixtures`);
           applyResultFilters();
         });
+      });
+
+      warningFilterBadge.addEventListener('click', () => {
+        if (warningFilterBadge.disabled) {
+          return;
+        }
+
+        warningFilterBadge.setAttribute(
+          'aria-pressed',
+          String(warningFilterBadge.getAttribute('aria-pressed') !== 'true')
+        );
+        updateWarningFilterUI();
+        applyResultFilters();
       });
 
       pathFilter.addEventListener('input', applyResultFilters);
@@ -1679,6 +1715,7 @@
           .filter(definition => definition.filterable && metrics?.current?.[definition.key] > 0)
           .map(definition => definition.key)
           .join(' ');
+        parent.dataset.hasWarnings = String(warnings.length > 0);
 
         if (diagramSnapshotMatching === true) {
           parent.dataset.status = 'passed';
@@ -1944,6 +1981,7 @@
         });
       }
 
+      updateWarningFilterUI();
       updateMetricFilterUI();
     </script>
   </body>
