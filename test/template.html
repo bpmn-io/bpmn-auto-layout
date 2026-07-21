@@ -52,6 +52,37 @@
         font-weight: normal;
       }
 
+      .warnings-panel {
+        flex-basis: 100%;
+        padding: 8px;
+        border: 1px solid #fed7aa;
+        border-radius: 6px;
+        background: #fff7ed;
+        color: #9a3412;
+        font-weight: normal;
+      }
+
+      .warnings-title {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: bold;
+      }
+
+      .warnings-title svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .warnings-list {
+        margin: 6px 0 0;
+        padding-left: 18px;
+      }
+
+      .warning-code {
+        font-weight: bold;
+      }
+
       .metrics-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -1588,6 +1619,34 @@
         return panel;
       }
 
+      function createWarningsPanel(warnings) {
+        const panel = document.createElement('section');
+        panel.className = 'warnings-panel';
+
+        const title = document.createElement('div');
+        title.className = 'warnings-title';
+        title.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>';
+        title.append(`Layout warnings (${warnings.length})`);
+        panel.appendChild(title);
+
+        const list = document.createElement('ul');
+        list.className = 'warnings-list';
+
+        for (const warning of warnings) {
+          const item = document.createElement('li');
+          const code = document.createElement('span');
+          code.className = 'warning-code';
+          code.textContent = warning.code;
+          item.appendChild(code);
+          item.append(` (${warning.elementId}): ${warning.message}`);
+          list.appendChild(item);
+        }
+
+        panel.appendChild(list);
+
+        return panel;
+      }
+
       async function copyPath(path) {
         if (navigator.clipboard?.writeText) {
           await navigator.clipboard.writeText(path);
@@ -1610,7 +1669,8 @@
         diagramSnapshot,
         diagramSnapshotMatching,
         metrics,
-        name
+        name,
+        warnings
       } of results) {
         const parent = document.createElement('div');
 
@@ -1687,10 +1747,6 @@
         title.appendChild(fixtureName);
         title.appendChild(copyPathButton);
 
-        if (metrics) {
-          title.appendChild(createMetricsPanel(metrics));
-        }
-
         const description = getProcessDocumentation(diagram);
 
         if (description) {
@@ -1698,6 +1754,14 @@
           descriptionElement.className = 'description';
           descriptionElement.textContent = description;
           title.appendChild(descriptionElement);
+        }
+
+        if (metrics) {
+          title.appendChild(createMetricsPanel(metrics));
+        }
+
+        if (warnings.length) {
+          title.appendChild(createWarningsPanel(warnings));
         }
 
         const containerParent = document.createElement('div');
