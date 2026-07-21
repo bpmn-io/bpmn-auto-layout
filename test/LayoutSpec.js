@@ -19,7 +19,8 @@ import {
   EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE,
   EXPANDED_SUBPROCESS_LABEL_HEIGHT,
   GROUP_PADDING,
-  SUB_PROCESS_PADDING
+  SUB_PROCESS_PADDING,
+  VERTICAL_GAP
 } from '../lib/layout/Constants.js';
 import { evaluateMetrics } from './metrics/evaluateMetrics.js';
 
@@ -1138,6 +1139,7 @@ describe('Layout', function() {
           element.bpmnElement.id === 'Flow_193bw3h';
       });
       const source = shapes.get('Participant_1qdn8qg');
+      const targetParticipant = shapes.get('Participant_0dwrwgx');
       const target = shapes.get('Activity_0qw608m');
 
       assert.ok(!shapes.has('Event_0m9ntx1'));
@@ -1145,6 +1147,10 @@ describe('Layout', function() {
       assert.strictEqual(edge.waypoint[0].y, source.y);
       assert.strictEqual(edge.waypoint.at(-1).x, target.x + target.width / 2);
       assert.strictEqual(edge.waypoint.at(-1).y, target.y + target.height);
+      assert.strictEqual(
+        source.y - targetParticipant.y - targetParticipant.height,
+        VERTICAL_GAP
+      );
     });
 
     it('should optimize connected participant geometry', async function() {
@@ -1286,6 +1292,14 @@ describe('Layout', function() {
       assert.strictEqual(
         shapes.get('sid-2E859D5D-83B3-461D-9FFF-2AAF49E71D2A').y,
         shapes.get('sid-EEF891AC-F8A7-4623-9BA3-F560E2782C9D').y
+      );
+      assert.strictEqual(
+        shapes.get('sid-A280AE73-E103-45BC-8078-8ADB6A8AF29C').x,
+        shapes.get('sid-527C14AA-A993-4E8C-A9CD-99639DF62466').x
+      );
+      assert.strictEqual(
+        shapes.get('sid-A280AE73-E103-45BC-8078-8ADB6A8AF29C').x,
+        shapes.get('sid-187453C6-5AB5-4A6D-9A62-BF537E04EA0D').x
       );
     });
 
