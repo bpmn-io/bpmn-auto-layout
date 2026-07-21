@@ -371,9 +371,19 @@ Candidates without proper edge crossings are preferred, but an unavoidable
 edge crossing does not permit corner docking; shape-clear side-center docking
 remains a hard constraint.
 
-Top-attached named boundary events receive independent label DI; other labels
-use renderer defaults. Unknown visual elements do not receive task-sized
-fallback geometry.
+Named events, gateways, data references, sequence flows, and message flows
+receive explicit external label DI after final connection docking on each
+diagram plane. Element labels try below, above, left, then right. Labels on
+horizontal connection segments try above then below; labels on vertical
+segments try right then left. Connection candidates begin at the central
+segment and move toward neighboring segments and segment ends.
+
+Candidates may not overlap non-container shapes, connection interiors, or
+already placed labels. They may not straddle lane, participant, or expanded
+sub-process borders, and participant headers remain clear. If every preferred
+position is occupied, an expanding search chooses the nearest collision-free
+position without changing connection routes. Unknown visual elements do not
+receive task-sized fallback geometry.
 
 ## Implementation map
 
@@ -385,6 +395,7 @@ fallback geometry.
 | Coordinates, compaction, lanes, and boundary events | [`ShapePlacement`](../lib/layout/ShapePlacement.js) |
 | Sequence-flow routing | [`SequenceFlowRouter`](../lib/layout/SequenceFlowRouter.js) |
 | Artifact placement and association routing | [`ArtifactLayouter`](../lib/layout/ArtifactLayouter.js) |
+| External label placement | [`LabelLayouter`](../lib/layout/LabelLayouter.js) |
 | Layout state and geometry | [`LayoutUtil`](../lib/layout/LayoutUtil.js) |
 | Input validation | [`Validation`](../lib/layout/Validation.js) |
 | DI output and final docking | [`LayoutEmitter`](../lib/di/LayoutEmitter.js), [`DiFactory`](../lib/di/DiFactory.js) |

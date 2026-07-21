@@ -62,6 +62,7 @@ export async function run() {
   printTable(rows);
   assertLayoutErrors(errors);
   assertNoBandADefects(results);
+  assertNoLabelDefects(results);
 
   if (UPDATE_BASELINE) {
     fs.writeFileSync(baselineFile, JSON.stringify(results, null, 2) + '\n', 'utf8');
@@ -89,6 +90,21 @@ export async function run() {
 
     if (defects.length) {
       throw new Error(`Band-A geometry defects found:\n${defects.join('\n')}`);
+    }
+  }
+
+  function assertNoLabelDefects(results) {
+    const defects = Object.entries(results)
+      .filter(([, metrics ]) => {
+        return metrics.labelShapeOverlaps || metrics.labelEdgeOverlaps;
+      })
+      .map(([ name, metrics ]) => {
+        return `${name}: labelShapeOverlaps=${metrics.labelShapeOverlaps}, ` +
+          `labelEdgeOverlaps=${metrics.labelEdgeOverlaps}`;
+      });
+
+    if (defects.length) {
+      throw new Error(`Label overlaps found:\n${defects.join('\n')}`);
     }
   }
 }
