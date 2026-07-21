@@ -414,7 +414,7 @@ describe('Layout', function() {
       assert.ok(edge.waypoint[1].y > edge.waypoint[0].y);
     });
 
-    it('should preserve side-center dockings on orthogonal link-catch routes', async function() {
+    it('should route aligned link-catch continuations directly', async function() {
       const xml = fs.readFileSync(
         path.join(
           fixturesDirectory,
@@ -438,10 +438,8 @@ describe('Layout', function() {
       assert.deepStrictEqual(
         edge.waypoint.map(({ x, y }) => [ x, y ]),
         [
-          [ source.x + source.width / 2, source.y ],
-          [ source.x + source.width / 2, target.y + target.height + 20 ],
-          [ target.x + target.width / 2, target.y + target.height + 20 ],
-          [ target.x + target.width / 2, target.y + target.height ]
+          [ source.x + source.width, source.y + source.height / 2 ],
+          [ target.x, target.y + target.height / 2 ]
         ]
       );
     });
@@ -479,20 +477,28 @@ describe('Layout', function() {
       assert.strictEqual(edge.waypoint.at(-2).y, edge.waypoint.at(-1).y);
     });
 
-    it('should align paired link events', async function() {
-      const xml = fs.readFileSync(path.join(fixturesDirectory, 'link-event.basic.bpmn'), 'utf8');
+    it('should align link catch continuations until they rejoin', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'camunda-8-tutorials.capital-market-exception-processing.bpmn'),
+        'utf8'
+      );
       const output = await layoutProcess(xml);
       const { rootElement } = await new BpmnModdle().fromXML(output);
       const shapes = new Map(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const throwEvent = shapes.get('Event_1rucaji');
-      const catchEvent = shapes.get('Event_1a542f8');
+      const continuation = [
+        'Event_19epi2t',
+        'Event_004398z',
+        'Gateway_0z4dryr',
+        'Event_15c6fg8'
+      ].map(id => {
+        const shape = shapes.get(id);
 
-      assert.strictEqual(
-        throwEvent.y + throwEvent.height / 2,
-        catchEvent.y + catchEvent.height / 2
-      );
+        return shape.y + shape.height / 2;
+      });
+
+      assert.ok(continuation.every(y => y === continuation[0]));
     });
 
     it('should keep boundary handler endings in their exception bands', async function() {
