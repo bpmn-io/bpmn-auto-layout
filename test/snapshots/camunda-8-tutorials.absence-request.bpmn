@@ -160,6 +160,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_TimeOffNeededStartEvent" bpmnElement="TimeOffNeededStartEvent">
         <dc:Bounds x="420" y="182" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="393" y="223" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_RequestAbsenceTask" bpmnElement="RequestAbsenceTask">
         <dc:Bounds x="556" y="160" width="100" height="80" />
@@ -178,6 +181,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_0zynvca" bpmnElement="Event_0zynvca">
         <dc:Bounds x="1538" y="742" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1511" y="783" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_ClarifyRequestTask" bpmnElement="ClarifyRequestTask">
         <dc:Bounds x="1506" y="320" width="100" height="80" />
@@ -187,9 +193,15 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_02m7n8y" bpmnElement="Event_02m7n8y">
         <dc:Bounds x="2056" y="182" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2029" y="223" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Gateway_1pdgva1" bpmnElement="Gateway_1pdgva1" isMarkerVisible="true">
         <dc:Bounds x="1331" y="575" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1311" y="670" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_LogAbsenceTask" bpmnElement="LogAbsenceTask">
         <dc:Bounds x="1506" y="560" width="100" height="80" />
@@ -199,6 +211,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_0z73nuo" bpmnElement="Event_0z73nuo">
         <dc:Bounds x="1138" y="622" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1051" y="663" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_absence_intro" bpmnElement="TextAnnotation_absence_intro">
         <dc:Bounds x="80" y="155" width="260" height="90" />
@@ -222,6 +237,9 @@
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1ynjfct" bpmnElement="Flow_1ynjfct">
         <di:waypoint x="1381" y="600" />
         <di:waypoint x="1506" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1399" y="578" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1cug0fm" bpmnElement="Flow_1cug0fm">
         <di:waypoint x="1606" y="600" />
@@ -245,12 +263,18 @@
         <di:waypoint x="1356" y="575" />
         <di:waypoint x="1356" y="360" />
         <di:waypoint x="1506" y="360" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1361" y="434" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1a3eadh" bpmnElement="Flow_1a3eadh">
         <di:waypoint x="1356" y="625" />
         <di:waypoint x="1356" y="660" />
         <di:waypoint x="1731" y="660" />
         <di:waypoint x="1731" y="625" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1499" y="668" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_07mywsg" bpmnElement="Flow_07mywsg">
         <di:waypoint x="1406" y="760" />

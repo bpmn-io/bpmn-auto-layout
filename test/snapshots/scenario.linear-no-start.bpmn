@@ -25,6 +25,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_0ap1078" bpmnElement="Event_0ap1078">
         <dc:Bounds x="480" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="453" y="143" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0vfi2hv" bpmnElement="Flow_0vfi2hv">
         <di:waypoint x="180" y="120" />

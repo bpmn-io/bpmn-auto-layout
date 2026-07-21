@@ -180,6 +180,9 @@
     <bpmndi:BPMNPlane id="BPMNPlane_ai-agent-chat-with-tools" bpmnElement="ai-agent-chat-with-tools">
       <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
         <dc:Bounds x="420" y="324" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="393" y="365" width="90" height="42" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Gateway_0z6ctwk" bpmnElement="Gateway_0z6ctwk" isMarkerVisible="true">
         <dc:Bounds x="556" y="317" width="50" height="50" />
@@ -189,9 +192,15 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Gateway_1dcg4ha" bpmnElement="Gateway_1dcg4ha" isMarkerVisible="true">
         <dc:Bounds x="1386" y="317" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1366" y="284" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_0i39jej" bpmnElement="Event_0i39jej">
         <dc:Bounds x="1536" y="324" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1509" y="291" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_AI_Agent" bpmnElement="AI_Agent" isExpanded="true">
         <dc:Bounds x="706" y="182" width="380" height="320" />
@@ -216,6 +225,9 @@
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_16c9bwj" bpmnElement="Flow_16c9bwj">
         <di:waypoint x="1436" y="342" />
         <di:waypoint x="1536" y="342" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1441" y="350" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_16otfp1" bpmnElement="Flow_16otfp1">
         <di:waypoint x="606" y="342" />
@@ -230,6 +242,9 @@
         <di:waypoint x="1411" y="522" />
         <di:waypoint x="581" y="522" />
         <di:waypoint x="581" y="367" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="951" y="530" width="90" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Association_tools_intro" bpmnElement="Association_tools_intro">
         <di:waypoint x="420" y="342" />

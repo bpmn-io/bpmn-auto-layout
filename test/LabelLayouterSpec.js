@@ -105,6 +105,36 @@ describe('LabelLayouter', function() {
     });
   });
 
+  it('should prefer connection segments that are not shared', function() {
+    const sales = edge('sales', [
+      { x: 100, y: 100 },
+      { x: 100, y: 200 },
+      { x: 300, y: 200 }
+    ]);
+    const technical = edge('technical', [
+      { x: 100, y: 100 },
+      { x: 100, y: 300 },
+      { x: 300, y: 300 }
+    ]);
+    const legal = edge('legal', [
+      { x: 100, y: 100 },
+      { x: 100, y: 400 },
+      { x: 300, y: 400 }
+    ]);
+
+    layoutExternalLabels(factory, [ sales, technical, legal ]);
+
+    assert.deepStrictEqual(toBounds(sales.label.bounds), {
+      x: 155, y: 178, width: 90, height: 14
+    });
+    assert.deepStrictEqual(toBounds(technical.label.bounds), {
+      x: 155, y: 278, width: 90, height: 14
+    });
+    assert.deepStrictEqual(toBounds(legal.label.bounds), {
+      x: 105, y: 343, width: 90, height: 14
+    });
+  });
+
   it('should reserve placed label bounds', function() {
     const first = edge('First', [
       { x: 100, y: 100 },
@@ -124,10 +154,10 @@ describe('LabelLayouter', function() {
     const event = eventShape('Event', 100, 100);
     const elements = [
       event,
-      taskShape('Below', 50, 135, 140, 40),
-      taskShape('Above', 50, 60, 140, 40),
-      taskShape('Left', 0, 80, 100, 60),
-      taskShape('Right', 136, 80, 100, 60)
+      taskShape('Below', 73, 141, 90, 14),
+      taskShape('Above', 73, 81, 90, 14),
+      taskShape('Left', 5, 111, 90, 14),
+      taskShape('Right', 141, 111, 90, 14)
     ];
 
     layoutExternalLabels(factory, elements);
@@ -140,6 +170,67 @@ describe('LabelLayouter', function() {
     assert.ok(elements.slice(1).every(shape => {
       return !rectanglesOverlap(label, shape.bounds);
     }));
+  });
+
+  it('should keep a clear visual corridor between a label and its owner', function() {
+    const subprocess = expandedSubProcess('SubProcess', 0, 100, 400, 250);
+    const event = eventShape('manual decision required', 180, 82);
+    const blockingTask = taskShape('BlockingTask', 50, 140, 300, 80);
+    const handler = edge('Handler', [
+      { x: 198, y: 82 },
+      { x: 198, y: 40 },
+      { x: 350, y: 40 }
+    ], false);
+
+    layoutExternalLabels(factory, [
+      subprocess,
+      event,
+      blockingTask,
+      handler
+    ]);
+
+    const label = toBounds(event.label.bounds);
+
+    assert.ok(label.y + label.height < subprocess.bounds.y);
+  });
+
+  it('should keep labels out of expanded subprocess title bands', function() {
+    const subprocess = expandedSubProcess(
+      'SubProcess',
+      0,
+      100,
+      400,
+      250,
+      'Subprocess title'
+    );
+    const event = eventShape('Event', 180, 140);
+    const below = taskShape('Below', 140, 176, 120, 40);
+
+    layoutExternalLabels(factory, [ subprocess, event, below ]);
+
+    const label = toBounds(event.label.bounds);
+    const titleBand = { x: 0, y: 100, width: 400, height: 28 };
+
+    assert.ok(!rectanglesOverlap(label, titleBand));
+  });
+
+  it('should keep space beside expanded subprocess titles available', function() {
+    const subprocess = expandedSubProcess(
+      'SubProcess',
+      0,
+      100,
+      400,
+      250,
+      'Subprocess title'
+    );
+    const event = eventShape('Event', 50, 140);
+    const below = taskShape('Below', 10, 176, 120, 40);
+
+    layoutExternalLabels(factory, [ subprocess, event, below ]);
+
+    assert.deepStrictEqual(toBounds(event.label.bounds), {
+      x: 23, y: 121, width: 90, height: 14
+    });
   });
 
   it('should reserve enough height for wide unbroken text', function() {
@@ -162,6 +253,16 @@ describe('LabelLayouter', function() {
     const element = moddle.create('bpmn:Task', { id });
 
     return factory.createDiShape(element, { x, y, width, height });
+  }
+
+  function expandedSubProcess(id, x, y, width, height, name) {
+    const element = moddle.create('bpmn:SubProcess', { id, name });
+
+    return factory.createDiShape(
+      element,
+      { x, y, width, height },
+      { isExpanded: true }
+    );
   }
 
   function edge(id, waypoints, named = true) {

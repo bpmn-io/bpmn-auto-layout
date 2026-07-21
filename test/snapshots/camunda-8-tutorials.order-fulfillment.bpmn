@@ -172,21 +172,36 @@ If there occurs an error while retrieving the payment, a [BPMN Error event]() is
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1vhkshl" bpmnElement="Flow_1vhkshl">
         <di:waypoint x="230" y="1060" />
         <di:waypoint x="230" y="598" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="235" y="815" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
         <dc:Bounds x="212" y="562" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="245" y="603" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_RetrievePayment" bpmnElement="Activity_RetrievePayment">
         <dc:Bounds x="348" y="540" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_1aeoet4" bpmnElement="Event_1aeoet4">
         <dc:Bounds x="780" y="882" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="753" y="923" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_1dqrfkm" bpmnElement="Event_1dqrfkm">
         <dc:Bounds x="948" y="722" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="921" y="763" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_0p96bkl" bpmnElement="Event_0p96bkl">
         <dc:Bounds x="948" y="562" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="921" y="603" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_15rdezk" bpmnElement="Activity_15rdezk">
         <dc:Bounds x="748" y="540" width="100" height="80" />
@@ -202,9 +217,15 @@ If there occurs an error while retrieving the payment, a [BPMN Error event]() is
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_1u4rxf1" bpmnElement="Event_1u4rxf1">
         <dc:Bounds x="580" y="602" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="493" y="643" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_07y40ok" bpmnElement="Event_07y40ok">
         <dc:Bounds x="380" y="602" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="293" y="643" width="90" height="28" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1cgm930" bpmnElement="Flow_1cgm930">
         <di:waypoint x="248" y="580" />
