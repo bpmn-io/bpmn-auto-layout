@@ -2653,6 +2653,11 @@ describe('Layout', function() {
     assert.ok(index.includes('metricFilterCounts'));
     assert.ok(index.includes('hasMetricFilterResults'));
     assert.ok(index.includes('metric.disabled = !hasMetricFilterResults(definition.key)'));
+    assert.ok(index.includes('id="sort-by"'));
+    assert.ok(index.includes('id="sort-direction"'));
+    assert.ok(index.includes('sortableMetricDefinitions'));
+    assert.ok(index.includes('sortFixturePanels'));
+    assert.ok(index.includes('sortDirection'));
     assert.ok(index.includes('warning-filter-badge'));
     assert.ok(index.includes('warningFilterCount'));
     assert.ok(index.includes('isWarningVisible'));
