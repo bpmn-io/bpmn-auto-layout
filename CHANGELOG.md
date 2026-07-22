@@ -6,8 +6,16 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
-* `BREAKING`: `layoutProcess` now resolves with `{ xml, warnings }` instead of
-  the XML string.
+## 2.0.0-alpha.0
+
+* `FEAT`: replace the grid layouter with semantic BPMN layout ([#140](https://github.com/bpmn-io/bpmn-auto-layout/pull/140))
+* `FEAT`: support collaboration pools, message flows, groups, and artifacts ([#140](https://github.com/bpmn-io/bpmn-auto-layout/pull/140))
+* `FEAT`: report layout warnings and diagnostics ([#140](https://github.com/bpmn-io/bpmn-auto-layout/pull/140))
+
+### Breaking Changes
+
+* `layoutProcess` now resolves with `{ xml, warnings }` instead of
+  the `xml`
 
 ## 1.3.0
 
