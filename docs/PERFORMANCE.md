@@ -148,13 +148,24 @@ On `sub-process.expanded-06-hour.bpmn`, the twelve-run median decreased from
 In a seven-run repeat of the 24-obstacle synthetic benchmark, the median
 decreased from 328.22 ms to 89.33 ms, a 72.8% reduction.
 
+The second optimization pass indexes visibility points by their x and y
+coordinates. Each visited node now merges only its aligned coordinate buckets
+in the original point-index order instead of scanning every pending node.
+Obstacle insets, routed-connection segments, and shared-endpoint policies are
+also computed once per visibility search rather than once per candidate edge.
+
+Against the heap-optimized implementation, the representative fixture's median
+decreased from 42.00 ms to 25.51 ms, a further 39.3% reduction. The median of
+the 24-obstacle synthetic case decreased from 72.55 ms to 33.33 ms, a further
+54.1% reduction.
+
 The fallback may also run twice: first while avoiding previously routed
 connections and again without those connections.
 
 Remaining optimization opportunities:
 
-1. Build a sparse orthogonal visibility graph that connects only adjacent
-   visible points on each x or y coordinate.
+1. Evaluate connecting only adjacent visible points on each coordinate, with a
+   route-cost model that does not penalize artificial intermediate points.
 2. Index shapes and routed segments spatially for point and segment collision
    queries.
 3. Cache segment-clearance results during one routing invocation.
