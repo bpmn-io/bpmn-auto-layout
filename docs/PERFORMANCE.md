@@ -181,18 +181,25 @@ approximately 1,195 ms to 1,025 ms, indicating roughly 170 ms of
 name-dependent work; the CPU profile confirms that label placement is the
 main contributor to that difference.
 
-The label sort comparator calls `staticCandidateCount` repeatedly. Each call
-regenerates preferred candidates and checks them against all shapes and all
-edge segments. Candidate placement repeats similar full scans and also checks
-every previously occupied label.
+Before the first optimization, the label sort comparator called
+`staticCandidateCount` repeatedly. Each call regenerated preferred candidates
+and checked them against all shapes and all edge segments. Candidate placement
+still performs similar full scans and also checks every previously occupied
+label.
 
-Recommended optimization order:
+The first optimization pass now computes each label's preferred candidates and
+static clear-candidate count once before sorting. Placement reuses the same
+candidate arrays. In the isolated 120-label benchmark, the nine-run median
+decreased from 6.97 ms to 4.21 ms, a 39.6% reduction. On
+`blueprint.telco-service-order-fulfillment-retail.bpmn`, the twenty-run median
+decreased from 144.20 ms to 138.07 ms, a 4.3% reduction.
 
-1. Compute each label's static candidate count once before sorting.
-2. Flatten edge waypoints into segments once instead of traversing every edge
+Remaining optimization opportunities:
+
+1. Flatten edge waypoints into segments once instead of traversing every edge
    for every candidate.
-3. Use a spatial index for shapes, segments, and occupied labels.
-4. Reuse collision results shared by static ranking and final placement where
+2. Use a spatial index for shapes, segments, and occupied labels.
+3. Reuse collision results shared by static ranking and final placement where
    inputs are unchanged.
 
 ### 4. Artifact Placement and Accumulated Routes
@@ -226,18 +233,15 @@ BPMN XML processing is not a primary bottleneck for the slowest fixture:
 Optimization effort should therefore focus on collaboration ordering, routing,
 and collision detection before moddle parsing or serialization.
 
-## Suggested Implementation Sequence
+## Suggested Next Steps
 
-1. Precompute label sort keys and endpoint-to-participant mappings. These are
-   localized changes with low behavioral risk.
-2. Add focused performance benchmarks for participant ordering and visibility
-   routing so regressions and improvements are measurable.
-3. Replace the visibility router's dense graph traversal while preserving route
-   selection and failure behavior.
+1. Flatten label-placement edge segments and measure the remaining collision
+   scans.
+2. Group participant-ordering obstacles by participant and vertical span.
+3. Introduce a shared spatial index if profiles still show repeated global
+   collision scans after those targeted changes.
 4. Rework participant ordering only with snapshot, metric, and visual review,
    because order changes directly affect output geometry.
-5. Introduce a shared spatial index if profiles still show repeated global
-   collision scans after the targeted changes.
 
 Performance changes that alter placement or routing must be reviewed with the
 fixture inspector and layout metrics in addition to normal tests.
