@@ -1,4 +1,4 @@
-# Layout Performance Investigation
+# Layout Performance Investigation 2026-07-22
 
 This document records a performance investigation of the layouter conducted on
 July 22, 2026. It identifies current runtime bottlenecks and possible
