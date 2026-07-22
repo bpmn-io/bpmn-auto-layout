@@ -15,6 +15,7 @@ import {
   getExternalLabelText,
   isExternalLabelOwner
 } from '../lib/layout/BpmnUtil.js';
+import { calculateStatistics } from '../tasks/benchmark-util.mjs';
 import {
   EXTERNAL_LABEL_CLEARANCE,
   EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE,
@@ -35,6 +36,7 @@ const snapshotsDirectory = path.join(__dirname, 'snapshots');
 const metricsBaselineFile = path.join(__dirname, 'metrics', 'baseline.json');
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === 'true';
+const INSPECTOR_LAYOUT_TIMING_RUNS = 5;
 const layoutTimingsByFixture = new Map();
 const layoutWarningsByFixture = new Map();
 
@@ -2536,12 +2538,26 @@ describe('Layout', function() {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
 
         // when
-        const startedAt = performance.now();
-        const result = await layoutProcessResult(xml);
-        const output = result.xml;
+        await layoutProcessResult(xml);
 
-        layoutTimingsByFixture.set(fileName, performance.now() - startedAt);
-        layoutWarningsByFixture.set(fileName, result.warnings.map(warning => ({
+        const timings = [];
+        let output;
+        let warnings;
+
+        for (let index = 0; index < INSPECTOR_LAYOUT_TIMING_RUNS; index++) {
+          const startedAt = performance.now();
+          const result = await layoutProcessResult(xml);
+
+          timings.push(performance.now() - startedAt);
+
+          if (index === 0) {
+            output = result.xml;
+            warnings = result.warnings;
+          }
+        }
+
+        layoutTimingsByFixture.set(fileName, timings);
+        layoutWarningsByFixture.set(fileName, warnings.map(warning => ({
           code: warning.code,
           elementId: warning.elementId,
           message: warning.message,
@@ -2616,8 +2632,13 @@ describe('Layout', function() {
     assert.ok(index.includes('createLayoutTiming'));
     assert.ok(index.includes('createWarningsPanel'));
     assert.ok(results.every(result => {
-      return Number.isFinite(result.layoutTiming?.durationMs) &&
-        result.layoutTiming.durationMs >= 0;
+      return Number.isFinite(result.layoutTiming?.averageMs) &&
+        result.layoutTiming.averageMs >= 0 &&
+        Number.isFinite(result.layoutTiming.p50Ms) &&
+        result.layoutTiming.p50Ms >= 0 &&
+        Number.isFinite(result.layoutTiming.p90Ms) &&
+        result.layoutTiming.p90Ms >= 0 &&
+        result.layoutTiming.runs === INSPECTOR_LAYOUT_TIMING_RUNS;
     }));
     assert.deepStrictEqual(
       results
@@ -2705,24 +2726,28 @@ function iit(fileName) {
 }
 
 function summarizeLayoutTimings(timingsByFixture) {
-  const timings = [ ...timingsByFixture.entries() ].sort(([ firstName, firstDuration ], [ secondName, secondDuration ]) => {
-    return secondDuration - firstDuration || firstName.localeCompare(secondName);
+  const timings = [ ...timingsByFixture.entries() ].map(([ fileName, durations ]) => {
+    return [ fileName, calculateStatistics(durations) ];
+  }).sort(([ firstName, firstStatistics ], [ secondName, secondStatistics ]) => {
+    return secondStatistics.p50Ms - firstStatistics.p50Ms ||
+      firstName.localeCompare(secondName);
   });
-  const durations = timings
-    .map(([, duration ]) => duration)
+  const p50s = timings
+    .map(([, statistics ]) => statistics.p50Ms)
     .sort((first, second) => first - second);
-  const midpoint = Math.floor(durations.length / 2);
-  const medianMs = durations.length % 2
-    ? durations[midpoint]
-    : (durations[midpoint - 1] + durations[midpoint]) / 2;
+  const midpoint = Math.floor(p50s.length / 2);
+  const medianP50Ms = p50s.length % 2
+    ? p50s[midpoint]
+    : (p50s[midpoint - 1] + p50s[midpoint]) / 2;
   const slowCount = Math.max(1, Math.ceil(timings.length * 0.1));
 
-  return new Map(timings.map(([ fileName, durationMs ], index) => {
+  return new Map(timings.map(([ fileName, statistics ], index) => {
     return [ fileName, {
-      durationMs,
+      ...statistics,
       isSlow: index < slowCount,
-      medianMs,
+      medianP50Ms,
       rank: index + 1,
+      runs: INSPECTOR_LAYOUT_TIMING_RUNS,
       total: timings.length
     } ];
   }));

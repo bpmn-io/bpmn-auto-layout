@@ -21,7 +21,8 @@ npm run test:inspect
 ```
 
 This opens the local side-by-side visual inspector for fixture input, current
-output, and the committed snapshot.
+output, and the committed snapshot. It records five measured layouts after one
+warm-up per fixture and displays average, p50, and p90 timing.
 
 Render one valid fixture to standalone image artifacts:
 
