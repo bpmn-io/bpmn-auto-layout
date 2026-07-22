@@ -116,7 +116,7 @@ In the profile of `sub-process.expanded-06-hour.bpmn`,
 `SequenceFlowRouter.js` accounted for 74.8% of self time and `LayoutUtil.js`
 for another 7.6%.
 
-`visibilityRoute` currently:
+Before the first routing optimization, `visibilityRoute`:
 
 1. combines every obstacle-derived x coordinate with every obstacle-derived y
    coordinate, producing a potentially quadratic point set;
@@ -137,18 +137,28 @@ An isolated test with distinct obstacle coordinates showed:
 | 20 | 170.62 ms |
 | 24 | 326.07 ms |
 
+The first optimization pass replaces the repeated pending-set sort with a
+binary min-heap. For reachable nodes, the heap retains the original
+distance-first, point-index tie-breaking order and uses lazy removal when a
+node receives a shorter distance. Unreachable nodes no longer need queue
+entries.
+
+On `sub-process.expanded-06-hour.bpmn`, the twelve-run median decreased from
+80.92 ms to 46.36 ms, a 42.7% reduction, without changing its snapshot output.
+In a seven-run repeat of the 24-obstacle synthetic benchmark, the median
+decreased from 328.22 ms to 89.33 ms, a 72.8% reduction.
+
 The fallback may also run twice: first while avoiding previously routed
 connections and again without those connections.
 
-Recommended optimization order:
+Remaining optimization opportunities:
 
 1. Build a sparse orthogonal visibility graph that connects only adjacent
    visible points on each x or y coordinate.
-2. Replace repeated pending-set sorting with a binary heap priority queue.
-3. Index shapes and routed segments spatially for point and segment collision
+2. Index shapes and routed segments spatially for point and segment collision
    queries.
-4. Cache segment-clearance results during one routing invocation.
-5. Track why preferred routes fall back to visibility routing and reduce
+3. Cache segment-clearance results during one routing invocation.
+4. Track why preferred routes fall back to visibility routing and reduce
    avoidable fallback calls.
 
 ### 3. External Label Placement
