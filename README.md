@@ -86,6 +86,12 @@ npm run test:update-snapshots
 
 # capture a Chrome performance trace for one fixture
 npm run trace:fixture -- collaboration.message-flows
+
+# benchmark one fixture with 60 measured layouts
+npm run benchmark:fixture -- process.application-processing 60
+
+# a path below test/fixtures is also accepted
+npm run benchmark:fixture -- ./test/fixtures/process.application-processing.bpmn 60
 ```
 
 Add new test cases to [`test/fixtures`](./test/fixtures) and they will be picked up automatically.
