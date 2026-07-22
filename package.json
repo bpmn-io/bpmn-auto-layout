@@ -19,6 +19,7 @@
     "test:inspect": "node tasks/inspect.mjs",
     "test:update-snapshots": "cross-env UPDATE_SNAPSHOTS=true mocha --timeout 5000",
     "render:fixture": "npm run build && node tasks/render-fixture.mjs",
+    "trace:fixture": "npm run build:example && node tasks/trace-fixture.mjs",
     "metrics": "node test/metrics.mjs",
     "metrics:update": "cross-env UPDATE_BASELINE=true node test/metrics.mjs",
     "pretest": "run-s build",
@@ -57,6 +58,7 @@
     "mocha": "^11.7.5",
     "npm-run-all": "^4.1.5",
     "open-cli": "^8.0.0",
+    "puppeteer": "^25.3.0",
     "rollup": "^4.57.1"
   },
   "engines": {
