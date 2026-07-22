@@ -44,6 +44,16 @@ The command builds a dedicated local trace page and writes a DevTools- and
 Perfetto-compatible JSON trace to ignored `test/performance/traces/`. It fails
 if Chrome reports trace data loss.
 
+Measure a fixture's steady-state layout time without browser rendering:
+
+```sh
+npm run benchmark:fixture -- <fixture-name-or-path> <iterations>
+```
+
+The command accepts a fixture name or a path below `test/fixtures/`, builds the
+local implementation, excludes 20 warm-up layouts, and reports average, p50,
+and p90 layout times.
+
 Run `npm run metrics` when reviewing visual-quality impact beyond byte-level
 snapshot changes.
 
