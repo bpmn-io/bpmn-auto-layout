@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
+import { performance } from 'node:perf_hooks';
 import url from 'node:url';
 
 import { BpmnModdle } from 'bpmn-moddle';
@@ -34,6 +35,7 @@ const snapshotsDirectory = path.join(__dirname, 'snapshots');
 const metricsBaselineFile = path.join(__dirname, 'metrics', 'baseline.json');
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === 'true';
+const layoutTimingsByFixture = new Map();
 const layoutWarningsByFixture = new Map();
 
 async function layoutProcess(xml) {
@@ -2534,9 +2536,11 @@ describe('Layout', function() {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
 
         // when
+        const startedAt = performance.now();
         const result = await layoutProcessResult(xml);
         const output = result.xml;
 
+        layoutTimingsByFixture.set(fileName, performance.now() - startedAt);
         layoutWarningsByFixture.set(fileName, result.warnings.map(warning => ({
           code: warning.code,
           elementId: warning.elementId,
@@ -2562,6 +2566,7 @@ describe('Layout', function() {
     const metricsBaseline = fs.existsSync(metricsBaselineFile)
       ? JSON.parse(fs.readFileSync(metricsBaselineFile, 'utf8'))
       : {};
+    const layoutTimingSummary = summarizeLayoutTimings(layoutTimingsByFixture);
     const results = await Promise.all(fs.readdirSync(outputDirectory).filter(f => f.endsWith('.bpmn')).map(async fileName => {
 
       const diagram = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
@@ -2592,6 +2597,7 @@ describe('Layout', function() {
         diagramOutput,
         diagramSnapshot,
         diagramSnapshotMatching,
+        layoutTiming: layoutTimingSummary.get(fileName) || null,
         metrics: await evaluateMetrics(diagramOutput, metricsBaseline[fileName]),
         name: fileName,
         warnings: layoutWarningsByFixture.get(fileName) || []
@@ -2607,7 +2613,18 @@ describe('Layout', function() {
     );
 
     assert.ok(index.includes('createMetricsPanel'));
+    assert.ok(index.includes('createLayoutTiming'));
     assert.ok(index.includes('createWarningsPanel'));
+    assert.ok(results.every(result => {
+      return Number.isFinite(result.layoutTiming?.durationMs) &&
+        result.layoutTiming.durationMs >= 0;
+    }));
+    assert.deepStrictEqual(
+      results
+        .map(result => result.layoutTiming.rank)
+        .sort((first, second) => first - second),
+      results.map((result, index) => index + 1)
+    );
     const groupWarningFixture = results.find(result => {
       return result.name === 'artifact.group-without-members.bpmn';
     });
@@ -2680,4 +2697,28 @@ function iit(fileName) {
   }
 
   return it;
+}
+
+function summarizeLayoutTimings(timingsByFixture) {
+  const timings = [ ...timingsByFixture.entries() ].sort(([ firstName, firstDuration ], [ secondName, secondDuration ]) => {
+    return secondDuration - firstDuration || firstName.localeCompare(secondName);
+  });
+  const durations = timings
+    .map(([, duration ]) => duration)
+    .sort((first, second) => first - second);
+  const midpoint = Math.floor(durations.length / 2);
+  const medianMs = durations.length % 2
+    ? durations[midpoint]
+    : (durations[midpoint - 1] + durations[midpoint]) / 2;
+  const slowCount = Math.max(1, Math.ceil(timings.length * 0.1));
+
+  return new Map(timings.map(([ fileName, durationMs ], index) => {
+    return [ fileName, {
+      durationMs,
+      isSlow: index < slowCount,
+      medianMs,
+      rank: index + 1,
+      total: timings.length
+    } ];
+  }));
 }
