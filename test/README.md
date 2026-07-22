@@ -107,6 +107,20 @@ npm run metrics
 npm run metrics:update
 ```
 
+## Performance tracing
+
+Capture a raw Chrome trace for one fixture with:
+
+```sh
+npm run trace:fixture -- collaboration.message-flows
+```
+
+The command builds a dedicated local trace page, invokes `layoutProcess` and
+imports the generated diagram into a viewer, then saves a DevTools- and
+Perfetto-compatible JSON trace under `test/performance/traces/`. Generated
+traces are ignored by Git. The trace uses DevTools timeline and V8 CPU-profiler
+categories and fails instead of saving a trace when Chrome reports data loss.
+
 To render one normal fixture as paired human-authored input and current layout
 artifacts:
 

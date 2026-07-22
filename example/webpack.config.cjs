@@ -7,6 +7,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   entry: {
     app: path.resolve(__dirname, './src/app.js'),
+    performance: path.resolve(__dirname, './src/performance.js'),
   },
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -38,6 +39,12 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: './src/index.html',
+      chunks: [ 'app' ]
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'performance.html',
+      template: './src/performance.html',
+      chunks: [ 'performance' ]
     })
   ].concat(
     process.env.NODE_ENV !== 'production'

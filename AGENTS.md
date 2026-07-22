@@ -33,6 +33,17 @@ The command builds the local implementation and writes generated BPMN, PNG,
 and SVG files to ignored `test/output/rendered/`. It intentionally rejects
 fixtures in `test/fixtures/failures/`, which do not have valid layout output.
 
+Capture a raw Chrome performance trace for a fixture when investigating layout
+speed or reviewing performance-sensitive changes:
+
+```sh
+npm run trace:fixture -- <fixture-name>
+```
+
+The command builds a dedicated local trace page and writes a DevTools- and
+Perfetto-compatible JSON trace to ignored `test/performance/traces/`. It fails
+if Chrome reports trace data loss.
+
 Run `npm run metrics` when reviewing visual-quality impact beyond byte-level
 snapshot changes.
 

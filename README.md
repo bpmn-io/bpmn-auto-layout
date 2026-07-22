@@ -83,11 +83,15 @@ npm run test:inspect
 
 # run update snapshots
 npm run test:update-snapshots
+
+# capture a Chrome performance trace for one fixture
+npm run trace:fixture -- collaboration.message-flows
 ```
 
 Add new test cases to [`test/fixtures`](./test/fixtures) and they will be picked up automatically.
 
-See [`test/README.md`](./test/README.md) for how the snapshot tests work in detail.
+See [`test/README.md`](./test/README.md) for detailed snapshot and performance
+tracing workflows.
 
 ## License
 
