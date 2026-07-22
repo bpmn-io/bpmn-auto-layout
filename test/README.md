@@ -13,9 +13,9 @@ improves or regresses layout quality. The visual inspector supports review of
 the snapshot suite. Each fixture header also shows its generated layout metrics
 and the delta from the recorded metrics baseline; green and orange metric cards
 indicate an improvement or regression for metrics with a preferred direction.
-It also shows the current run's `layoutProcess` duration and rank among the
-fixtures. Timing is informational only: it has no persisted baseline and never
-affects the test result.
+It also shows average, p50, and p90 `layoutProcess` durations from five measured
+runs after one warm-up, and ranks fixtures by p50. Timing is informational only:
+it has no persisted baseline and never affects the test result.
 Non-fatal layout warnings are shown below the metrics for the fixture that
 produced them.
 
