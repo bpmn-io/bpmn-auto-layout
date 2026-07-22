@@ -96,10 +96,19 @@ On the critical fixture, the ten-run median decreased from 1,393.09 ms to
 test suite remained unchanged. Across the complete fixture benchmark, the sum
 of fixture medians decreased from 4,000.5 ms to 2,915.9 ms, a 27.1% reduction.
 
+The second optimization pass precomputes each obstacle's invariant inset x
+coordinate, width, and height. Order scoring now only translates the obstacle's
+y coordinate instead of rebuilding and insetting its complete rectangle for
+every candidate order, and scans the prepared records directly. Against the
+previously optimized implementation, the eight-participant ordering median
+decreased from 85.58 ms to 83.27 ms, a 2.7% reduction. On
+`process.application-processing.bpmn`, the fifteen-run median decreased from
+589.23 ms to 475.12 ms, a 19.4% reduction.
+
 Remaining optimization opportunities:
 
-1. Group obstacle shapes by participant so bend checks only inspect relevant
-   vertical spans.
+1. Profile whether a spatial index can reduce remaining obstacle scans without
+   adding more overhead than the small participant sets justify.
 2. Replace exhaustive permutation with branch-and-bound or dynamic programming,
    or lower the threshold after visually reviewing the resulting participant
    order.
@@ -241,10 +250,9 @@ and collision detection before moddle parsing or serialization.
 
 ## Suggested Next Steps
 
-1. Group participant-ordering obstacles by participant and vertical span.
-2. Introduce a shared spatial index if profiles still show repeated global
+1. Introduce a shared spatial index if profiles still show repeated global
    collision scans after those targeted changes.
-3. Rework participant ordering only with snapshot, metric, and visual review,
+2. Rework participant ordering only with snapshot, metric, and visual review,
    because order changes directly affect output geometry.
 
 Performance changes that alter placement or routing must be reviewed with the
