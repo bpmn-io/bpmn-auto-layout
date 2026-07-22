@@ -6,6 +6,13 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+## 2.0.0-alpha.1
+
+* `FIX`: size empty process participants
+* `CHORE`: improve collaboration routing, label placement, and artifact placement performance
+* `CHORE`: add fixture benchmark and performance trace tools
+* `CHORE`: show sortable average, p50, and p90 layout timings in the inspector
+
 ## 2.0.0-alpha.0
 
 * `FEAT`: replace the grid layouter with semantic BPMN layout ([#140](https://github.com/bpmn-io/bpmn-auto-layout/pull/140))
