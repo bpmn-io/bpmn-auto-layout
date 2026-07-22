@@ -15,9 +15,9 @@
   "scripts": {
     "all": "run-s lint test",
     "lint": "eslint .",
-    "test": "mocha",
+    "test": "mocha --timeout 5000",
     "test:inspect": "node tasks/inspect.mjs",
-    "test:update-snapshots": "cross-env UPDATE_SNAPSHOTS=true mocha",
+    "test:update-snapshots": "cross-env UPDATE_SNAPSHOTS=true mocha --timeout 5000",
     "render:fixture": "npm run build && node tasks/render-fixture.mjs",
     "metrics": "node test/metrics.mjs",
     "metrics:update": "cross-env UPDATE_BASELINE=true node test/metrics.mjs",

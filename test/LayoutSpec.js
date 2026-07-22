@@ -1264,8 +1264,6 @@ describe('Layout', function() {
     });
 
     it('should align message endpoints by translating participants', async function() {
-      this.timeout(5000);
-
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'process.application-processing.bpmn'),
         'utf8'
@@ -1475,8 +1473,6 @@ describe('Layout', function() {
     });
 
     it('should keep data object references inside their owner lane', async function() {
-      this.timeout(5000);
-
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'process.application-processing.bpmn'),
         'utf8'
@@ -2496,7 +2492,6 @@ describe('Layout', function() {
     .filter(fileName => fileName.endsWith('.bpmn'))
     .forEach(fileName => {
       iit(fileName)(`should layout ${ fileName }`, async function() {
-
         // given
         const xml = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
 
