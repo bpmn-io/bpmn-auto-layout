@@ -43,6 +43,38 @@
         min-width: 0;
       }
 
+      .layout-timing {
+        display: inline-flex;
+        align-items: center;
+        flex: none;
+        gap: 4px;
+        margin-left: auto;
+        padding: 4px 6px;
+        border: 1px solid #e5e5e5;
+        border-radius: 999px;
+        background: #fff;
+        color: #555;
+        font-size: 12px;
+        font-weight: normal;
+      }
+
+      .layout-timing svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .layout-timing-part {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+      }
+
+      .layout-timing-slow {
+        border-color: #fed7aa;
+        background: #fff7ed;
+        color: #9a3412;
+      }
+
       .metrics-panel {
         flex-basis: 100%;
         border: 1px solid #e5e5e5;
@@ -1655,6 +1687,26 @@
         return panel;
       }
 
+      function createLayoutTiming(timing) {
+        const element = document.createElement('span');
+        const ratio = timing.medianMs > 0
+          ? timing.durationMs / timing.medianMs
+          : 0;
+        const timerIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>';
+        const descendingIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 17h6v-6"/><path d="m22 17-8.5-8.5-5 5L2 7"/></svg>';
+        const gaugeIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>';
+
+        element.className = `layout-timing${timing.isSlow ? ' layout-timing-slow' : ''}`;
+        element.title = 'Informational current-run timing; it is not a performance baseline or test gate.';
+        element.innerHTML = `
+          <span class="layout-timing-part">${timerIcon}Layout ${timing.durationMs.toFixed(1)} ms</span>
+          <span class="layout-timing-part">${descendingIcon}#${timing.rank} / ${timing.total} slowest</span>
+          ${ratio ? `<span class="layout-timing-part">${gaugeIcon}${ratio.toFixed(1)}x median</span>` : ''}
+        `;
+
+        return element;
+      }
+
       function createWarningsPanel(warnings) {
         const panel = document.createElement('section');
         panel.className = 'warnings-panel';
@@ -1704,6 +1756,7 @@
         diagramOutput,
         diagramSnapshot,
         diagramSnapshotMatching,
+        layoutTiming,
         metrics,
         name,
         warnings
@@ -1783,6 +1836,9 @@
         title.appendChild(status);
         title.appendChild(fixtureName);
         title.appendChild(copyPathButton);
+        if (layoutTiming) {
+          title.appendChild(createLayoutTiming(layoutTiming));
+        }
 
         const description = getProcessDocumentation(diagram);
 
