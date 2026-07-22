@@ -12,6 +12,9 @@ The investigation used:
 - five measured runs per fixture after one warm-up run;
 - all 153 valid fixtures in `test/fixtures/`;
 - V8 sampling CPU profiles of representative slow fixtures;
+- three independent Chrome DevTools traces of
+  `process.application-processing.bpmn`;
+- three independent Node.js V8 CPU profiles of the same fixture;
 - timings around major layout stages;
 - isolated synthetic scaling tests for participant ordering, visibility
   routing, and label placement; and
@@ -20,6 +23,10 @@ The investigation used:
 Measurements were taken on the local development machine with Node.js
 24.18.0. Absolute timings will vary by machine and Node.js version. Relative
 costs, profiles, and scaling behavior are the primary evidence.
+
+Chrome traces include the example viewer's BPMN import and rendering, while
+Node.js profiles isolate `layoutProcess`. Browser findings must therefore not
+be attributed to the layouter without the matching Node.js evidence.
 
 ## Baseline Fixture Corpus
 
@@ -49,11 +56,69 @@ The slowest fixtures were:
 fixture median runtimes. It contains 17 participants, 29 message flows, 104
 sequence flows, and 20 artifacts.
 
+## Current Application-Processing Trace Evidence
+
+Three Chrome traces of `process.application-processing.bpmn` each contained a
+single 855--877 ms main-thread task. `Canvas.getSize` accounted for 147--152 ms
+(17.4--17.7%) of sampled browser time. This is viewer rendering work, not
+layouter work.
+
+Three matching Node.js profiles, each running 20 layouts, showed these
+consistent module self-time ranges. Sampling self time excludes callees and is
+intended to rank work rather than establish a complete time budget.
+
+| Module | Self time |
+| --- | ---: |
+| `ArtifactLayouter.js` | 20.5--21.7% |
+| `CollaborationLayouter.js` | 17.6--18.4% |
+| `SequenceFlowRouter.js` | 17.6--18.0% |
+| `LabelLayouter.js` | 10.7--11.1% |
+
+The most stable layouter leaf hotspots were:
+
+| Function | Self time |
+| --- | ---: |
+| `visibilityRoute` | 11.6--11.7% |
+| `findArtifactPlacement` | 6.3--6.7% |
+| `routeMessageLeg` | 4.9--5.4% |
+| `countRouteCrossings` | 3.4--4.3% |
+| `orderedMessageFlowNeedsBend` | 3.3--3.7% |
+
+## Optimization Work Status
+
+### Not Yet Attempted
+
+This is the active performance backlog. Each item needs whole-fixture evidence
+before it is accepted; this list intentionally excludes previously attempted
+implementation ideas.
+
+| Priority | Target | Unattempted work |
+| ---: | --- | --- |
+| 1 | `routeMessageLeg` | Profile message-flow leg routing at component level to identify repeated route or collision work, then optimize only the measured source. |
+| 2 | `findArtifactPlacement` | Profile candidate generation, collision checks, route generation, and container checks separately before proposing another change. This is a diagnosis task, not a retry of the rejected caches below. |
+
+### Previously Attempted -- Do Not Retry by Default
+
+- Participant-order endpoint lookup, obstacle preparation, order-score caching,
+  broad-phase obstacle rejection, and bend-count score pruning are shipped. Do
+  not revisit those techniques.
+- Visibility routing has already received deterministic heap traversal,
+  coordinate indexes, and immutable collision-context preparation. No further
+  `visibilityRoute` change is queued without a new component-level diagnosis.
+- External-label sort-data caching and edge-segment preparation are shipped. Do
+  not revisit those techniques.
+- Artifact size-candidate and flattened graph-route-segment caches were
+  rejected after whole-fixture measurements showed no reliable improvement.
+  Do not retry them.
+
+Viewer rendering, including `Canvas.getSize`, is outside the layouter's
+optimization scope.
+
 ## Bottlenecks
 
 ### 1. Collaboration Participant Ordering
 
-Participant ordering is the dominant cost for large collaborations. On
+Participant ordering is one of several material costs for large collaborations. On
 `process.application-processing.bpmn`, `layoutCollaboration` took approximately
 980 ms of a 1,285 ms average layout.
 
@@ -105,15 +170,19 @@ decreased from 85.58 ms to 83.27 ms, a 2.7% reduction. On
 `process.application-processing.bpmn`, the fifteen-run median decreased from
 589.23 ms to 475.12 ms, a 19.4% reduction.
 
-Remaining optimization opportunities:
+The participant-ordering work above is complete. Do not retry its score-cache,
+endpoint-lookup, obstacle-preparation, or broad-phase techniques. The separate
+`countRouteCrossings` optimization is also complete: a candidate must strictly
+reduce its bend count before crossings, route length, or displacement can
+affect its acceptance. Candidate scoring now returns immediately when its bend
+count cannot meet that condition, preserving the complete score for every
+candidate that can be accepted.
 
-1. Profile whether a spatial index can reduce remaining obstacle scans without
-   adding more overhead than the small participant sets justify.
-2. Replace exhaustive permutation with branch-and-bound or dynamic programming,
-   or lower the threshold after visually reviewing the resulting participant
-   order.
-3. Investigate a more compact score-cache key if profiling shows key creation
-   becoming significant.
+With `npm run benchmark:fixture -- process.application-processing 60`, which
+excludes 20 warm-up layouts, the restored optimization measured 477.46 ms
+average, 471.84 ms p50, and 511.32 ms p90. An otherwise identical unoptimized
+control measured 532.91 ms average, 528.47 ms p50, and 584.03 ms p90. The p50
+improved by 10.7%.
 
 Changing the ordering algorithm or threshold may alter diagram geometry and
 therefore requires visual fixture review.
@@ -171,15 +240,9 @@ the 24-obstacle synthetic case decreased from 72.55 ms to 33.33 ms, a further
 The fallback may also run twice: first while avoiding previously routed
 connections and again without those connections.
 
-Remaining optimization opportunities:
-
-1. Evaluate connecting only adjacent visible points on each coordinate, with a
-   route-cost model that does not penalize artificial intermediate points.
-2. Index shapes and routed segments spatially for point and segment collision
-   queries.
-3. Cache segment-clearance results during one routing invocation.
-4. Track why preferred routes fall back to visibility routing and reduce
-   avoidable fallback calls.
+The visibility-routing work above is complete. Do not retry its heap,
+coordinate-index, or collision-context techniques without a new
+component-level diagnosis that identifies a distinct source of cost.
 
 ### 3. External Label Placement
 
@@ -211,29 +274,31 @@ decreased from 3.82 ms to 2.16 ms, a 43.5% reduction. In an isolated benchmark
 with 80 labels and 400 non-intersecting edges, the eleven-run median decreased
 from 11.29 ms to 4.99 ms, a 55.8% reduction.
 
-Remaining optimization opportunities:
-
-1. Use a spatial index for shapes, segments, and occupied labels.
-2. Reuse collision results shared by static ranking and final placement where
-   inputs are unchanged.
+The label-placement work above is complete. Do not retry its candidate-sort or
+edge-segment preparation techniques without new profiling evidence.
 
 ### 4. Artifact Placement and Accumulated Routes
 
-Artifact placement contributed 4.6% of self time in the slowest fixture. For
-each artifact, candidate scoring and validation can scan all graph obstacles,
+The current Node.js traces place artifact placement at 20.5--21.7% of sampled
+self time, making it the largest module cost in the application-processing
+fixture. `findArtifactPlacement` alone accounts for 6.3--6.7%. For each
+artifact, candidate scoring and validation can scan all graph obstacles,
 existing routes, occupied artifacts, and boundary containers. Association
 routes are recomputed for every candidate.
 
 Sequence-flow collision checks also revisit every previously routed connection
 and repeatedly convert routes into segments.
 
-Recommended optimizations:
+An attempted cache of artifact size candidates and flattened graph-route
+segments improved an isolated preparation microbenchmark but not whole layouts.
+On a direct 30-run A/B measurement, application processing was effectively
+flat (333.09 ms with the change versus 335.36 ms without it), while
+`blueprint.servicenow-integration-blueprint.bpmn` regressed (101.13 ms versus
+96.03 ms). The change was rejected and is not shipped.
 
-- precompute and retain route segments;
-- spatially index obstacle rectangles and route segments;
-- cache association routes by candidate geometry where practical; and
-- avoid rebuilding unchanged graph-shape and expanded-child collections across
-  adjacent layout stages.
+The rejected cache experiment must not be retried. The active backlog instead
+calls for component-level diagnosis of `findArtifactPlacement` before any new
+artifact-placement optimization is proposed.
 
 ## XML Processing
 
@@ -250,10 +315,10 @@ and collision detection before moddle parsing or serialization.
 
 ## Suggested Next Steps
 
-1. Introduce a shared spatial index if profiles still show repeated global
-   collision scans after those targeted changes.
-2. Rework participant ordering only with snapshot, metric, and visual review,
-   because order changes directly affect output geometry.
+1. Profile `routeMessageLeg` at component level, then target only a measured
+   repeated operation.
+2. Investigate `findArtifactPlacement` at component level; accept only
+   whole-fixture improvements, not isolated microbenchmark gains.
 
 Performance changes that alter placement or routing must be reviewed with the
 fixture inspector and layout metrics in addition to normal tests.
