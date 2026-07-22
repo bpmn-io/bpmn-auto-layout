@@ -1391,6 +1391,44 @@ describe('Layout', function() {
       assert.ok(avoidedDock.x < hardware.x + hardware.width);
     });
 
+    it('should size empty process participants around message docks', async function() {
+      const xml = fs.readFileSync(
+        path.join(
+          fixturesDirectory,
+          'collaboration.message-flows-to-empty-process.bpmn'
+        ),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const participantShapes = new Map(elements.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNShape') &&
+          element.bpmnElement.$instanceOf('bpmn:Participant');
+      }).map(element => [ element.bpmnElement.id, element.bounds ]));
+      const participant = participantShapes.get('Participant_01ttr04');
+      const messageFlows = elements.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.$instanceOf('bpmn:MessageFlow');
+      });
+
+      assert.ok(participant.width > 300);
+      assert.ok(
+        participant.x > participantShapes.get('Participant_1l36cxe').x
+      );
+
+      for (const edge of messageFlows) {
+        const participantDock = edge.bpmnElement.sourceRef.id === 'Participant_01ttr04'
+          ? edge.waypoint[0]
+          : edge.waypoint.at(-1);
+
+        assert.ok(participantDock.x >= participant.x);
+        assert.ok(participantDock.x <= participant.x + participant.width);
+        assert.strictEqual(edge.waypoint.length, 2);
+        assert.strictEqual(edge.waypoint[0].x, edge.waypoint[1].x);
+      }
+    });
+
     it('should place text annotations after message-independent process routing', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'blueprint.event-registration.bpmn'),

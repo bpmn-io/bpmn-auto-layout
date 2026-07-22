@@ -346,8 +346,11 @@ not proper crossings.
 ## Collaborations and message flows
 
 Every participant with a process reference contains an independently laid-out
-process. Its pool is sized around that process. Black-box participants remain
-empty and are sized and positioned from message-flow anchors.
+process. Its pool is sized around that process. Participants without process
+content are positioned and minimally sized from message-flow anchors, whether
+they have an empty process reference or no process reference. An empty
+process-backed pool keeps its current alignment when every anchor already fits
+with participant-header clearance.
 
 After vertical ordering, expanded participants may move horizontally together
 with their complete process layouts. Candidate offsets come only from aligning
@@ -357,8 +360,8 @@ a bent message flow without adding a proper edge crossing. It minimizes bend
 count first, crossings second, and routed distance third; collaboration width is
 not constrained because pool alignment is more important than the overall
 footprint. Displacement from the initially left-aligned layout breaks otherwise
-equal alternatives. Black-box participant geometry is recomputed from its
-translated message anchors for every candidate.
+equal alternatives. Anchor-positioned participant geometry is recomputed from
+its translated message anchors for every candidate.
 
 Once internal offsets are fixed, each disconnected message-flow component is
 translated as a unit to the common left participant edge. This removes
@@ -387,19 +390,20 @@ Adjacent pools use their shared gutter; non-adjacent pools may use an outside
 channel. Routes avoid process-node obstacles, and obstacle-avoiding route legs
 consider previously allocated message flows.
 
-Black-box pool sizing and message routing form a fixed point:
+Empty pool sizing and message routing form a fixed point:
 
 ```mermaid
 flowchart LR
     A["Route message flows"] --> B["Inspect participant-side docks"]
     B --> C{"Every dock inside its pool?"}
     C -->|yes| D["Finish"]
-    C -->|no| E["Expand affected black-box pools"]
+    C -->|no| E["Expand affected empty pools"]
     E --> A
 ```
 
-This prevents a valid obstacle-avoiding route from leaving its participant-side
-dock outside the final pool bounds.
+Participant docks are constrained to their pool bounds while routing. Empty
+pools then expand around uncovered docks and reroute until straight flows stay
+attached wherever obstacles permit.
 
 ## DI emission
 
