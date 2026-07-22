@@ -194,12 +194,18 @@ decreased from 6.97 ms to 4.21 ms, a 39.6% reduction. On
 `blueprint.telco-service-order-fulfillment-retail.bpmn`, the twenty-run median
 decreased from 144.20 ms to 138.07 ms, a 4.3% reduction.
 
+The second optimization pass flattens edge waypoints into segment records once
+per label-layout pass and stores each segment's bounds. Collision checks reject
+segments with disjoint bounds before applying the exact intersection predicate.
+On finalized DI from the same fixture, the fifty-run label-placement median
+decreased from 3.82 ms to 2.16 ms, a 43.5% reduction. In an isolated benchmark
+with 80 labels and 400 non-intersecting edges, the eleven-run median decreased
+from 11.29 ms to 4.99 ms, a 55.8% reduction.
+
 Remaining optimization opportunities:
 
-1. Flatten edge waypoints into segments once instead of traversing every edge
-   for every candidate.
-2. Use a spatial index for shapes, segments, and occupied labels.
-3. Reuse collision results shared by static ranking and final placement where
+1. Use a spatial index for shapes, segments, and occupied labels.
+2. Reuse collision results shared by static ranking and final placement where
    inputs are unchanged.
 
 ### 4. Artifact Placement and Accumulated Routes
@@ -235,12 +241,10 @@ and collision detection before moddle parsing or serialization.
 
 ## Suggested Next Steps
 
-1. Flatten label-placement edge segments and measure the remaining collision
-   scans.
-2. Group participant-ordering obstacles by participant and vertical span.
-3. Introduce a shared spatial index if profiles still show repeated global
+1. Group participant-ordering obstacles by participant and vertical span.
+2. Introduce a shared spatial index if profiles still show repeated global
    collision scans after those targeted changes.
-4. Rework participant ordering only with snapshot, metric, and visual review,
+3. Rework participant ordering only with snapshot, metric, and visual review,
    because order changes directly affect output geometry.
 
 Performance changes that alter placement or routing must be reviewed with the
