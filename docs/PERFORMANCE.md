@@ -86,16 +86,11 @@ The most stable layouter leaf hotspots were:
 
 ## Optimization Work Status
 
-### Not Yet Attempted
+### No Current Target
 
-This is the active performance backlog. Each item needs whole-fixture evidence
-before it is accepted; this list intentionally excludes previously attempted
-implementation ideas.
-
-| Priority | Target | Unattempted work |
-| ---: | --- | --- |
-| 1 | `routeMessageLeg` | Profile message-flow leg routing at component level to identify repeated route or collision work, then optimize only the measured source. |
-| 2 | `findArtifactPlacement` | Profile candidate generation, collision checks, route generation, and container checks separately before proposing another change. This is a diagnosis task, not a retry of the rejected caches below. |
+All profiled optimization candidates have either shipped or been rejected on
+whole-fixture evidence. New work requires a fresh component-level diagnosis;
+do not reopen a previously rejected technique by default.
 
 ### Previously Attempted -- Do Not Retry by Default
 
@@ -105,11 +100,21 @@ implementation ideas.
 - Visibility routing has already received deterministic heap traversal,
   coordinate indexes, and immutable collision-context preparation. No further
   `visibilityRoute` change is queued without a new component-level diagnosis.
+- `routeMessageLeg` checker-context reuse and allocation-free direct collision
+  loops were profiled and benchmarked on application processing. Neither
+  improved whole-fixture timings, so do not retry them.
 - External-label sort-data caching and edge-segment preparation are shipped. Do
   not revisit those techniques.
 - Artifact size-candidate and flattened graph-route-segment caches were
   rejected after whole-fixture measurements showed no reliable improvement.
   Do not retry them.
+- Artifact candidate-ranking heap traversal was rejected. It slightly improved
+  application-processing p50 but regressed
+  `blueprint.servicenow-integration-blueprint.bpmn` from 63.54 ms to 113.26 ms.
+  Do not retry it.
+- Artifact obstacle, occupied-artifact, and participant-header bounds are
+  precomputed per placement search and shipped. Do not retry the rejected
+  artifact caches or candidate heap.
 
 Viewer rendering, including `Canvas.getSize`, is outside the layouter's
 optimization scope.
@@ -296,9 +301,23 @@ flat (333.09 ms with the change versus 335.36 ms without it), while
 `blueprint.servicenow-integration-blueprint.bpmn` regressed (101.13 ms versus
 96.03 ms). The change was rejected and is not shipped.
 
-The rejected cache experiment must not be retried. The active backlog instead
-calls for component-level diagnosis of `findArtifactPlacement` before any new
-artifact-placement optimization is proposed.
+The rejected cache experiment must not be retried.
+
+A stable min-heap traversal was also tested in place of sorting every ranked
+candidate. It preserved lower-bound score ordering and deterministic candidate
+ties, but did not generalize: application processing p50 improved slightly
+(444.69 ms to 440.43 ms), while
+`blueprint.servicenow-integration-blueprint.bpmn` regressed sharply (63.54 ms
+to 113.26 ms). The change was rejected.
+
+The accepted collision-input pass precomputes immutable obstacle bounds,
+occupied-artifact clearance bounds, and participant-header bounds once per
+placement search. Candidate validation reuses these exact rectangles instead
+of recreating them for each candidate. In matched 60-layout measurements,
+`process.application-processing.bpmn` p50 decreased from 482.30 ms to
+450.88 ms and p90 from 568.43 ms to 488.33 ms. On
+`blueprint.servicenow-integration-blueprint.bpmn`, p50 decreased from
+115.71 ms to 68.47 ms and p90 from 140.14 ms to 75.63 ms.
 
 ## XML Processing
 
@@ -312,13 +331,6 @@ BPMN XML processing is not a primary bottleneck for the slowest fixture:
 
 Optimization effort should therefore focus on collaboration ordering, routing,
 and collision detection before moddle parsing or serialization.
-
-## Suggested Next Steps
-
-1. Profile `routeMessageLeg` at component level, then target only a measured
-   repeated operation.
-2. Investigate `findArtifactPlacement` at component level; accept only
-   whole-fixture improvements, not isolated microbenchmark gains.
 
 Performance changes that alter placement or routing must be reviewed with the
 fixture inspector and layout metrics in addition to normal tests.
