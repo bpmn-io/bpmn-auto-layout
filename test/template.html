@@ -353,6 +353,36 @@
         margin-left: auto;
       }
 
+      .sort-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .sort-label {
+        font-size: 12px;
+        font-weight: normal;
+      }
+
+      .sort-select {
+        box-sizing: border-box;
+        height: 32px;
+        max-width: 190px;
+        padding: 0 8px;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        background: #fff;
+        color: #171717;
+        font: inherit;
+        font-size: 12px;
+        font-weight: normal;
+      }
+
+      .sort-select:focus {
+        border-color: #2563eb;
+        outline: 3px solid #bfdbfe;
+      }
+
       .path-filter-wrapper {
         position: relative;
       }
@@ -372,9 +402,8 @@
       }
 
       .path-filter:focus {
-        border-color: #93c5fd;
-        outline: 2px solid #dbeafe;
-        outline-offset: 1px;
+        border-color: #2563eb;
+        outline: 3px solid #bfdbfe;
       }
 
       .clear-path-filter {
@@ -649,6 +678,11 @@
           <div id="metric-filter-badges" class="metric-filter-badges" aria-label="Issue filters"></div>
         </div>
         <div class="statistic-actions">
+          <div class="sort-controls">
+            <label class="sort-label" for="sort-by">Sort by</label>
+            <select id="sort-by" class="sort-select" aria-label="Sort fixtures by"></select>
+            <button id="sort-direction" class="button" type="button" aria-label="Sort ascending">Ascending</button>
+          </div>
           <div class="path-filter-wrapper">
             <input id="path-filter" class="path-filter" type="text" placeholder="Filter fixtures" aria-label="Filter fixtures by path">
             <button id="clear-path-filter" class="button clear-path-filter" type="button" title="Clear fixture filter" aria-label="Clear fixture filter" hidden><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
@@ -1338,6 +1372,8 @@
       ];
       const pathFilter = document.getElementById('path-filter');
       const clearPathFilter = document.getElementById('clear-path-filter');
+      const sortBy = document.getElementById('sort-by');
+      const sortDirectionButton = document.getElementById('sort-direction');
       const activeMetricFilters = new Set();
       const metricFilterBadges = document.getElementById('metric-filter-badges');
       const warningFilterBadge = document.getElementById('warning-filter-badge');
@@ -1469,6 +1505,23 @@
         { key: 'gridAlignment', label: 'Grid alignment', lowerIsBetter: false, unit: '%' },
         { key: 'branchSymmetry', label: 'Branch symmetry', lowerIsBetter: false, unit: '%' }
       ];
+      const sortableMetricDefinitions = metricDefinitions.filter(definition => {
+        return definition.directional !== false;
+      });
+      const sortDefinitions = [
+        { key: 'name', label: 'Fixture name', getValue: result => result.name },
+        { key: 'layoutTiming', label: 'Layout time', getValue: result => result.layoutTiming?.durationMs },
+        ...sortableMetricDefinitions.map(definition => ({
+          key: definition.key,
+          label: definition.label,
+          getValue: result => result.metrics?.current?.[definition.key]
+        }))
+      ];
+      const sortDefinitionsByKey = new Map(
+        sortDefinitions.map(definition => [ definition.key, definition ])
+      );
+      const fixtureParents = new Map();
+      let sortDirection = 'ascending';
 
       const outputHighlighters = new Set();
       let maximizedHighlighter = null;
@@ -1498,6 +1551,70 @@
 
           return badge;
         }));
+
+      sortBy.replaceChildren(...sortDefinitions.map(definition => {
+        const option = document.createElement('option');
+        option.value = definition.key;
+        option.textContent = definition.label;
+
+        return option;
+      }));
+
+      function compareFixtureResults(first, second) {
+        const definition = sortDefinitionsByKey.get(sortBy.value);
+        const firstValue = definition.getValue(first);
+        const secondValue = definition.getValue(second);
+        const firstMissing = firstValue === null ||
+          firstValue === undefined ||
+          (typeof firstValue === 'number' && !Number.isFinite(firstValue));
+        const secondMissing = secondValue === null ||
+          secondValue === undefined ||
+          (typeof secondValue === 'number' && !Number.isFinite(secondValue));
+
+        if (firstMissing || secondMissing) {
+          if (firstMissing !== secondMissing) {
+            return firstMissing ? 1 : -1;
+          }
+
+          return first.name.localeCompare(second.name);
+        }
+
+        const order = typeof firstValue === 'string'
+          ? firstValue.localeCompare(secondValue)
+          : firstValue - secondValue;
+
+        return order === 0
+          ? first.name.localeCompare(second.name)
+          : sortDirection === 'ascending' ? order : -order;
+      }
+
+      function sortResults() {
+        return [ ...results ].sort(compareFixtureResults);
+      }
+
+      function updateSortDirectionUI() {
+        const ascending = sortDirection === 'ascending';
+
+        sortDirectionButton.textContent = ascending ? 'Ascending' : 'Descending';
+        sortDirectionButton.setAttribute(
+          'aria-label',
+          `Sort ${ascending ? 'ascending' : 'descending'}`
+        );
+      }
+
+      function sortFixturePanels() {
+        for (const result of sortResults()) {
+          inspectContent.appendChild(fixtureParents.get(result));
+        }
+      }
+
+      sortBy.addEventListener('change', sortFixturePanels);
+      sortDirectionButton.addEventListener('click', () => {
+        sortDirection = sortDirection === 'ascending' ? 'descending' : 'ascending';
+        updateSortDirectionUI();
+        sortFixturePanels();
+      });
+      updateSortDirectionUI();
 
       function updateMetricHighlights() {
         outputHighlighters.forEach(highlighter => highlighter.update());
@@ -1751,16 +1868,17 @@
         textarea.remove();
       }
 
-      for (const {
-        diagram,
-        diagramOutput,
-        diagramSnapshot,
-        diagramSnapshotMatching,
-        layoutTiming,
-        metrics,
-        name,
-        warnings
-      } of results) {
+      for (const result of sortResults()) {
+        const {
+          diagram,
+          diagramOutput,
+          diagramSnapshot,
+          diagramSnapshotMatching,
+          layoutTiming,
+          metrics,
+          name,
+          warnings
+        } = result;
         const parent = document.createElement('div');
 
         parent.className = 'parent';
@@ -1868,6 +1986,7 @@
 
         parent.appendChild(title);
         parent.appendChild(containerParent);
+        fixtureParents.set(result, parent);
 
         containerParent.appendChild(containerBefore);
         containerParent.appendChild(containerAfter);
