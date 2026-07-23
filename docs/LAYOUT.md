@@ -280,9 +280,14 @@ bounds are known, including associations from a parent- or collaboration-scope
 artifact to a visible element inside an expanded subprocess or participant
 process. Artifact placement admits only candidates whose direct association
 segments clear flow-node shapes, so associations always have exactly two
-waypoints and never introduce bendpoints. Connections still treat artifacts as
-transparent, and artifact
-intersections remain excluded from hard geometry defects.
+waypoints and never introduce bendpoints. Process-internal connections treat
+artifacts as transparent. Artifact placement reserves the vertical approach
+corridors above and below every process node used as a message-flow endpoint.
+This moves annotations out of the way before collaboration routing, preserving
+straight message flows and visible associations. Exterior process annotations
+prefer a participant's left or right side over positions above or below it, so
+they do not expand collaboration rows and lengthen unrelated message flows.
+Other artifact intersections remain excluded from hard geometry defects.
 
 Groups are placed after artifacts and routing. Membership is explicit: a node
 or connection belongs to a group when its `categoryValueRef` contains the
@@ -352,6 +357,11 @@ content are positioned and minimally sized from message-flow anchors, whether
 they have an empty process reference or no process reference. An empty
 process-backed pool keeps its current alignment when every anchor already fits
 with participant-header clearance.
+
+For process participants without lanes, the 30 px participant header is added
+before the normal 40 px process-content padding; it does not consume that
+padding. Lane-backed participants start their lane tiles after the header, and
+the lane layout supplies its own 40 px content padding.
 
 After vertical ordering in a collaboration with multiple process-backed
 participants, the largest process footprint remains the stable horizontal

@@ -38,48 +38,48 @@
   <bpmndi:BPMNDiagram id="BPMNDiagram_Collaboration_1yo11qu">
     <bpmndi:BPMNPlane id="BPMNPlane_Collaboration_1yo11qu" bpmnElement="Collaboration_1yo11qu">
       <bpmndi:BPMNShape id="BPMNShape_Participant_1hl80y0" bpmnElement="Participant_1hl80y0" isHorizontal="true">
-        <dc:Bounds x="80" y="80" width="452" height="160" />
+        <dc:Bounds x="80" y="80" width="482" height="160" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Participant_0rvqzlg" bpmnElement="Participant_0rvqzlg" isHorizontal="true">
-        <dc:Bounds x="80" y="320" width="452" height="160" />
+        <dc:Bounds x="80" y="320" width="482" height="160" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1vagiea" bpmnElement="Flow_1vagiea">
-        <di:waypoint x="306" y="200" />
-        <di:waypoint x="306" y="360" />
+        <di:waypoint x="336" y="200" />
+        <di:waypoint x="336" y="360" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
-        <dc:Bounds x="120" y="142" width="36" height="36" />
+        <dc:Bounds x="150" y="142" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_1ycwd62" bpmnElement="Activity_1ycwd62">
-        <dc:Bounds x="256" y="120" width="100" height="80" />
+        <dc:Bounds x="286" y="120" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_1id3g9w" bpmnElement="Event_1id3g9w">
-        <dc:Bounds x="456" y="142" width="36" height="36" />
+        <dc:Bounds x="486" y="142" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0p5xp91" bpmnElement="Flow_0p5xp91">
-        <di:waypoint x="156" y="160" />
-        <di:waypoint x="256" y="160" />
+        <di:waypoint x="186" y="160" />
+        <di:waypoint x="286" y="160" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0wl7frl" bpmnElement="Flow_0wl7frl">
-        <di:waypoint x="356" y="160" />
-        <di:waypoint x="456" y="160" />
+        <di:waypoint x="386" y="160" />
+        <di:waypoint x="486" y="160" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BPMNShape_Event_08jzc8d" bpmnElement="Event_08jzc8d">
-        <dc:Bounds x="120" y="382" width="36" height="36" />
+        <dc:Bounds x="150" y="382" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_0ggtmpe" bpmnElement="Activity_0ggtmpe">
-        <dc:Bounds x="256" y="360" width="100" height="80" />
+        <dc:Bounds x="286" y="360" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_1xly5lb" bpmnElement="Event_1xly5lb">
-        <dc:Bounds x="456" y="382" width="36" height="36" />
+        <dc:Bounds x="486" y="382" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_04rz6nm" bpmnElement="Flow_04rz6nm">
-        <di:waypoint x="156" y="400" />
-        <di:waypoint x="256" y="400" />
+        <di:waypoint x="186" y="400" />
+        <di:waypoint x="286" y="400" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0yuq3d9" bpmnElement="Flow_0yuq3d9">
-        <di:waypoint x="356" y="400" />
-        <di:waypoint x="456" y="400" />
+        <di:waypoint x="386" y="400" />
+        <di:waypoint x="486" y="400" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
