@@ -1127,6 +1127,17 @@ describe('Layout', function() {
       assert.strictEqual(edge.waypoint[0].x, edge.waypoint[1].x);
     });
 
+    it('should preserve participant perimeter elbows during DI docking', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'collaboration.opposite-direction-message-flows.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const metrics = await evaluateMetrics(output);
+
+      assert.strictEqual(metrics.current.nonOrthogonalConnections, 0);
+    });
+
     it('should route message flows to collapsed subprocesses', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'collaboration.message-flow-to-collapsed-child.bpmn'),

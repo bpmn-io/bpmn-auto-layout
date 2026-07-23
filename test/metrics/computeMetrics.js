@@ -20,6 +20,8 @@ const moddle = new BpmnModdle();
  * - `wrongWayDockings`       — edge endpoints whose dock is not on its shape
  *                              perimeter or whose adjacent segment enters the
  *                              endpoint shape.
+ * - `nonOrthogonalConnections` — sequence and message flows containing at
+ *                                least one diagonal segment.
  *
  * Band-C (polish — informational) numbers:
  *
@@ -47,6 +49,7 @@ const moddle = new BpmnModdle();
  *   overlaps: number,
  *   edgeShapeIntersections: number,
  *   wrongWayDockings: number,
+ *   nonOrthogonalConnections: number,
  *   bendCount: number,
  *   averageEdgeLength: number,
  *   edgeSegmentLengthDeviation: number,
@@ -92,6 +95,7 @@ export async function analyzeMetrics(xml) {
     overlaps: planes.flatMap(plane => findOverlaps(plane.shapes)),
     edgeShapeIntersections: planes.flatMap(plane => findEdgeShapeIntersections(plane.edges, plane.shapes)),
     wrongWayDockings: planes.flatMap(plane => findWrongWayDockings(plane.edges, plane.shapes)),
+    nonOrthogonalConnections: planes.flatMap(plane => findNonOrthogonalConnections(plane.edges)),
     labelShapeOverlaps: planes.flatMap(plane => findLabelShapeOverlaps(plane.shapes, plane.edges)),
     labelEdgeOverlaps: planes.flatMap(plane => findLabelEdgeOverlaps(plane.shapes, plane.edges))
   };
@@ -104,6 +108,7 @@ export async function analyzeMetrics(xml) {
     overlaps: findings.overlaps.length,
     edgeShapeIntersections: findings.edgeShapeIntersections.length,
     wrongWayDockings: findings.wrongWayDockings.length,
+    nonOrthogonalConnections: findings.nonOrthogonalConnections.length,
     bendCount: sum(planes, plane => countBends(plane.edges)),
     averageEdgeLength: averageEdgeLength(planes.flatMap(plane => plane.edges)),
     edgeSegmentLengthDeviation: roundScore(segmentLengthDeviation(planes)),
@@ -161,6 +166,7 @@ function toEdge(di) {
     sourceId: source && source.id,
     targetId: target && target.id,
     isSequenceFlow: !!element && element.$instanceOf('bpmn:SequenceFlow'),
+    isMessageFlow: !!element && element.$instanceOf('bpmn:MessageFlow'),
     hasLabel: typeof element?.name === 'string' && element.name.trim().length > 0,
     name: element && element.name,
     isDefault: !!source && source.default === element,
@@ -177,6 +183,26 @@ function toLabelBounds(label) {
   const { x, y, width, height } = label.bounds;
 
   return { x, y, width, height };
+}
+
+
+// connection orthogonality /////////////////////////////////////////
+
+const ORTHOGONAL_TOLERANCE = 1e-6;
+
+function findNonOrthogonalConnections(edges) {
+  return edges
+    .filter(edge => edge.isSequenceFlow || edge.isMessageFlow)
+    .map(edge => {
+      const segments = toSegments(edge.waypoints)
+        .filter(([ start, end ]) => {
+          return Math.abs(start.x - end.x) > ORTHOGONAL_TOLERANCE &&
+            Math.abs(start.y - end.y) > ORTHOGONAL_TOLERANCE;
+        });
+
+      return segments.length ? { edgeId: edge.id, segments } : null;
+    })
+    .filter(Boolean);
 }
 
 

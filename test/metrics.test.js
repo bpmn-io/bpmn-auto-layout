@@ -40,6 +40,35 @@ describe('Layout metrics', function() {
     assert.strictEqual(diagonal.wrongWayDockings, 0);
   });
 
+  it('should count non-orthogonal sequence and message flows but exclude associations', async function() {
+    const orthogonal = await computeMetrics(metricFixture([
+      [ 200, 140 ],
+      [ 250, 140 ],
+      [ 250, 100 ],
+      [ 300, 100 ]
+    ]));
+    const diagonal = await computeMetrics(metricFixture([
+      [ 200, 140 ],
+      [ 250, 90 ],
+      [ 300, 100 ]
+    ]));
+    const association = await computeMetrics(metricFixture([
+      [ 200, 140 ],
+      [ 250, 90 ],
+      [ 300, 100 ]
+    ]).replaceAll('bpmn:sequenceFlow', 'bpmn:association'));
+    const messageFlow = await computeMetrics(messageFlowMetricFixture([
+      [ 200, 140 ],
+      [ 250, 90 ],
+      [ 300, 100 ]
+    ]));
+
+    assert.strictEqual(orthogonal.nonOrthogonalConnections, 0);
+    assert.strictEqual(diagonal.nonOrthogonalConnections, 1);
+    assert.strictEqual(association.nonOrthogonalConnections, 0);
+    assert.strictEqual(messageFlow.nonOrthogonalConnections, 1);
+  });
+
   it('should exclude artifacts from hard geometry defects', async function() {
     const metrics = await computeMetrics(metricFixture(
       [
@@ -224,6 +253,28 @@ function metricFixture(waypoints, extraSemantic = '', extraDi = '', flowAttribut
       <bpmndi:BPMNShape id="Source_di" bpmnElement="Source"><dc:Bounds x="100" y="100" width="100" height="80" /></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Target_di" bpmnElement="Target"><dc:Bounds x="300" y="100" width="100" height="80" /></bpmndi:BPMNShape>
       ${extraDi}
+      <bpmndi:BPMNEdge id="Flow_di" bpmnElement="Flow">${waypointXml}</bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
+}
+
+function messageFlowMetricFixture(waypoints) {
+  const waypointXml = waypoints
+    .map(([ x, y ]) => `<di:waypoint x="${x}" y="${y}" />`)
+    .join('');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration">
+    <bpmn:participant id="Source" />
+    <bpmn:participant id="Target" />
+    <bpmn:messageFlow id="Flow" sourceRef="Source" targetRef="Target" />
+  </bpmn:collaboration>
+  <bpmndi:BPMNDiagram id="Diagram">
+    <bpmndi:BPMNPlane id="Plane" bpmnElement="Collaboration">
+      <bpmndi:BPMNShape id="Source_di" bpmnElement="Source"><dc:Bounds x="100" y="100" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Target_di" bpmnElement="Target"><dc:Bounds x="300" y="100" width="100" height="80" /></bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_di" bpmnElement="Flow">${waypointXml}</bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

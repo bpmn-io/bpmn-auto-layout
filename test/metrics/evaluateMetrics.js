@@ -6,6 +6,7 @@ export const METRIC_KEYS = [
   'overlaps',
   'edgeShapeIntersections',
   'wrongWayDockings',
+  'nonOrthogonalConnections',
   'averageEdgeLength',
   'edgeSegmentLengthDeviation',
   'labelShapeOverlaps',
@@ -42,7 +43,8 @@ export function hasBandADefect(metrics) {
   return !metrics.error && (
     metrics.current.overlaps !== 0 ||
     metrics.current.edgeShapeIntersections !== 0 ||
-    metrics.current.wrongWayDockings !== 0
+    metrics.current.wrongWayDockings !== 0 ||
+    metrics.current.nonOrthogonalConnections !== 0
   );
 }
 
