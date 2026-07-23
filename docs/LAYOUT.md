@@ -353,25 +353,38 @@ they have an empty process reference or no process reference. An empty
 process-backed pool keeps its current alignment when every anchor already fits
 with participant-header clearance.
 
-After vertical ordering, expanded participants may move horizontally together
-with their complete process layouts. Candidate offsets come only from aligning
-the local centers of message-flow endpoints; no coordinate grid or authored DI
-is consulted. Deterministic coordinate descent accepts only moves that eliminate
-a bent message flow without adding a proper edge crossing. It minimizes bend
-count first, crossings second, and routed distance third; collaboration width is
-not constrained because pool alignment is more important than the overall
-footprint. Displacement from the initially left-aligned layout breaks otherwise
-equal alternatives. Anchor-positioned participant geometry is recomputed from
-its translated message anchors for every candidate.
+After vertical ordering in a collaboration with multiple process-backed
+participants, the largest process footprint remains the stable horizontal
+anchor. Other expanded participants may move horizontally together with their
+complete process layouts. Flow-node endpoints contribute their center as a
+docking candidate. Participant endpoints contribute the usable interval along
+their horizontal edge, inset by the routing margin, so candidate translations
+can align a node with either end of that interval instead of forcing every
+message flow through the participant center. No coordinate grid or authored DI
+is consulted.
+
+Deterministic coordinate descent compares the fully routed candidate geometry.
+It minimizes proper edge crossings, bent message flows, the longest
+message-flow route, total routed distance, and finally displacement from the
+initially left-aligned layout, in that order. Collaboration width is not
+constrained because pool alignment is more important than the overall
+footprint. Anchor-positioned participant geometry is recomputed from its
+translated message anchors for every candidate. Single-process collaborations
+retain their established process position and satellite geometry.
 
 Once internal offsets are fixed, each disconnected message-flow component is
 translated as a unit to the common left participant edge. This removes
 arbitrary global X offsets between unrelated participant groups without
 changing their internal message-flow geometry.
 
-When black-box participants communicate directly, participant order first
-minimizes unrelated pools between connected pairs. It then minimizes a
-deterministic score combining vertical message-flow travel and bend cost:
+For a single process-backed participant, direct communication between
+black-box participants first minimizes unrelated pools between connected
+pairs. The established deterministic score then combines vertical message-flow
+travel and bend cost. For multiple process-backed participants, every message
+flow additionally contributes the vertical separation between non-adjacent
+participant rows. This weighted separation places strongly interacting process
+blocks around one another without changing the single-process satellite
+policy:
 
 - up to eight participants use exhaustive permutation search;
 - larger collaborations use deterministic greedy insertion followed by
