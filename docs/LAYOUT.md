@@ -376,9 +376,11 @@ message flow through the participant center. No coordinate grid or authored DI
 is consulted.
 
 Deterministic coordinate descent compares the fully routed candidate geometry.
-It minimizes proper edge crossings, bent message flows, the longest
-message-flow route, total routed distance, and finally displacement from the
-initially left-aligned layout, in that order. Collaboration width is not
+For collaborations above the exhaustive participant-ordering threshold it
+minimizes bent message flows, proper edge crossings, the longest message-flow
+route, total routed distance, and finally displacement from the initially
+left-aligned layout, in that order. Smaller collaborations retain their
+established crossing-first policy. Collaboration width is not
 constrained because pool alignment is more important than the overall
 footprint. Anchor-positioned participant geometry is recomputed from its
 translated message anchors for every candidate. Single-process collaborations
@@ -413,8 +415,12 @@ Message flows are generated when both endpoints resolve to visible layout
 geometry. An endpoint inside a collapsed sub-process resolves to its nearest
 visible collapsed ancestor. Opposing directions receive stable channel offsets.
 Adjacent pools use their shared gutter; non-adjacent pools may use an outside
-channel. Routes avoid process-node obstacles, and obstacle-avoiding route legs
-consider previously allocated message flows.
+channel. Above the exhaustive participant-ordering threshold, endpoint-aligned
+vertical corridors and the boundaries of intervening participants are evaluated
+before either diagram exterior, and the shorter complete route is selected.
+Smaller collaborations retain their established exterior-channel policy.
+Routes avoid process-node obstacles, and obstacle-avoiding route legs consider
+previously allocated message flows.
 
 Empty pool sizing and message routing form a fixed point:
 

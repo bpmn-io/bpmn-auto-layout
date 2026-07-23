@@ -1414,15 +1414,18 @@ describe('Layout', function() {
       const edges = new Map(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
-      for (const flowId of [
-        'sid-B28E079A-EC0B-4A89-9BF3-6850173FADFC',
-        'sid-95BFCA10-63D0-4D29-8E56-2270CACF3BA8'
-      ]) {
-        const points = edges.get(flowId);
+      const straightMessageFlows = elements.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.$instanceOf('bpmn:MessageFlow') &&
+          element.waypoint.length === 2;
+      });
+      const assessmentReturn = edges.get(
+        'sid-B28E079A-EC0B-4A89-9BF3-6850173FADFC'
+      );
 
-        assert.strictEqual(points.length, 2);
-        assert.strictEqual(points[0].x, points[1].x);
-      }
+      assert.ok(straightMessageFlows.length >= 22);
+      assert.strictEqual(assessmentReturn.length, 2);
+      assert.strictEqual(assessmentReturn[0].x, assessmentReturn[1].x);
 
       assert.strictEqual(
         shapes.get('sid-2E859D5D-83B3-461D-9FFF-2AAF49E71D2A').y,
@@ -1436,6 +1439,21 @@ describe('Layout', function() {
         shapes.get('sid-A280AE73-E103-45BC-8078-8ADB6A8AF29C').x,
         shapes.get('sid-187453C6-5AB5-4A6D-9A62-BF537E04EA0D').x
       );
+
+      const candidateNotification = edges.get(
+        'sid-37532634-B172-4542-96A6-7E347E3CEA37'
+      );
+      const candidateNotificationLength = candidateNotification
+        .slice(1)
+        .reduce((length, waypoint, index) => {
+          const previous = candidateNotification[index];
+
+          return length +
+            Math.abs(waypoint.x - previous.x) +
+            Math.abs(waypoint.y - previous.y);
+        }, 0);
+
+      assert.ok(candidateNotificationLength < 2500);
     });
 
     it('should size and position collapsed participants from message anchors', async function() {
