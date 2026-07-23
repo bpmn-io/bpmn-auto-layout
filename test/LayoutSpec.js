@@ -1134,8 +1134,37 @@ describe('Layout', function() {
       );
       const output = await layoutProcess(xml);
       const metrics = await evaluateMetrics(output);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new Map(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const messageEdges = elements.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.$instanceOf('bpmn:MessageFlow');
+      });
+      const main = shapes.get('Participant_020kxtm');
+      const upper = shapes.get('Participant_0s1a03p');
+      const lower = shapes.get('Participant_0rcj6yd');
+      const routeLength = messageEdges.reduce((total, edge) => {
+        return total + edge.waypoint.slice(1).reduce((length, waypoint, index) => {
+          const previous = edge.waypoint[index];
+
+          return length +
+            Math.abs(waypoint.x - previous.x) +
+            Math.abs(waypoint.y - previous.y);
+        }, 0);
+      }, 0);
+      const bendCount = messageEdges.reduce((total, edge) => {
+        return total + Math.max(0, edge.waypoint.length - 2);
+      }, 0);
 
       assert.strictEqual(metrics.current.nonOrthogonalConnections, 0);
+      assert.ok(upper.y < main.y);
+      assert.ok(main.y < lower.y);
+      assert.ok(upper.x > main.x + main.width / 2);
+      assert.ok(routeLength <= 1700);
+      assert.ok(bendCount <= 4);
     });
 
     it('should route message flows to collapsed subprocesses', async function() {
