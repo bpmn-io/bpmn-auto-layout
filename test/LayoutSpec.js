@@ -1046,6 +1046,33 @@ describe('Layout', function() {
       assert.strictEqual(waypoints.at(-1).y, target.y);
       assert.ok(waypoints[1].y < source.y);
       assert.strictEqual(waypoints[1].y, waypoints[2].y);
+
+      for (const [ associationId, taskId, annotationId, placement ] of [
+        [
+          'Association_1c7637v',
+          'Activity_1l5wj0t',
+          'TextAnnotation_0k4qsxw',
+          'above'
+        ],
+        [
+          'Association_12m4aqv',
+          'Activity_ReimburseExpenses',
+          'TextAnnotation_02rliy5',
+          'below'
+        ]
+      ]) {
+        const task = shapes.get(taskId);
+        const annotation = shapes.get(annotationId);
+        const association = edges.get(associationId);
+
+        if (placement === 'above') {
+          assert.ok(annotation.y + annotation.height <= task.y);
+        } else {
+          assert.ok(annotation.y >= task.y + task.height);
+        }
+
+        assert.strictEqual(association[0].x, association[1].x);
+      }
     });
 
     it('should dock tall cross-band sources by their connection-port centers', async function() {
@@ -1454,6 +1481,31 @@ describe('Layout', function() {
         }, 0);
 
       assert.ok(candidateNotificationLength < 2500);
+
+      const id4Annotation = shapes.get(
+        'sid-E28EB527-2F0B-4491-82AE-F61274F75DF7'
+      );
+      const interviewManagement = shapes.get(
+        'sid-7BD88080-E847-40D9-9714-C838543CEC18'
+      );
+      const id4Association = edges.get(
+        'sid-F9388202-3D20-4919-A2DB-088202A1DBC9'
+      );
+      const id4AssociationLength = id4Association
+        .slice(1)
+        .reduce((length, waypoint, index) => {
+          const previous = id4Association[index];
+
+          return length +
+            Math.abs(waypoint.x - previous.x) +
+            Math.abs(waypoint.y - previous.y);
+        }, 0);
+
+      assert.ok(
+        id4Annotation.y + id4Annotation.height <= interviewManagement.y
+      );
+      assert.ok(id4AssociationLength < 500);
+      assert.strictEqual(id4Association[0].x, id4Association[1].x);
     });
 
     it('should size and position collapsed participants from message anchors', async function() {

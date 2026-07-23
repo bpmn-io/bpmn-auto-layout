@@ -255,17 +255,20 @@ several candidate widths. Placement evaluates positions above, below, left, and
 right of the associated owner, sliding along each side when needed. Every
 artifact candidate must stay clear of process shapes, sequence flows, message
 flows, and previously placed artifacts. Among valid positions, routed
-association length is the
-primary cost, with a bounded penalty for non-straight associations so a
-near-shortest single horizontal or vertical segment is preferred over a
-diagonal or bent route. Readable annotation aspect ratio, association crossings,
-diagram expansion, and displacement from the preferred side break later ties.
+association length is the primary cost, with a bounded penalty for non-straight
+associations so a near-shortest single horizontal or vertical segment is
+preferred over a diagonal or bent route. Readable annotation aspect ratio,
+association crossings, diagram expansion, and displacement from the preferred
+side break later ties.
 Boundary events reserve additional space for their outward handler channels.
 Long and multiply-associated artifacts are placed first. Text annotations may
 be placed in the outermost diagram scope regardless of their semantic owner.
 They must be wholly inside or wholly outside every subprocess, lane, and
 participant, never crossing a container edge. Participant header strips are
-also reserved. In a single-participant collaboration, collaboration-owned
+also reserved. Exterior process annotations attached to message endpoints
+prefer to remain outside the participant, with a bounded cost of one normal
+vertical gap so a substantially shorter association may pull them inside. In a
+single-participant collaboration, collaboration-owned
 annotations prefer positions above or below their owner participant, with a
 centered vertical association. For process-owned annotations in a collaboration,
 the future participant boundary is derived before exterior artifacts are
@@ -284,11 +287,14 @@ process. Artifact placement admits only candidates whose direct association
 segments clear flow-node shapes, so associations always have exactly two
 waypoints and never introduce bendpoints. Process-internal connections treat
 artifacts as transparent. Artifact placement reserves the vertical approach
-corridors above and below every process node used as a message-flow endpoint.
-This moves annotations out of the way before collaboration routing, preserving
-straight message flows and visible associations. Exterior process annotations
+corridor above an incoming message endpoint and below an outgoing endpoint;
+endpoints used in both directions reserve both approaches. This moves
+annotations out of the way before collaboration routing, preserving straight
+message flows and visible associations. Exterior process annotations
 prefer a participant's left or right side over positions above or below it, so
 they do not expand collaboration rows and lengthen unrelated message flows.
+That preference has the bounded cost of four normal participant gaps and cannot
+justify a substantially longer association.
 Other artifact intersections remain excluded from hard geometry defects.
 
 Groups are placed after artifacts and routing. Membership is explicit: a node
