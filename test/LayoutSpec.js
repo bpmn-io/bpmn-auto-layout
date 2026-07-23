@@ -21,6 +21,7 @@ import {
   EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE,
   EXPANDED_SUBPROCESS_LABEL_HEIGHT,
   GROUP_PADDING,
+  PARTICIPANT_HEADER_WIDTH,
   SUB_PROCESS_PADDING,
   VERTICAL_GAP
 } from '../lib/layout/Constants.js';
@@ -1165,6 +1166,98 @@ describe('Layout', function() {
       assert.ok(upper.x > main.x + main.width / 2);
       assert.ok(routeLength <= 1700);
       assert.ok(bendCount <= 4);
+    });
+
+    it('should reserve participant header space before process content', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'blueprint.event-registration.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new Map(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const participant = shapes.get('Participant_EventRegistration');
+      const startEvent = shapes.get('StartEvent_Form');
+
+      assert.ok(
+        startEvent.x >=
+        participant.x + PARTICIPANT_HEADER_WIDTH + SUB_PROCESS_PADDING
+      );
+    });
+
+    it('should route collaboration messages around process annotations', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'blueprint.event-registration.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const annotation = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNShape') &&
+          element.bpmnElement.id === 'TextAnnotation_event_reg_intro';
+      });
+      const messageFlow = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === 'Flow_1p4u8s4';
+      });
+      const association = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === 'Association_event_reg_intro';
+      });
+      const segments = points => points.slice(1).map((end, index) => {
+        return [ points[index], end ];
+      });
+      const participant = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNShape') &&
+          element.bpmnElement.id === 'Participant_EventRegistration';
+      });
+
+      assert.strictEqual(messageFlow.waypoint.length, 2);
+      assert.strictEqual(messageFlow.waypoint[0].x, messageFlow.waypoint[1].x);
+      assert.ok(
+        annotation.bounds.x + annotation.bounds.width <= participant.bounds.x
+      );
+      assert.ok(annotation.bounds.y < participant.bounds.y + participant.bounds.height);
+      assert.ok(annotation.bounds.y + annotation.bounds.height > participant.bounds.y);
+
+      for (const [ start, end ] of segments(messageFlow.waypoint)) {
+        const crossesInterior = start.x === end.x
+          ? start.x > annotation.bounds.x &&
+            start.x < annotation.bounds.x + annotation.bounds.width &&
+            Math.max(start.y, end.y) > annotation.bounds.y &&
+            Math.min(start.y, end.y) < annotation.bounds.y + annotation.bounds.height
+          : start.y > annotation.bounds.y &&
+            start.y < annotation.bounds.y + annotation.bounds.height &&
+            Math.max(start.x, end.x) > annotation.bounds.x &&
+            Math.min(start.x, end.x) < annotation.bounds.x + annotation.bounds.width;
+
+        assert.strictEqual(crossesInterior, false);
+      }
+
+      for (const [ messageStart, messageEnd ] of segments(messageFlow.waypoint)) {
+        for (const [ associationStart, associationEnd ] of segments(association.waypoint)) {
+          const collinearOverlap = messageStart.x === messageEnd.x &&
+              associationStart.x === associationEnd.x &&
+              messageStart.x === associationStart.x
+            ? Math.min(messageStart.y, messageEnd.y) <
+                Math.max(associationStart.y, associationEnd.y) &&
+              Math.min(associationStart.y, associationEnd.y) <
+                Math.max(messageStart.y, messageEnd.y)
+            : messageStart.y === messageEnd.y &&
+              associationStart.y === associationEnd.y &&
+              messageStart.y === associationStart.y &&
+              Math.min(messageStart.x, messageEnd.x) <
+                Math.max(associationStart.x, associationEnd.x) &&
+              Math.min(associationStart.x, associationEnd.x) <
+                Math.max(messageStart.x, messageEnd.x);
+
+          assert.strictEqual(collinearOverlap, false);
+        }
+      }
     });
 
     it('should route message flows to collapsed subprocesses', async function() {
