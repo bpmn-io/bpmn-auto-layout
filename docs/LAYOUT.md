@@ -340,8 +340,9 @@ A segment is legal when it:
 - does not properly cross an allocated edge;
 - does not create a forbidden positive-length overlap.
 
-Shared endpoints, endpoint touches, and intentional shared endpoint channels are
-not proper crossings.
+Shared endpoints, endpoint touches, and intentional shared endpoint channels
+are not proper crossings. Channels may be shared regardless of whether
+connections enter or leave their common endpoint.
 
 ## Collaborations and message flows
 
@@ -480,7 +481,8 @@ For an intentional behavior change:
 
 Snapshots record exact geometry. Metrics report crossings, bends, shape
 overlaps, edge/shape intersections, label/shape overlaps, wrong-way endpoint
-dockings, label/edge overlaps, average edge length and segment-length variation, compactness, grid
-alignment, and non-default gateway-fan symmetry. Wrong-way docking must remain
-zero across the fixture corpus. Neither snapshots nor metrics replace visual
-review.
+dockings, non-orthogonal sequence and message flows, label/edge overlaps,
+average edge length and segment-length variation, compactness, grid alignment,
+and non-default gateway-fan symmetry. Wrong-way docking and non-orthogonal
+connection counts must remain zero across the fixture corpus. Neither snapshots
+nor metrics replace visual review.

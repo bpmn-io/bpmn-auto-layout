@@ -85,7 +85,8 @@ export async function run() {
       .map(([ name, metrics ]) => {
         return `${name}: overlaps=${metrics.overlaps}, ` +
           `edgeShapeIntersections=${metrics.edgeShapeIntersections}, ` +
-          `wrongWayDockings=${metrics.wrongWayDockings}`;
+          `wrongWayDockings=${metrics.wrongWayDockings}, ` +
+          `nonOrthogonalConnections=${metrics.nonOrthogonalConnections}`;
       });
 
     if (defects.length) {
