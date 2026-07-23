@@ -265,9 +265,11 @@ Long and multiply-associated artifacts are placed first. Text annotations may
 be placed in the outermost diagram scope regardless of their semantic owner.
 They must be wholly inside or wholly outside every subprocess, lane, and
 participant, never crossing a container edge. Participant header strips are
-also reserved. For process-owned annotations in a collaboration, the future
-participant boundary is derived before exterior artifacts are placed, using
-the same content extents and padding as final participant sizing.
+also reserved. In a single-participant collaboration, collaboration-owned
+annotations prefer positions above or below their owner participant, with a
+centered vertical association. For process-owned annotations in a collaboration,
+the future participant boundary is derived before exterior artifacts are
+placed, using the same content extents and padding as final participant sizing.
 Participant bounds are derived from process containers and flow shapes rather
 than exterior decorations, while participant spacing still accounts for the
 decorations' complete footprint. Data object references remain fully contained

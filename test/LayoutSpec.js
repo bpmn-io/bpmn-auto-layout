@@ -2320,6 +2320,17 @@ describe('Layout', function() {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === association.id;
       });
+      const participantShape = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNShape') &&
+          element.bpmnElement.$instanceOf('bpmn:Participant');
+      });
+      const annotationBounds = annotationShape.bounds;
+      const participantBounds = participantShape.bounds;
+      const ownerShape = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNShape') &&
+          element.bpmnElement.id === 'Activity_0djri8w';
+      });
+      const ownerBounds = ownerShape.bounds;
 
       assert.deepStrictEqual(
         artifacts.map(element => element.$type),
@@ -2327,7 +2338,17 @@ describe('Layout', function() {
       );
       assert.ok(annotationShape);
       assert.ok(associationEdge);
-      assert.ok(associationEdge.waypoint.length >= 2);
+      assert.ok(annotationBounds.y + annotationBounds.height <= participantBounds.y);
+      assert.deepStrictEqual(associationEdge.waypoint.map(({ x, y }) => ({ x, y })), [
+        {
+          x: ownerBounds.x + ownerBounds.width / 2,
+          y: ownerBounds.y
+        },
+        {
+          x: annotationBounds.x + annotationBounds.width / 2,
+          y: annotationBounds.y + annotationBounds.height
+        }
+      ]);
       assert.deepStrictEqual(result.warnings, []);
     });
 
