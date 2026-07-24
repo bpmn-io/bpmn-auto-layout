@@ -9,7 +9,11 @@
       "require": "./dist/index.cjs"
     }
   },
+  "bin": {
+    "bpmn-auto-layout": "./bin/bpmn-auto-layout.js"
+  },
   "files": [
+    "bin",
     "dist"
   ],
   "scripts": {
