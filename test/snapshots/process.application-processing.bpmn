@@ -1671,9 +1671,9 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_sid-8D8BD39F-1B08-433F-8F93-A1FF7520BA8B" bpmnElement="sid-8D8BD39F-1B08-433F-8F93-A1FF7520BA8B">
-        <omgdc:Bounds x="916" y="1869" width="36" height="50" />
+        <omgdc:Bounds x="916" y="1849" width="36" height="50" />
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds x="846" y="1887" width="65" height="14" />
+          <omgdc:Bounds x="902" y="1904" width="65" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-F3E23BCC-F29B-444C-BF2B-C2AA7D9D0DEF" bpmnElement="sid-F3E23BCC-F29B-444C-BF2B-C2AA7D9D0DEF">
@@ -1721,15 +1721,18 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-9391DBA5-9C7B-4B14-B502-AB985711AD02" bpmnElement="sid-9391DBA5-9C7B-4B14-B502-AB985711AD02">
         <omgdi:waypoint x="846" y="1694" />
-        <omgdi:waypoint x="934" y="1869" />
+        <omgdi:waypoint x="846" y="1874" />
+        <omgdi:waypoint x="916" y="1874" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-A1B5F8D2-3FF2-4FAE-A885-819174BB01BD" bpmnElement="sid-A1B5F8D2-3FF2-4FAE-A885-819174BB01BD">
-        <omgdi:waypoint x="928" y="1869" />
+        <omgdi:waypoint x="952" y="1866" />
+        <omgdi:waypoint x="1190" y="1866" />
         <omgdi:waypoint x="1190" y="1854" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-1D74E5C9-7875-42C7-B069-7EF805115BFB" bpmnElement="sid-1D74E5C9-7875-42C7-B069-7EF805115BFB">
         <omgdi:waypoint x="1202" y="1854" />
-        <omgdi:waypoint x="940" y="1869" />
+        <omgdi:waypoint x="1202" y="1882" />
+        <omgdi:waypoint x="952" y="1882" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BPMNShape_sid-13E4B11F-E8D5-434E-9AE3-A42ED2084731" bpmnElement="sid-13E4B11F-E8D5-434E-9AE3-A42ED2084731" isHorizontal="true">
         <omgdc:Bounds x="470" y="5150" width="1638" height="400" />

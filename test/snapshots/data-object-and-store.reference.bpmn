@@ -72,7 +72,8 @@
         <di:waypoint x="266" y="290" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_DataInputAssociation_1jjpwt9" bpmnElement="DataInputAssociation_1jjpwt9">
-        <di:waypoint x="266" y="290" />
+        <di:waypoint x="284" y="315" />
+        <di:waypoint x="466" y="315" />
         <di:waypoint x="466" y="250" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_DataInputAssociation_0mj2l3x" bpmnElement="DataInputAssociation_0mj2l3x">

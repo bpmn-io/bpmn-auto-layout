@@ -275,13 +275,17 @@ side break later ties.
 Boundary events reserve additional space for their outward handler channels.
 Long and multiply-associated artifacts are placed first. Data object and data
 store references receive candidates around every distinct owner. They first
-minimize association crossings with sequence and message flows, then prefer
-alignment with at least one distinct owner and maximize the number of aligned
-owners. Multiply-associated references next prefer candidates with two routing
-margins of shape clearance before minimizing owner-balanced association length,
-so repeated read/write associations do not pull a reference toward one owner.
-Repeated associations between the same artifact and owner use distributed
-docking points instead of overlapping.
+minimize association crossings with sequence and message flows.
+Multiply-associated references next prefer candidates with two routing margins
+of shape clearance. References then prefer alignment with at least one distinct
+owner, maximize the number of aligned owners, and minimize association bends
+and owner-balanced route length, so repeated read/write associations do not pull
+a reference toward one owner. Data object and data store associations are orthogonal: aligned docks
+connect directly, while unaligned docks choose a clear one- or two-bend route
+with fewer flow crossings. Their first and last legs leave their docking sides
+normally, and routes may not enter either endpoint interior. Repeated
+associations use distributed docking points and the same parallel route family
+instead of overlapping.
 Text annotations may be placed in the outermost diagram scope regardless of
 their semantic owner.
 They must be wholly inside or wholly outside every subprocess, lane, and
