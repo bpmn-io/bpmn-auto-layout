@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Defs_onb" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="P_Onboard" name="Employee Onboarding" isExecutable="true">
+    <bpmn:documentation>Exercises parallel onboarding work, expanded provisioning, optional training, and a timer boundary handler.</bpmn:documentation>
+    <bpmn:startEvent id="s" name="Offer accepted">
+      <bpmn:outgoing>f1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Contract" name="Prepare contract">
+      <bpmn:incoming>f1</bpmn:incoming>
+      <bpmn:outgoing>f2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Fork">
+      <bpmn:incoming>f2</bpmn:incoming>
+      <bpmn:outgoing>p_it</bpmn:outgoing>
+      <bpmn:outgoing>p_hr</bpmn:outgoing>
+      <bpmn:outgoing>p_fac</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:subProcess id="IT" name="IT Provisioning">
+      <bpmn:incoming>p_it</bpmn:incoming>
+      <bpmn:outgoing>it_out</bpmn:outgoing>
+      <bpmn:startEvent id="it_s">
+        <bpmn:outgoing>i1</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:task id="it_acct" name="Create accounts">
+        <bpmn:incoming>i1</bpmn:incoming>
+        <bpmn:outgoing>i2</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:task id="it_laptop" name="Ship laptop">
+        <bpmn:incoming>i2</bpmn:incoming>
+        <bpmn:outgoing>i3</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:endEvent id="it_e">
+        <bpmn:incoming>i3</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="i1" sourceRef="it_s" targetRef="it_acct" />
+      <bpmn:sequenceFlow id="i2" sourceRef="it_acct" targetRef="it_laptop" />
+      <bpmn:sequenceFlow id="i3" sourceRef="it_laptop" targetRef="it_e" />
+    </bpmn:subProcess>
+    <bpmn:task id="Payroll" name="Set up payroll">
+      <bpmn:incoming>p_hr</bpmn:incoming>
+      <bpmn:outgoing>hr_out</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Desk" name="Assign desk &#38; badge">
+      <bpmn:incoming>p_fac</bpmn:incoming>
+      <bpmn:outgoing>fac_out</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Join">
+      <bpmn:incoming>it_out</bpmn:incoming>
+      <bpmn:incoming>hr_out</bpmn:incoming>
+      <bpmn:incoming>fac_out</bpmn:incoming>
+      <bpmn:outgoing>j1</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="Orient" name="Day-1 orientation">
+      <bpmn:incoming>j1</bpmn:incoming>
+      <bpmn:outgoing>j2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:inclusiveGateway id="Train" name="Role training?">
+      <bpmn:incoming>j2</bpmn:incoming>
+      <bpmn:outgoing>t_comp</bpmn:outgoing>
+      <bpmn:outgoing>t_safe</bpmn:outgoing>
+      <bpmn:outgoing>t_none</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:task id="Compliance" name="Compliance training">
+      <bpmn:incoming>t_comp</bpmn:incoming>
+      <bpmn:outgoing>tc</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Safety" name="Safety training">
+      <bpmn:incoming>t_safe</bpmn:incoming>
+      <bpmn:outgoing>ts</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:inclusiveGateway id="TrainJoin">
+      <bpmn:incoming>tc</bpmn:incoming>
+      <bpmn:incoming>ts</bpmn:incoming>
+      <bpmn:incoming>t_none</bpmn:incoming>
+      <bpmn:outgoing>tj</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:endEvent id="e" name="Onboarded">
+      <bpmn:incoming>tj</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:boundaryEvent id="B_NoShow" name="No-show" attachedToRef="Orient">
+      <bpmn:outgoing>ns1</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="tn" />
+    </bpmn:boundaryEvent>
+    <bpmn:task id="Followup" name="HR follow-up">
+      <bpmn:incoming>ns1</bpmn:incoming>
+      <bpmn:outgoing>ns2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="e_ns" name="On hold">
+      <bpmn:incoming>ns2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="f1" sourceRef="s" targetRef="Contract" />
+    <bpmn:sequenceFlow id="f2" sourceRef="Contract" targetRef="Fork" />
+    <bpmn:sequenceFlow id="p_it" sourceRef="Fork" targetRef="IT" />
+    <bpmn:sequenceFlow id="p_hr" sourceRef="Fork" targetRef="Payroll" />
+    <bpmn:sequenceFlow id="p_fac" sourceRef="Fork" targetRef="Desk" />
+    <bpmn:sequenceFlow id="it_out" sourceRef="IT" targetRef="Join" />
+    <bpmn:sequenceFlow id="hr_out" sourceRef="Payroll" targetRef="Join" />
+    <bpmn:sequenceFlow id="fac_out" sourceRef="Desk" targetRef="Join" />
+    <bpmn:sequenceFlow id="j1" sourceRef="Join" targetRef="Orient" />
+    <bpmn:sequenceFlow id="j2" sourceRef="Orient" targetRef="Train" />
+    <bpmn:sequenceFlow id="t_comp" name="compliance" sourceRef="Train" targetRef="Compliance" />
+    <bpmn:sequenceFlow id="t_safe" name="safety" sourceRef="Train" targetRef="Safety" />
+    <bpmn:sequenceFlow id="t_none" name="none" sourceRef="Train" targetRef="TrainJoin" />
+    <bpmn:sequenceFlow id="tc" sourceRef="Compliance" targetRef="TrainJoin" />
+    <bpmn:sequenceFlow id="ts" sourceRef="Safety" targetRef="TrainJoin" />
+    <bpmn:sequenceFlow id="tj" sourceRef="TrainJoin" targetRef="e" />
+    <bpmn:sequenceFlow id="ns1" sourceRef="B_NoShow" targetRef="Followup" />
+    <bpmn:sequenceFlow id="ns2" sourceRef="Followup" targetRef="e_ns" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_P_Onboard">
+    <bpmndi:BPMNPlane id="BPMNPlane_P_Onboard" bpmnElement="P_Onboard">
+      <bpmndi:BPMNShape id="BPMNShape_s" bpmnElement="s">
+        <dc:Bounds x="80" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="53" y="303" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Contract" bpmnElement="Contract">
+        <dc:Bounds x="216" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Fork" bpmnElement="Fork" isMarkerVisible="true">
+        <dc:Bounds x="416" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_IT" bpmnElement="IT">
+        <dc:Bounds x="566" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Payroll" bpmnElement="Payroll">
+        <dc:Bounds x="566" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Desk" bpmnElement="Desk">
+        <dc:Bounds x="566" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Join" bpmnElement="Join" isMarkerVisible="true">
+        <dc:Bounds x="766" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Orient" bpmnElement="Orient">
+        <dc:Bounds x="916" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Train" bpmnElement="Train" isMarkerVisible="true">
+        <dc:Bounds x="1452" y="255" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1432" y="222" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Compliance" bpmnElement="Compliance">
+        <dc:Bounds x="1602" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Safety" bpmnElement="Safety">
+        <dc:Bounds x="1602" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_TrainJoin" bpmnElement="TrainJoin" isMarkerVisible="true">
+        <dc:Bounds x="1802" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_e" bpmnElement="e">
+        <dc:Bounds x="1952" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1925" y="303" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Followup" bpmnElement="Followup">
+        <dc:Bounds x="1116" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_e_ns" bpmnElement="e_ns">
+        <dc:Bounds x="1316" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1289" y="463" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_B_NoShow" bpmnElement="B_NoShow">
+        <dc:Bounds x="948" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="861" y="343" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_f1" bpmnElement="f1">
+        <di:waypoint x="116" y="280" />
+        <di:waypoint x="216" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f2" bpmnElement="f2">
+        <di:waypoint x="316" y="280" />
+        <di:waypoint x="416" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_p_it" bpmnElement="p_it">
+        <di:waypoint x="466" y="280" />
+        <di:waypoint x="566" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_it_out" bpmnElement="it_out">
+        <di:waypoint x="666" y="280" />
+        <di:waypoint x="766" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_j1" bpmnElement="j1">
+        <di:waypoint x="816" y="280" />
+        <di:waypoint x="916" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_j2" bpmnElement="j2">
+        <di:waypoint x="1016" y="280" />
+        <di:waypoint x="1452" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_t_comp" bpmnElement="t_comp">
+        <di:waypoint x="1502" y="280" />
+        <di:waypoint x="1602" y="280" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1507" y="288" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_tc" bpmnElement="tc">
+        <di:waypoint x="1702" y="280" />
+        <di:waypoint x="1802" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_tj" bpmnElement="tj">
+        <di:waypoint x="1852" y="280" />
+        <di:waypoint x="1952" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_p_hr" bpmnElement="p_hr">
+        <di:waypoint x="441" y="305" />
+        <di:waypoint x="441" y="440" />
+        <di:waypoint x="566" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_p_fac" bpmnElement="p_fac">
+        <di:waypoint x="441" y="255" />
+        <di:waypoint x="441" y="120" />
+        <di:waypoint x="566" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_t_safe" bpmnElement="t_safe">
+        <di:waypoint x="1477" y="305" />
+        <di:waypoint x="1477" y="440" />
+        <di:waypoint x="1602" y="440" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1482" y="383" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_hr_out" bpmnElement="hr_out">
+        <di:waypoint x="666" y="440" />
+        <di:waypoint x="791" y="440" />
+        <di:waypoint x="791" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_fac_out" bpmnElement="fac_out">
+        <di:waypoint x="666" y="120" />
+        <di:waypoint x="791" y="120" />
+        <di:waypoint x="791" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_t_none" bpmnElement="t_none">
+        <di:waypoint x="1477" y="305" />
+        <di:waypoint x="1477" y="340" />
+        <di:waypoint x="1827" y="340" />
+        <di:waypoint x="1827" y="305" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1607" y="348" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_ts" bpmnElement="ts">
+        <di:waypoint x="1702" y="440" />
+        <di:waypoint x="1827" y="440" />
+        <di:waypoint x="1827" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_ns2" bpmnElement="ns2">
+        <di:waypoint x="1216" y="440" />
+        <di:waypoint x="1316" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_ns1" bpmnElement="ns1">
+        <di:waypoint x="966" y="338" />
+        <di:waypoint x="966" y="440" />
+        <di:waypoint x="1116" y="440" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_IT">
+    <bpmndi:BPMNPlane id="BPMNPlane_IT" bpmnElement="IT">
+      <bpmndi:BPMNShape id="BPMNShape_it_s" bpmnElement="it_s">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_it_acct" bpmnElement="it_acct">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_it_laptop" bpmnElement="it_laptop">
+        <dc:Bounds x="416" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_it_e" bpmnElement="it_e">
+        <dc:Bounds x="616" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_i1" bpmnElement="i1">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_i2" bpmnElement="i2">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_i3" bpmnElement="i3">
+        <di:waypoint x="516" y="120" />
+        <di:waypoint x="616" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

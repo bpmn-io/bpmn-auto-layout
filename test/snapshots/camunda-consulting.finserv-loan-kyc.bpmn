@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Defs_loan" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:collaboration id="Collab">
+    <bpmn:participant id="Pool_App" name="Applicant" processRef="Proc_App" />
+    <bpmn:participant id="Pool_Bank" name="Lender" processRef="Proc_Bank" />
+    <bpmn:messageFlow id="mf_apply" sourceRef="Apply" targetRef="Start_B" />
+    <bpmn:messageFlow id="mf_decide" sourceRef="Notify" targetRef="Await" />
+  </bpmn:collaboration>
+  <bpmn:process id="Proc_App" isExecutable="false">
+    <bpmn:startEvent id="Start_A">
+      <bpmn:outgoing>a1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Apply" name="Apply for loan (chatbot)">
+      <bpmn:incoming>a1</bpmn:incoming>
+      <bpmn:outgoing>a2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:receiveTask id="Await" name="Await decision">
+      <bpmn:incoming>a2</bpmn:incoming>
+      <bpmn:outgoing>a3</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:endEvent id="End_A">
+      <bpmn:incoming>a3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="a1" sourceRef="Start_A" targetRef="Apply" />
+    <bpmn:sequenceFlow id="a2" sourceRef="Apply" targetRef="Await" />
+    <bpmn:sequenceFlow id="a3" sourceRef="Await" targetRef="End_A" />
+  </bpmn:process>
+  <bpmn:process id="Proc_Bank" isExecutable="true">
+    <bpmn:laneSet id="ls">
+      <bpmn:lane id="Lane_Under" name="AI Underwriting">
+        <bpmn:flowNodeRef>Gw_Risk</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Manual_UW</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>KYC_Agent</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Intake" name="Intake">
+        <bpmn:flowNodeRef>Start_B</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Validate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Fork</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Manual</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Credit_Report</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Remediate</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Decide" name="Decision">
+        <bpmn:flowNodeRef>Approve</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Disburse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Notify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Decline</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_No</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Ok</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Err</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_Err</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_B" name="Application received">
+      <bpmn:outgoing>b1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="med" />
+    </bpmn:startEvent>
+    <bpmn:task id="Validate" name="Validate application">
+      <bpmn:incoming>b1</bpmn:incoming>
+      <bpmn:outgoing>b2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Gw_Fork">
+      <bpmn:incoming>b2</bpmn:incoming>
+      <bpmn:outgoing>f_agent</bpmn:outgoing>
+      <bpmn:outgoing>f_credit</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:parallelGateway id="Gw_Join">
+      <bpmn:incoming>g_agent</bpmn:incoming>
+      <bpmn:incoming>g_credit</bpmn:incoming>
+      <bpmn:outgoing>j1</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:exclusiveGateway id="Gw_Manual" name="UW result?">
+      <bpmn:incoming>m1</bpmn:incoming>
+      <bpmn:outgoing>m_ok</bpmn:outgoing>
+      <bpmn:outgoing>m_loop</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Credit_Report" name="Pull credit report (REST)">
+      <bpmn:incoming>f_credit</bpmn:incoming>
+      <bpmn:outgoing>g_credit</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:inclusiveGateway id="Gw_Risk" name="Risk band?">
+      <bpmn:incoming>j1</bpmn:incoming>
+      <bpmn:incoming>m_loop</bpmn:incoming>
+      <bpmn:outgoing>r_low</bpmn:outgoing>
+      <bpmn:outgoing>r_high</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:task id="Approve" name="Approve">
+      <bpmn:incoming>m_ok</bpmn:incoming>
+      <bpmn:incoming>Flow_0k6vqcd</bpmn:incoming>
+      <bpmn:outgoing>ap1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:serviceTask id="Disburse" name="Disburse funds (REST)">
+      <bpmn:incoming>ap1</bpmn:incoming>
+      <bpmn:outgoing>di1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="Notify" name="Notify applicant">
+      <bpmn:incoming>di1</bpmn:incoming>
+      <bpmn:incoming>dc1</bpmn:incoming>
+      <bpmn:outgoing>n1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Decline" name="Decline application">
+      <bpmn:incoming>r_high</bpmn:incoming>
+      <bpmn:outgoing>dc1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_No" name="Declined">
+      <bpmn:incoming>dc_end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Ok" name="Funded">
+      <bpmn:incoming>n1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Remediate" name="Manual settlement">
+      <bpmn:incoming>er1</bpmn:incoming>
+      <bpmn:outgoing>er2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Err" name="Ops handoff">
+      <bpmn:incoming>er2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Manual_UW" name="Manual underwriting">
+      <bpmn:incoming>r_low</bpmn:incoming>
+      <bpmn:outgoing>m1</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0k6vqcd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:adHocSubProcess id="KYC_Agent" name="KYC / AML &#38; Credit Agent">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda.agenticai:aiagent-job-worker:1" />
+        <zeebe:adHoc activeElementsCollection="=toolCalls" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>f_agent</bpmn:incoming>
+      <bpmn:outgoing>g_agent</bpmn:outgoing>
+      <bpmn:serviceTask id="T_Ident" name="Identity verify (REST)" />
+      <bpmn:serviceTask id="T_Sanctions" name="Sanctions screen (REST)" />
+      <bpmn:serviceTask id="T_Bureau" name="Credit bureau (REST)" />
+      <bpmn:serviceTask id="T_Income" name="Income verify (REST)" />
+      <bpmn:serviceTask id="T_Fraud" name="Fraud signal (REST)" />
+    </bpmn:adHocSubProcess>
+    <bpmn:boundaryEvent id="B_Err" name="Disburse failed" attachedToRef="Disburse">
+      <bpmn:outgoing>er1</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="eed" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="b1" sourceRef="Start_B" targetRef="Validate" />
+    <bpmn:sequenceFlow id="b2" sourceRef="Validate" targetRef="Gw_Fork" />
+    <bpmn:sequenceFlow id="f_agent" sourceRef="Gw_Fork" targetRef="KYC_Agent" />
+    <bpmn:sequenceFlow id="f_credit" sourceRef="Gw_Fork" targetRef="Credit_Report" />
+    <bpmn:sequenceFlow id="g_agent" sourceRef="KYC_Agent" targetRef="Gw_Join" />
+    <bpmn:sequenceFlow id="g_credit" sourceRef="Credit_Report" targetRef="Gw_Join" />
+    <bpmn:sequenceFlow id="j1" sourceRef="Gw_Join" targetRef="Gw_Risk" />
+    <bpmn:sequenceFlow id="m1" sourceRef="Manual_UW" targetRef="Gw_Manual" />
+    <bpmn:sequenceFlow id="m_ok" name="pass" sourceRef="Gw_Manual" targetRef="Approve" />
+    <bpmn:sequenceFlow id="m_loop" name="more data" sourceRef="Gw_Manual" targetRef="Gw_Risk" />
+    <bpmn:sequenceFlow id="r_low" name="low" sourceRef="Gw_Risk" targetRef="Manual_UW" />
+    <bpmn:sequenceFlow id="r_high" name="high" sourceRef="Gw_Risk" targetRef="Decline" />
+    <bpmn:sequenceFlow id="Flow_0k6vqcd" sourceRef="Manual_UW" targetRef="Approve" />
+    <bpmn:sequenceFlow id="ap1" sourceRef="Approve" targetRef="Disburse" />
+    <bpmn:sequenceFlow id="di1" sourceRef="Disburse" targetRef="Notify" />
+    <bpmn:sequenceFlow id="dc1" sourceRef="Decline" targetRef="Notify" />
+    <bpmn:sequenceFlow id="n1" sourceRef="Notify" targetRef="End_Ok" />
+    <bpmn:sequenceFlow id="dc_end" sourceRef="Decline" targetRef="End_No" />
+    <bpmn:sequenceFlow id="er1" sourceRef="B_Err" targetRef="Remediate" />
+    <bpmn:sequenceFlow id="er2" sourceRef="Remediate" targetRef="End_Err" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Collab">
+    <bpmndi:BPMNPlane id="BPMNPlane_Collab" bpmnElement="Collab">
+      <bpmndi:BPMNShape id="BPMNShape_Pool_App" bpmnElement="Pool_App" isHorizontal="true">
+        <dc:Bounds x="80" y="1200" width="682" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Pool_Bank" bpmnElement="Pool_Bank" isHorizontal="true">
+        <dc:Bounds x="248" y="80" width="2082" height="1040" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_mf_apply" bpmnElement="mf_apply">
+        <di:waypoint x="336" y="1240" />
+        <di:waypoint x="336" y="458" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_mf_decide" bpmnElement="mf_decide">
+        <di:waypoint x="2104" y="880" />
+        <di:waypoint x="2104" y="1160" />
+        <di:waypoint x="536" y="1160" />
+        <di:waypoint x="536" y="1240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_Start_A" bpmnElement="Start_A">
+        <dc:Bounds x="150" y="1262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Apply" bpmnElement="Apply">
+        <dc:Bounds x="286" y="1240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Await" bpmnElement="Await">
+        <dc:Bounds x="486" y="1240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_A" bpmnElement="End_A">
+        <dc:Bounds x="686" y="1262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_a1" bpmnElement="a1">
+        <di:waypoint x="186" y="1280" />
+        <di:waypoint x="286" y="1280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_a2" bpmnElement="a2">
+        <di:waypoint x="386" y="1280" />
+        <di:waypoint x="486" y="1280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_a3" bpmnElement="a3">
+        <di:waypoint x="586" y="1280" />
+        <di:waypoint x="686" y="1280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_Under" bpmnElement="Lane_Under" isHorizontal="true">
+        <dc:Bounds x="278" y="80" width="2052" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_Intake" bpmnElement="Lane_Intake" isHorizontal="true">
+        <dc:Bounds x="278" y="320" width="2052" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_Decide" bpmnElement="Lane_Decide" isHorizontal="true">
+        <dc:Bounds x="278" y="720" width="2052" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Start_B" bpmnElement="Start_B">
+        <dc:Bounds x="318" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="291" y="389" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Validate" bpmnElement="Validate">
+        <dc:Bounds x="454" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_Fork" bpmnElement="Gw_Fork" isMarkerVisible="true">
+        <dc:Bounds x="654" y="415" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_Join" bpmnElement="Gw_Join" isMarkerVisible="true">
+        <dc:Bounds x="1004" y="415" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_Manual" bpmnElement="Gw_Manual" isMarkerVisible="true">
+        <dc:Bounds x="1504" y="415" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1409" y="433" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Credit_Report" bpmnElement="Credit_Report">
+        <dc:Bounds x="804" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_Risk" bpmnElement="Gw_Risk" isMarkerVisible="true">
+        <dc:Bounds x="1154" y="175" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1134" y="156" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Approve" bpmnElement="Approve">
+        <dc:Bounds x="1654" y="800" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Disburse" bpmnElement="Disburse">
+        <dc:Bounds x="1854" y="800" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Notify" bpmnElement="Notify">
+        <dc:Bounds x="2054" y="800" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Decline" bpmnElement="Decline">
+        <dc:Bounds x="1304" y="960" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_No" bpmnElement="End_No">
+        <dc:Bounds x="1511" y="982" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1484" y="1023" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_Ok" bpmnElement="End_Ok">
+        <dc:Bounds x="2254" y="822" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2347" y="863" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Remediate" bpmnElement="Remediate">
+        <dc:Bounds x="2054" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_Err" bpmnElement="End_Err">
+        <dc:Bounds x="2254" y="982" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2227" y="1043" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Manual_UW" bpmnElement="Manual_UW">
+        <dc:Bounds x="1304" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_KYC_Agent" bpmnElement="KYC_Agent">
+        <dc:Bounds x="804" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_B_Err" bpmnElement="B_Err">
+        <dc:Bounds x="1886" y="862" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1799" y="903" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_b1" bpmnElement="b1">
+        <di:waypoint x="354" y="440" />
+        <di:waypoint x="454" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_b2" bpmnElement="b2">
+        <di:waypoint x="554" y="440" />
+        <di:waypoint x="654" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_agent" bpmnElement="f_agent">
+        <di:waypoint x="704" y="440" />
+        <di:waypoint x="854" y="440" />
+        <di:waypoint x="854" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_g_agent" bpmnElement="g_agent">
+        <di:waypoint x="904" y="200" />
+        <di:waypoint x="1029" y="200" />
+        <di:waypoint x="1029" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_j1" bpmnElement="j1">
+        <di:waypoint x="1054" y="440" />
+        <di:waypoint x="1179" y="440" />
+        <di:waypoint x="1179" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_m1" bpmnElement="m1">
+        <di:waypoint x="1404" y="200" />
+        <di:waypoint x="1529" y="200" />
+        <di:waypoint x="1529" y="415" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_m_ok" bpmnElement="m_ok">
+        <di:waypoint x="1554" y="440" />
+        <di:waypoint x="1704" y="440" />
+        <di:waypoint x="1704" y="800" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1584" y="418" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_r_low" bpmnElement="r_low">
+        <di:waypoint x="1204" y="200" />
+        <di:waypoint x="1304" y="200" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1209" y="208" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_ap1" bpmnElement="ap1">
+        <di:waypoint x="1754" y="840" />
+        <di:waypoint x="1854" y="840" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_di1" bpmnElement="di1">
+        <di:waypoint x="1954" y="840" />
+        <di:waypoint x="2054" y="840" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_n1" bpmnElement="n1">
+        <di:waypoint x="2154" y="840" />
+        <di:waypoint x="2254" y="840" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_credit" bpmnElement="f_credit">
+        <di:waypoint x="679" y="465" />
+        <di:waypoint x="679" y="600" />
+        <di:waypoint x="804" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_r_high" bpmnElement="r_high">
+        <di:waypoint x="1179" y="225" />
+        <di:waypoint x="1179" y="1000" />
+        <di:waypoint x="1304" y="1000" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1184" y="736" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_g_credit" bpmnElement="g_credit">
+        <di:waypoint x="904" y="600" />
+        <di:waypoint x="1029" y="600" />
+        <di:waypoint x="1029" y="465" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0k6vqcd" bpmnElement="Flow_0k6vqcd">
+        <di:waypoint x="1404" y="200" />
+        <di:waypoint x="1704" y="200" />
+        <di:waypoint x="1704" y="800" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_dc1" bpmnElement="dc1">
+        <di:waypoint x="1404" y="1000" />
+        <di:waypoint x="2104" y="962" />
+        <di:waypoint x="2104" y="880" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_dc_end" bpmnElement="dc_end">
+        <di:waypoint x="1404" y="1000" />
+        <di:waypoint x="1511" y="1000" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_er2" bpmnElement="er2">
+        <di:waypoint x="2154" y="600" />
+        <di:waypoint x="2234" y="600" />
+        <di:waypoint x="2234" y="1000" />
+        <di:waypoint x="2254" y="1000" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_er1" bpmnElement="er1">
+        <di:waypoint x="1904" y="898" />
+        <di:waypoint x="1904" y="1038" />
+        <di:waypoint x="2310" y="1038" />
+        <di:waypoint x="2310" y="600" />
+        <di:waypoint x="2034" y="600" />
+        <di:waypoint x="2054" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_m_loop" bpmnElement="m_loop">
+        <di:waypoint x="1529" y="465" />
+        <di:waypoint x="1529" y="485" />
+        <di:waypoint x="1179" y="485" />
+        <di:waypoint x="1179" y="225" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1309" y="463" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_KYC_Agent">
+    <bpmndi:BPMNPlane id="BPMNPlane_KYC_Agent" bpmnElement="KYC_Agent">
+      <bpmndi:BPMNShape id="BPMNShape_T_Ident" bpmnElement="T_Ident">
+        <dc:Bounds x="80" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_T_Sanctions" bpmnElement="T_Sanctions">
+        <dc:Bounds x="280" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_T_Bureau" bpmnElement="T_Bureau">
+        <dc:Bounds x="80" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_T_Income" bpmnElement="T_Income">
+        <dc:Bounds x="280" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_T_Fraud" bpmnElement="T_Fraud">
+        <dc:Bounds x="80" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
