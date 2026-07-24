@@ -112,7 +112,7 @@
       <bpmndi:BPMNShape id="BPMNShape_s" bpmnElement="s">
         <dc:Bounds x="80" y="262" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="53" y="303" width="90" height="28" />
+          <dc:Bounds x="68" y="303" width="60" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Contract" bpmnElement="Contract">
@@ -139,7 +139,7 @@
       <bpmndi:BPMNShape id="BPMNShape_Train" bpmnElement="Train" isMarkerVisible="true">
         <dc:Bounds x="1452" y="255" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1432" y="222" width="90" height="28" />
+          <dc:Bounds x="1444" y="222" width="67" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Compliance" bpmnElement="Compliance">
@@ -154,7 +154,7 @@
       <bpmndi:BPMNShape id="BPMNShape_e" bpmnElement="e">
         <dc:Bounds x="1952" y="262" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1925" y="303" width="90" height="14" />
+          <dc:Bounds x="1936" y="303" width="69" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Followup" bpmnElement="Followup">
@@ -163,13 +163,13 @@
       <bpmndi:BPMNShape id="BPMNShape_e_ns" bpmnElement="e_ns">
         <dc:Bounds x="1316" y="422" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1289" y="463" width="90" height="14" />
+          <dc:Bounds x="1308" y="463" width="52" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_B_NoShow" bpmnElement="B_NoShow">
         <dc:Bounds x="948" y="302" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="861" y="343" width="90" height="14" />
+          <dc:Bounds x="897" y="343" width="58" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_f1" bpmnElement="f1">
@@ -200,7 +200,7 @@
         <di:waypoint x="1502" y="280" />
         <di:waypoint x="1602" y="280" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1507" y="288" width="90" height="14" />
+          <dc:Bounds x="1514" y="288" width="77" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_tc" bpmnElement="tc">
@@ -226,7 +226,7 @@
         <di:waypoint x="1477" y="440" />
         <di:waypoint x="1602" y="440" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1482" y="383" width="90" height="14" />
+          <dc:Bounds x="1482" y="383" width="46" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_hr_out" bpmnElement="hr_out">
@@ -245,7 +245,7 @@
         <di:waypoint x="1827" y="340" />
         <di:waypoint x="1827" y="305" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1607" y="348" width="90" height="14" />
+          <dc:Bounds x="1636" y="348" width="32" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_ts" bpmnElement="ts">

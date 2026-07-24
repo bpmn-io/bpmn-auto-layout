@@ -40,16 +40,16 @@ describe('LabelLayouter', function() {
     layoutExternalLabels(factory, elements);
 
     assert.deepStrictEqual(toBounds(below.label.bounds), {
-      x: 73, y: 141, width: 90, height: 14
+      x: 96, y: 141, width: 44, height: 14
     });
     assert.deepStrictEqual(toBounds(above.label.bounds), {
-      x: 273, y: 81, width: 90, height: 14
+      x: 298, y: 81, width: 41, height: 14
     });
     assert.deepStrictEqual(toBounds(left.label.bounds), {
-      x: 405, y: 111, width: 90, height: 14
+      x: 461, y: 111, width: 34, height: 14
     });
     assert.deepStrictEqual(toBounds(right.label.bounds), {
-      x: 741, y: 111, width: 90, height: 14
+      x: 741, y: 111, width: 41, height: 14
     });
   });
 
@@ -66,10 +66,10 @@ describe('LabelLayouter', function() {
     layoutExternalLabels(factory, [ horizontal, vertical ]);
 
     assert.deepStrictEqual(toBounds(horizontal.label.bounds), {
-      x: 155, y: 78, width: 90, height: 14
+      x: 162, y: 78, width: 76, height: 14
     });
     assert.deepStrictEqual(toBounds(vertical.label.bounds), {
-      x: 505, y: 193, width: 90, height: 14
+      x: 505, y: 193, width: 62, height: 14
     });
   });
 
@@ -98,10 +98,10 @@ describe('LabelLayouter', function() {
     layoutExternalLabels(factory, elements);
 
     assert.deepStrictEqual(toBounds(horizontal.label.bounds), {
-      x: 155, y: 108, width: 90, height: 14
+      x: 162, y: 108, width: 76, height: 14
     });
     assert.deepStrictEqual(toBounds(vertical.label.bounds), {
-      x: 405, y: 193, width: 90, height: 14
+      x: 433, y: 193, width: 62, height: 14
     });
   });
 
@@ -125,13 +125,13 @@ describe('LabelLayouter', function() {
     layoutExternalLabels(factory, [ sales, technical, legal ]);
 
     assert.deepStrictEqual(toBounds(sales.label.bounds), {
-      x: 155, y: 178, width: 90, height: 14
+      x: 181, y: 178, width: 39, height: 14
     });
     assert.deepStrictEqual(toBounds(technical.label.bounds), {
-      x: 155, y: 278, width: 90, height: 14
+      x: 167, y: 278, width: 67, height: 14
     });
     assert.deepStrictEqual(toBounds(legal.label.bounds), {
-      x: 105, y: 343, width: 90, height: 14
+      x: 105, y: 343, width: 39, height: 14
     });
   });
 
@@ -229,14 +229,21 @@ describe('LabelLayouter', function() {
     layoutExternalLabels(factory, [ subprocess, event, below ]);
 
     assert.deepStrictEqual(toBounds(event.label.bounds), {
-      x: 23, y: 121, width: 90, height: 14
+      x: 48, y: 121, width: 41, height: 14
     });
   });
 
   it('should reserve enough height for wide unbroken text', function() {
     assert.deepStrictEqual(externalLabelSize('WWWWWWWWWWWWWWW'), {
-      width: 90,
-      height: 28
+      width: 81,
+      height: 42
+    });
+  });
+
+  it('should size short external labels to their content', function() {
+    assert.deepStrictEqual(externalLabelSize('nein'), {
+      width: 32,
+      height: 14
     });
   });
 

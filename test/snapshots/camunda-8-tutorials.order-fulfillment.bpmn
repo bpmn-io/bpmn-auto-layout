@@ -197,7 +197,7 @@ If there occurs an error while retrieving the payment, a [BPMN Error event]() is
         <di:waypoint x="610" y="796" />
         <di:waypoint x="610" y="494" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="615" y="631" width="90" height="28" />
+          <dc:Bounds x="615" y="631" width="76" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Association_08nehpr" bpmnElement="Association_08nehpr">
@@ -239,7 +239,7 @@ If there occurs an error while retrieving the payment, a [BPMN Error event]() is
       <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
         <dc:Bounds x="592" y="458" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="565" y="425" width="90" height="28" />
+          <dc:Bounds x="580" y="425" width="60" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_RetrievePayment" bpmnElement="Activity_RetrievePayment">
@@ -248,19 +248,19 @@ If there occurs an error while retrieving the payment, a [BPMN Error event]() is
       <bpmndi:BPMNShape id="BPMNShape_Event_1aeoet4" bpmnElement="Event_1aeoet4">
         <dc:Bounds x="1128" y="618" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1101" y="659" width="90" height="28" />
+          <dc:Bounds x="1116" y="659" width="60" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_1dqrfkm" bpmnElement="Event_1dqrfkm">
         <dc:Bounds x="1664" y="618" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1637" y="659" width="90" height="28" />
+          <dc:Bounds x="1650" y="659" width="65" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_0p96bkl" bpmnElement="Event_0p96bkl">
         <dc:Bounds x="1664" y="458" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1637" y="425" width="90" height="28" />
+          <dc:Bounds x="1649" y="425" width="67" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_15rdezk" bpmnElement="Activity_15rdezk">
@@ -278,13 +278,13 @@ If there occurs an error while retrieving the payment, a [BPMN Error event]() is
       <bpmndi:BPMNShape id="BPMNShape_Event_1u4rxf1" bpmnElement="Event_1u4rxf1">
         <dc:Bounds x="1296" y="498" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1209" y="539" width="90" height="28" />
+          <dc:Bounds x="1253" y="539" width="43" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_07y40ok" bpmnElement="Event_07y40ok">
         <dc:Bounds x="760" y="498" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="793" y="539" width="90" height="28" />
+          <dc:Bounds x="789" y="539" width="58" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1cgm930" bpmnElement="Flow_1cgm930">

@@ -164,7 +164,7 @@
       <bpmndi:BPMNShape id="BPMNShape_ss" bpmnElement="ss">
         <dc:Bounds x="150" y="622" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="123" y="663" width="90" height="14" />
+          <dc:Bounds x="139" y="663" width="59" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Receive" bpmnElement="Receive">
@@ -173,7 +173,7 @@
       <bpmndi:BPMNShape id="BPMNShape_s_gw" bpmnElement="s_gw" isMarkerVisible="true">
         <dc:Bounds x="486" y="615" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="466" y="596" width="90" height="14" />
+          <dc:Bounds x="473" y="596" width="77" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Confirm" bpmnElement="Confirm">
@@ -185,7 +185,7 @@
       <bpmndi:BPMNShape id="BPMNShape_se" bpmnElement="se">
         <dc:Bounds x="1036" y="622" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1009" y="663" width="90" height="14" />
+          <dc:Bounds x="1030" y="663" width="48" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Reject" bpmnElement="Reject">
@@ -194,7 +194,7 @@
       <bpmndi:BPMNShape id="BPMNShape_se2" bpmnElement="se2">
         <dc:Bounds x="868" y="782" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="841" y="823" width="90" height="14" />
+          <dc:Bounds x="855" y="823" width="62" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_sf1" bpmnElement="sf1">
@@ -209,7 +209,7 @@
         <di:waypoint x="536" y="640" />
         <di:waypoint x="636" y="640" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="541" y="648" width="90" height="14" />
+          <dc:Bounds x="574" y="618" width="25" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sf3" bpmnElement="sf3">
@@ -225,7 +225,7 @@
         <di:waypoint x="511" y="800" />
         <di:waypoint x="636" y="800" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="516" y="726" width="90" height="14" />
+          <dc:Bounds x="517" y="726" width="18" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sf5" bpmnElement="sf5">
@@ -235,7 +235,7 @@
       <bpmndi:BPMNShape id="BPMNShape_fs" bpmnElement="fs">
         <dc:Bounds x="500" y="142" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="473" y="183" width="90" height="14" />
+          <dc:Bounds x="491" y="183" width="55" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Pick" bpmnElement="Pick">
@@ -250,7 +250,7 @@
       <bpmndi:BPMNShape id="BPMNShape_fe" bpmnElement="fe">
         <dc:Bounds x="1236" y="142" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1209" y="183" width="90" height="14" />
+          <dc:Bounds x="1227" y="183" width="55" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_ff1" bpmnElement="ff1">

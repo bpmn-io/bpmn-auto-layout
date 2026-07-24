@@ -145,25 +145,25 @@
       <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
         <dc:Bounds x="460" y="822" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="433" y="863" width="90" height="42" />
+          <dc:Bounds x="445" y="863" width="67" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Gateway_1wrjn3x" bpmnElement="Gateway_1wrjn3x" isMarkerVisible="true">
         <dc:Bounds x="996" y="175" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="901" y="186" width="90" height="28" />
+          <dc:Bounds x="924" y="186" width="67" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_12u444u" bpmnElement="Event_12u444u">
         <dc:Bounds x="1896" y="182" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1869" y="223" width="90" height="42" />
+          <dc:Bounds x="1871" y="223" width="87" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_0hfb7dz" bpmnElement="Event_0hfb7dz">
         <dc:Bounds x="1896" y="342" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1869" y="383" width="90" height="28" />
+          <dc:Bounds x="1876" y="383" width="77" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_ReviewExpenseReport_Finance" bpmnElement="Activity_ReviewExpenseReport_Finance">
@@ -172,7 +172,7 @@
       <bpmndi:BPMNShape id="BPMNShape_Gateway_18ir29z" bpmnElement="Gateway_18ir29z" isMarkerVisible="true">
         <dc:Bounds x="1346" y="175" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1266" y="230" width="90" height="28" />
+          <dc:Bounds x="1298" y="230" width="67" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_ReimburseExpenses" bpmnElement="Activity_ReimburseExpenses">
@@ -222,7 +222,7 @@
         <di:waypoint x="1546" y="140" />
         <di:waypoint x="1546" y="175" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1239" y="118" width="90" height="14" />
+          <dc:Bounds x="1253" y="118" width="62" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_02funv0" bpmnElement="Flow_02funv0">
@@ -237,14 +237,14 @@
         <di:waypoint x="1396" y="200" />
         <di:waypoint x="1521" y="200" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1414" y="178" width="90" height="14" />
+          <dc:Bounds x="1428" y="178" width="62" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_07yvuxk" bpmnElement="Flow_07yvuxk">
         <di:waypoint x="1046" y="200" />
         <di:waypoint x="1146" y="200" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1051" y="178" width="90" height="14" />
+          <dc:Bounds x="1065" y="178" width="62" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1lsaytj" bpmnElement="Flow_1lsaytj">
@@ -252,7 +252,7 @@
         <di:waypoint x="1371" y="360" />
         <di:waypoint x="1496" y="360" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1276" y="286" width="90" height="14" />
+          <dc:Bounds x="1304" y="286" width="62" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_07w4wvi" bpmnElement="Flow_07w4wvi">
