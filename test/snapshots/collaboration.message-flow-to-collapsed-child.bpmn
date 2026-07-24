@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0c3q6b6" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.9.0">
+  <bpmn:collaboration id="Collaboration_1ag29uj">
+    <bpmn:participant id="Participant_0dwrwgx" processRef="Process_0gllg7f" />
+    <bpmn:participant id="Participant_1qdn8qg" processRef="Process_1lt0rvh" />
+    <bpmn:messageFlow id="Flow_193bw3h" sourceRef="Participant_1qdn8qg" targetRef="Activity_0qw608m" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_0gllg7f" isExecutable="true">
+    <bpmn:documentation>A message flow from another participant docks at a collapsed subprocess.</bpmn:documentation>
+    <bpmn:subProcess id="Activity_0qw608m">
+      <bpmn:startEvent id="Event_0m9ntx1" />
+    </bpmn:subProcess>
+  </bpmn:process>
+  <bpmn:process id="Process_1lt0rvh" isExecutable="false" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Collaboration_1ag29uj">
+    <bpmndi:BPMNPlane id="BPMNPlane_Collaboration_1ag29uj" bpmnElement="Collaboration_1ag29uj">
+      <bpmndi:BPMNShape id="BPMNShape_Participant_0dwrwgx" bpmnElement="Participant_0dwrwgx" isHorizontal="true">
+        <dc:Bounds x="80" y="80" width="300" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Participant_1qdn8qg" bpmnElement="Participant_1qdn8qg" isHorizontal="true">
+        <dc:Bounds x="80" y="320" width="300" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_193bw3h" bpmnElement="Flow_193bw3h">
+        <di:waypoint x="200" y="320" />
+        <di:waypoint x="200" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_0qw608m" bpmnElement="Activity_0qw608m">
+        <dc:Bounds x="150" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Activity_0qw608m">
+    <bpmndi:BPMNPlane id="BPMNPlane_Activity_0qw608m" bpmnElement="Activity_0qw608m">
+      <bpmndi:BPMNShape id="BPMNShape_Event_0m9ntx1" bpmnElement="Event_0m9ntx1">
+        <dc:Bounds x="80" y="80" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

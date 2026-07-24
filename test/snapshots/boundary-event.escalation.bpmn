@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>An escalation boundary event docks above its host and the handler region occupies the upper band.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0uesidu</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_1t297ht">
+      <bpmn:incoming>Flow_0uesidu</bpmn:incoming>
+      <bpmn:outgoing>Flow_1228vz4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0uesidu" sourceRef="StartEvent_1" targetRef="Activity_1t297ht" />
+    <bpmn:boundaryEvent id="Event_0mtbomw" attachedToRef="Activity_1t297ht">
+      <bpmn:outgoing>Flow_0jhf15v</bpmn:outgoing>
+      <bpmn:escalationEventDefinition id="EscalationEventDefinition_1ddl3t7" escalationRef="Escalation_3v52ott" />
+    </bpmn:boundaryEvent>
+    <bpmn:task id="Activity_0d0keyr">
+      <bpmn:incoming>Flow_0jhf15v</bpmn:incoming>
+      <bpmn:outgoing>Flow_079n7j8</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0jhf15v" sourceRef="Event_0mtbomw" targetRef="Activity_0d0keyr" />
+    <bpmn:endEvent id="Event_1kq68c6">
+      <bpmn:incoming>Flow_079n7j8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_079n7j8" sourceRef="Activity_0d0keyr" targetRef="Event_1kq68c6" />
+    <bpmn:endEvent id="Event_0sg3bmf">
+      <bpmn:incoming>Flow_1228vz4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1228vz4" sourceRef="Activity_1t297ht" targetRef="Event_0sg3bmf" />
+  </bpmn:process>
+  <bpmn:escalation id="Escalation_3v52ott" name="Escalation_3v52ott" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Process_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Process_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
+        <dc:Bounds x="80" y="262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_1t297ht" bpmnElement="Activity_1t297ht">
+        <dc:Bounds x="216" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_0d0keyr" bpmnElement="Activity_0d0keyr">
+        <dc:Bounds x="416" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_1kq68c6" bpmnElement="Event_1kq68c6">
+        <dc:Bounds x="616" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_0sg3bmf" bpmnElement="Event_0sg3bmf">
+        <dc:Bounds x="448" y="262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_0mtbomw" bpmnElement="Event_0mtbomw">
+        <dc:Bounds x="248" y="222" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0uesidu" bpmnElement="Flow_0uesidu">
+        <di:waypoint x="116" y="280" />
+        <di:waypoint x="216" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1228vz4" bpmnElement="Flow_1228vz4">
+        <di:waypoint x="316" y="280" />
+        <di:waypoint x="448" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_079n7j8" bpmnElement="Flow_079n7j8">
+        <di:waypoint x="516" y="120" />
+        <di:waypoint x="616" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0jhf15v" bpmnElement="Flow_0jhf15v">
+        <di:waypoint x="266" y="222" />
+        <di:waypoint x="266" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

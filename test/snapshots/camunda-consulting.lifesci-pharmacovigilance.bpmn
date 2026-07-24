@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Defs_pv" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="Proc_PV" name="Adverse Event Case Processing" isExecutable="true">
+    <bpmn:documentation>Exercises agentic pharmacovigilance triage, parallel assessments, report alternatives, nested subprocesses, and boundary handlers.</bpmn:documentation>
+    <bpmn:startEvent id="Start" name="Adverse event reported">
+      <bpmn:outgoing>s1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Intake" name="Ingest &#38; de-duplicate (REST)">
+      <bpmn:incoming>s1</bpmn:incoming>
+      <bpmn:outgoing>s2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:adHocSubProcess id="PV_Agent" name="Pharmacovigilance Triage Agent">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda.agenticai:aiagent-job-worker:1" />
+        <zeebe:adHoc activeElementsCollection="=toolCalls" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>s2</bpmn:incoming>
+      <bpmn:outgoing>s3</bpmn:outgoing>
+      <bpmn:serviceTask id="T_Meddra" name="MedDRA coding (REST)" />
+      <bpmn:serviceTask id="T_Dup" name="Duplicate search (REST)" />
+      <bpmn:serviceTask id="T_Lit" name="Literature lookup (REST)" />
+      <bpmn:serviceTask id="T_Label" name="Label check (REST)" />
+      <bpmn:serviceTask id="T_Signal" name="Signal DB query (REST)" />
+    </bpmn:adHocSubProcess>
+    <bpmn:parallelGateway id="Gw_Fork">
+      <bpmn:incoming>s3</bpmn:incoming>
+      <bpmn:outgoing>f_cau</bpmn:outgoing>
+      <bpmn:outgoing>f_sev</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:subProcess id="Causality" name="Causality Assessment">
+      <bpmn:incoming>f_cau</bpmn:incoming>
+      <bpmn:outgoing>c_out</bpmn:outgoing>
+      <bpmn:startEvent id="c_s">
+        <bpmn:outgoing>c1</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:task id="c_algo" name="Apply Naranjo algorithm">
+        <bpmn:incoming>c1</bpmn:incoming>
+        <bpmn:outgoing>c2</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:subProcess id="c_review" name="Expert Adjudication">
+        <bpmn:incoming>c2</bpmn:incoming>
+        <bpmn:outgoing>c3</bpmn:outgoing>
+        <bpmn:startEvent id="cr_s">
+          <bpmn:outgoing>cr1</bpmn:outgoing>
+        </bpmn:startEvent>
+        <bpmn:userTask id="cr_t" name="Safety physician review">
+          <bpmn:incoming>cr1</bpmn:incoming>
+          <bpmn:outgoing>cr2</bpmn:outgoing>
+        </bpmn:userTask>
+        <bpmn:endEvent id="cr_e">
+          <bpmn:incoming>cr2</bpmn:incoming>
+        </bpmn:endEvent>
+        <bpmn:sequenceFlow id="cr1" sourceRef="cr_s" targetRef="cr_t" />
+        <bpmn:sequenceFlow id="cr2" sourceRef="cr_t" targetRef="cr_e" />
+      </bpmn:subProcess>
+      <bpmn:endEvent id="c_e">
+        <bpmn:incoming>c3</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="c1" sourceRef="c_s" targetRef="c_algo" />
+      <bpmn:sequenceFlow id="c2" sourceRef="c_algo" targetRef="c_review" />
+      <bpmn:sequenceFlow id="c3" sourceRef="c_review" targetRef="c_e" />
+    </bpmn:subProcess>
+    <bpmn:task id="Severity" name="Classify seriousness">
+      <bpmn:incoming>f_sev</bpmn:incoming>
+      <bpmn:outgoing>sev_out</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:inclusiveGateway id="Gw_Join">
+      <bpmn:incoming>c_out</bpmn:incoming>
+      <bpmn:incoming>sev_out</bpmn:incoming>
+      <bpmn:outgoing>j1</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:exclusiveGateway id="Gw_Report" name="Reportable?">
+      <bpmn:incoming>j1</bpmn:incoming>
+      <bpmn:outgoing>rp_exp</bpmn:outgoing>
+      <bpmn:outgoing>rp_per</bpmn:outgoing>
+      <bpmn:outgoing>rp_no</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Expedited" name="Expedited report to regulator (REST)">
+      <bpmn:incoming>rp_exp</bpmn:incoming>
+      <bpmn:outgoing>e1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="Periodic" name="Queue for periodic report">
+      <bpmn:incoming>rp_per</bpmn:incoming>
+      <bpmn:outgoing>e2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="NoAction" name="Archive case">
+      <bpmn:incoming>rp_no</bpmn:incoming>
+      <bpmn:outgoing>e3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gw_End">
+      <bpmn:incoming>e1</bpmn:incoming>
+      <bpmn:incoming>e2</bpmn:incoming>
+      <bpmn:incoming>e3</bpmn:incoming>
+      <bpmn:outgoing>end1</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End" name="Case closed">
+      <bpmn:incoming>end1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:boundaryEvent id="B_Timer" name="15-day clock" cancelActivity="false" attachedToRef="PV_Agent">
+      <bpmn:outgoing>bt1</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="pt" />
+    </bpmn:boundaryEvent>
+    <bpmn:task id="Expedite_Flag" name="Flag for urgent review">
+      <bpmn:incoming>bt1</bpmn:incoming>
+      <bpmn:outgoing>bt2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Urgent" name="Urgent path">
+      <bpmn:incoming>bt2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:boundaryEvent id="B_Err" name="Submit failed" attachedToRef="Expedited">
+      <bpmn:outgoing>be1</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="pe" />
+    </bpmn:boundaryEvent>
+    <bpmn:task id="Retry_Submit" name="Manual regulatory submission">
+      <bpmn:incoming>be1</bpmn:incoming>
+      <bpmn:outgoing>be2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Manual" name="Submitted manually">
+      <bpmn:incoming>be2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="s1" sourceRef="Start" targetRef="Intake" />
+    <bpmn:sequenceFlow id="s2" sourceRef="Intake" targetRef="PV_Agent" />
+    <bpmn:sequenceFlow id="s3" sourceRef="PV_Agent" targetRef="Gw_Fork" />
+    <bpmn:sequenceFlow id="f_cau" sourceRef="Gw_Fork" targetRef="Causality" />
+    <bpmn:sequenceFlow id="f_sev" sourceRef="Gw_Fork" targetRef="Severity" />
+    <bpmn:sequenceFlow id="c_out" sourceRef="Causality" targetRef="Gw_Join" />
+    <bpmn:sequenceFlow id="sev_out" sourceRef="Severity" targetRef="Gw_Join" />
+    <bpmn:sequenceFlow id="j1" sourceRef="Gw_Join" targetRef="Gw_Report" />
+    <bpmn:sequenceFlow id="rp_exp" name="expedited" sourceRef="Gw_Report" targetRef="Expedited" />
+    <bpmn:sequenceFlow id="rp_per" name="periodic" sourceRef="Gw_Report" targetRef="Periodic" />
+    <bpmn:sequenceFlow id="rp_no" name="not reportable" sourceRef="Gw_Report" targetRef="NoAction" />
+    <bpmn:sequenceFlow id="e1" sourceRef="Expedited" targetRef="Gw_End" />
+    <bpmn:sequenceFlow id="e2" sourceRef="Periodic" targetRef="Gw_End" />
+    <bpmn:sequenceFlow id="e3" sourceRef="NoAction" targetRef="Gw_End" />
+    <bpmn:sequenceFlow id="end1" sourceRef="Gw_End" targetRef="End" />
+    <bpmn:sequenceFlow id="bt1" sourceRef="B_Timer" targetRef="Expedite_Flag" />
+    <bpmn:sequenceFlow id="bt2" sourceRef="Expedite_Flag" targetRef="End_Urgent" />
+    <bpmn:sequenceFlow id="be1" sourceRef="B_Err" targetRef="Retry_Submit" />
+    <bpmn:sequenceFlow id="be2" sourceRef="Retry_Submit" targetRef="End_Manual" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Proc_PV">
+    <bpmndi:BPMNPlane id="BPMNPlane_Proc_PV" bpmnElement="Proc_PV">
+      <bpmndi:BPMNShape id="BPMNShape_Start" bpmnElement="Start">
+        <dc:Bounds x="80" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="53" y="303" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Intake" bpmnElement="Intake">
+        <dc:Bounds x="216" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_PV_Agent" bpmnElement="PV_Agent">
+        <dc:Bounds x="416" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_Fork" bpmnElement="Gw_Fork" isMarkerVisible="true">
+        <dc:Bounds x="952" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Causality" bpmnElement="Causality">
+        <dc:Bounds x="1102" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Severity" bpmnElement="Severity">
+        <dc:Bounds x="1102" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_Join" bpmnElement="Gw_Join" isMarkerVisible="true">
+        <dc:Bounds x="1302" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_Report" bpmnElement="Gw_Report" isMarkerVisible="true">
+        <dc:Bounds x="1452" y="255" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1372" y="310" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Expedited" bpmnElement="Expedited">
+        <dc:Bounds x="1602" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Periodic" bpmnElement="Periodic">
+        <dc:Bounds x="1602" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NoAction" bpmnElement="NoAction">
+        <dc:Bounds x="1602" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_End" bpmnElement="Gw_End" isMarkerVisible="true">
+        <dc:Bounds x="1827" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End" bpmnElement="End">
+        <dc:Bounds x="2002" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1975" y="303" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Expedite_Flag" bpmnElement="Expedite_Flag">
+        <dc:Bounds x="616" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_Urgent" bpmnElement="End_Urgent">
+        <dc:Bounds x="816" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="789" y="463" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Retry_Submit" bpmnElement="Retry_Submit">
+        <dc:Bounds x="1802" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_Manual" bpmnElement="End_Manual">
+        <dc:Bounds x="2002" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1975" y="623" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_B_Timer" bpmnElement="B_Timer">
+        <dc:Bounds x="448" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="361" y="343" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_B_Err" bpmnElement="B_Err">
+        <dc:Bounds x="1634" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1607" y="363" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_s1" bpmnElement="s1">
+        <di:waypoint x="116" y="280" />
+        <di:waypoint x="216" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_s2" bpmnElement="s2">
+        <di:waypoint x="316" y="280" />
+        <di:waypoint x="416" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_s3" bpmnElement="s3">
+        <di:waypoint x="516" y="280" />
+        <di:waypoint x="952" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_cau" bpmnElement="f_cau">
+        <di:waypoint x="1002" y="280" />
+        <di:waypoint x="1102" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_c_out" bpmnElement="c_out">
+        <di:waypoint x="1202" y="280" />
+        <di:waypoint x="1302" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_j1" bpmnElement="j1">
+        <di:waypoint x="1352" y="280" />
+        <di:waypoint x="1452" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_rp_exp" bpmnElement="rp_exp">
+        <di:waypoint x="1502" y="280" />
+        <di:waypoint x="1602" y="280" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1507" y="258" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_e1" bpmnElement="e1">
+        <di:waypoint x="1702" y="280" />
+        <di:waypoint x="1827" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_end1" bpmnElement="end1">
+        <di:waypoint x="1877" y="280" />
+        <di:waypoint x="2002" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_f_sev" bpmnElement="f_sev">
+        <di:waypoint x="977" y="305" />
+        <di:waypoint x="977" y="440" />
+        <di:waypoint x="1102" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_rp_per" bpmnElement="rp_per">
+        <di:waypoint x="1477" y="305" />
+        <di:waypoint x="1477" y="440" />
+        <di:waypoint x="1602" y="440" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1482" y="366" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_rp_no" bpmnElement="rp_no">
+        <di:waypoint x="1477" y="255" />
+        <di:waypoint x="1477" y="120" />
+        <di:waypoint x="1602" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1482" y="174" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_sev_out" bpmnElement="sev_out">
+        <di:waypoint x="1202" y="440" />
+        <di:waypoint x="1327" y="440" />
+        <di:waypoint x="1327" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_e2" bpmnElement="e2">
+        <di:waypoint x="1702" y="440" />
+        <di:waypoint x="1852" y="440" />
+        <di:waypoint x="1852" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_e3" bpmnElement="e3">
+        <di:waypoint x="1702" y="120" />
+        <di:waypoint x="1852" y="120" />
+        <di:waypoint x="1852" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_bt2" bpmnElement="bt2">
+        <di:waypoint x="716" y="440" />
+        <di:waypoint x="816" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_be2" bpmnElement="be2">
+        <di:waypoint x="1902" y="600" />
+        <di:waypoint x="2002" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_bt1" bpmnElement="bt1">
+        <di:waypoint x="466" y="338" />
+        <di:waypoint x="466" y="440" />
+        <di:waypoint x="616" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_be1" bpmnElement="be1">
+        <di:waypoint x="1652" y="338" />
+        <di:waypoint x="1652" y="358" />
+        <di:waypoint x="1782" y="358" />
+        <di:waypoint x="1782" y="600" />
+        <di:waypoint x="1802" y="600" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_PV_Agent">
+    <bpmndi:BPMNPlane id="BPMNPlane_PV_Agent" bpmnElement="PV_Agent">
+      <bpmndi:BPMNShape id="BPMNShape_T_Meddra" bpmnElement="T_Meddra">
+        <dc:Bounds x="80" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_T_Dup" bpmnElement="T_Dup">
+        <dc:Bounds x="280" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_T_Lit" bpmnElement="T_Lit">
+        <dc:Bounds x="80" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_T_Label" bpmnElement="T_Label">
+        <dc:Bounds x="280" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_T_Signal" bpmnElement="T_Signal">
+        <dc:Bounds x="80" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Causality">
+    <bpmndi:BPMNPlane id="BPMNPlane_Causality" bpmnElement="Causality">
+      <bpmndi:BPMNShape id="BPMNShape_c_s" bpmnElement="c_s">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_c_algo" bpmnElement="c_algo">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_c_review" bpmnElement="c_review">
+        <dc:Bounds x="416" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_c_e" bpmnElement="c_e">
+        <dc:Bounds x="616" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_c1" bpmnElement="c1">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_c2" bpmnElement="c2">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_c3" bpmnElement="c3">
+        <di:waypoint x="516" y="120" />
+        <di:waypoint x="616" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_c_review">
+    <bpmndi:BPMNPlane id="BPMNPlane_c_review" bpmnElement="c_review">
+      <bpmndi:BPMNShape id="BPMNShape_cr_s" bpmnElement="cr_s">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_cr_t" bpmnElement="cr_t">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_cr_e" bpmnElement="cr_e">
+        <dc:Bounds x="416" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_cr1" bpmnElement="cr1">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_cr2" bpmnElement="cr2">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
