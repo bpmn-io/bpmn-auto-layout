@@ -149,7 +149,7 @@ and `<fixture>.{png,svg}` from the current layouter output to
 
 `npm test` runs `pretest` (`rollup -c`) first, so the snapshot suite always
 tests freshly built `dist/`, not stale output. Mocha discovers both
-[LayoutSpec.js](LayoutSpec.js) and [metrics.mjs](metrics.mjs): it enforces the
+[LayoutSpec.js](LayoutSpec.js) and [metrics.test.js](metrics.test.js): it enforces the
 snapshot assertions and runs the metrics harness. A metrics execution error or
 Band-A defect fails the command. Polish-metric changes remain review signals,
 not gates.
