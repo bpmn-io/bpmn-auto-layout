@@ -15,6 +15,7 @@ import {
   getExternalLabelText,
   isExternalLabelOwner
 } from '../lib/layout/BpmnUtil.js';
+import { segmentIsClear } from '../lib/layout/SequenceFlowRouter.js';
 import { calculateStatistics } from '../tasks/benchmark-util.mjs';
 import {
   EXTERNAL_LABEL_CLEARANCE,
@@ -2322,6 +2323,49 @@ describe('Layout', function() {
       assert.ok(start.x < ship.x + ship.width);
       assert.strictEqual(afterStart.x, start.x);
       assert.ok(afterStart.y > start.y);
+      assert.strictEqual(messageFlow.length, 4);
+      assert.strictEqual(messageFlow[1].y, messageFlow[2].y);
+      assert.ok(messageFlow.every(point => {
+        return point.x >= Math.min(start.x, messageFlow.at(-1).x) &&
+          point.x <= Math.max(start.x, messageFlow.at(-1).x);
+      }));
+    });
+
+    it('should allow perpendicular message-flow channel crossings', function() {
+      const source = {};
+      const target = {};
+      const routedConnections = [ {
+        flow: {
+          sourceRef: {},
+          targetRef: {},
+          $instanceOf: type => type === 'bpmn:MessageFlow'
+        },
+        points: [
+          { x: 0, y: 50 },
+          { x: 100, y: 50 }
+        ]
+      } ];
+
+      assert.strictEqual(segmentIsClear(
+        { x: 50, y: 0 },
+        { x: 50, y: 100 },
+        [],
+        source,
+        target,
+        routedConnections,
+        0,
+        true
+      ), true);
+      assert.strictEqual(segmentIsClear(
+        { x: 20, y: 50 },
+        { x: 80, y: 50 },
+        [],
+        source,
+        target,
+        routedConnections,
+        0,
+        true
+      ), false);
     });
 
     it('should route sequence flows across intervening lanes', async function() {
