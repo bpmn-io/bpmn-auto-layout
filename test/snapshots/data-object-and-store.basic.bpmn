@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>Data objects and stores sit near their owner without blocking sequence-flow channels.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1mbqmm8</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_1ue0f0i">
+      <bpmn:incoming>Flow_1mbqmm8</bpmn:incoming>
+      <bpmn:outgoing>Flow_1sy2evq</bpmn:outgoing>
+      <bpmn:property id="Property_07lmz2s" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_0plaq0k">
+        <bpmn:sourceRef>DataObjectReference_0662v3f</bpmn:sourceRef>
+        <bpmn:targetRef>Property_07lmz2s</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+      <bpmn:dataInputAssociation id="DataInputAssociation_1cfthfg">
+        <bpmn:sourceRef>DataStoreReference_0l43z9o</bpmn:sourceRef>
+        <bpmn:targetRef>Property_07lmz2s</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1mbqmm8" sourceRef="StartEvent_1" targetRef="Activity_1ue0f0i" />
+    <bpmn:dataStoreReference id="DataStoreReference_0l43z9o" />
+    <bpmn:dataObjectReference id="DataObjectReference_0662v3f" dataObjectRef="DataObject_0rer1dg" />
+    <bpmn:dataObject id="DataObject_0rer1dg" />
+    <bpmn:endEvent id="Event_14oetfw">
+      <bpmn:incoming>Flow_1sy2evq</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1sy2evq" sourceRef="Activity_1ue0f0i" targetRef="Event_14oetfw" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Process_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Process_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
+        <dc:Bounds x="80" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_1ue0f0i" bpmnElement="Activity_1ue0f0i">
+        <dc:Bounds x="216" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_14oetfw" bpmnElement="Event_14oetfw">
+        <dc:Bounds x="416" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_DataStoreReference_0l43z9o" bpmnElement="DataStoreReference_0l43z9o">
+        <dc:Bounds x="241" y="80" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_DataObjectReference_0662v3f" bpmnElement="DataObjectReference_0662v3f">
+        <dc:Bounds x="248" y="270" width="36" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1mbqmm8" bpmnElement="Flow_1mbqmm8">
+        <di:waypoint x="116" y="210" />
+        <di:waypoint x="216" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1sy2evq" bpmnElement="Flow_1sy2evq">
+        <di:waypoint x="316" y="210" />
+        <di:waypoint x="416" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_DataInputAssociation_1cfthfg" bpmnElement="DataInputAssociation_1cfthfg">
+        <di:waypoint x="266" y="130" />
+        <di:waypoint x="266" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_DataInputAssociation_0plaq0k" bpmnElement="DataInputAssociation_0plaq0k">
+        <di:waypoint x="266" y="270" />
+        <di:waypoint x="266" y="250" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>An `ErrorEventDefinition` without `errorRef` still goes below.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0xa120e</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_0g8r5go">
+      <bpmn:incoming>Flow_0xa120e</bpmn:incoming>
+      <bpmn:outgoing>Flow_0tttwsc</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0xa120e" sourceRef="StartEvent_1" targetRef="Activity_0g8r5go" />
+    <bpmn:endEvent id="Event_151fwf2">
+      <bpmn:incoming>Flow_0tttwsc</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0tttwsc" sourceRef="Activity_0g8r5go" targetRef="Event_151fwf2" />
+    <bpmn:boundaryEvent id="Event_16kt4t4" attachedToRef="Activity_0g8r5go">
+      <bpmn:outgoing>Flow_05xh0nm</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0fa8sq0" />
+    </bpmn:boundaryEvent>
+    <bpmn:task id="Activity_0yh4k43">
+      <bpmn:incoming>Flow_05xh0nm</bpmn:incoming>
+      <bpmn:outgoing>Flow_1kozs17</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_05xh0nm" sourceRef="Event_16kt4t4" targetRef="Activity_0yh4k43" />
+    <bpmn:endEvent id="Event_16j8lsh">
+      <bpmn:incoming>Flow_1kozs17</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1kozs17" sourceRef="Activity_0yh4k43" targetRef="Event_16j8lsh" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Process_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Process_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_0g8r5go" bpmnElement="Activity_0g8r5go">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_151fwf2" bpmnElement="Event_151fwf2">
+        <dc:Bounds x="448" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Activity_0yh4k43" bpmnElement="Activity_0yh4k43">
+        <dc:Bounds x="416" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_16j8lsh" bpmnElement="Event_16j8lsh">
+        <dc:Bounds x="616" y="262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Event_16kt4t4" bpmnElement="Event_16kt4t4">
+        <dc:Bounds x="248" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0xa120e" bpmnElement="Flow_0xa120e">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_0tttwsc" bpmnElement="Flow_0tttwsc">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="448" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_1kozs17" bpmnElement="Flow_1kozs17">
+        <di:waypoint x="516" y="280" />
+        <di:waypoint x="616" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_05xh0nm" bpmnElement="Flow_05xh0nm">
+        <di:waypoint x="266" y="178" />
+        <di:waypoint x="266" y="280" />
+        <di:waypoint x="416" y="280" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Defs_o2c" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:collaboration id="Collab">
+    <bpmn:participant id="Pool_Cust" name="Customer" processRef="P_Cust" />
+    <bpmn:participant id="Pool_Sales" name="Sales &#38; Billing" processRef="P_Sales" />
+    <bpmn:participant id="Pool_Fulfil" name="Fulfillment" processRef="P_Fulfil" />
+    <bpmn:messageFlow id="m_order" sourceRef="Place" targetRef="Receive" />
+    <bpmn:messageFlow id="m_invoice" sourceRef="Invoice" targetRef="Pay" />
+    <bpmn:messageFlow id="m_pick" sourceRef="Confirm" targetRef="Pick" />
+    <bpmn:messageFlow id="m_ship" sourceRef="Ship" targetRef="Accept" />
+  </bpmn:collaboration>
+  <bpmn:process id="P_Cust" isExecutable="false">
+    <bpmn:startEvent id="cs">
+      <bpmn:outgoing>cf1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Place" name="Place order">
+      <bpmn:incoming>cf1</bpmn:incoming>
+      <bpmn:outgoing>cf2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Pay" name="Pay invoice">
+      <bpmn:incoming>cf2</bpmn:incoming>
+      <bpmn:outgoing>cf3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Accept" name="Accept delivery">
+      <bpmn:incoming>cf3</bpmn:incoming>
+      <bpmn:outgoing>cf4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="ce">
+      <bpmn:incoming>cf4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="cf1" sourceRef="cs" targetRef="Place" />
+    <bpmn:sequenceFlow id="cf2" sourceRef="Place" targetRef="Pay" />
+    <bpmn:sequenceFlow id="cf3" sourceRef="Pay" targetRef="Accept" />
+    <bpmn:sequenceFlow id="cf4" sourceRef="Accept" targetRef="ce" />
+  </bpmn:process>
+  <bpmn:process id="P_Sales" isExecutable="true">
+    <bpmn:documentation>Exercises a three-party order-to-cash collaboration with message flows and an order-approval alternative.</bpmn:documentation>
+    <bpmn:startEvent id="ss" name="Order in">
+      <bpmn:outgoing>sf1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="sm" />
+    </bpmn:startEvent>
+    <bpmn:task id="Receive" name="Receive order">
+      <bpmn:incoming>sf1</bpmn:incoming>
+      <bpmn:outgoing>sf2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="s_gw" name="Credit OK?">
+      <bpmn:incoming>sf2</bpmn:incoming>
+      <bpmn:outgoing>sf_ok</bpmn:outgoing>
+      <bpmn:outgoing>sf_no</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Confirm" name="Confirm &#38; reserve">
+      <bpmn:incoming>sf_ok</bpmn:incoming>
+      <bpmn:outgoing>sf3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Invoice" name="Send invoice">
+      <bpmn:incoming>sf3</bpmn:incoming>
+      <bpmn:outgoing>sf4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="se" name="Booked">
+      <bpmn:incoming>sf4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Reject" name="Reject order">
+      <bpmn:incoming>sf_no</bpmn:incoming>
+      <bpmn:outgoing>sf5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="se2" name="Rejected">
+      <bpmn:incoming>sf5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="sf1" sourceRef="ss" targetRef="Receive" />
+    <bpmn:sequenceFlow id="sf2" sourceRef="Receive" targetRef="s_gw" />
+    <bpmn:sequenceFlow id="sf_ok" name="yes" sourceRef="s_gw" targetRef="Confirm" />
+    <bpmn:sequenceFlow id="sf_no" name="no" sourceRef="s_gw" targetRef="Reject" />
+    <bpmn:sequenceFlow id="sf3" sourceRef="Confirm" targetRef="Invoice" />
+    <bpmn:sequenceFlow id="sf4" sourceRef="Invoice" targetRef="se" />
+    <bpmn:sequenceFlow id="sf5" sourceRef="Reject" targetRef="se2" />
+  </bpmn:process>
+  <bpmn:process id="P_Fulfil" isExecutable="true">
+    <bpmn:startEvent id="fs" name="Reserve">
+      <bpmn:outgoing>ff1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="fm" />
+    </bpmn:startEvent>
+    <bpmn:task id="Pick" name="Pick items">
+      <bpmn:incoming>ff1</bpmn:incoming>
+      <bpmn:outgoing>ff2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Pack" name="Pack">
+      <bpmn:incoming>ff2</bpmn:incoming>
+      <bpmn:outgoing>ff3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Ship" name="Ship">
+      <bpmn:incoming>ff3</bpmn:incoming>
+      <bpmn:outgoing>ff4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="fe" name="Shipped">
+      <bpmn:incoming>ff4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="ff1" sourceRef="fs" targetRef="Pick" />
+    <bpmn:sequenceFlow id="ff2" sourceRef="Pick" targetRef="Pack" />
+    <bpmn:sequenceFlow id="ff3" sourceRef="Pack" targetRef="Ship" />
+    <bpmn:sequenceFlow id="ff4" sourceRef="Ship" targetRef="fe" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Collab">
+    <bpmndi:BPMNPlane id="BPMNPlane_Collab" bpmnElement="Collab">
+      <bpmndi:BPMNShape id="BPMNShape_Pool_Cust" bpmnElement="Pool_Cust" isHorizontal="true">
+        <dc:Bounds x="430" y="320" width="882" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Pool_Sales" bpmnElement="Pool_Sales" isHorizontal="true">
+        <dc:Bounds x="80" y="560" width="1032" height="320" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Pool_Fulfil" bpmnElement="Pool_Fulfil" isHorizontal="true">
+        <dc:Bounds x="80" y="80" width="882" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_m_order" bpmnElement="m_order">
+        <di:waypoint x="686" y="440" />
+        <di:waypoint x="686" y="520" />
+        <di:waypoint x="336" y="520" />
+        <di:waypoint x="336" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_m_invoice" bpmnElement="m_invoice">
+        <di:waypoint x="886" y="600" />
+        <di:waypoint x="886" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_m_pick" bpmnElement="m_pick">
+        <di:waypoint x="686" y="600" />
+        <di:waypoint x="686" y="540" />
+        <di:waypoint x="1332" y="540" />
+        <di:waypoint x="1332" y="260" />
+        <di:waypoint x="336" y="260" />
+        <di:waypoint x="336" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_m_ship" bpmnElement="m_ship">
+        <di:waypoint x="686" y="200" />
+        <di:waypoint x="266" y="200" />
+        <di:waypoint x="266" y="280" />
+        <di:waypoint x="1086" y="280" />
+        <di:waypoint x="1086" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_cs" bpmnElement="cs">
+        <dc:Bounds x="500" y="382" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Place" bpmnElement="Place">
+        <dc:Bounds x="636" y="360" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Pay" bpmnElement="Pay">
+        <dc:Bounds x="836" y="360" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Accept" bpmnElement="Accept">
+        <dc:Bounds x="1036" y="360" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_ce" bpmnElement="ce">
+        <dc:Bounds x="1236" y="382" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_cf1" bpmnElement="cf1">
+        <di:waypoint x="536" y="400" />
+        <di:waypoint x="636" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_cf2" bpmnElement="cf2">
+        <di:waypoint x="736" y="400" />
+        <di:waypoint x="836" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_cf3" bpmnElement="cf3">
+        <di:waypoint x="936" y="400" />
+        <di:waypoint x="1036" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_cf4" bpmnElement="cf4">
+        <di:waypoint x="1136" y="400" />
+        <di:waypoint x="1236" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_ss" bpmnElement="ss">
+        <dc:Bounds x="150" y="622" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="123" y="663" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Receive" bpmnElement="Receive">
+        <dc:Bounds x="286" y="600" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_s_gw" bpmnElement="s_gw" isMarkerVisible="true">
+        <dc:Bounds x="486" y="615" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="466" y="596" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Confirm" bpmnElement="Confirm">
+        <dc:Bounds x="636" y="600" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Invoice" bpmnElement="Invoice">
+        <dc:Bounds x="836" y="600" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_se" bpmnElement="se">
+        <dc:Bounds x="1036" y="622" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1009" y="663" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Reject" bpmnElement="Reject">
+        <dc:Bounds x="636" y="760" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_se2" bpmnElement="se2">
+        <dc:Bounds x="868" y="782" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="841" y="823" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_sf1" bpmnElement="sf1">
+        <di:waypoint x="186" y="640" />
+        <di:waypoint x="286" y="640" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_sf2" bpmnElement="sf2">
+        <di:waypoint x="386" y="640" />
+        <di:waypoint x="486" y="640" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_sf_ok" bpmnElement="sf_ok">
+        <di:waypoint x="536" y="640" />
+        <di:waypoint x="636" y="640" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="541" y="648" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_sf3" bpmnElement="sf3">
+        <di:waypoint x="736" y="640" />
+        <di:waypoint x="836" y="640" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_sf4" bpmnElement="sf4">
+        <di:waypoint x="936" y="640" />
+        <di:waypoint x="1036" y="640" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_sf_no" bpmnElement="sf_no">
+        <di:waypoint x="511" y="665" />
+        <di:waypoint x="511" y="800" />
+        <di:waypoint x="636" y="800" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="516" y="726" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_sf5" bpmnElement="sf5">
+        <di:waypoint x="736" y="800" />
+        <di:waypoint x="868" y="800" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_fs" bpmnElement="fs">
+        <dc:Bounds x="150" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="123" y="183" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Pick" bpmnElement="Pick">
+        <dc:Bounds x="286" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Pack" bpmnElement="Pack">
+        <dc:Bounds x="486" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Ship" bpmnElement="Ship">
+        <dc:Bounds x="686" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_fe" bpmnElement="fe">
+        <dc:Bounds x="886" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="859" y="183" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_ff1" bpmnElement="ff1">
+        <di:waypoint x="186" y="160" />
+        <di:waypoint x="286" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_ff2" bpmnElement="ff2">
+        <di:waypoint x="386" y="160" />
+        <di:waypoint x="486" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_ff3" bpmnElement="ff3">
+        <di:waypoint x="586" y="160" />
+        <di:waypoint x="686" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_ff4" bpmnElement="ff4">
+        <di:waypoint x="786" y="160" />
+        <di:waypoint x="886" y="160" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
