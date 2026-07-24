@@ -161,6 +161,11 @@ edges.
 handlers participate in a bounded fixed-point pass so their targets cannot
 precede their hosts.
 
+When consecutive spine nodes both introduce alternatives, a detached,
+non-cyclic alternative reserves a horizontal bay before the spine continues.
+This lets adjacent terminal and boundary-handler paths reuse a nearby semantic
+band instead of being forced progressively farther from the spine.
+
 A nested gateway join that feeds an enclosing join of the same gateway type
 from another semantic band has zero rank distance. The two joins therefore
 share a column and connect vertically instead of introducing an empty
