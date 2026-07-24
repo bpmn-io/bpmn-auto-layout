@@ -443,8 +443,11 @@ channel. Above the exhaustive participant-ordering threshold, endpoint-aligned
 vertical corridors and the boundaries of intervening participants are evaluated
 before either diagram exterior, and the shorter complete route is selected.
 Smaller collaborations retain their established exterior-channel policy.
-Routes avoid process-node obstacles, and obstacle-avoiding route legs consider
-previously allocated message flows.
+Routes avoid process-node obstacles. Horizontal message-flow segments claim
+exclusive y-channels and cannot overlap an allocated horizontal segment.
+Perpendicular vertical and horizontal message-flow segments may cross without
+forming a junction, so a vertical endpoint leg does not take a long detour
+around an occupied horizontal channel.
 
 Empty pool sizing and message routing form a fixed point:
 
