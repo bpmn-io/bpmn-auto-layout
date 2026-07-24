@@ -30,6 +30,25 @@ console.warn(warnings);
 semantic element for which the layout did not emit a BPMN shape or edge. Fatal
 structural or geometry failures reject with an exported `LayoutError`.
 
+### Command line
+
+The package also exposes a command-line interface:
+
+```sh
+# replace the file in place
+npx bpmn-auto-layout diagram.bpmn
+
+# write the result elsewhere
+npx bpmn-auto-layout diagram.bpmn --output diagram.layouted.bpmn
+
+# transform standard input to standard output
+cat diagram.bpmn | npx bpmn-auto-layout - > diagram.layouted.bpmn
+```
+
+`--stdout` writes a file input's layout XML to standard output without changing
+the input. Layout warnings are emitted as JSON lines to standard error. Use
+`bpmn-auto-layout --help` for the full command reference.
+
 ## Limitations
 
 Layout is greenfield: existing DI coordinates, waypoints, dimensions, and labels
