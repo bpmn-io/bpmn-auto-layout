@@ -8,16 +8,16 @@ _**Note:** Yet to be released changes appear here._
 
 ## 2.0.0-alpha.2
 
-* `FEAT`: add a command-line interface for in-place BPMN layout
-* `FIX`: improve artifact placement and route data associations orthogonally
-* `FIX`: improve boundary-event, message-flow, and label layout
+* `FEAT`: add a command-line interface for in-place BPMN layout ([#142](https://github.com/bpmn-io/bpmn-auto-layout/pull/142))
+* `FIX`: improve artifact placement and route data associations orthogonally ([#142](https://github.com/bpmn-io/bpmn-auto-layout/pull/142))
+* `FIX`: improve boundary-event, message-flow, and label layout ([#142](https://github.com/bpmn-io/bpmn-auto-layout/pull/142))
 
 ## 2.0.0-alpha.1
 
-* `FIX`: size empty process participants
-* `CHORE`: improve collaboration routing, label placement, and artifact placement performance
-* `CHORE`: add fixture benchmark and performance trace tools
-* `CHORE`: show sortable average, p50, and p90 layout timings in the inspector
+* `FIX`: size empty process participants ([#141](https://github.com/bpmn-io/bpmn-auto-layout/pull/141))
+* `CHORE`: improve collaboration routing, label placement, and artifact placement performance ([#141](https://github.com/bpmn-io/bpmn-auto-layout/pull/141))
+* `CHORE`: add fixture benchmark and performance trace tools ([#141](https://github.com/bpmn-io/bpmn-auto-layout/pull/141))
+* `CHORE`: show sortable average, p50, and p90 layout timings in the inspector ([#141](https://github.com/bpmn-io/bpmn-auto-layout/pull/141))
 
 ## 2.0.0-alpha.0
 
