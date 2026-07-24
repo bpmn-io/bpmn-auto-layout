@@ -1168,6 +1168,46 @@ describe('Layout', function() {
       assert.strictEqual(centerY(alternatives[1][1]), centerY(alternatives[2][1]));
     });
 
+    it('should place detached boundary handlers before nearby alternatives', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'camunda-consulting.lifesci-pharmacovigilance.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const expedited = shapes.get('Expedited');
+      const retry = shapes.get('Retry_Submit');
+      const manualEnd = shapes.get('End_Manual');
+      const periodic = shapes.get('Periodic');
+      const mainJoin = shapes.get('Gw_End');
+      const centerY = bounds => bounds.y + bounds.height / 2;
+
+      assert.ok(expedited.x + expedited.width < retry.x);
+      assert.ok(retry.x + retry.width < manualEnd.x);
+      assert.ok(manualEnd.x + manualEnd.width < mainJoin.x);
+      assert.ok(centerY(expedited) < centerY(retry));
+      assert.strictEqual(centerY(retry), centerY(manualEnd));
+      assert.ok(centerY(manualEnd) < centerY(periodic));
+    });
+
+    it('should not reserve horizontal bays for boundary handlers across lanes', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'camunda-consulting.finserv-loan-kyc.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+
+      assert.strictEqual(shapes.get('Notify').x, shapes.get('Remediate').x);
+      assert.strictEqual(shapes.get('End_Ok').x, shapes.get('End_Err').x);
+    });
+
     it('should route shape-spanning forward edges like feedback edges', async function() {
       const cases = [
         [ 'scenario.happy-path.bpmn', [ 'Flow_1cp2keh' ] ],

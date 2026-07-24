@@ -164,7 +164,14 @@ precede their hosts.
 When consecutive spine nodes both introduce alternatives, a detached,
 non-cyclic alternative reserves a horizontal bay before the spine continues.
 This lets adjacent terminal and boundary-handler paths reuse a nearby semantic
-band instead of being forced progressively farther from the spine.
+band instead of being forced progressively farther from the spine. A detached,
+single-lane boundary-handler path also reserves its complete rank span before
+an immediate convergence.
+
+Within one side of the spine, a boundary handler that reserves such a horizontal
+bay claims the closest available semantic band before ordinary gateway
+alternatives. This keeps the handler adjacent to its host and moves the less
+constrained alternative outward when their rank spans overlap.
 
 A nested gateway join that feeds an enclosing join of the same gateway type
 from another semantic band has zero rank distance. The two joins therefore
