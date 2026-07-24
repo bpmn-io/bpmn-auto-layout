@@ -2,13 +2,19 @@
 
 [![CI](https://github.com/bpmn-io/bpmn-auto-layout/actions/workflows/CI.yml/badge.svg)](https://github.com/bpmn-io/bpmn-auto-layout/actions/workflows/CI.yml)
 
-Create and layout the graphical representation of a BPMN diagram.
+Generate BPMN Diagram Interchange (DI) for BPMN XML with our without existing DI. Supports processes and collaborations.
 
 Try it out in [the example project](https://bpmn-io.github.io/bpmn-auto-layout/).
 
-## Usage
+## Install
 
-This library works with [Node.js](https://nodejs.org/) and in the browser.
+```sh
+npm install bpmn-auto-layout
+```
+
+The library works with [Node.js](https://nodejs.org/) and in the browser.
+
+## Library usage
 
 ```javascript
 import { layoutProcess } from 'bpmn-auto-layout';
@@ -25,14 +31,12 @@ console.warn(warnings);
 ```
 
 `layoutProcess` resolves with `{ xml, warnings }`. Warnings are exported
-`LayoutWarning` instances with stable `code`, `elementId`, `message`, and
-`relatedElementIds` fields. `DI_NOT_CREATED` reports every supported visual
-semantic element for which the layout did not emit a BPMN shape or edge. Fatal
-structural or geometry failures reject with an exported `LayoutError`.
+`LayoutWarning` instances. Invalid or unsupported input rejects with an exported
+`LayoutError`.
 
-### Command line
+## Command line
 
-The package also exposes a command-line interface:
+The package also provides a command-line interface:
 
 ```sh
 # replace the file in place
@@ -49,74 +53,21 @@ cat diagram.bpmn | npx bpmn-auto-layout - > diagram.layouted.bpmn
 the input. Layout warnings are emitted as JSON lines to standard error. Use
 `bpmn-auto-layout --help` for the full command reference.
 
-## Limitations
-
-Layout is greenfield: existing DI coordinates, waypoints, dimensions, and labels
-are replaced. Existing DI only determines whether an embedded sub-process is
-expanded.
-
-The layouter supports process flow, boundary events, collapsed and expanded
-sub-processes, event sub-processes, horizontal lanes, and collaboration pools.
-It lays out each participant with a process reference; black-box participants
-remain empty pools.
-
-Groups are generated when their members explicitly reference the group's
-category value. Groups without visible explicit members are omitted with a
-warning. Artifacts are placed after process flow and do not affect its ranks or
-bands. Message flows whose endpoints receive geometry are routed through pool
-gutters or outside channels.
-
-Unsupported visual elements fail with an exported `LayoutError` rather than
-receiving invented geometry. See the [layout engine guide](./docs/LAYOUT.md) for
-the algorithm and geometry contract.
-
 ## Resources
 
 * [Layout engine](./docs/LAYOUT.md) — design, algorithm, and geometry rules
 * [Layout walkthrough](./docs/WALKTHROUGH.md) — end-to-end boundary error-event example
 * [Issues](https://github.com/bpmn-io/bpmn-auto-layout/issues)
 
-## Build and Run
+## Development
 
 ```sh
-# install dependencies
 npm install
-
-# build and run tests
 npm run all
-
-# run example
-npm start
 ```
 
-## Test
-
-We use snapshot testing to verify old and new layout attempts. A mismatch is indicated as a test failure.
-
-```sh
-# run tests
-npm test
-
-# inspect the results
-npm run test:inspect
-
-# run update snapshots
-npm run test:update-snapshots
-
-# capture a Chrome performance trace for one fixture
-npm run trace:fixture -- collaboration.message-flows
-
-# benchmark one fixture with 60 measured layouts
-npm run benchmark:fixture -- process.application-processing 60
-
-# a path below test/fixtures is also accepted
-npm run benchmark:fixture -- ./test/fixtures/process.application-processing.bpmn 60
-```
-
-Add new test cases to [`test/fixtures`](./test/fixtures) and they will be picked up automatically.
-
-See [`test/README.md`](./test/README.md) for detailed snapshot and performance
-tracing workflows.
+See [`test/README.md`](./test/README.md) for test, snapshot, inspection, and
+performance workflows.
 
 ## License
 
