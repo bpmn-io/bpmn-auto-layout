@@ -385,8 +385,7 @@
         <di:waypoint x="1904" y="1038" />
         <di:waypoint x="2310" y="1038" />
         <di:waypoint x="2310" y="600" />
-        <di:waypoint x="2034" y="600" />
-        <di:waypoint x="2054" y="600" />
+        <di:waypoint x="2154" y="600" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_m_loop" bpmnElement="m_loop">
         <di:waypoint x="1529" y="465" />

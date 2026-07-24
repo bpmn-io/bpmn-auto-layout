@@ -463,7 +463,9 @@ inside endpoint bounds are removed. If redirecting would collapse the endpoint
 segment, a short outside dogleg preserves an explicit outward approach.
 Boundary handlers always leave from the attached event's top or bottom center
 through a short vertical outward stub. Obstacle avoidance may turn only after
-that stub and approaches the target through its facing side center.
+that stub and approaches the target through its facing side center. If that
+approach would require a 180-degree turn at the target stub, routing switches
+to the opposite target side.
 Clear orthogonal sequence-flow elbows are rebuilt from side centers. If the
 direct centered L-route is obstructed, a short outside channel approaches the
 target through the facing side instead of moving either endpoint to a corner.

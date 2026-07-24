@@ -86,7 +86,8 @@ export async function run() {
         return `${name}: overlaps=${metrics.overlaps}, ` +
           `edgeShapeIntersections=${metrics.edgeShapeIntersections}, ` +
           `wrongWayDockings=${metrics.wrongWayDockings}, ` +
-          `nonOrthogonalConnections=${metrics.nonOrthogonalConnections}`;
+          `nonOrthogonalConnections=${metrics.nonOrthogonalConnections}, ` +
+          `backtrackingConnections=${metrics.backtrackingConnections}`;
       });
 
     if (defects.length) {
