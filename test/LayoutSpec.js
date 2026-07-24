@@ -508,6 +508,36 @@ describe('Layout', function() {
       assert.strictEqual(edge.waypoint.at(-2).y, edge.waypoint.at(-1).y);
     });
 
+    it('should keep adjusted sequence flow dockings orthogonal', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'camunda-consulting.finserv-loan-kyc.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const edge = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === 'dc1';
+      });
+      const source = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNShape') &&
+          element.bpmnElement.id === 'Decline';
+      }).bounds;
+
+      assert.deepStrictEqual(
+        [ edge.waypoint[0].x, edge.waypoint[0].y ],
+        [ source.x + source.width, source.y + source.height / 2 ]
+      );
+
+      for (let index = 1; index < edge.waypoint.length; index++) {
+        const previous = edge.waypoint[index - 1];
+        const current = edge.waypoint[index];
+
+        assert.ok(previous.x === current.x || previous.y === current.y);
+      }
+    });
+
     it('should align link catch continuations until they rejoin', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'camunda-8-tutorials.capital-market-exception-processing.bpmn'),

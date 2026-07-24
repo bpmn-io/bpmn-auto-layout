@@ -365,6 +365,8 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_dc1" bpmnElement="dc1">
         <di:waypoint x="1404" y="1000" />
+        <di:waypoint x="1424" y="1000" />
+        <di:waypoint x="1424" y="962" />
         <di:waypoint x="2104" y="962" />
         <di:waypoint x="2104" y="880" />
       </bpmndi:BPMNEdge>
