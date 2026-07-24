@@ -273,11 +273,15 @@ preferred over a diagonal or bent route. Readable annotation aspect ratio,
 association crossings, diagram expansion, and displacement from the preferred
 side break later ties.
 Boundary events reserve additional space for their outward handler channels.
-Long and multiply-associated artifacts are placed first. A data object
-associated with multiple flow nodes receives candidates around every distinct
-owner and prefers candidates with two routing margins of shape clearance before
-minimizing total association length. Repeated associations between the same
-artifact and owner use distributed docking points instead of overlapping.
+Long and multiply-associated artifacts are placed first. Data object and data
+store references receive candidates around every distinct owner. They first
+minimize association crossings with sequence and message flows, then prefer
+alignment with at least one distinct owner and maximize the number of aligned
+owners. Multiply-associated references next prefer candidates with two routing
+margins of shape clearance before minimizing owner-balanced association length,
+so repeated read/write associations do not pull a reference toward one owner.
+Repeated associations between the same artifact and owner use distributed
+docking points instead of overlapping.
 Text annotations may be placed in the outermost diagram scope regardless of
 their semantic owner.
 They must be wholly inside or wholly outside every subprocess, lane, and

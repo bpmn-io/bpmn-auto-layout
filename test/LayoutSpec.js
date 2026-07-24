@@ -15,6 +15,10 @@ import {
   getExternalLabelText,
   isExternalLabelOwner
 } from '../lib/layout/BpmnUtil.js';
+import {
+  segmentsProperlyCross,
+  toSegments
+} from '../lib/layout/LayoutUtil.js';
 import { segmentIsClear } from '../lib/layout/SequenceFlowRouter.js';
 import { calculateStatistics } from '../tasks/benchmark-util.mjs';
 import {
@@ -2019,8 +2023,95 @@ describe('Layout', function() {
       const input = edges.get('sid-A1B5F8D2-3FF2-4FAE-A885-819174BB01BD');
       const outputAssociation = edges.get('sid-1D74E5C9-7875-42C7-B069-7EF805115BFB');
 
-      assert.notStrictEqual(input[0].y, outputAssociation.at(-1).y);
-      assert.notStrictEqual(input.at(-1).y, outputAssociation[0].y);
+      assert.notDeepStrictEqual(
+        [ input[0].x, input[0].y ],
+        [ outputAssociation.at(-1).x, outputAssociation.at(-1).y ]
+      );
+      assert.notDeepStrictEqual(
+        [ input.at(-1).x, input.at(-1).y ],
+        [ outputAssociation[0].x, outputAssociation[0].y ]
+      );
+    });
+
+    it('should not weight repeated associations as additional owners', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'process.application-processing.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const firstTask = shapes.get('sid-A9859F1C-A85B-4F2F-B2DF-E3F4F7FA67FA');
+      const secondTask = shapes.get('sid-F0DA46E1-7E86-4236-9D49-290DD7B87C61');
+      const dataObject = shapes.get('sid-8D8BD39F-1B08-433F-8F93-A1FF7520BA8B');
+      const ownerMidpoint = (
+        firstTask.x + firstTask.width / 2 +
+        secondTask.x + secondTask.width / 2
+      ) / 2;
+
+      assert.ok(dataObject.y >= firstTask.y + firstTask.height);
+      assert.ok(dataObject.x + dataObject.width <= secondTask.x);
+      assert.ok(dataObject.x + dataObject.width / 2 < ownerMidpoint);
+    });
+
+    it('should align data references with connected owners when possible', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'data-object-and-store.reference.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const firstTask = shapes.get('Activity_0o6pkm5');
+      const secondTask = shapes.get('Activity_1g6x9ev');
+      const dataObject = shapes.get('DataObjectReference_1r641a6');
+      const dataStore = shapes.get('DataStoreReference_1s8fkcv');
+      const aligned = (artifact, owner) => {
+        return artifact.x + artifact.width / 2 === owner.x + owner.width / 2 ||
+          artifact.y + artifact.height / 2 === owner.y + owner.height / 2;
+      };
+
+      assert.ok(aligned(dataObject, firstTask) || aligned(dataObject, secondTask));
+      assert.ok(aligned(dataStore, firstTask));
+    });
+
+    it('should keep data associations clear of unrelated flows when possible', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'process.application-processing.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const associationIds = new Set([
+        'sid-9391DBA5-9C7B-4B14-B502-AB985711AD02',
+        'sid-A1B5F8D2-3FF2-4FAE-A885-819174BB01BD',
+        'sid-1D74E5C9-7875-42C7-B069-7EF805115BFB'
+      ]);
+      const associations = elements.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          associationIds.has(element.bpmnElement.id);
+      });
+      const flows = elements.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') && (
+          element.bpmnElement.$instanceOf('bpmn:SequenceFlow') ||
+          element.bpmnElement.$instanceOf('bpmn:MessageFlow')
+        );
+      });
+
+      for (const association of associations) {
+        for (const [ a, b ] of toSegments(association.waypoint)) {
+          for (const flow of flows) {
+            for (const [ c, d ] of toSegments(flow.waypoint)) {
+              assert.strictEqual(segmentsProperlyCross(a, b, c, d), false);
+            }
+          }
+        }
+      }
     });
 
     it('should keep strongly connected collapsed participants adjacent', async function() {
