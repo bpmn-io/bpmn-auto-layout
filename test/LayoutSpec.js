@@ -21,6 +21,7 @@ import {
   EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE,
   EXPANDED_SUBPROCESS_LABEL_HEIGHT,
   GROUP_PADDING,
+  LOCAL_U_OBSTACLE_CLEARANCE,
   PARTICIPANT_HEADER_WIDTH,
   SUB_PROCESS_PADDING,
   VERTICAL_GAP
@@ -574,6 +575,34 @@ describe('Layout', function() {
 
         assert.ok(dot >= 0);
       }
+    });
+
+    it('should keep local U-channels clear of unrelated events', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'camunda-8-tutorials.ai-agent-chat-with-mcp.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const edge = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === 'Flow_0ixfrp0';
+      });
+      const event = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNShape') &&
+          element.bpmnElement.id === 'Event_1e3tdvb';
+      }).bounds;
+      const channel = edge.waypoint.find((waypoint, index) => {
+        const next = edge.waypoint[index + 1];
+
+        return next &&
+          waypoint.y === next.y &&
+          Math.min(waypoint.x, next.x) <= event.x &&
+          Math.max(waypoint.x, next.x) >= event.x + event.width;
+      });
+
+      assert.ok(channel.y >= event.y + event.height + LOCAL_U_OBSTACLE_CLEARANCE);
     });
 
     it('should align link catch continuations until they rejoin', async function() {
