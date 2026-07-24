@@ -50,7 +50,7 @@
         <dc:Bounds x="616" y="192" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_DataObjectReference_1r641a6" bpmnElement="DataObjectReference_1r641a6">
-        <dc:Bounds x="336" y="85" width="36" height="50" />
+        <dc:Bounds x="248" y="290" width="36" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_DataStoreReference_1s8fkcv" bpmnElement="DataStoreReference_1s8fkcv">
         <dc:Bounds x="241" y="80" width="50" height="50" />
@@ -68,12 +68,12 @@
         <di:waypoint x="616" y="210" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_DataOutputAssociation_1w3k5cq" bpmnElement="DataOutputAssociation_1w3k5cq">
-        <di:waypoint x="266" y="170" />
-        <di:waypoint x="354" y="135" />
+        <di:waypoint x="266" y="250" />
+        <di:waypoint x="266" y="290" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_DataInputAssociation_1jjpwt9" bpmnElement="DataInputAssociation_1jjpwt9">
-        <di:waypoint x="354" y="135" />
-        <di:waypoint x="466" y="170" />
+        <di:waypoint x="266" y="290" />
+        <di:waypoint x="466" y="250" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_DataInputAssociation_0mj2l3x" bpmnElement="DataInputAssociation_0mj2l3x">
         <di:waypoint x="266" y="130" />
