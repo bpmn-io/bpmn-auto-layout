@@ -5,8 +5,6 @@ import { analyzeMetrics, computeMetrics } from './metrics/computeMetrics.js';
 
 describe('Layout metrics', function() {
 
-  this.timeout(10000);
-
   it('should not contain Band-A geometry defects', async function() {
     await run();
   });
