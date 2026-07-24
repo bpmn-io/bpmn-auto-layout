@@ -987,6 +987,32 @@ describe('Layout', function() {
       }
     });
 
+    it('should reserve horizontal bays for detached terminal alternatives', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'blueprint.safeguard-agent.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const alternatives = [
+        [ 'Gateway_05mu4di', 'Event_max-iterations-reached', 'Activity_1t4newl' ],
+        [ 'Activity_1t4newl', 'Event_task-agent-failed', 'Gateway_0clysfw' ],
+        [ 'Gateway_0clysfw', 'Event_bad-agent-output', 'Gateway_0d4d9o9' ]
+      ].map(ids => ids.map(id => shapes.get(id)));
+      const centerY = bounds => bounds.y + bounds.height / 2;
+
+      for (const [ source, alternative, continuation ] of alternatives) {
+        assert.ok(source.x + source.width < alternative.x);
+        assert.ok(alternative.x + alternative.width < continuation.x);
+      }
+
+      assert.strictEqual(centerY(alternatives[0][1]), centerY(alternatives[1][1]));
+      assert.strictEqual(centerY(alternatives[1][1]), centerY(alternatives[2][1]));
+    });
+
     it('should route shape-spanning forward edges like feedback edges', async function() {
       const cases = [
         [ 'scenario.happy-path.bpmn', [ 'Flow_1cp2keh' ] ],

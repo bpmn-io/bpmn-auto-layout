@@ -216,25 +216,25 @@ Optionally, additional variables can be provided to adapt the AI Firewall behavi
   <bpmndi:BPMNDiagram id="BPMNDiagram_safeguard-agent">
     <bpmndi:BPMNPlane id="BPMNPlane_safeguard-agent" bpmnElement="safeguard-agent">
       <bpmndi:BPMNShape id="BPMNShape_Event_task-agent-failed" bpmnElement="Event_task-agent-failed">
-        <dc:Bounds x="1389" y="786" width="36" height="36" />
+        <dc:Bounds x="1518" y="466" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1430" y="790" width="90" height="28" />
+          <dc:Bounds x="1491" y="507" width="90" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_EndEvent_safeGuardResult" bpmnElement="EndEvent_safeGuardResult">
-        <dc:Bounds x="1714" y="306" width="36" height="36" />
+        <dc:Bounds x="2122" y="306" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1687" y="347" width="90" height="42" />
+          <dc:Bounds x="2095" y="347" width="90" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Gateway_0clysfw" bpmnElement="Gateway_0clysfw" isMarkerVisible="true">
-        <dc:Bounds x="1382" y="299" width="50" height="50" />
+        <dc:Bounds x="1654" y="299" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1362" y="238" width="90" height="56" />
+          <dc:Bounds x="1634" y="238" width="90" height="56" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_1t4newl" bpmnElement="Activity_1t4newl">
-        <dc:Bounds x="1182" y="284" width="100" height="80" />
+        <dc:Bounds x="1318" y="284" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_StartEvent" bpmnElement="StartEvent">
         <dc:Bounds x="460" y="306" width="36" height="36" />
@@ -249,21 +249,21 @@ Optionally, additional variables can be provided to adapt the AI Firewall behavi
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_max-iterations-reached" bpmnElement="Event_max-iterations-reached">
-        <dc:Bounds x="1214" y="466" width="36" height="36" />
+        <dc:Bounds x="1182" y="466" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1187" y="507" width="90" height="42" />
+          <dc:Bounds x="1155" y="419" width="90" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Gateway_0d4d9o9" bpmnElement="Gateway_0d4d9o9" isMarkerVisible="true">
-        <dc:Bounds x="1532" y="299" width="50" height="50" />
+        <dc:Bounds x="1940" y="299" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1512" y="252" width="90" height="42" />
+          <dc:Bounds x="1920" y="252" width="90" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_bad-agent-output" bpmnElement="Event_bad-agent-output">
-        <dc:Bounds x="1539" y="626" width="36" height="36" />
+        <dc:Bounds x="1804" y="466" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1512" y="667" width="90" height="28" />
+          <dc:Bounds x="1777" y="507" width="90" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Gateway_1p1pn0e" bpmnElement="Gateway_1p1pn0e" isMarkerVisible="true">
@@ -279,53 +279,53 @@ Optionally, additional variables can be provided to adapt the AI Firewall behavi
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_refine_system_prompt" bpmnElement="Activity_refine_system_prompt">
-        <dc:Bounds x="1882" y="444" width="100" height="80" />
+        <dc:Bounds x="2290" y="444" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_retain_history" bpmnElement="Activity_retain_history">
-        <dc:Bounds x="1682" y="444" width="100" height="80" />
+        <dc:Bounds x="2090" y="444" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Gateway_0w64q2a" bpmnElement="Gateway_0w64q2a" isMarkerVisible="true">
         <dc:Bounds x="882" y="299" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_00rqlj4" bpmnElement="Event_00rqlj4">
-        <dc:Bounds x="1214" y="346" width="36" height="36" />
+        <dc:Bounds x="1350" y="346" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1187" y="407" width="90" height="42" />
+          <dc:Bounds x="1263" y="387" width="90" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_StartElement_TextAnnotation" bpmnElement="StartElement_TextAnnotation">
         <dc:Bounds x="80" y="181" width="340" height="286" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_EndElement_TextAnnotation" bpmnElement="EndElement_TextAnnotation">
-        <dc:Bounds x="1562" y="80" width="340" height="146" />
+        <dc:Bounds x="1970" y="80" width="340" height="146" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0lt0315" bpmnElement="Flow_0lt0315">
         <di:waypoint x="496" y="324" />
         <di:waypoint x="596" y="324" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_14bythg" bpmnElement="Flow_14bythg">
-        <di:waypoint x="1282" y="324" />
-        <di:waypoint x="1382" y="324" />
+        <di:waypoint x="1418" y="324" />
+        <di:waypoint x="1654" y="324" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0x8hjc4" bpmnElement="Flow_0x8hjc4">
-        <di:waypoint x="1432" y="324" />
-        <di:waypoint x="1532" y="324" />
+        <di:waypoint x="1704" y="324" />
+        <di:waypoint x="1940" y="324" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1437" y="332" width="90" height="14" />
+          <dc:Bounds x="1777" y="302" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1p2523e" bpmnElement="Flow_1p2523e">
         <di:waypoint x="1082" y="324" />
-        <di:waypoint x="1182" y="324" />
+        <di:waypoint x="1318" y="324" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1087" y="332" width="90" height="14" />
+          <dc:Bounds x="1155" y="302" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0yl024c" bpmnElement="Flow_0yl024c">
-        <di:waypoint x="1582" y="324" />
-        <di:waypoint x="1714" y="324" />
+        <di:waypoint x="1990" y="324" />
+        <di:waypoint x="2122" y="324" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1623" y="282" width="90" height="14" />
+          <dc:Bounds x="2031" y="282" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_036jkrd" bpmnElement="Flow_036jkrd">
@@ -340,27 +340,27 @@ Optionally, additional variables can be provided to adapt the AI Firewall behavi
         <di:waypoint x="1032" y="324" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_025qfym" bpmnElement="Flow_025qfym">
-        <di:waypoint x="1407" y="349" />
-        <di:waypoint x="1407" y="644" />
-        <di:waypoint x="1539" y="644" />
+        <di:waypoint x="1679" y="349" />
+        <di:waypoint x="1679" y="484" />
+        <di:waypoint x="1804" y="484" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1412" y="490" width="90" height="14" />
+          <dc:Bounds x="1684" y="410" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0941g3f" bpmnElement="Flow_0941g3f">
         <di:waypoint x="1057" y="349" />
         <di:waypoint x="1057" y="484" />
-        <di:waypoint x="1214" y="484" />
+        <di:waypoint x="1182" y="484" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1062" y="410" width="90" height="14" />
+          <dc:Bounds x="962" y="410" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0kpnkft" bpmnElement="Flow_0kpnkft">
-        <di:waypoint x="1557" y="349" />
-        <di:waypoint x="1557" y="484" />
-        <di:waypoint x="1682" y="484" />
+        <di:waypoint x="1965" y="349" />
+        <di:waypoint x="1965" y="484" />
+        <di:waypoint x="2090" y="484" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1562" y="410" width="90" height="14" />
+          <dc:Bounds x="1970" y="410" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0sk4sju" bpmnElement="Flow_0sk4sju">
@@ -372,20 +372,18 @@ Optionally, additional variables can be provided to adapt the AI Firewall behavi
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_02um237" bpmnElement="Flow_02um237">
-        <di:waypoint x="1782" y="484" />
-        <di:waypoint x="1882" y="484" />
+        <di:waypoint x="2190" y="484" />
+        <di:waypoint x="2290" y="484" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0rs9uw9" bpmnElement="Flow_0rs9uw9">
-        <di:waypoint x="1232" y="382" />
-        <di:waypoint x="1232" y="402" />
-        <di:waypoint x="1369" y="402" />
-        <di:waypoint x="1369" y="804" />
-        <di:waypoint x="1389" y="804" />
+        <di:waypoint x="1368" y="382" />
+        <di:waypoint x="1368" y="484" />
+        <di:waypoint x="1518" y="484" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0jfblxe" bpmnElement="Flow_0jfblxe">
-        <di:waypoint x="1932" y="524" />
-        <di:waypoint x="1932" y="824" />
-        <di:waypoint x="907" y="824" />
+        <di:waypoint x="2340" y="524" />
+        <di:waypoint x="2340" y="544" />
+        <di:waypoint x="907" y="544" />
         <di:waypoint x="907" y="349" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Association_030ox7l" bpmnElement="Association_030ox7l">
@@ -393,8 +391,8 @@ Optionally, additional variables can be provided to adapt the AI Firewall behavi
         <di:waypoint x="420" y="324" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Association_0g2yaw3" bpmnElement="Association_0g2yaw3">
-        <di:waypoint x="1732" y="306" />
-        <di:waypoint x="1732" y="226" />
+        <di:waypoint x="2140" y="306" />
+        <di:waypoint x="2140" y="226" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
