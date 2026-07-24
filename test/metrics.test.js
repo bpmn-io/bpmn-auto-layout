@@ -33,11 +33,18 @@ describe('Layout metrics', function() {
       [ 250, 50 ],
       [ 350, 100 ]
     ]));
+    const corner = await computeMetrics(metricFixture([
+      [ 100, 180 ],
+      [ 50, 180 ],
+      [ 50, 140 ],
+      [ 300, 140 ]
+    ]));
 
     assert.strictEqual(correct.wrongWayDockings, 0);
     assert.strictEqual(wrong.wrongWayDockings, 2);
     assert.strictEqual(tangent.wrongWayDockings, 1);
     assert.strictEqual(diagonal.wrongWayDockings, 0);
+    assert.strictEqual(corner.wrongWayDockings, 1);
   });
 
   it('should require side-center dockings for events and gateways', async function() {

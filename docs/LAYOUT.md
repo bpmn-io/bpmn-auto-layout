@@ -474,6 +474,9 @@ plane. A docked segment must have an outward component normal to its shape side;
 tangent segments are redirected to the matching side, and redundant waypoints
 inside endpoint bounds are removed. If redirecting would collapse the endpoint
 segment, a short outside dogleg preserves an explicit outward approach.
+An orthogonal segment touching a rectangular corner is ambiguous; its endpoint
+moves one routing margin inward along the intended side before the outside
+dogleg is added.
 Boundary handlers always leave from the attached event's top or bottom center
 through a short vertical outward stub. Obstacle avoidance may turn only after
 that stub and approaches the target through its facing side center. If that
@@ -543,5 +546,6 @@ overlaps, edge/shape intersections, label/shape overlaps, wrong-way endpoint
 dockings, non-orthogonal sequence and message flows, label/edge overlaps,
 average edge length and segment-length variation, compactness, grid alignment,
 and non-default gateway-fan symmetry. Wrong-way docking and non-orthogonal
-connection counts must remain zero across the fixture corpus. Neither snapshots
-nor metrics replace visual review.
+connection counts must remain zero across the fixture corpus. Rectangular
+corner dockings count as wrong-way because they do not identify one unambiguous
+shape side. Neither snapshots nor metrics replace visual review.

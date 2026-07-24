@@ -590,7 +590,8 @@ function findWrongWayDockings(edges, shapes) {
 function dockingIsWrong(endpoint, adjacent, shape) {
   const sides = dockingSides(endpoint, shape);
 
-  return sides.length > 0 && !sides.some(side => {
+  return sides.length > 1 || (
+    sides.length > 0 && !sides.some(side => {
     if (side === 'top') {
       return adjacent.y < endpoint.y;
     }
@@ -602,7 +603,8 @@ function dockingIsWrong(endpoint, adjacent, shape) {
     }
 
     return adjacent.x > endpoint.x;
-  });
+    })
+  );
 }
 
 function dockingSides(point, shape) {
