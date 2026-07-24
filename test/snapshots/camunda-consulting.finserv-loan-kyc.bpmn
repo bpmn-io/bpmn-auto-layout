@@ -213,7 +213,7 @@
       <bpmndi:BPMNShape id="BPMNShape_Start_B" bpmnElement="Start_B">
         <dc:Bounds x="318" y="422" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="291" y="389" width="90" height="28" />
+          <dc:Bounds x="295" y="389" width="83" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Validate" bpmnElement="Validate">
@@ -228,7 +228,7 @@
       <bpmndi:BPMNShape id="BPMNShape_Gw_Manual" bpmnElement="Gw_Manual" isMarkerVisible="true">
         <dc:Bounds x="1504" y="415" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1409" y="433" width="90" height="14" />
+          <dc:Bounds x="1422" y="433" width="77" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Credit_Report" bpmnElement="Credit_Report">
@@ -237,7 +237,7 @@
       <bpmndi:BPMNShape id="BPMNShape_Gw_Risk" bpmnElement="Gw_Risk" isMarkerVisible="true">
         <dc:Bounds x="1154" y="175" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1134" y="156" width="90" height="14" />
+          <dc:Bounds x="1143" y="156" width="73" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Approve" bpmnElement="Approve">
@@ -255,13 +255,13 @@
       <bpmndi:BPMNShape id="BPMNShape_End_No" bpmnElement="End_No">
         <dc:Bounds x="1511" y="982" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1484" y="1023" width="90" height="14" />
+          <dc:Bounds x="1498" y="1023" width="62" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_End_Ok" bpmnElement="End_Ok">
         <dc:Bounds x="2254" y="822" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2347" y="863" width="90" height="14" />
+          <dc:Bounds x="2248" y="863" width="48" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Remediate" bpmnElement="Remediate">
@@ -270,7 +270,7 @@
       <bpmndi:BPMNShape id="BPMNShape_End_Err" bpmnElement="End_Err">
         <dc:Bounds x="2254" y="982" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2227" y="1043" width="90" height="14" />
+          <dc:Bounds x="2232" y="1043" width="80" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Manual_UW" bpmnElement="Manual_UW">
@@ -282,7 +282,7 @@
       <bpmndi:BPMNShape id="BPMNShape_B_Err" bpmnElement="B_Err">
         <dc:Bounds x="1886" y="862" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1799" y="903" width="90" height="28" />
+          <dc:Bounds x="1833" y="903" width="62" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_b1" bpmnElement="b1">
@@ -318,14 +318,14 @@
         <di:waypoint x="1704" y="440" />
         <di:waypoint x="1704" y="800" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1584" y="418" width="90" height="14" />
+          <dc:Bounds x="1613" y="418" width="32" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_r_low" bpmnElement="r_low">
         <di:waypoint x="1204" y="200" />
         <di:waypoint x="1304" y="200" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1209" y="208" width="90" height="14" />
+          <dc:Bounds x="1240" y="178" width="28" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_ap1" bpmnElement="ap1">
@@ -350,7 +350,7 @@
         <di:waypoint x="1179" y="1000" />
         <di:waypoint x="1304" y="1000" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1184" y="736" width="90" height="14" />
+          <dc:Bounds x="1184" y="736" width="32" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_g_credit" bpmnElement="g_credit">
@@ -393,7 +393,7 @@
         <di:waypoint x="1179" y="485" />
         <di:waypoint x="1179" y="225" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1309" y="463" width="90" height="14" />
+          <dc:Bounds x="1321" y="463" width="67" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>

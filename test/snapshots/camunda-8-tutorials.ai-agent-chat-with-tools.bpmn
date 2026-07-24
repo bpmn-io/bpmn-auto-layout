@@ -181,7 +181,7 @@
       <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
         <dc:Bounds x="420" y="304" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="393" y="345" width="90" height="42" />
+          <dc:Bounds x="408" y="345" width="60" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Gateway_0z6ctwk" bpmnElement="Gateway_0z6ctwk" isMarkerVisible="true">
@@ -193,13 +193,13 @@
       <bpmndi:BPMNShape id="BPMNShape_Gateway_1dcg4ha" bpmnElement="Gateway_1dcg4ha" isMarkerVisible="true">
         <dc:Bounds x="1386" y="297" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1366" y="264" width="90" height="28" />
+          <dc:Bounds x="1374" y="264" width="74" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Event_0i39jej" bpmnElement="Event_0i39jej">
         <dc:Bounds x="1536" y="304" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1509" y="271" width="90" height="28" />
+          <dc:Bounds x="1521" y="345" width="67" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_AI_Agent" bpmnElement="AI_Agent" isExpanded="true">
@@ -226,7 +226,7 @@
         <di:waypoint x="1436" y="322" />
         <di:waypoint x="1536" y="322" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1441" y="330" width="90" height="14" />
+          <dc:Bounds x="1473" y="300" width="27" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_16otfp1" bpmnElement="Flow_16otfp1">
@@ -243,7 +243,7 @@
         <di:waypoint x="581" y="502" />
         <di:waypoint x="581" y="347" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="951" y="510" width="90" height="14" />
+          <dc:Bounds x="986" y="510" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Association_tools_intro" bpmnElement="Association_tools_intro">

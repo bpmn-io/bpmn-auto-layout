@@ -500,8 +500,10 @@ remains a hard constraint.
 
 Named events, gateways, data references, sequence flows, and message flows
 receive explicit external label DI after final connection docking on each
-diagram plane. Element labels try below, above, left, then right. Labels on
-horizontal connection segments try above then below; labels on vertical
+diagram plane. External label bounds use the estimated width of the widest
+wrapped line plus horizontal padding, capped at 90 px; their height follows the
+wrapped line count. Element labels try below, above, left, then right. Labels
+on horizontal connection segments try above then below; labels on vertical
 segments try right then left. Connection candidates begin at the central
 segment and move toward neighboring segments and segment ends. Collinearly
 shared portions are deferred until every unique portion of the owning

@@ -192,7 +192,7 @@
       <bpmndi:BPMNShape id="BPMNShape_Start_C" bpmnElement="Start_C">
         <dc:Bounds x="1386" y="1422" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1359" y="1463" width="90" height="14" />
+          <dc:Bounds x="1364" y="1463" width="80" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Submit_Claim" bpmnElement="Submit_Claim">
@@ -231,7 +231,7 @@
       <bpmndi:BPMNShape id="BPMNShape_Start_K" bpmnElement="Start_K">
         <dc:Bounds x="150" y="1142" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="123" y="1109" width="90" height="28" />
+          <dc:Bounds x="138" y="1109" width="60" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Extract" bpmnElement="Extract">
@@ -264,13 +264,13 @@
       <bpmndi:BPMNShape id="BPMNShape_End_Deny" bpmnElement="End_Deny">
         <dc:Bounds x="1404" y="902" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1377" y="943" width="90" height="14" />
+          <dc:Bounds x="1398" y="943" width="48" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Gw_Join" bpmnElement="Gw_Join" isMarkerVisible="true">
         <dc:Bounds x="1572" y="575" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1552" y="556" width="90" height="14" />
+          <dc:Bounds x="1566" y="556" width="62" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Issue_Payment" bpmnElement="Issue_Payment">
@@ -279,7 +279,7 @@
       <bpmndi:BPMNShape id="BPMNShape_End_Paid" bpmnElement="End_Paid">
         <dc:Bounds x="1922" y="182" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1895" y="223" width="90" height="14" />
+          <dc:Bounds x="1923" y="223" width="34" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Escalate" bpmnElement="Escalate">
@@ -288,13 +288,13 @@
       <bpmndi:BPMNShape id="BPMNShape_End_Esc" bpmnElement="End_Esc">
         <dc:Bounds x="886" y="742" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="859" y="783" width="90" height="14" />
+          <dc:Bounds x="870" y="783" width="69" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_B_SLA" bpmnElement="B_SLA">
         <dc:Bounds x="518" y="622" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="431" y="663" width="90" height="14" />
+          <dc:Bounds x="438" y="663" width="77" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_k1" bpmnElement="k1">
@@ -314,7 +314,7 @@
         <di:waypoint x="1072" y="600" />
         <di:waypoint x="1172" y="600" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1077" y="578" width="90" height="14" />
+          <dc:Bounds x="1085" y="578" width="74" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_a1" bpmnElement="a1">
@@ -335,7 +335,7 @@
         <di:waypoint x="1047" y="760" />
         <di:waypoint x="1172" y="760" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1065" y="738" width="90" height="14" />
+          <dc:Bounds x="1069" y="738" width="81" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_d_info" bpmnElement="d_info">
@@ -343,7 +343,7 @@
         <di:waypoint x="1047" y="440" />
         <di:waypoint x="1172" y="440" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1052" y="501" width="90" height="14" />
+          <dc:Bounds x="1052" y="501" width="64" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_d_deny" bpmnElement="d_deny">
@@ -351,7 +351,7 @@
         <di:waypoint x="1047" y="920" />
         <di:waypoint x="1172" y="920" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1052" y="833" width="90" height="14" />
+          <dc:Bounds x="1052" y="833" width="32" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_a2" bpmnElement="a2">

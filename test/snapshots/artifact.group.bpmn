@@ -88,7 +88,7 @@
       <bpmndi:BPMNShape id="BPMNShape_Group_0z7n6ui" bpmnElement="Group_0z7n6ui">
         <dc:Bounds x="576" y="80" width="480" height="320" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="771" y="61" width="90" height="14" />
+          <dc:Bounds x="803" y="61" width="27" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0blauil" bpmnElement="Flow_0blauil">

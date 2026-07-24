@@ -29,13 +29,13 @@
       <bpmndi:BPMNShape id="BPMNShape_EndEvent_1" bpmnElement="EndEvent_1">
         <dc:Bounds x="632" y="142" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="605" y="183" width="90" height="14" />
+          <dc:Bounds x="616" y="183" width="68" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_StartEvent_2" bpmnElement="StartEvent_2">
         <dc:Bounds x="80" y="142" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="53" y="183" width="90" height="14" />
+          <dc:Bounds x="78" y="183" width="41" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2">
@@ -46,13 +46,13 @@
         <di:waypoint x="116" y="160" />
         <di:waypoint x="216" y="160" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="121" y="138" width="90" height="14" />
+          <dc:Bounds x="148" y="138" width="37" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
         <dc:Bounds x="256" y="142" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="229" y="183" width="90" height="14" />
+          <dc:Bounds x="233" y="183" width="82" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Task_1" bpmnElement="Task_1">

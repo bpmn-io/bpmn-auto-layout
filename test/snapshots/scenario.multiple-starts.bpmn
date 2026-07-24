@@ -80,7 +80,7 @@
       <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
         <dc:Bounds x="80" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="53" y="143" width="90" height="14" />
+          <dc:Bounds x="78" y="143" width="41" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_1tqsya5" bpmnElement="Activity_1tqsya5">
@@ -104,7 +104,7 @@
       <bpmndi:BPMNShape id="BPMNShape_Event_0ua9wsa" bpmnElement="Event_0ua9wsa">
         <dc:Bounds x="80" y="342" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="53" y="383" width="90" height="14" />
+          <dc:Bounds x="74" y="383" width="48" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Activity_1fzuidu" bpmnElement="Activity_1fzuidu">

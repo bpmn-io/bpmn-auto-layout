@@ -80,7 +80,7 @@
         <di:waypoint x="566" y="280" />
         <di:waypoint x="616" y="280" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="571" y="193" width="90" height="14" />
+          <dc:Bounds x="572" y="193" width="18" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0xzgrfa" bpmnElement="Flow_0xzgrfa">

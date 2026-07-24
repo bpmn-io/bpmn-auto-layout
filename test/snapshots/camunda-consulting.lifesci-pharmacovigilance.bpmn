@@ -143,7 +143,7 @@
       <bpmndi:BPMNShape id="BPMNShape_Start" bpmnElement="Start">
         <dc:Bounds x="80" y="262" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="53" y="303" width="90" height="28" />
+          <dc:Bounds x="68" y="303" width="60" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Intake" bpmnElement="Intake">
@@ -167,7 +167,7 @@
       <bpmndi:BPMNShape id="BPMNShape_Gw_Report" bpmnElement="Gw_Report" isMarkerVisible="true">
         <dc:Bounds x="1452" y="255" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1372" y="310" width="90" height="14" />
+          <dc:Bounds x="1376" y="310" width="83" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Expedited" bpmnElement="Expedited">
@@ -185,7 +185,7 @@
       <bpmndi:BPMNShape id="BPMNShape_End" bpmnElement="End">
         <dc:Bounds x="2288" y="262" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2261" y="303" width="90" height="14" />
+          <dc:Bounds x="2266" y="303" width="80" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Expedite_Flag" bpmnElement="Expedite_Flag">
@@ -194,7 +194,7 @@
       <bpmndi:BPMNShape id="BPMNShape_End_Urgent" bpmnElement="End_Urgent">
         <dc:Bounds x="816" y="422" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="789" y="463" width="90" height="14" />
+          <dc:Bounds x="794" y="463" width="80" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Retry_Submit" bpmnElement="Retry_Submit">
@@ -203,19 +203,19 @@
       <bpmndi:BPMNShape id="BPMNShape_End_Manual" bpmnElement="End_Manual">
         <dc:Bounds x="2002" y="422" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1975" y="463" width="90" height="28" />
+          <dc:Bounds x="1984" y="463" width="72" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_B_Timer" bpmnElement="B_Timer">
         <dc:Bounds x="448" y="302" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="361" y="343" width="90" height="14" />
+          <dc:Bounds x="364" y="343" width="85" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_B_Err" bpmnElement="B_Err">
         <dc:Bounds x="1634" y="302" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1547" y="343" width="90" height="28" />
+          <dc:Bounds x="1587" y="343" width="51" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_s1" bpmnElement="s1">
@@ -246,7 +246,7 @@
         <di:waypoint x="1502" y="280" />
         <di:waypoint x="1602" y="280" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1507" y="258" width="90" height="14" />
+          <dc:Bounds x="1519" y="258" width="67" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_e1" bpmnElement="e1">
@@ -267,7 +267,7 @@
         <di:waypoint x="1477" y="600" />
         <di:waypoint x="1602" y="600" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1482" y="446" width="90" height="14" />
+          <dc:Bounds x="1482" y="446" width="60" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_rp_no" bpmnElement="rp_no">
@@ -275,7 +275,7 @@
         <di:waypoint x="1477" y="120" />
         <di:waypoint x="1602" y="120" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1482" y="174" width="90" height="28" />
+          <dc:Bounds x="1482" y="174" width="74" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sev_out" bpmnElement="sev_out">

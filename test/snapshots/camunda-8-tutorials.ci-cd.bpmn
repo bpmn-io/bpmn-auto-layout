@@ -770,7 +770,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_startCicd" bpmnElement="startCicd">
         <dc:Bounds x="420" y="250" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="393" y="291" width="90" height="42" />
+          <dc:Bounds x="408" y="291" width="60" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_openMergeRequestSubprocess" bpmnElement="openMergeRequestSubprocess">
@@ -782,19 +782,19 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_endCicd" bpmnElement="endCicd">
         <dc:Bounds x="1592" y="250" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1565" y="291" width="90" height="14" />
+          <dc:Bounds x="1574" y="291" width="72" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_joinCheckMergeRequestStatus" bpmnElement="joinCheckMergeRequestStatus" isMarkerVisible="true">
         <dc:Bounds x="1242" y="243" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1222" y="196" width="90" height="42" />
+          <dc:Bounds x="1241" y="196" width="53" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_mergeRequestClosedError" bpmnElement="mergeRequestClosedError">
         <dc:Bounds x="1424" y="410" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1397" y="451" width="90" height="42" />
+          <dc:Bounds x="1416" y="451" width="53" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_deployFile" bpmnElement="deployFile">
@@ -806,7 +806,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_checkMergeRequestStatus" bpmnElement="checkMergeRequestStatus">
         <dc:Bounds x="1106" y="250" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1079" y="203" width="90" height="42" />
+          <dc:Bounds x="1083" y="203" width="83" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_TextAnnotation_0eg8swt" bpmnElement="TextAnnotation_0eg8swt">
@@ -831,7 +831,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="1292" y="268" />
         <di:waypoint x="1392" y="268" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1297" y="276" width="90" height="14" />
+          <dc:Bounds x="1318" y="246" width="49" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_01e3v4d" bpmnElement="Flow_01e3v4d">
@@ -851,7 +851,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="1267" y="428" />
         <di:waypoint x="1424" y="428" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1272" y="364" width="90" height="14" />
+          <dc:Bounds x="1272" y="364" width="46" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_14hk1y4" bpmnElement="Flow_14hk1y4">
@@ -860,7 +860,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="981" y="313" />
         <di:waypoint x="981" y="293" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1079" y="291" width="90" height="14" />
+          <dc:Bounds x="1108" y="291" width="32" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Association_01nnwlp" bpmnElement="Association_01nnwlp">
@@ -878,13 +878,13 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_startOpenMergeRequest" bpmnElement="startOpenMergeRequest">
         <dc:Bounds x="380" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="353" y="143" width="90" height="56" />
+          <dc:Bounds x="361" y="143" width="74" height="56" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_endOpenMergeRequest" bpmnElement="endOpenMergeRequest">
         <dc:Bounds x="1116" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1089" y="143" width="90" height="42" />
+          <dc:Bounds x="1091" y="143" width="87" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_checkFileStatus" bpmnElement="checkFileStatus">
@@ -926,7 +926,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_startRepositoryFileModification" bpmnElement="startRepositoryFileModification">
         <dc:Bounds x="80" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="53" y="143" width="90" height="56" />
+          <dc:Bounds x="56" y="143" width="84" height="70" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_checkFileExists" bpmnElement="checkFileExists">
@@ -941,7 +941,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_endRepositoryFileModification" bpmnElement="endRepositoryFileModification">
         <dc:Bounds x="766" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="739" y="143" width="90" height="56" />
+          <dc:Bounds x="742" y="143" width="84" height="70" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_createRepositoryFile" bpmnElement="createRepositoryFile">
@@ -950,7 +950,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_fileNotFoundBoundaryEvent" bpmnElement="fileNotFoundBoundaryEvent">
         <dc:Bounds x="248" y="142" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="161" y="183" width="90" height="28" />
+          <dc:Bounds x="197" y="183" width="59" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_14c5u53" bpmnElement="Flow_14c5u53">
@@ -989,7 +989,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_startFileMetadata" bpmnElement="startFileMetadata">
         <dc:Bounds x="80" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="53" y="143" width="90" height="42" />
+          <dc:Bounds x="67" y="143" width="63" height="56" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_getFolderDetails" bpmnElement="getFolderDetails">
@@ -1001,7 +1001,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_endFileMetadata" bpmnElement="endFileMetadata">
         <dc:Bounds x="816" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="789" y="143" width="90" height="42" />
+          <dc:Bounds x="795" y="143" width="78" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_07vb2t3" bpmnElement="Flow_07vb2t3">
@@ -1027,7 +1027,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_startFileMetadataSubprocess" bpmnElement="startFileMetadataSubprocess">
         <dc:Bounds x="80" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="53" y="143" width="90" height="42" />
+          <dc:Bounds x="62" y="143" width="73" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_splitCallWebModeler" bpmnElement="splitCallWebModeler" isMarkerVisible="true">
@@ -1042,7 +1042,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_splitHasMilestone" bpmnElement="splitHasMilestone" isMarkerVisible="true">
         <dc:Bounds x="916" y="95" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="896" y="34" width="90" height="56" />
+          <dc:Bounds x="897" y="34" width="88" height="56" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_getMilestoneComparisonLink" bpmnElement="getMilestoneComparisonLink">
@@ -1051,31 +1051,31 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_splitIsDmn" bpmnElement="splitIsDmn" isMarkerVisible="true">
         <dc:Bounds x="566" y="95" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="546" y="76" width="90" height="14" />
+          <dc:Bounds x="562" y="76" width="58" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_endRetrieveFileContent" bpmnElement="endRetrieveFileContent">
         <dc:Bounds x="573" y="422" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="546" y="463" width="90" height="28" />
+          <dc:Bounds x="549" y="463" width="85" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_endMilestoneComparison" bpmnElement="endMilestoneComparison">
         <dc:Bounds x="1098" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1071" y="55" width="90" height="42" />
+          <dc:Bounds x="1078" y="143" width="77" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_endNoMilestoneC" bpmnElement="endNoMilestoneC">
         <dc:Bounds x="1266" y="262" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1239" y="303" width="90" height="42" />
+          <dc:Bounds x="1240" y="303" width="88" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_endNoDmnMilestoneComparison" bpmnElement="endNoDmnMilestoneComparison">
         <dc:Bounds x="748" y="262" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="721" y="303" width="90" height="42" />
+          <dc:Bounds x="722" y="303" width="88" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_createMilestone" bpmnElement="createMilestone">
@@ -1093,14 +1093,14 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="966" y="120" />
         <di:waypoint x="1098" y="120" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="987" y="128" width="90" height="14" />
+          <dc:Bounds x="1023" y="98" width="18" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0y214bj" bpmnElement="Flow_0y214bj">
         <di:waypoint x="616" y="120" />
         <di:waypoint x="716" y="120" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="621" y="128" width="90" height="14" />
+          <dc:Bounds x="657" y="98" width="18" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0mnyxys" bpmnElement="Flow_0mnyxys">
@@ -1121,7 +1121,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="941" y="280" />
         <di:waypoint x="1066" y="280" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="946" y="206" width="90" height="14" />
+          <dc:Bounds x="946" y="206" width="25" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1hf73xs" bpmnElement="Flow_1hf73xs">
@@ -1129,7 +1129,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="591" y="280" />
         <di:waypoint x="748" y="280" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="596" y="206" width="90" height="14" />
+          <dc:Bounds x="596" y="206" width="25" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1jonoiv" bpmnElement="Flow_1jonoiv">
@@ -1156,19 +1156,19 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_deployStart" bpmnElement="deployStart">
         <dc:Bounds x="80" y="87" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="53" y="128" width="90" height="42" />
+          <dc:Bounds x="60" y="128" width="77" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_deployEnd" bpmnElement="deployEnd">
         <dc:Bounds x="2824" y="247" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2797" y="288" width="90" height="42" />
+          <dc:Bounds x="2804" y="288" width="77" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_splitAdditionalTasks" bpmnElement="splitAdditionalTasks" isMarkerVisible="true">
         <dc:Bounds x="1688" y="240" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1668" y="193" width="90" height="42" />
+          <dc:Bounds x="1675" y="193" width="76" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_joinadditionalTasks" bpmnElement="joinadditionalTasks" isMarkerVisible="true">
@@ -1177,55 +1177,55 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
       <bpmndi:BPMNShape id="BPMNShape_devDeployment" bpmnElement="devDeployment">
         <dc:Bounds x="366" y="87" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="319" y="128" width="90" height="42" />
+          <dc:Bounds x="322" y="128" width="84" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_stageDeployment" bpmnElement="stageDeployment">
         <dc:Bounds x="1202" y="247" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1155" y="288" width="90" height="42" />
+          <dc:Bounds x="1158" y="288" width="84" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_prodDeployment" bpmnElement="prodDeployment">
         <dc:Bounds x="2338" y="247" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2291" y="288" width="90" height="42" />
+          <dc:Bounds x="2294" y="288" width="84" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_splitCheckDevDeployment" bpmnElement="splitCheckDevDeployment" isMarkerVisible="true">
         <dc:Bounds x="502" y="80" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="422" y="135" width="90" height="42" />
+          <dc:Bounds x="430" y="135" width="74" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_splitCheckStageDeployment" bpmnElement="splitCheckStageDeployment" isMarkerVisible="true">
         <dc:Bounds x="1338" y="240" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1258" y="295" width="90" height="42" />
+          <dc:Bounds x="1266" y="295" width="74" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_splitCheckProdDeployment" bpmnElement="splitCheckProdDeployment" isMarkerVisible="true">
         <dc:Bounds x="2474" y="240" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2394" y="295" width="90" height="42" />
+          <dc:Bounds x="2402" y="295" width="74" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_devDeploymentError" bpmnElement="devDeploymentError">
         <dc:Bounds x="684" y="87" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="657" y="128" width="90" height="42" />
+          <dc:Bounds x="659" y="128" width="87" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_stageDeploymentError" bpmnElement="stageDeploymentError">
         <dc:Bounds x="1520" y="407" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1493" y="448" width="90" height="42" />
+          <dc:Bounds x="1495" y="448" width="87" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_prodDeploymentError" bpmnElement="prodDeploymentError">
         <dc:Bounds x="2656" y="407" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2629" y="448" width="90" height="42" />
+          <dc:Bounds x="2631" y="448" width="87" height="42" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_joinCheckDevDeployment" bpmnElement="joinCheckDevDeployment" isMarkerVisible="true">
@@ -1258,7 +1258,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="552" y="105" />
         <di:waypoint x="684" y="105" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="573" y="83" width="90" height="14" />
+          <dc:Bounds x="599" y="83" width="39" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_18ymcs4" bpmnElement="Flow_18ymcs4">
@@ -1285,14 +1285,14 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="1388" y="265" />
         <di:waypoint x="1488" y="265" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1393" y="243" width="90" height="14" />
+          <dc:Bounds x="1426" y="243" width="25" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_16kotpf" bpmnElement="Flow_16kotpf">
         <di:waypoint x="2524" y="265" />
         <di:waypoint x="2624" y="265" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2529" y="243" width="90" height="14" />
+          <dc:Bounds x="2562" y="243" width="25" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1nkwpv4" bpmnElement="Flow_1nkwpv4">
@@ -1317,7 +1317,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="1363" y="425" />
         <di:waypoint x="1520" y="425" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1368" y="351" width="90" height="14" />
+          <dc:Bounds x="1368" y="351" width="39" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0jdb4pa" bpmnElement="Flow_0jdb4pa">
@@ -1325,7 +1325,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="2499" y="425" />
         <di:waypoint x="2656" y="425" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2504" y="351" width="90" height="14" />
+          <dc:Bounds x="2504" y="351" width="39" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_07jvmtr" bpmnElement="Flow_07jvmtr">
@@ -1333,7 +1333,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="527" y="265" />
         <di:waypoint x="652" y="265" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="532" y="191" width="90" height="14" />
+          <dc:Bounds x="532" y="191" width="25" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_08g4fny" bpmnElement="Flow_08g4fny">
@@ -1369,7 +1369,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="241" y="60" />
         <di:waypoint x="241" y="80" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="339" y="38" width="90" height="14" />
+          <dc:Bounds x="375" y="38" width="18" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0ikio56" bpmnElement="Flow_0ikio56">
@@ -1378,7 +1378,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="1077" y="220" />
         <di:waypoint x="1077" y="240" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1175" y="198" width="90" height="14" />
+          <dc:Bounds x="1211" y="198" width="18" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1cwvepm" bpmnElement="Flow_1cwvepm">
@@ -1387,7 +1387,7 @@ https://docs.camunda.io/docs/next/components/modeler/web-modeler/git-sync/</bpmn
         <di:waypoint x="2213" y="220" />
         <di:waypoint x="2213" y="240" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2311" y="198" width="90" height="14" />
+          <dc:Bounds x="2347" y="198" width="18" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
