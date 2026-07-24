@@ -23,6 +23,7 @@ import {
   GROUP_PADDING,
   LOCAL_U_OBSTACLE_CLEARANCE,
   PARTICIPANT_HEADER_WIDTH,
+  ROUTING_MARGIN,
   SUB_PROCESS_PADDING,
   VERTICAL_GAP
 } from '../lib/layout/Constants.js';
@@ -603,6 +604,63 @@ describe('Layout', function() {
       });
 
       assert.ok(channel.y >= event.y + event.height + LOCAL_U_OBSTACLE_CLEARANCE);
+    });
+
+    it('should transpose blocked cross-band endpoint sides before global routing', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'camunda-consulting.insurance-fnol.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const edge = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === 'k2';
+      });
+      const shapes = new Map(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const source = shapes.get('Extract');
+      const target = shapes.get('Triage_Agent');
+
+      assert.deepStrictEqual(
+        edge.waypoint.map(({ x, y }) => [ x, y ]),
+        [
+          [ source.x + source.width / 2, source.y ],
+          [ source.x + source.width / 2, target.y + target.height / 2 ],
+          [ target.x, target.y + target.height / 2 ]
+        ]
+      );
+    });
+
+    it('should route cross-band events through facing sides before transposing', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'scenario.multiple-ad-hoc.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const edge = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === 'Flow_12m4nt5';
+      });
+      const shapes = new Map(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const source = shapes.get('Event_18g7fuq');
+      const target = shapes.get('Gateway_0t1rpj7');
+
+      assert.deepStrictEqual(
+        edge.waypoint.map(({ x, y }) => [ x, y ]),
+        [
+          [ source.x + source.width / 2, source.y ],
+          [ source.x + source.width / 2, target.y + target.height + ROUTING_MARGIN ],
+          [ target.x + target.width / 2, target.y + target.height + ROUTING_MARGIN ],
+          [ target.x + target.width / 2, target.y + target.height ]
+        ]
+      );
     });
 
     it('should align link catch continuations until they rejoin', async function() {

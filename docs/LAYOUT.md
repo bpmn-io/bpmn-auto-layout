@@ -468,8 +468,10 @@ that stub and approaches the target through its facing side center. If that
 approach would require a 180-degree turn at the target stub, routing switches
 to the opposite target side.
 Clear orthogonal sequence-flow elbows are rebuilt from side centers. If the
-direct centered L-route is obstructed, a short outside channel approaches the
-target through the facing side instead of moving either endpoint to a corner.
+direct centered L-route is obstructed, cross-band flows first search the gap
+between their vertically facing sides, then transpose their source and target
+sides before global routing. A short outside channel approaches the target
+through the facing side instead of moving either endpoint to a corner.
 Candidates without proper edge crossings are preferred, but an unavoidable
 edge crossing does not permit corner docking; shape-clear side-center docking
 remains a hard constraint.

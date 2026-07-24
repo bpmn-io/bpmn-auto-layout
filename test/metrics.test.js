@@ -40,6 +40,36 @@ describe('Layout metrics', function() {
     assert.strictEqual(diagonal.wrongWayDockings, 0);
   });
 
+  it('should require side-center dockings for events and gateways', async function() {
+    const semantic = [
+      '<bpmn:task id="Source"><bpmn:outgoing>Flow</bpmn:outgoing></bpmn:task>',
+      '<bpmn:task id="Target"><bpmn:incoming>Flow</bpmn:incoming></bpmn:task>'
+    ];
+    const nonRectangular = [
+      '<bpmn:intermediateThrowEvent id="Source"><bpmn:outgoing>Flow</bpmn:outgoing></bpmn:intermediateThrowEvent>',
+      '<bpmn:exclusiveGateway id="Target"><bpmn:incoming>Flow</bpmn:incoming></bpmn:exclusiveGateway>'
+    ];
+    const centered = await computeMetrics(metricFixture([
+      [ 150, 100 ],
+      [ 150, 50 ],
+      [ 250, 50 ],
+      [ 250, 140 ],
+      [ 300, 140 ]
+    ]).replace(semantic[0], nonRectangular[0]).replace(semantic[1], nonRectangular[1]));
+    const detached = await computeMetrics(metricFixture([
+      [ 200, 100 ],
+      [ 200, 50 ],
+      [ 250, 50 ],
+      [ 250, 110 ],
+      [ 300, 110 ]
+    ]).replace(semantic[0], nonRectangular[0]).replace(semantic[1], nonRectangular[1]));
+
+    assert.strictEqual(centered.wrongWayDockings, 0);
+    assert.strictEqual(centered.detachedDockings, 0);
+    assert.strictEqual(detached.wrongWayDockings, 0);
+    assert.strictEqual(detached.detachedDockings, 2);
+  });
+
   it('should count non-orthogonal sequence and message flows but exclude associations', async function() {
     const orthogonal = await computeMetrics(metricFixture([
       [ 200, 140 ],
@@ -235,6 +265,7 @@ describe('Layout metrics', function() {
       endpoint: { x: 350, y: 100 },
       shapeId: 'Target'
     } ]);
+    assert.deepStrictEqual(docking.findings.detachedDockings, []);
     assert.deepStrictEqual(crossing.findings.crossings, [ {
       edgeIds: [ 'FlowOne', 'FlowTwo' ],
       point: { x: 200, y: 200 }
