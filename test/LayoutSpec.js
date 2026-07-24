@@ -16,6 +16,8 @@ import {
   isExternalLabelOwner
 } from '../lib/layout/BpmnUtil.js';
 import {
+  collinearOverlap,
+  segmentEntersRect,
   segmentsProperlyCross,
   toSegments
 } from '../lib/layout/LayoutUtil.js';
@@ -2022,6 +2024,11 @@ describe('Layout', function() {
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const input = edges.get('sid-A1B5F8D2-3FF2-4FAE-A885-819174BB01BD');
       const outputAssociation = edges.get('sid-1D74E5C9-7875-42C7-B069-7EF805115BFB');
+      const produced = edges.get('sid-9391DBA5-9C7B-4B14-B502-AB985711AD02');
+      const task = rootElement.diagrams[0].plane.planeElement.find(element => {
+        return element.bpmnElement?.id ===
+          'sid-A9859F1C-A85B-4F2F-B2DF-E3F4F7FA67FA';
+      }).bounds;
 
       assert.notDeepStrictEqual(
         [ input[0].x, input[0].y ],
@@ -2031,6 +2038,42 @@ describe('Layout', function() {
         [ input.at(-1).x, input.at(-1).y ],
         [ outputAssociation[0].x, outputAssociation[0].y ]
       );
+      assert.deepStrictEqual(
+        [ produced[0].x, produced[0].y ],
+        [ task.x + task.width / 2, task.y + task.height ]
+      );
+      assert.strictEqual(produced[1].x, produced[0].x);
+
+      for (const [ start, end ] of [
+        ...toSegments(input),
+        ...toSegments(outputAssociation)
+      ]) {
+        assert.ok(start.x === end.x || start.y === end.y);
+      }
+
+      for (const [ a, b ] of toSegments(input)) {
+        for (const [ c, d ] of toSegments(outputAssociation)) {
+          assert.strictEqual(collinearOverlap(a, b, c, d), false);
+        }
+      }
+
+      const inputSegments = toSegments(input);
+      const outputSegments = toSegments([ ...outputAssociation ].reverse());
+
+      assert.deepStrictEqual(
+        inputSegments.map(([ start, end ]) => start.x === end.x),
+        outputSegments.map(([ start, end ]) => start.x === end.x)
+      );
+
+      for (let index = 0; index < inputSegments.length; index++) {
+        const [ inputStart, inputEnd ] = inputSegments[index];
+        const [ outputStart ] = outputSegments[index];
+
+        assert.notStrictEqual(
+          inputStart.x === inputEnd.x ? inputStart.x : inputStart.y,
+          inputStart.x === inputEnd.x ? outputStart.x : outputStart.y
+        );
+      }
     });
 
     it('should not weight repeated associations as additional owners', async function() {
@@ -2077,6 +2120,36 @@ describe('Layout', function() {
 
       assert.ok(aligned(dataObject, firstTask) || aligned(dataObject, secondTask));
       assert.ok(aligned(dataStore, firstTask));
+    });
+
+    it('should route data associations orthogonally around unrelated shapes', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'data-object-and-store.reference.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const firstTask = elements.find(element => {
+        return element.bpmnElement?.id === 'Activity_0o6pkm5';
+      }).bounds;
+      const association = elements.find(element => {
+        return element.bpmnElement?.id === 'DataInputAssociation_1jjpwt9';
+      }).waypoint;
+      const firstTaskClearance = {
+        x: firstTask.x - 1,
+        y: firstTask.y - 1,
+        width: firstTask.width + 2,
+        height: firstTask.height + 2
+      };
+
+      for (const [ start, end ] of toSegments(association)) {
+        assert.ok(start.x === end.x || start.y === end.y);
+        assert.strictEqual(
+          segmentEntersRect(start, end, firstTaskClearance),
+          false
+        );
+      }
     });
 
     it('should keep data associations clear of unrelated flows when possible', async function() {
