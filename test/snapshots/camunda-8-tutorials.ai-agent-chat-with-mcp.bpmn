@@ -414,11 +414,11 @@ else
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0ixfrp0" bpmnElement="Flow_0ixfrp0">
         <di:waypoint x="631" y="213" />
-        <di:waypoint x="631" y="368" />
-        <di:waypoint x="1267" y="368" />
+        <di:waypoint x="631" y="388" />
+        <di:waypoint x="1267" y="388" />
         <di:waypoint x="1267" y="213" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="904" y="376" width="90" height="14" />
+          <dc:Bounds x="904" y="366" width="90" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BPMNShape_Handle_Message" bpmnElement="Handle_Message">

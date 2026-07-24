@@ -331,7 +331,8 @@ Ports follow semantics:
   before escalating when their preferred side is blocked. Nested routes retain
   the bottom-side channel order. For an isolated gateway default flow, both
   local sides are compared at the same constraint level; the shorter route wins
-  and equal routes use the top channel as the deterministic tie-break.
+  and equal routes use the top channel as the deterministic tie-break. Local
+  U-channels include rendered-stroke clearance around unrelated shapes.
 
 Boundary events attached to the same host side are ordered by their handlers'
 outward destination distance, longest first. This creates nested vertical exits
