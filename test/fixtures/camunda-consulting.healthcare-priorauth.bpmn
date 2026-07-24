@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Defs_pa" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:collaboration id="Collab">
+    <bpmn:participant id="Pool_Prov" name="Provider" processRef="Proc_Prov" />
+    <bpmn:participant id="Pool_Payer" name="Payer" processRef="Proc_Payer" />
+    <bpmn:messageFlow id="mf_req" sourceRef="Submit_PA" targetRef="Start_P" />
+    <bpmn:messageFlow id="mf_rec" sourceRef="Send_Records" targetRef="Rec_Msg" />
+    <bpmn:messageFlow id="mf_det" sourceRef="Notify_Det" targetRef="Await_Det" />
+  </bpmn:collaboration>
+  <bpmn:process id="Proc_Prov" isExecutable="false">
+    <bpmn:startEvent id="Start_R">
+      <bpmn:outgoing>r1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Submit_PA" name="Submit prior-auth request">
+      <bpmn:incoming>r1</bpmn:incoming>
+      <bpmn:outgoing>r2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Send_Records" name="Send clinical records">
+      <bpmn:incoming>r2</bpmn:incoming>
+      <bpmn:outgoing>r3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:receiveTask id="Await_Det" name="Await determination">
+      <bpmn:incoming>r3</bpmn:incoming>
+      <bpmn:outgoing>r4</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:endEvent id="End_R">
+      <bpmn:incoming>r4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="r1" sourceRef="Start_R" targetRef="Submit_PA" />
+    <bpmn:sequenceFlow id="r2" sourceRef="Submit_PA" targetRef="Send_Records" />
+    <bpmn:sequenceFlow id="r3" sourceRef="Send_Records" targetRef="Await_Det" />
+    <bpmn:sequenceFlow id="r4" sourceRef="Await_Det" targetRef="End_R" />
+  </bpmn:process>
+  <bpmn:process id="Proc_Payer" isExecutable="true">
+    <bpmn:documentation>Exercises a lane-constrained prior authorization workflow with event-based waiting, agentic review, and a timer boundary escalation.</bpmn:documentation>
+    <bpmn:laneSet id="ls">
+      <bpmn:lane id="Lane_AI" name="Clinical AI">
+        <bpmn:flowNodeRef>Gw_Det</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>MN_Agent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Peer_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_SLA</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Intake" name="Intake">
+        <bpmn:flowNodeRef>Start_P</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Eligibility</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Ev</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Rec_Msg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Rec_Timer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Chase</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Out" name="Determination">
+        <bpmn:flowNodeRef>End_Esc</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Approve</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Deny</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Notify_Det</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_P</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_P" name="PA received">
+      <bpmn:outgoing>p1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="m0" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Eligibility" name="Check eligibility (REST)">
+      <bpmn:incoming>p1</bpmn:incoming>
+      <bpmn:outgoing>p2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:eventBasedGateway id="Gw_Ev" name="Records?">
+      <bpmn:incoming>p2</bpmn:incoming>
+      <bpmn:outgoing>ev_msg</bpmn:outgoing>
+      <bpmn:outgoing>ev_tmr</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="Rec_Msg" name="Records received">
+      <bpmn:incoming>ev_msg</bpmn:incoming>
+      <bpmn:outgoing>p3</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="m1" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="Rec_Timer" name="7-day timeout">
+      <bpmn:incoming>ev_tmr</bpmn:incoming>
+      <bpmn:outgoing>ev_c</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="t0" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:task id="Chase" name="Chase provider">
+      <bpmn:incoming>ev_c</bpmn:incoming>
+      <bpmn:outgoing>ev_back</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gw_Det" name="Determination?">
+      <bpmn:incoming>p4</bpmn:incoming>
+      <bpmn:outgoing>d_ok</bpmn:outgoing>
+      <bpmn:outgoing>d_no</bpmn:outgoing>
+      <bpmn:outgoing>d_peer</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gw_Merge">
+      <bpmn:incoming>pr_out</bpmn:incoming>
+      <bpmn:incoming>d_ok</bpmn:incoming>
+      <bpmn:outgoing>mg1</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Esc" name="Escalated">
+      <bpmn:incoming>sla1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Approve" name="Issue approval">
+      <bpmn:incoming>mg1</bpmn:incoming>
+      <bpmn:outgoing>ap1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Deny" name="Issue denial">
+      <bpmn:incoming>d_no</bpmn:incoming>
+      <bpmn:outgoing>dn1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Notify_Det" name="Notify determination">
+      <bpmn:incoming>ap1</bpmn:incoming>
+      <bpmn:incoming>dn1</bpmn:incoming>
+      <bpmn:outgoing>nd1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_P" name="Closed">
+      <bpmn:incoming>nd1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:adHocSubProcess id="MN_Agent" name="Medical Necessity Agent">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda.agenticai:aiagent-job-worker:1" />
+        <zeebe:adHoc activeElementsCollection="=toolCalls" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>p3</bpmn:incoming>
+      <bpmn:outgoing>p4</bpmn:outgoing>
+      <bpmn:serviceTask id="T_Guide" name="Guideline lookup (REST)" />
+      <bpmn:serviceTask id="T_Form" name="Formulary check (REST)" />
+      <bpmn:serviceTask id="T_Rec" name="Clinical record fetch (REST)" />
+      <bpmn:serviceTask id="T_Hist" name="Prior claims (REST)" />
+    </bpmn:adHocSubProcess>
+    <bpmn:subProcess id="Peer_Review" name="Peer Review">
+      <bpmn:incoming>d_peer</bpmn:incoming>
+      <bpmn:outgoing>pr_out</bpmn:outgoing>
+      <bpmn:startEvent id="pr_s">
+        <bpmn:outgoing>pr1</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:userTask id="pr_review" name="Physician review">
+        <bpmn:incoming>pr1</bpmn:incoming>
+        <bpmn:outgoing>pr2</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:exclusiveGateway id="pr_gw" name="Uphold?">
+        <bpmn:incoming>pr2</bpmn:incoming>
+        <bpmn:outgoing>pr_a</bpmn:outgoing>
+        <bpmn:outgoing>pr_u</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:endEvent id="pr_end_a" name="Overturn">
+        <bpmn:incoming>pr_a</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:endEvent id="pr_end_u" name="Uphold">
+        <bpmn:incoming>pr_u</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="pr1" sourceRef="pr_s" targetRef="pr_review" />
+      <bpmn:sequenceFlow id="pr2" sourceRef="pr_review" targetRef="pr_gw" />
+      <bpmn:sequenceFlow id="pr_a" sourceRef="pr_gw" targetRef="pr_end_a" />
+      <bpmn:sequenceFlow id="pr_u" sourceRef="pr_gw" targetRef="pr_end_u" />
+    </bpmn:subProcess>
+    <bpmn:boundaryEvent id="B_SLA" name="SLA breach" cancelActivity="false" attachedToRef="Peer_Review">
+      <bpmn:outgoing>sla1</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="t1" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="p1" sourceRef="Start_P" targetRef="Eligibility" />
+    <bpmn:sequenceFlow id="p2" sourceRef="Eligibility" targetRef="Gw_Ev" />
+    <bpmn:sequenceFlow id="ev_msg" sourceRef="Gw_Ev" targetRef="Rec_Msg" />
+    <bpmn:sequenceFlow id="ev_tmr" sourceRef="Gw_Ev" targetRef="Rec_Timer" />
+    <bpmn:sequenceFlow id="p3" sourceRef="Rec_Msg" targetRef="MN_Agent" />
+    <bpmn:sequenceFlow id="ev_c" sourceRef="Rec_Timer" targetRef="Chase" />
+    <bpmn:sequenceFlow id="ev_back" sourceRef="Chase" targetRef="MN_Agent" />
+    <bpmn:sequenceFlow id="p4" sourceRef="MN_Agent" targetRef="Gw_Det" />
+    <bpmn:sequenceFlow id="d_ok" name="approve" sourceRef="Gw_Det" targetRef="Gw_Merge" />
+    <bpmn:sequenceFlow id="d_no" name="deny" sourceRef="Gw_Det" targetRef="Deny" />
+    <bpmn:sequenceFlow id="d_peer" name="peer review" sourceRef="Gw_Det" targetRef="Peer_Review" />
+    <bpmn:sequenceFlow id="pr_out" sourceRef="Peer_Review" targetRef="Gw_Merge" />
+    <bpmn:sequenceFlow id="mg1" sourceRef="Gw_Merge" targetRef="Approve" />
+    <bpmn:sequenceFlow id="sla1" sourceRef="B_SLA" targetRef="End_Esc" />
+    <bpmn:sequenceFlow id="ap1" sourceRef="Approve" targetRef="Notify_Det" />
+    <bpmn:sequenceFlow id="dn1" sourceRef="Deny" targetRef="Notify_Det" />
+    <bpmn:sequenceFlow id="nd1" sourceRef="Notify_Det" targetRef="End_P" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Collab">
+    <bpmndi:BPMNPlane id="BPMNPlane_Collab" bpmnElement="Collab">
+      <bpmndi:BPMNShape id="BPMNShape_Pool_Payer" bpmnElement="Pool_Payer" isHorizontal="true">
+        <dc:Bounds x="160" y="320" width="2068" height="1070" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_AI" bpmnElement="Lane_AI" isHorizontal="true">
+        <dc:Bounds x="190" y="720" width="2038" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_Intake" bpmnElement="Lane_Intake" isHorizontal="true">
+        <dc:Bounds x="190" y="320" width="2038" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_Out" bpmnElement="Lane_Out" isHorizontal="true">
+        <dc:Bounds x="190" y="1020" width="2038" height="370" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Start_P" bpmnElement="Start_P">
+        <dc:Bounds x="230" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="219" y="463" width="59" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Eligibility" bpmnElement="Eligibility">
+        <dc:Bounds x="366" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_Ev" bpmnElement="Gw_Ev" isMarkerVisible="true">
+        <dc:Bounds x="566" y="415" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="567" y="396" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Rec_Msg" bpmnElement="Rec_Msg">
+        <dc:Bounds x="716" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="691" y="463" width="86" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Rec_Timer" bpmnElement="Rec_Timer">
+        <dc:Bounds x="716" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="701" y="623" width="67" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Chase" bpmnElement="Chase">
+        <dc:Bounds x="852" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_Det" bpmnElement="Gw_Det" isMarkerVisible="true">
+        <dc:Bounds x="1252" y="885" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1180" y="940" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_Merge" bpmnElement="Gw_Merge" isMarkerVisible="true">
+        <dc:Bounds x="1602" y="885" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_Esc" bpmnElement="End_Esc">
+        <dc:Bounds x="1609" y="1112" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1603" y="1153" width="49" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Approve" bpmnElement="Approve">
+        <dc:Bounds x="1752" y="1090" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Deny" bpmnElement="Deny">
+        <dc:Bounds x="1402" y="1250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Notify_Det" bpmnElement="Notify_Det">
+        <dc:Bounds x="1952" y="1090" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_P" bpmnElement="End_P">
+        <dc:Bounds x="2152" y="1112" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2153" y="1153" width="35" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_MN_Agent" bpmnElement="MN_Agent">
+        <dc:Bounds x="1052" y="870" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Peer_Review" bpmnElement="Peer_Review">
+        <dc:Bounds x="1402" y="870" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_B_SLA" bpmnElement="B_SLA">
+        <dc:Bounds x="1434" y="932" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1363" y="973" width="58" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_p1" bpmnElement="p1">
+        <di:waypoint x="266" y="440" />
+        <di:waypoint x="366" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_p2" bpmnElement="p2">
+        <di:waypoint x="466" y="440" />
+        <di:waypoint x="566" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_ev_msg" bpmnElement="ev_msg">
+        <di:waypoint x="616" y="440" />
+        <di:waypoint x="716" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_ev_tmr" bpmnElement="ev_tmr">
+        <di:waypoint x="591" y="465" />
+        <di:waypoint x="591" y="600" />
+        <di:waypoint x="716" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_ev_c" bpmnElement="ev_c">
+        <di:waypoint x="752" y="600" />
+        <di:waypoint x="852" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_ev_back" bpmnElement="ev_back">
+        <di:waypoint x="952" y="600" />
+        <di:waypoint x="1102" y="600" />
+        <di:waypoint x="1102" y="870" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_p3" bpmnElement="p3">
+        <di:waypoint x="752" y="440" />
+        <di:waypoint x="1102" y="440" />
+        <di:waypoint x="1102" y="870" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_p4" bpmnElement="p4">
+        <di:waypoint x="1152" y="910" />
+        <di:waypoint x="1252" y="910" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_d_ok" bpmnElement="d_ok">
+        <di:waypoint x="1277" y="885" />
+        <di:waypoint x="1277" y="790" />
+        <di:waypoint x="1627" y="790" />
+        <di:waypoint x="1627" y="885" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1502" y="768" width="40" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_d_no" bpmnElement="d_no">
+        <di:waypoint x="1277" y="935" />
+        <di:waypoint x="1277" y="1290" />
+        <di:waypoint x="1402" y="1290" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1315" y="1106" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_d_peer" bpmnElement="d_peer">
+        <di:waypoint x="1302" y="910" />
+        <di:waypoint x="1402" y="910" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1323" y="854" width="57" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_pr_out" bpmnElement="pr_out">
+        <di:waypoint x="1502" y="910" />
+        <di:waypoint x="1602" y="910" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_mg1" bpmnElement="mg1">
+        <di:waypoint x="1652" y="910" />
+        <di:waypoint x="1802" y="910" />
+        <di:waypoint x="1802" y="1090" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_ap1" bpmnElement="ap1">
+        <di:waypoint x="1852" y="1130" />
+        <di:waypoint x="1952" y="1130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_dn1" bpmnElement="dn1">
+        <di:waypoint x="1502" y="1290" />
+        <di:waypoint x="2002" y="1290" />
+        <di:waypoint x="2002" y="1170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_nd1" bpmnElement="nd1">
+        <di:waypoint x="2052" y="1130" />
+        <di:waypoint x="2152" y="1130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_sla1" bpmnElement="sla1">
+        <di:waypoint x="1452" y="968" />
+        <di:waypoint x="1452" y="1130" />
+        <di:waypoint x="1609" y="1130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_Pool_Prov" bpmnElement="Pool_Prov" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="882" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Start_R" bpmnElement="Start_R">
+        <dc:Bounds x="230" y="122" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Submit_PA" bpmnElement="Submit_PA">
+        <dc:Bounds x="366" y="100" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Send_Records" bpmnElement="Send_Records">
+        <dc:Bounds x="566" y="100" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Await_Det" bpmnElement="Await_Det">
+        <dc:Bounds x="766" y="100" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_R" bpmnElement="End_R">
+        <dc:Bounds x="966" y="122" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_r1" bpmnElement="r1">
+        <di:waypoint x="266" y="140" />
+        <di:waypoint x="366" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_r2" bpmnElement="r2">
+        <di:waypoint x="466" y="140" />
+        <di:waypoint x="566" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_r3" bpmnElement="r3">
+        <di:waypoint x="666" y="140" />
+        <di:waypoint x="766" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_r4" bpmnElement="r4">
+        <di:waypoint x="866" y="140" />
+        <di:waypoint x="966" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_mf_req" bpmnElement="mf_req">
+        <di:waypoint x="416" y="180" />
+        <di:waypoint x="416" y="280" />
+        <di:waypoint x="248" y="280" />
+        <di:waypoint x="248" y="422" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_mf_rec" bpmnElement="mf_rec">
+        <di:waypoint x="616" y="180" />
+        <di:waypoint x="616" y="280" />
+        <di:waypoint x="734" y="280" />
+        <di:waypoint x="734" y="422" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_mf_det" bpmnElement="mf_det">
+        <di:waypoint x="2002" y="1090" />
+        <di:waypoint x="2002" y="280" />
+        <di:waypoint x="816" y="280" />
+        <di:waypoint x="816" y="180" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_MN_Agent">
+    <bpmndi:BPMNPlane id="BPMNPlane_MN_Agent" bpmnElement="MN_Agent">
+      <bpmndi:BPMNShape id="BPMNShape_T_Guide" bpmnElement="T_Guide">
+        <dc:Bounds x="80" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_T_Form" bpmnElement="T_Form">
+        <dc:Bounds x="280" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_T_Rec" bpmnElement="T_Rec">
+        <dc:Bounds x="80" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_T_Hist" bpmnElement="T_Hist">
+        <dc:Bounds x="280" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Peer_Review">
+    <bpmndi:BPMNPlane id="BPMNPlane_Peer_Review" bpmnElement="Peer_Review">
+      <bpmndi:BPMNShape id="BPMNShape_pr_s" bpmnElement="pr_s">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_pr_review" bpmnElement="pr_review">
+        <dc:Bounds x="216" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_pr_gw" bpmnElement="pr_gw" isMarkerVisible="true">
+        <dc:Bounds x="416" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="396" y="76" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_pr_end_a" bpmnElement="pr_end_a">
+        <dc:Bounds x="566" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="539" y="143" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_pr_end_u" bpmnElement="pr_end_u">
+        <dc:Bounds x="566" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="539" y="303" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_pr1" bpmnElement="pr1">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_pr2" bpmnElement="pr2">
+        <di:waypoint x="316" y="120" />
+        <di:waypoint x="416" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_pr_a" bpmnElement="pr_a">
+        <di:waypoint x="466" y="120" />
+        <di:waypoint x="566" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_pr_u" bpmnElement="pr_u">
+        <di:waypoint x="441" y="145" />
+        <di:waypoint x="441" y="280" />
+        <di:waypoint x="566" y="280" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Defs_fnol" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:collaboration id="Collab">
+    <bpmn:participant id="Pool_Claimant" name="Policyholder" processRef="Proc_Claimant" />
+    <bpmn:participant id="Pool_Carrier" name="Insurance Carrier" processRef="Proc_Carrier" />
+    <bpmn:messageFlow id="mf_submit" sourceRef="Submit_Claim" targetRef="Start_K" />
+    <bpmn:messageFlow id="mf_pay" sourceRef="Issue_Payment" targetRef="Await_Outcome" />
+    <bpmn:messageFlow id="mf_deny" sourceRef="Send_Denial" targetRef="Await_Outcome" />
+  </bpmn:collaboration>
+  <bpmn:process id="Proc_Claimant" isExecutable="false">
+    <bpmn:startEvent id="Start_C" name="Loss occurs">
+      <bpmn:outgoing>c1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Submit_Claim" name="Submit FNOL (mobile app)">
+      <bpmn:incoming>c1</bpmn:incoming>
+      <bpmn:outgoing>c2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:receiveTask id="Await_Outcome" name="Await decision">
+      <bpmn:incoming>c2</bpmn:incoming>
+      <bpmn:outgoing>c3</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:endEvent id="End_C" name="Claim closed">
+      <bpmn:incoming>c3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="c1" sourceRef="Start_C" targetRef="Submit_Claim" />
+    <bpmn:sequenceFlow id="c2" sourceRef="Submit_Claim" targetRef="Await_Outcome" />
+    <bpmn:sequenceFlow id="c3" sourceRef="Await_Outcome" targetRef="End_C" />
+  </bpmn:process>
+  <bpmn:process id="Proc_Carrier" isExecutable="true">
+    <bpmn:documentation>Exercises a lane-constrained FNOL workflow with agentic triage, disposition branches, a feedback loop, and settlement.</bpmn:documentation>
+    <bpmn:laneSet id="ls">
+      <bpmn:lane id="Lane_Settle" name="Settlement">
+        <bpmn:flowNodeRef>Issue_Payment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Paid</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Agent" name="AI Triage">
+        <bpmn:flowNodeRef>Gw_Disp</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Auto_Approve</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Assign_Adjuster</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Adjuster_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Request_Info</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Send_Denial</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Deny</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Escalate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Esc</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Triage_Agent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_SLA</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Intake" name="Intake">
+        <bpmn:flowNodeRef>Start_K</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Extract</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_K" name="FNOL received">
+      <bpmn:outgoing>k1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="med1" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Extract" name="Extract claim data (Document AI)">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>k1</bpmn:incoming>
+      <bpmn:outgoing>k2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:adHocSubProcess id="Triage_Agent" name="AI Claims Triage Agent">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda.agenticai:aiagent-job-worker:1" />
+        <zeebe:adHoc activeElementsCollection="=toolCalls" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>k2</bpmn:incoming>
+      <bpmn:incoming>loop</bpmn:incoming>
+      <bpmn:outgoing>k3</bpmn:outgoing>
+      <bpmn:serviceTask id="Tool_Fraud" name="Fraud score (REST)">
+        <bpmn:extensionElements>
+          <zeebe:taskDefinition type="io.camunda:http-json:1" />
+        </bpmn:extensionElements>
+      </bpmn:serviceTask>
+      <bpmn:serviceTask id="Tool_Coverage" name="Coverage check (REST)">
+        <bpmn:extensionElements>
+          <zeebe:taskDefinition type="io.camunda:http-json:1" />
+        </bpmn:extensionElements>
+      </bpmn:serviceTask>
+      <bpmn:serviceTask id="Tool_Estimate" name="Damage estimate (REST)">
+        <bpmn:extensionElements>
+          <zeebe:taskDefinition type="io.camunda:http-json:1" />
+        </bpmn:extensionElements>
+      </bpmn:serviceTask>
+      <bpmn:serviceTask id="Tool_Policy" name="Policy lookup (REST)">
+        <bpmn:extensionElements>
+          <zeebe:taskDefinition type="io.camunda:http-json:1" />
+        </bpmn:extensionElements>
+      </bpmn:serviceTask>
+    </bpmn:adHocSubProcess>
+    <bpmn:exclusiveGateway id="Gw_Disp" name="Disposition?">
+      <bpmn:incoming>k3</bpmn:incoming>
+      <bpmn:outgoing>d_fast</bpmn:outgoing>
+      <bpmn:outgoing>d_invest</bpmn:outgoing>
+      <bpmn:outgoing>d_info</bpmn:outgoing>
+      <bpmn:outgoing>d_deny</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Auto_Approve" name="Auto-approve payout">
+      <bpmn:incoming>d_fast</bpmn:incoming>
+      <bpmn:outgoing>a1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Assign_Adjuster" name="Assign adjuster">
+      <bpmn:incoming>d_invest</bpmn:incoming>
+      <bpmn:outgoing>a2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Adjuster_Review" name="Adjuster review">
+      <bpmn:incoming>a2</bpmn:incoming>
+      <bpmn:outgoing>a3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="Request_Info" name="Request more info">
+      <bpmn:incoming>d_info</bpmn:incoming>
+      <bpmn:outgoing>loop</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Send_Denial" name="Send denial">
+      <bpmn:incoming>d_deny</bpmn:incoming>
+      <bpmn:outgoing>dn</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Deny" name="Denied">
+      <bpmn:incoming>dn</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Gw_Join" name="Approved">
+      <bpmn:incoming>a1</bpmn:incoming>
+      <bpmn:incoming>a3</bpmn:incoming>
+      <bpmn:outgoing>j1</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Issue_Payment" name="Issue payment (REST)">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.camunda:http-json:1" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>j1</bpmn:incoming>
+      <bpmn:outgoing>p1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Paid" name="Paid">
+      <bpmn:incoming>p1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Escalate" name="Escalate to supervisor">
+      <bpmn:incoming>e1</bpmn:incoming>
+      <bpmn:outgoing>e2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End_Esc" name="Escalated">
+      <bpmn:incoming>e2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:boundaryEvent id="B_SLA" name="SLA breach" cancelActivity="false" attachedToRef="Triage_Agent">
+      <bpmn:outgoing>e1</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="ted1" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="k1" sourceRef="Start_K" targetRef="Extract" />
+    <bpmn:sequenceFlow id="k2" sourceRef="Extract" targetRef="Triage_Agent" />
+    <bpmn:sequenceFlow id="loop" sourceRef="Request_Info" targetRef="Triage_Agent" />
+    <bpmn:sequenceFlow id="k3" sourceRef="Triage_Agent" targetRef="Gw_Disp" />
+    <bpmn:sequenceFlow id="d_fast" name="fast-track" sourceRef="Gw_Disp" targetRef="Auto_Approve" />
+    <bpmn:sequenceFlow id="d_invest" name="investigate" sourceRef="Gw_Disp" targetRef="Assign_Adjuster" />
+    <bpmn:sequenceFlow id="d_info" name="need info" sourceRef="Gw_Disp" targetRef="Request_Info" />
+    <bpmn:sequenceFlow id="d_deny" name="deny" sourceRef="Gw_Disp" targetRef="Send_Denial" />
+    <bpmn:sequenceFlow id="a1" sourceRef="Auto_Approve" targetRef="Gw_Join" />
+    <bpmn:sequenceFlow id="a2" sourceRef="Assign_Adjuster" targetRef="Adjuster_Review" />
+    <bpmn:sequenceFlow id="a3" sourceRef="Adjuster_Review" targetRef="Gw_Join" />
+    <bpmn:sequenceFlow id="dn" sourceRef="Send_Denial" targetRef="End_Deny" />
+    <bpmn:sequenceFlow id="j1" sourceRef="Gw_Join" targetRef="Issue_Payment" />
+    <bpmn:sequenceFlow id="p1" sourceRef="Issue_Payment" targetRef="End_Paid" />
+    <bpmn:sequenceFlow id="e1" sourceRef="B_SLA" targetRef="Escalate" />
+    <bpmn:sequenceFlow id="e2" sourceRef="Escalate" targetRef="End_Esc" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Collab">
+    <bpmndi:BPMNPlane id="BPMNPlane_Collab" bpmnElement="Collab">
+      <bpmndi:BPMNShape id="BPMNShape_Pool_Claimant" bpmnElement="Pool_Claimant" isHorizontal="true">
+        <dc:Bounds x="1316" y="1360" width="682" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Pool_Carrier" bpmnElement="Pool_Carrier" isHorizontal="true">
+        <dc:Bounds x="80" y="80" width="1918" height="1200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_mf_submit" bpmnElement="mf_submit">
+        <di:waypoint x="1572" y="1400" />
+        <di:waypoint x="1572" y="1320" />
+        <di:waypoint x="168" y="1320" />
+        <di:waypoint x="168" y="1178" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_mf_pay" bpmnElement="mf_pay">
+        <di:waypoint x="1772" y="240" />
+        <di:waypoint x="1772" y="1400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_mf_deny" bpmnElement="mf_deny">
+        <di:waypoint x="1222" y="960" />
+        <di:waypoint x="1222" y="1320" />
+        <di:waypoint x="1772" y="1320" />
+        <di:waypoint x="1772" y="1400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_Start_C" bpmnElement="Start_C">
+        <dc:Bounds x="1386" y="1422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1359" y="1463" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Submit_Claim" bpmnElement="Submit_Claim">
+        <dc:Bounds x="1522" y="1400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Await_Outcome" bpmnElement="Await_Outcome">
+        <dc:Bounds x="1722" y="1400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_C" bpmnElement="End_C">
+        <dc:Bounds x="1922" y="1422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1895" y="1463" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_c1" bpmnElement="c1">
+        <di:waypoint x="1422" y="1440" />
+        <di:waypoint x="1522" y="1440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_c2" bpmnElement="c2">
+        <di:waypoint x="1622" y="1440" />
+        <di:waypoint x="1722" y="1440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_c3" bpmnElement="c3">
+        <di:waypoint x="1822" y="1440" />
+        <di:waypoint x="1922" y="1440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_Settle" bpmnElement="Lane_Settle" isHorizontal="true">
+        <dc:Bounds x="110" y="80" width="1888" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_Agent" bpmnElement="Lane_Agent" isHorizontal="true">
+        <dc:Bounds x="110" y="320" width="1888" height="720" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Lane_Intake" bpmnElement="Lane_Intake" isHorizontal="true">
+        <dc:Bounds x="110" y="1040" width="1888" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Start_K" bpmnElement="Start_K">
+        <dc:Bounds x="150" y="1142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="123" y="1109" width="90" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Extract" bpmnElement="Extract">
+        <dc:Bounds x="286" y="1120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Triage_Agent" bpmnElement="Triage_Agent">
+        <dc:Bounds x="486" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_Disp" bpmnElement="Gw_Disp" isMarkerVisible="true">
+        <dc:Bounds x="1022" y="575" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="942" y="630" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Auto_Approve" bpmnElement="Auto_Approve">
+        <dc:Bounds x="1172" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Assign_Adjuster" bpmnElement="Assign_Adjuster">
+        <dc:Bounds x="1172" y="720" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Adjuster_Review" bpmnElement="Adjuster_Review">
+        <dc:Bounds x="1372" y="720" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Request_Info" bpmnElement="Request_Info">
+        <dc:Bounds x="1172" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Send_Denial" bpmnElement="Send_Denial">
+        <dc:Bounds x="1172" y="880" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_Deny" bpmnElement="End_Deny">
+        <dc:Bounds x="1404" y="902" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1377" y="943" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gw_Join" bpmnElement="Gw_Join" isMarkerVisible="true">
+        <dc:Bounds x="1572" y="575" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1552" y="556" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Issue_Payment" bpmnElement="Issue_Payment">
+        <dc:Bounds x="1722" y="160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_Paid" bpmnElement="End_Paid">
+        <dc:Bounds x="1922" y="182" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1895" y="223" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Escalate" bpmnElement="Escalate">
+        <dc:Bounds x="686" y="720" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End_Esc" bpmnElement="End_Esc">
+        <dc:Bounds x="886" y="742" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="859" y="783" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_B_SLA" bpmnElement="B_SLA">
+        <dc:Bounds x="518" y="622" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="431" y="663" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_k1" bpmnElement="k1">
+        <di:waypoint x="186" y="1160" />
+        <di:waypoint x="286" y="1160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_k2" bpmnElement="k2">
+        <di:waypoint x="336" y="1120" />
+        <di:waypoint x="336" y="140" />
+        <di:waypoint x="130" y="140" />
+        <di:waypoint x="130" y="600" />
+        <di:waypoint x="486" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_k3" bpmnElement="k3">
+        <di:waypoint x="586" y="600" />
+        <di:waypoint x="1022" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_d_fast" bpmnElement="d_fast">
+        <di:waypoint x="1072" y="600" />
+        <di:waypoint x="1172" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1077" y="578" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_a1" bpmnElement="a1">
+        <di:waypoint x="1272" y="600" />
+        <di:waypoint x="1572" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_j1" bpmnElement="j1">
+        <di:waypoint x="1622" y="600" />
+        <di:waypoint x="1772" y="600" />
+        <di:waypoint x="1772" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_p1" bpmnElement="p1">
+        <di:waypoint x="1822" y="200" />
+        <di:waypoint x="1922" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_d_invest" bpmnElement="d_invest">
+        <di:waypoint x="1047" y="625" />
+        <di:waypoint x="1047" y="760" />
+        <di:waypoint x="1172" y="760" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1065" y="738" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_d_info" bpmnElement="d_info">
+        <di:waypoint x="1047" y="575" />
+        <di:waypoint x="1047" y="440" />
+        <di:waypoint x="1172" y="440" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1052" y="501" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_d_deny" bpmnElement="d_deny">
+        <di:waypoint x="1047" y="625" />
+        <di:waypoint x="1047" y="920" />
+        <di:waypoint x="1172" y="920" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1052" y="833" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_a2" bpmnElement="a2">
+        <di:waypoint x="1272" y="760" />
+        <di:waypoint x="1372" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_a3" bpmnElement="a3">
+        <di:waypoint x="1472" y="760" />
+        <di:waypoint x="1597" y="760" />
+        <di:waypoint x="1597" y="625" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_dn" bpmnElement="dn">
+        <di:waypoint x="1272" y="920" />
+        <di:waypoint x="1404" y="920" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_e2" bpmnElement="e2">
+        <di:waypoint x="786" y="760" />
+        <di:waypoint x="886" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_e1" bpmnElement="e1">
+        <di:waypoint x="536" y="658" />
+        <di:waypoint x="536" y="760" />
+        <di:waypoint x="686" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_loop" bpmnElement="loop">
+        <di:waypoint x="1222" y="400" />
+        <di:waypoint x="1222" y="380" />
+        <di:waypoint x="536" y="380" />
+        <di:waypoint x="536" y="560" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Triage_Agent">
+    <bpmndi:BPMNPlane id="BPMNPlane_Triage_Agent" bpmnElement="Triage_Agent">
+      <bpmndi:BPMNShape id="BPMNShape_Tool_Fraud" bpmnElement="Tool_Fraud">
+        <dc:Bounds x="80" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Tool_Coverage" bpmnElement="Tool_Coverage">
+        <dc:Bounds x="280" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Tool_Estimate" bpmnElement="Tool_Estimate">
+        <dc:Bounds x="80" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Tool_Policy" bpmnElement="Tool_Policy">
+        <dc:Bounds x="280" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
