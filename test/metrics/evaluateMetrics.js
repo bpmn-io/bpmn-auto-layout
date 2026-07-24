@@ -5,6 +5,7 @@ export const METRIC_KEYS = [
   'bendCount',
   'overlaps',
   'edgeShapeIntersections',
+  'detachedDockings',
   'wrongWayDockings',
   'nonOrthogonalConnections',
   'backtrackingConnections',
@@ -44,6 +45,7 @@ export function hasBandADefect(metrics) {
   return !metrics.error && (
     metrics.current.overlaps !== 0 ||
     metrics.current.edgeShapeIntersections !== 0 ||
+    metrics.current.detachedDockings !== 0 ||
     metrics.current.wrongWayDockings !== 0 ||
     metrics.current.nonOrthogonalConnections !== 0 ||
     metrics.current.backtrackingConnections !== 0

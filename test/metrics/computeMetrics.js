@@ -17,9 +17,9 @@ const moddle = new BpmnModdle();
  * - `edgeShapeIntersections` — (edge, unrelated shape) pairs where the edge
  *                              interior passes through the shape; text
  *                              artifacts are not obstacles.
- * - `wrongWayDockings`       — edge endpoints whose dock is not on its shape
- *                              perimeter or whose adjacent segment enters the
- *                              endpoint shape.
+ * - `detachedDockings`       — edge endpoints that do not touch their shape.
+ * - `wrongWayDockings`       — attached edge endpoints whose adjacent segment
+ *                              enters the endpoint shape.
  * - `nonOrthogonalConnections` — sequence and message flows containing at
  *                                least one diagonal segment.
  * - `backtrackingConnections` — sequence and message flows containing at
@@ -50,6 +50,7 @@ const moddle = new BpmnModdle();
  *   crossings: number,
  *   overlaps: number,
  *   edgeShapeIntersections: number,
+ *   detachedDockings: number,
  *   wrongWayDockings: number,
  *   nonOrthogonalConnections: number,
  *   backtrackingConnections: number,
@@ -97,6 +98,7 @@ export async function analyzeMetrics(xml) {
     crossings: planes.flatMap(plane => findCrossings(plane.edges)),
     overlaps: planes.flatMap(plane => findOverlaps(plane.shapes)),
     edgeShapeIntersections: planes.flatMap(plane => findEdgeShapeIntersections(plane.edges, plane.shapes)),
+    detachedDockings: planes.flatMap(plane => findDetachedDockings(plane.edges, plane.shapes)),
     wrongWayDockings: planes.flatMap(plane => findWrongWayDockings(plane.edges, plane.shapes)),
     nonOrthogonalConnections: planes.flatMap(plane => findNonOrthogonalConnections(plane.edges)),
     backtrackingConnections: planes.flatMap(plane => findBacktrackingConnections(plane.edges)),
@@ -111,6 +113,7 @@ export async function analyzeMetrics(xml) {
     crossings: findings.crossings.length,
     overlaps: findings.overlaps.length,
     edgeShapeIntersections: findings.edgeShapeIntersections.length,
+    detachedDockings: findings.detachedDockings.length,
     wrongWayDockings: findings.wrongWayDockings.length,
     nonOrthogonalConnections: findings.nonOrthogonalConnections.length,
     backtrackingConnections: findings.backtrackingConnections.length,
@@ -142,6 +145,7 @@ function toShape(di) {
     id: element && element.id,
     x, y, width, height,
     isFlowNode: !!element && element.$instanceOf('bpmn:FlowNode'),
+    isEvent: !!element && element.$instanceOf('bpmn:Event'),
     isGateway: !!element && element.$instanceOf('bpmn:Gateway'),
     labelBounds: toLabelBounds(di.label),
     isBoundary: !!element && element.$instanceOf('bpmn:BoundaryEvent'),
@@ -491,6 +495,56 @@ function segmentEntersRect(p1, p2, rect) {
 
 const DOCKING_TOLERANCE = 1e-6;
 
+function findDetachedDockings(edges, shapes) {
+  const shapeById = new Map(shapes.map(shape => [ shape.id, shape ]));
+  const findings = [];
+
+  for (const edge of edges) {
+    const source = shapeById.get(edge.sourceId);
+    const target = shapeById.get(edge.targetId);
+    const endpointPairs = [
+      [ source, edge.waypoints[0] || null ],
+      [ target, edge.waypoints.at(-1) || null ]
+    ];
+
+    for (const [ shape, endpoint ] of endpointPairs) {
+      if (
+        shape &&
+        !shape.isArtifact &&
+        (!endpoint || !isAttached(endpoint, shape))
+      ) {
+        findings.push({
+          edgeId: edge.id,
+          endpoint,
+          shapeId: shape.id
+        });
+      }
+    }
+  }
+
+  return findings;
+}
+
+function isAttached(endpoint, shape) {
+  const radiusX = shape.width / 2;
+  const radiusY = shape.height / 2;
+  const offsetX = Math.abs(endpoint.x - shape.x - radiusX);
+  const offsetY = Math.abs(endpoint.y - shape.y - radiusY);
+
+  if (shape.isEvent) {
+    return near(
+      (offsetX / radiusX) ** 2 + (offsetY / radiusY) ** 2,
+      1
+    );
+  }
+
+  if (shape.isGateway) {
+    return near(offsetX / radiusX + offsetY / radiusY, 1);
+  }
+
+  return dockingSides(endpoint, shape).length > 0;
+}
+
 function findWrongWayDockings(edges, shapes) {
   const shapeById = new Map(shapes.map(shape => [ shape.id, shape ]));
   const findings = [];
@@ -534,7 +588,9 @@ function findWrongWayDockings(edges, shapes) {
 }
 
 function dockingIsWrong(endpoint, adjacent, shape) {
-  return !dockingSides(endpoint, shape).some(side => {
+  const sides = dockingSides(endpoint, shape);
+
+  return sides.length > 0 && !sides.some(side => {
     if (side === 'top') {
       return adjacent.y < endpoint.y;
     }
@@ -551,8 +607,12 @@ function dockingIsWrong(endpoint, adjacent, shape) {
 
 function dockingSides(point, shape) {
   const sides = [];
+  const centerSides = shape.isEvent || shape.isGateway;
+  const centerX = shape.x + shape.width / 2;
+  const centerY = shape.y + shape.height / 2;
 
-  if (between(point.x, shape.x, shape.x + shape.width)) {
+  if ((!centerSides && between(point.x, shape.x, shape.x + shape.width)) ||
+      (centerSides && near(point.x, centerX))) {
     if (near(point.y, shape.y)) {
       sides.push('top');
     }
@@ -560,7 +620,8 @@ function dockingSides(point, shape) {
       sides.push('bottom');
     }
   }
-  if (between(point.y, shape.y, shape.y + shape.height)) {
+  if ((!centerSides && between(point.y, shape.y, shape.y + shape.height)) ||
+      (centerSides && near(point.y, centerY))) {
     if (near(point.x, shape.x)) {
       sides.push('left');
     }
