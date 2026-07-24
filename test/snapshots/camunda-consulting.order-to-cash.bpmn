@@ -129,8 +129,9 @@
         <di:waypoint x="336" y="200" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_m_ship" bpmnElement="m_ship">
-        <di:waypoint x="686" y="200" />
-        <di:waypoint x="266" y="200" />
+        <di:waypoint x="706" y="200" />
+        <di:waypoint x="706" y="220" />
+        <di:waypoint x="266" y="220" />
         <di:waypoint x="266" y="280" />
         <di:waypoint x="1086" y="280" />
         <di:waypoint x="1086" y="360" />

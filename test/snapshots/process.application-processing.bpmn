@@ -1038,8 +1038,9 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
         <omgdi:waypoint x="528" y="412" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-FD240858-85C6-4D1A-9336-5E043D753A72" bpmnElement="sid-FD240858-85C6-4D1A-9336-5E043D753A72">
-        <omgdi:waypoint x="1832" y="5390" />
-        <omgdi:waypoint x="1812" y="5390" />
+        <omgdi:waypoint x="1852" y="5390" />
+        <omgdi:waypoint x="1852" y="5370" />
+        <omgdi:waypoint x="1812" y="5370" />
         <omgdi:waypoint x="1812" y="5130" />
         <omgdi:waypoint x="1712" y="5130" />
         <omgdi:waypoint x="1712" y="4950" />

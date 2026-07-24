@@ -148,8 +148,9 @@
         <di:waypoint x="491" y="280" />
         <di:waypoint x="511" y="280" />
         <di:waypoint x="511" y="255" />
-        <di:waypoint x="511" y="160" />
-        <di:waypoint x="616" y="160" />
+        <di:waypoint x="511" y="180" />
+        <di:waypoint x="636" y="180" />
+        <di:waypoint x="636" y="160" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_0qyce9w" bpmnElement="SequenceFlow_0qyce9w">
         <di:waypoint x="666" y="160" />

@@ -2298,6 +2298,32 @@ describe('Layout', function() {
       assert.strictEqual(sideCenter, true);
     });
 
+    it('should move tangent message-flow dockings away from task corners', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'camunda-consulting.order-to-cash.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const ship = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNShape') &&
+          element.bpmnElement.id === 'Ship';
+      }).bounds;
+      const messageFlow = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === 'm_ship';
+      }).waypoint;
+      const start = messageFlow[0];
+      const afterStart = messageFlow[1];
+
+      assert.strictEqual(start.y, ship.y + ship.height);
+      assert.ok(start.x > ship.x);
+      assert.ok(start.x < ship.x + ship.width);
+      assert.strictEqual(afterStart.x, start.x);
+      assert.ok(afterStart.y > start.y);
+    });
+
     it('should route sequence flows across intervening lanes', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'lane.skipping-lanes.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
