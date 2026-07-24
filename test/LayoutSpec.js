@@ -538,6 +538,44 @@ describe('Layout', function() {
       }
     });
 
+    it('should route bottom error boundaries without backtracking', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'camunda-consulting.finserv-loan-kyc.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const edge = elements.find(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.id === 'er1';
+      });
+      const shapes = new Map(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const boundary = shapes.get('B_Err');
+      const host = shapes.get('Disburse');
+
+      assert.strictEqual(boundary.y + boundary.height / 2, host.y + host.height);
+      assert.deepStrictEqual(
+        [ edge.waypoint[0].x, edge.waypoint[0].y ],
+        [ boundary.x + boundary.width / 2, boundary.y + boundary.height ]
+      );
+
+      for (let index = 1; index < edge.waypoint.length - 1; index++) {
+        const previous = edge.waypoint[index - 1];
+        const waypoint = edge.waypoint[index];
+        const next = edge.waypoint[index + 1];
+        const incomingX = waypoint.x - previous.x;
+        const incomingY = waypoint.y - previous.y;
+        const outgoingX = next.x - waypoint.x;
+        const outgoingY = next.y - waypoint.y;
+        const dot = incomingX * outgoingX + incomingY * outgoingY;
+
+        assert.ok(dot >= 0);
+      }
+    });
+
     it('should align link catch continuations until they rejoin', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'camunda-8-tutorials.capital-market-exception-processing.bpmn'),

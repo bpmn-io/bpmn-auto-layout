@@ -22,6 +22,8 @@ const moddle = new BpmnModdle();
  *                              endpoint shape.
  * - `nonOrthogonalConnections` — sequence and message flows containing at
  *                                least one diagonal segment.
+ * - `backtrackingConnections` — sequence and message flows containing at
+ *                               least one 180-degree turn.
  *
  * Band-C (polish — informational) numbers:
  *
@@ -50,6 +52,7 @@ const moddle = new BpmnModdle();
  *   edgeShapeIntersections: number,
  *   wrongWayDockings: number,
  *   nonOrthogonalConnections: number,
+ *   backtrackingConnections: number,
  *   bendCount: number,
  *   averageEdgeLength: number,
  *   edgeSegmentLengthDeviation: number,
@@ -96,6 +99,7 @@ export async function analyzeMetrics(xml) {
     edgeShapeIntersections: planes.flatMap(plane => findEdgeShapeIntersections(plane.edges, plane.shapes)),
     wrongWayDockings: planes.flatMap(plane => findWrongWayDockings(plane.edges, plane.shapes)),
     nonOrthogonalConnections: planes.flatMap(plane => findNonOrthogonalConnections(plane.edges)),
+    backtrackingConnections: planes.flatMap(plane => findBacktrackingConnections(plane.edges)),
     labelShapeOverlaps: planes.flatMap(plane => findLabelShapeOverlaps(plane.shapes, plane.edges)),
     labelEdgeOverlaps: planes.flatMap(plane => findLabelEdgeOverlaps(plane.shapes, plane.edges))
   };
@@ -109,6 +113,7 @@ export async function analyzeMetrics(xml) {
     edgeShapeIntersections: findings.edgeShapeIntersections.length,
     wrongWayDockings: findings.wrongWayDockings.length,
     nonOrthogonalConnections: findings.nonOrthogonalConnections.length,
+    backtrackingConnections: findings.backtrackingConnections.length,
     bendCount: sum(planes, plane => countBends(plane.edges)),
     averageEdgeLength: averageEdgeLength(planes.flatMap(plane => plane.edges)),
     edgeSegmentLengthDeviation: roundScore(segmentLengthDeviation(planes)),
@@ -201,6 +206,38 @@ function findNonOrthogonalConnections(edges) {
         });
 
       return segments.length ? { edgeId: edge.id, segments } : null;
+    })
+    .filter(Boolean);
+}
+
+function findBacktrackingConnections(edges) {
+  return edges
+    .filter(edge => edge.isSequenceFlow || edge.isMessageFlow)
+    .map(edge => {
+      const turns = [];
+      const waypoints = removeConsecutiveDuplicates(edge.waypoints);
+
+      for (let index = 1; index < waypoints.length - 1; index++) {
+        const previous = waypoints[index - 1];
+        const waypoint = waypoints[index];
+        const next = waypoints[index + 1];
+        const incoming = {
+          x: waypoint.x - previous.x,
+          y: waypoint.y - previous.y
+        };
+        const outgoing = {
+          x: next.x - waypoint.x,
+          y: next.y - waypoint.y
+        };
+        const cross = incoming.x * outgoing.y - incoming.y * outgoing.x;
+        const dot = incoming.x * outgoing.x + incoming.y * outgoing.y;
+
+        if (Math.abs(cross) <= ORTHOGONAL_TOLERANCE && dot < 0) {
+          turns.push({ previous, waypoint, next });
+        }
+      }
+
+      return turns.length ? { edgeId: edge.id, turns } : null;
     })
     .filter(Boolean);
 }

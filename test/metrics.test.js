@@ -69,6 +69,31 @@ describe('Layout metrics', function() {
     assert.strictEqual(messageFlow.nonOrthogonalConnections, 1);
   });
 
+  it('should count 180-degree sequence flow turns but exclude associations', async function() {
+    const direct = await computeMetrics(metricFixture([
+      [ 200, 140 ],
+      [ 300, 140 ]
+    ]));
+    const backtracking = await computeMetrics(metricFixture([
+      [ 200, 140 ],
+      [ 250, 140 ],
+      [ 220, 140 ],
+      [ 220, 100 ],
+      [ 300, 100 ]
+    ]));
+    const association = await computeMetrics(metricFixture([
+      [ 200, 140 ],
+      [ 250, 140 ],
+      [ 220, 140 ],
+      [ 220, 100 ],
+      [ 300, 100 ]
+    ]).replaceAll('bpmn:sequenceFlow', 'bpmn:association'));
+
+    assert.strictEqual(direct.backtrackingConnections, 0);
+    assert.strictEqual(backtracking.backtrackingConnections, 1);
+    assert.strictEqual(association.backtrackingConnections, 0);
+  });
+
   it('should exclude artifacts from hard geometry defects', async function() {
     const metrics = await computeMetrics(metricFixture(
       [

@@ -220,7 +220,7 @@ isolates it while you iterate. Remember to rename it back before committing.
 
 Snapshot tests tell you that output *changed*; they do not tell you whether it
 got *better*. The metrics harness, which is also run by `npm test`, fills that
-gap. It lays out every fixture and computes twelve numbers per diagram from the
+gap. It lays out every fixture and computes fourteen numbers per diagram from the
 generated DI:
 
 | Metric | Meaning | Lower is better |
@@ -229,6 +229,8 @@ generated DI:
 | `overlaps` | node-pair bounds overlaps, excluding container nesting, boundary-on-host, and artifacts | yes |
 | `edgeShapeIntersections` | edge interiors that pass through unrelated non-container, non-boundary, non-artifact shapes | yes |
 | `wrongWayDockings` | endpoints off their shape perimeter or whose adjacent segment lacks an outward component normal to the docked side | yes |
+| `nonOrthogonalConnections` | sequence or message flows containing a diagonal segment | yes |
+| `backtrackingConnections` | sequence or message flows containing a 180-degree turn | yes |
 | `bendCount` | direction changes in edge waypoint paths | yes |
 | `averageEdgeLength` | average length of edge waypoint polylines | yes |
 | `edgeSegmentLengthDeviation` | standard deviation of positive edge-segment lengths | yes |
