@@ -6,6 +6,12 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+## 2.0.0-alpha.2
+
+* `FEAT`: add a command-line interface for in-place BPMN layout
+* `FIX`: improve artifact placement and route data associations orthogonally
+* `FIX`: improve boundary-event, message-flow, and label layout
+
 ## 2.0.0-alpha.1
 
 * `FIX`: size empty process participants
