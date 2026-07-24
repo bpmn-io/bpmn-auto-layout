@@ -308,10 +308,11 @@ Data object and data store references retain their standard dimensions but use
 the same obstacle-aware search. Resolvable associations are routed after both
 bounds are known, including associations from a parent- or collaboration-scope
 artifact to a visible element inside an expanded subprocess or participant
-process. Artifact placement admits only candidates whose direct association
-segments clear flow-node shapes, so associations always have exactly two
-waypoints and never introduce bendpoints. Process-internal connections treat
-artifacts as transparent. Artifact placement reserves the vertical approach
+process. Artifact placement admits only candidates whose association routes
+clear flow-node shapes. Text annotation associations retain direct routes;
+data object and data store associations use the orthogonal routes described
+above. Process-internal connections treat artifacts as transparent. Artifact
+placement reserves the vertical approach
 corridor above an incoming message endpoint and below an outgoing endpoint;
 endpoints used in both directions reserve both approaches. This moves
 annotations out of the way before collaboration routing, preserving straight
