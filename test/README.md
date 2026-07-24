@@ -110,6 +110,18 @@ npm run metrics
 npm run metrics:update
 ```
 
+## Fixture benchmarking
+
+Measure one normal fixture's `layoutProcess` time after 20 warm-up iterations:
+
+```sh
+npm run benchmark:fixture -- collaboration.message-flows 100
+```
+
+The required iteration count produces average, p50, and p90 timings. The
+fixture may be given by name or as a path relative to `fixtures/`; failure
+fixtures are rejected because they do not produce benchmarkable layout output.
+
 ## Performance tracing
 
 Capture a raw Chrome trace for one fixture with:
