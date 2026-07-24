@@ -1957,6 +1957,71 @@ describe('Layout', function() {
       assert.ok(dataObject.y + dataObject.height <= lane.y + lane.height);
     });
 
+    it('should give multiply-associated data objects shared clearance', async function() {
+      const cases = [
+        {
+          fixture: 'data-object-and-store.reference.bpmn',
+          artifact: 'DataObjectReference_1r641a6',
+          owners: [ 'Activity_0o6pkm5', 'Activity_1g6x9ev' ]
+        },
+        {
+          fixture: 'process.application-processing.bpmn',
+          artifact: 'sid-8D8BD39F-1B08-433F-8F93-A1FF7520BA8B',
+          owners: [
+            'sid-A9859F1C-A85B-4F2F-B2DF-E3F4F7FA67FA',
+            'sid-F0DA46E1-7E86-4236-9D49-290DD7B87C61'
+          ]
+        }
+      ];
+      const rectangleDistance = (a, b) => {
+        const horizontal = Math.max(
+          a.x - b.x - b.width,
+          b.x - a.x - a.width,
+          0
+        );
+        const vertical = Math.max(
+          a.y - b.y - b.height,
+          b.y - a.y - a.height,
+          0
+        );
+
+        return Math.hypot(horizontal, vertical);
+      };
+
+      for (const { fixture, artifact, owners } of cases) {
+        const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
+        const output = await layoutProcess(xml);
+        const { rootElement } = await new BpmnModdle().fromXML(output);
+        const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+          .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+          .map(element => [ element.bpmnElement.id, element.bounds ]));
+
+        for (const owner of owners) {
+          assert.ok(
+            rectangleDistance(shapes.get(artifact), shapes.get(owner)) >=
+              2 * ROUTING_MARGIN
+          );
+        }
+      }
+    });
+
+    it('should fan out repeated associations between the same elements', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'process.application-processing.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const edges = new Map(rootElement.diagrams[0].plane.planeElement
+        .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
+        .map(element => [ element.bpmnElement.id, element.waypoint ]));
+      const input = edges.get('sid-A1B5F8D2-3FF2-4FAE-A885-819174BB01BD');
+      const outputAssociation = edges.get('sid-1D74E5C9-7875-42C7-B069-7EF805115BFB');
+
+      assert.notStrictEqual(input[0].y, outputAssociation.at(-1).y);
+      assert.notStrictEqual(input.at(-1).y, outputAssociation[0].y);
+    });
+
     it('should keep strongly connected collapsed participants adjacent', async function() {
       const xml = fs.readFileSync(
         path.join(
