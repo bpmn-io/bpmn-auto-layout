@@ -47,7 +47,8 @@ flowchart LR
     D --> E["Place and compact shapes"]
     E --> F["Apply containers and lanes"]
     F --> G["Route connections"]
-    G --> H["Normalize and emit BPMN DI"]
+    G --> H["Finalize connection docking"]
+    H --> I["Emit BPMN DI"]
 ```
 
 The layout state for each process or sub-process contains shape bounds, edge
@@ -473,16 +474,19 @@ Participant docks are constrained to their pool bounds while routing. Empty
 pools then expand around uncovered docks and reroute until straight flows stay
 attached wherever obstacles permit.
 
-## DI emission
+## Connection finalization and DI emission
 
 The complete layout is translated so its minimum extents begin at the 80 px
-outer margin. [`DiFactory`](../lib/di/DiFactory.js) emits BPMN shapes and edges.
+outer margin. [`ConnectionDocking`](../lib/layout/ConnectionDocking.js) then
+finalizes connection geometry on layout state. Only after routes are final does
+[`DiFactory`](../lib/di/DiFactory.js) emit BPMN shapes and edges without
+changing their geometry.
 
 Expanded child layouts are emitted on their parent plane. Collapsed sub-process
 children are normalized and emitted recursively on separate planes.
 
-Before serialization, endpoint geometry is normalized across the complete DI
-plane. A docked segment must have an outward component normal to its shape side;
+Before serialization, endpoint geometry is normalized across the complete
+layout plane. A docked segment must have an outward component normal to its shape side;
 tangent segments are redirected to the matching side, and redundant waypoints
 inside endpoint bounds are removed. If redirecting would collapse the endpoint
 segment, a short outside dogleg preserves an explicit outward approach.
@@ -541,7 +545,8 @@ task-sized fallback geometry.
 | External label placement | [`LabelLayouter`](../lib/layout/LabelLayouter.js) |
 | Layout state and geometry | [`LayoutUtil`](../lib/layout/LayoutUtil.js) |
 | Input validation | [`Validation`](../lib/layout/Validation.js) |
-| DI output and final docking | [`LayoutEmitter`](../lib/di/LayoutEmitter.js), [`DiFactory`](../lib/di/DiFactory.js) |
+| Final connection docking | [`ConnectionDocking`](../lib/layout/ConnectionDocking.js) |
+| DI output | [`LayoutEmitter`](../lib/di/LayoutEmitter.js), [`DiFactory`](../lib/di/DiFactory.js) |
 
 ## Maintaining the contract
 
