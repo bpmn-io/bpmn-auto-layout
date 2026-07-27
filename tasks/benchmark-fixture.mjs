@@ -1,5 +1,5 @@
 import { readFile, stat } from 'node:fs/promises';
-import { basename, relative, resolve, sep } from 'node:path';
+import { basename, dirname, relative, resolve, sep } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { fileURLToPath } from 'node:url';
 
@@ -10,7 +10,7 @@ import {
 } from './benchmark-util.mjs';
 
 const WARMUP_ITERATIONS = 20;
-const projectRoot = resolve(import.meta.dirname, '..');
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const fixturesDirectory = resolve(projectRoot, 'test', 'fixtures');
 
 export async function resolveFixturePath(fixtureArgument) {

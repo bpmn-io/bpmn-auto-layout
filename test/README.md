@@ -6,6 +6,7 @@ This directory contains two complementary ways to evaluate layout output:
 | --- | --- | --- | --- |
 | Snapshot regression suite | `npm test` | Detect every byte-level change to generated BPMN XML. | yes |
 | Layout-quality metrics | `npm test` or `npm run metrics` | Reject ambiguity defects and report narrative/polish deltas. | yes |
+| Performance budgets | `npm run test:performance` | Reject regressions in exact participant ordering and the critical collaboration fixture. | CI |
 
 Both use every `.bpmn` file in [`fixtures/`](fixtures). Snapshot tests protect
 against unintended changes; metrics indicate whether an intentional change
@@ -121,6 +122,11 @@ npm run benchmark:fixture -- collaboration.message-flows 100
 The required iteration count produces average, p50, and p90 timings. The
 fixture may be given by name or as a path relative to `fixtures/`; failure
 fixtures are rejected because they do not produce benchmarkable layout output.
+
+`npm run test:performance` enforces generous p50 ceilings for the
+eight-participant exact-ordering threshold and
+`process.application-processing.bpmn`. CI runs these budgets on Node.js 24;
+normal correctness checks run on every supported Node.js release line.
 
 ## Performance tracing
 

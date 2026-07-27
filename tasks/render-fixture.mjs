@@ -1,11 +1,12 @@
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
-import { basename, relative, resolve, sep } from 'node:path';
+import { basename, dirname, relative, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { convertAll } from 'bpmn-to-image';
 
 import { layoutProcess } from '../dist/index.js';
 
-const projectRoot = resolve(import.meta.dirname, '..');
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const fixturesDirectory = resolve(projectRoot, 'test', 'fixtures');
 const renderedDirectory = resolve(projectRoot, 'test', 'output', 'rendered');
 
