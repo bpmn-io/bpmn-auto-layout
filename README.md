@@ -34,6 +34,17 @@ console.warn(warnings);
 `LayoutWarning` instances. Invalid or unsupported input rejects with an exported
 `LayoutError`.
 
+### Runtime and cancellation
+
+XML parsing and serialization are asynchronous, but layout computation is
+CPU-bound and runs synchronously. Run large or untrusted diagrams in a Web
+Worker or Node.js `worker_threads` worker so layout cannot block the application
+event loop or browser main thread.
+
+An in-flight layout cannot be interrupted with an `AbortSignal`. To enforce a
+deadline, run one layout per worker and terminate that worker when the deadline
+expires.
+
 ## Command line
 
 The package also provides a command-line interface:
@@ -64,6 +75,7 @@ the input. Layout warnings are emitted as JSON lines to standard error. Use
 ```sh
 npm install
 npm run all
+npm run test:performance
 ```
 
 See [`test/README.md`](./test/README.md) for test, snapshot, inspection, and
