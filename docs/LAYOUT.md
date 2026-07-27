@@ -373,7 +373,9 @@ flowchart LR
 
 The rectilinear visibility graph uses x- and y-coordinates derived from endpoint
 ports, shape margins, and outer bounds. Dijkstra-style shortest-path search
-chooses a legal orthogonal path.
+chooses a legal orthogonal path. Grid construction is capped at 4,096 candidate
+points. Above that bound the router skips directly to its bounded outer and
+perimeter fallbacks instead of materializing a potentially quadratic grid.
 
 A segment is legal when it:
 
