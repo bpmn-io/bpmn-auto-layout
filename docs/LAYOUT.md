@@ -56,7 +56,7 @@ layout/index.js                parse, select root, finalize, emit
 layout/process/index.js        process pipeline and ordered stage list
 layout/process/steps/          one high-level implementation per stage
 layout/process/semantics/      policy, ranking, and band algorithms
-layout/process/placement/      flow-node and container placement algorithms
+layout/process/placement/      flow-node, lane, and container placement algorithms
 layout/process/routing/        sequence-flow routing algorithms
 layout/collaboration/index.js  collaboration pipeline and ordered stage list
 layout/collaboration/steps/    one high-level implementation per stage
@@ -76,6 +76,27 @@ layout/bpmn/                   BPMN predicates and validation
 
 Dependencies flow down this tree: entrypoints call stages, stages call
 domain algorithms, and domain algorithms use BPMN and geometry primitives.
+
+### Decomposition standard
+
+Entrypoints and major domain operations should read top-down as an ordered
+sequence of named phases or decisions. Classification, preparation, candidate
+generation, validation, scoring, fallback selection, and result application
+belong behind explicit functions when they form independently understandable
+steps.
+
+Decomposition follows concepts rather than line counts. A cohesive algorithm
+kernel such as graph search, route scoring, or geometric candidate construction
+may remain in one function when splitting it would hide shared invariants or
+force state through generic helper APIs. Short helpers that exist only to close
+over one algorithm's state may remain local. Reusable or independently testable
+domain concepts belong at module scope or in a specifically named module.
+Generic `*Util` modules and wrappers that merely move code without revealing
+the execution model are avoided.
+
+Focused specs use the implementation concept's name and protect the boundaries
+that snapshots alone do not explain. Snapshot fixtures remain the integration
+contract for complete generated geometry.
 
 For a concrete trace through every process-pipeline stage, see the
 [boundary-error-event walkthrough](./WALKTHROUGH.md).
@@ -627,7 +648,9 @@ task-sized fallback geometry.
 | Process pipeline and stages | [`process/`](../lib/layout/process) |
 | Collaboration orchestration and message-flow layout | [`collaboration/`](../lib/layout/collaboration) |
 | Spine, components, bands, cycles, and ranks | [`process/semantics/`](../lib/layout/process/semantics) |
-| Coordinates, compaction, lanes, and boundary events | [`process/placement/`](../lib/layout/process/placement) |
+| Coordinates, component packing, and boundary events | [`process/placement/ShapePlacement.js`](../lib/layout/process/placement/ShapePlacement.js) |
+| Lane membership, measurement, and placement | [`process/placement/LanePlacement.js`](../lib/layout/process/placement/LanePlacement.js) |
+| Participant container bounds and expanded subprocesses | [`process/placement/ParticipantBounds.js`](../lib/layout/process/placement/ParticipantBounds.js), [`process/placement/ExpandedSubProcess.js`](../lib/layout/process/placement/ExpandedSubProcess.js) |
 | Sequence-flow routing | [`process/routing/`](../lib/layout/process/routing) |
 | Artifact context and ownership | [`artifacts/Context.js`](../lib/layout/artifacts/Context.js), [`artifacts/Ownership.js`](../lib/layout/artifacts/Ownership.js) |
 | Artifact candidates, scoring, search, and placement | [`artifacts/Placement.js`](../lib/layout/artifacts/Placement.js), [`artifacts/PlacementSearch.js`](../lib/layout/artifacts/PlacementSearch.js), [`artifacts/PlacementCandidates.js`](../lib/layout/artifacts/PlacementCandidates.js), [`artifacts/PlacementScoring.js`](../lib/layout/artifacts/PlacementScoring.js) |
