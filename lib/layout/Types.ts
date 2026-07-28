@@ -98,3 +98,29 @@ export type ProcessLayoutContext = {
   layout: LayoutState;
   warnings: LayoutWarning[];
 };
+
+export type CollaborationLayoutStep = (
+  context: CollaborationLayoutContext
+) => CollaborationLayoutContext;
+
+export type CollaborationLayoutOptions = {
+  expandedIds: Set<string>;
+  steps: ReadonlyArray<CollaborationLayoutStep>;
+};
+
+export type CollaborationLayoutContext = {
+  collaboration: BpmnElement;
+  options: CollaborationLayoutOptions;
+  participants: {
+    layouts: Map<BpmnElement, LayoutState>;
+    anchorPositioned: Set<BpmnElement>;
+    expandable: Set<BpmnElement>;
+    order: BpmnElement[];
+  };
+  routing: {
+    endpointDirections: Map<BpmnElement, Set<string>>;
+    channelOffsets: Map<BpmnElement, number>;
+  };
+  layout: LayoutState;
+  warnings: LayoutWarning[];
+};

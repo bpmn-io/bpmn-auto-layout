@@ -2,9 +2,9 @@ import assert from 'node:assert';
 
 import {
   participantOrderingStrategy
-} from '../lib/layout/collaboration/MessageFlowLayout.js';
+} from '../lib/layout/collaboration/ordering/ParticipantOrdering.js';
 
-describe('MessageFlowLayout', function() {
+describe('ParticipantOrdering', function() {
 
   it('should bound exhaustive participant ordering', function() {
     assert.strictEqual(participantOrderingStrategy(8), 'exhaustive');
