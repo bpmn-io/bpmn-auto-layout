@@ -212,13 +212,17 @@ The boundary route begins with a vertical outward segment from the event's
 bottom center, then turns right into the handler task's left center. It never
 passes through the attached task.
 
-## 7. Normalize and emit DI
+## 7. Normalize, finalize docking, and emit DI
 
-`LayoutEmitter` rounds bounds and waypoints, removes redundant collinear points,
-and verifies that endpoint segments leave and enter their shapes through an
-outward-facing side. It emits a new `BPMNDiagram_Process_1` and
-`BPMNPlane_Process_1`, with `BPMNShape_*` and `BPMNEdge_*` IDs derived from the
-semantic element IDs.
+`normalizeLayout` rounds bounds and waypoints to integer coordinates.
+`ConnectionDocking` then removes redundant collinear points and ensures that
+sequence-flow endpoint segments leave and enter their shapes through
+outward-facing sides. It also resolves final boundary-event exits and
+orthogonal elbows against the completed layout.
+
+`LayoutEmitter` serializes this finalized geometry into a new
+`BPMNDiagram_Process_1` and `BPMNPlane_Process_1`, with `BPMNShape_*` and
+`BPMNEdge_*` IDs derived from the semantic element IDs.
 
 The fixture's boundary event has no name, so it receives no explicit label DI.
 The generated DI is byte-for-byte equal to the committed snapshot.
