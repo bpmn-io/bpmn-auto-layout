@@ -4,7 +4,6 @@ import { readFile } from 'node:fs/promises';
 import { BpmnModdle } from 'bpmn-moddle';
 
 import {
-  createProcessLayoutContext,
   layoutProcessScope,
   PROCESS_LAYOUT_STEPS
 } from '../lib/layout/process/index.js';
@@ -30,10 +29,17 @@ describe('ProcessPipeline', function() {
 
   it('should create a complete process-layout context before the first step', function() {
     const process = createProcess();
+    let context;
+    const steps = [
+      function captureInitialContext(initialContext) {
+        context = initialContext;
 
-    const context = createProcessLayoutContext(process, {
-      steps: PROCESS_LAYOUT_STEPS
-    });
+        return initialContext;
+      },
+      ...PROCESS_LAYOUT_STEPS
+    ];
+
+    const result = layoutProcessScope(process, { steps });
 
     assert.strictEqual(context.scope, process);
     assert.deepStrictEqual(Object.keys(context), [
@@ -50,8 +56,10 @@ describe('ProcessPipeline', function() {
     assert.deepStrictEqual(context.graph.nodes, []);
     assert.strictEqual(context.semantics.policy, null);
     assert.strictEqual(context.semantics.ranks, null);
-    assert.strictEqual(context.options.steps, PROCESS_LAYOUT_STEPS);
+    assert.strictEqual(context.options.steps, steps);
+    assert.strictEqual(typeof context.options.layoutScope, 'function');
     assert.strictEqual(context.layout.scope, process);
+    assert.strictEqual(result.layout, context.layout);
   });
 
 
