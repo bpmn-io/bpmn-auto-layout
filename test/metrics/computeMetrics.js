@@ -1,7 +1,7 @@
 import { BpmnModdle } from 'bpmn-moddle';
 
 import { FLOW_LABEL_INDENT } from '../../lib/layout/Constants.js';
-import { externalLabelSize } from '../../lib/layout/LabelLayouter.js';
+import { externalLabelSize } from '../../lib/layout/labels/LayoutLabels.js';
 
 const moddle = new BpmnModdle();
 
