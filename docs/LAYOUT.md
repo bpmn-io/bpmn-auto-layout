@@ -512,10 +512,11 @@ normalization, finalization, and DI output. It delegates process scopes to the
 [`process` entrypoint](../lib/layout/process/index.js) and collaborations to the
 [`collaboration` entrypoint](../lib/layout/collaboration/index.js).
 
-Process and collaboration layout use internal functional pipelines. Their
-default step lists are immutable; custom step lists are an internal testing and
-extension seam, not part of the public package API. A custom process list also
-applies to nested sub-process scopes.
+The process and collaboration entrypoints each create their complete context,
+execute their ordered phases, and return completed layout state and warnings.
+Their default step lists are immutable; custom step lists are an internal
+testing and extension seam, not part of the public package API. A custom process
+list also applies to nested sub-process scopes.
 
 ### Process pipeline
 
@@ -537,7 +538,7 @@ Every step receives and returns one process context:
 | Group | Meaning |
 | --- | --- |
 | `scope` | The process or sub-process being laid out. |
-| `options` | Expansion, participant, message-endpoint, and step-list options. |
+| `options` | Expansion, participant, message-endpoint, step-list, and private recursive scope-layout options. |
 | `elements` | Extracted groups and connections. |
 | `graph` | Flow nodes, ordinary edges, and boundary-handler edges. |
 | `semantics` | Semantic policy and assigned ranks. |
@@ -547,7 +548,9 @@ Every step receives and returns one process context:
 
 Extraction initializes elements and placement records. Semantic analysis
 replaces graph and policy state without writing geometry. Placement writes
-shape bounds, and process routing writes edge waypoints.
+shape bounds, and process routing writes edge waypoints. Child-scope layout
+re-enters the process entrypoint through the context's private recursive
+scope-layout function.
 
 ### Collaboration pipeline
 
@@ -573,8 +576,8 @@ type-only JSDoc imports.
 
 ```text
 layout/index.js                parse, select root, finalize, emit
-layout/process/                process stages, semantics, placement, and routing
-layout/collaboration/          participant ordering, placement, and message routing
+layout/process/                process lifecycle, stages, semantics, placement, and routing
+layout/collaboration/          collaboration lifecycle, participant placement, and message routing
 layout/artifacts/              artifact ownership, placement, and association routing
 layout/routing/                shared orthogonal search and BPMN routing adapter
 layout/connections/            final connection docking

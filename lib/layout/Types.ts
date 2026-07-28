@@ -59,11 +59,20 @@ export type ProcessLayoutStep = (
   context: ProcessLayoutContext
 ) => ProcessLayoutContext;
 
+export type ProcessLayoutResult = {
+  layout: LayoutState;
+  warnings: LayoutWarning[];
+};
+
 export type ProcessLayoutOptions = {
   expandedIds: Set<string>;
   participantProcess: boolean;
   messageFlowEndpointDirections: Map<BpmnElement, Set<string>>;
   steps: ReadonlyArray<ProcessLayoutStep>;
+  layoutScope: (
+    scope: BpmnElement,
+    options?: Partial<ProcessLayoutOptions>
+  ) => ProcessLayoutResult;
 };
 
 export type ProcessElements = {

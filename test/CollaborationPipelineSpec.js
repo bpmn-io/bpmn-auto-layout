@@ -5,7 +5,6 @@ import { BpmnModdle } from 'bpmn-moddle';
 
 import {
   COLLABORATION_LAYOUT_STEPS,
-  createCollaborationLayoutContext,
   layoutCollaboration
 } from '../lib/layout/collaboration/index.js';
 
@@ -27,9 +26,17 @@ describe('CollaborationPipeline', function() {
 
   it('should create a complete context before the first step', function() {
     const collaboration = createCollaboration();
-    const context = createCollaborationLayoutContext(collaboration, {
-      steps: COLLABORATION_LAYOUT_STEPS
-    });
+    let context;
+    const steps = [
+      function captureInitialContext(initialContext) {
+        context = initialContext;
+
+        return initialContext;
+      },
+      ...COLLABORATION_LAYOUT_STEPS
+    ];
+
+    const result = layoutCollaboration(collaboration, { steps });
 
     assert.deepStrictEqual(Object.keys(context), [
       'collaboration',
@@ -40,11 +47,12 @@ describe('CollaborationPipeline', function() {
       'warnings'
     ]);
     assert.strictEqual(context.collaboration, collaboration);
-    assert.strictEqual(context.options.steps, COLLABORATION_LAYOUT_STEPS);
+    assert.strictEqual(context.options.steps, steps);
     assert.deepStrictEqual(context.participants.layouts, new Map());
     assert.deepStrictEqual(context.participants.order, []);
     assert.deepStrictEqual(context.routing.channelOffsets, new Map());
     assert.strictEqual(context.layout.scope, collaboration);
+    assert.strictEqual(result.layout, context.layout);
   });
 
 
