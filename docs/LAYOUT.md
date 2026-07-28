@@ -245,13 +245,13 @@ Connected components still preserve their sequence-flow order.
 
 ### Sub-processes
 
-An expanded embedded sub-process is sized around its child layout with 40 px
-padding and a minimum size of 140 x 120 px. A named sub-process reserves a
-centered, fixed-height 28 px title area inside its top padding; multiline titles
-do not enlarge this area.
+An expanded embedded sub-process is sized around its child layout with the
+configured padding and a minimum size of 140 x 120 px. A named sub-process
+reserves the fixed title band inside its top padding; multiline titles do not
+enlarge it.
 
 If an external label has no close preferred position other than that title
-area, the complete child layout moves down by 28 px so the label can remain
+band, the complete child layout moves down by its height so the label can remain
 adjacent to its owner. Parent sequence flows dock at the sub-process perimeter;
 child flows remain inside.
 
@@ -327,7 +327,7 @@ overlapping one another.
 Groups are placed after artifacts and routing. Membership is explicit: a node
 or connection belongs to a group when its `categoryValueRef` contains the
 group's category value. Group bounds are the union of member shape bounds and
-member connection waypoints, expanded by 40 px on every side.
+member connection waypoints, expanded by the configured group padding.
 
 Groups are transparent to routing and hard overlap metrics. Their category
 value is shown as an external label above the group. Groups without visible
@@ -402,10 +402,9 @@ content are positioned and minimally sized from message-flow anchors, whether
 they have an empty process or no process reference. An empty process-backed pool
 keeps its alignment when all anchors already fit with header clearance.
 
-For process participants without lanes, the 30 px participant header is added
-before the normal 40 px process-content padding; it does not consume that
-padding. Lane-backed participants start their lane tiles after the header, and
-the lane layout supplies its own 40 px content padding.
+For process participants without lanes, the participant header precedes the
+normal process-content padding without consuming it. Lane-backed participants
+start their lane tiles after the header and use the configured lane padding.
 
 ### Ordering and alignment
 
@@ -460,12 +459,11 @@ around uncovered docks and reroute until every dock fits.
 
 ## Connection finalization and DI emission
 
-The layout is translated so its minimum shape extents begin at the 80 px outer
-margin; its edge waypoints move by the same offset and may occupy that outer
-routing space. [`FinalizeConnections`](../lib/layout/connections/FinalizeConnections.js)
-then finalizes connection geometry on layout state. Only after routes are final
-does [`DiFactory`](../lib/di/DiFactory.js) emit BPMN shapes and edges without
-changing their geometry.
+The layout is translated so its minimum shape extents begin at the outer shape
+margin. Edge waypoints move by the same offset and may occupy that routing
+space. [`FinalizeConnections`](../lib/layout/connections/FinalizeConnections.js)
+then finalizes connection geometry; only afterward does
+[`DiFactory`](../lib/di/DiFactory.js) emit BPMN shapes and edges.
 
 Expanded child layouts are emitted on their parent plane. Collapsed sub-process
 children are normalized and emitted recursively on separate planes.
@@ -507,16 +505,12 @@ elements never receive task-sized fallback geometry.
 
 ## Execution architecture
 
-The [`layout` entrypoint](../lib/layout/index.js) handles parsing, root selection,
-normalization, finalization, and DI output. It delegates process scopes to the
-[`process` entrypoint](../lib/layout/process/index.js) and collaborations to the
-[`collaboration` entrypoint](../lib/layout/collaboration/index.js).
-
-The process and collaboration entrypoints each create their complete context,
-execute their ordered phases, and return completed layout state and warnings.
-Their default step lists are immutable; custom step lists are an internal
-testing and extension seam, not part of the public package API. A custom process
-list also applies to nested sub-process scopes.
+The [`layout` entrypoint](../lib/layout/index.js) owns parsing, root selection,
+normalization, finalization, and DI output, delegating process scopes to
+[`process`](../lib/layout/process/index.js) and collaborations to
+[`collaboration`](../lib/layout/collaboration/index.js). Those entrypoints build
+their contexts and run immutable default step lists. Custom lists are an
+internal seam and propagate into nested process scopes.
 
 ### Process pipeline
 
@@ -533,24 +527,12 @@ extractElements
 → placeGroups
 ```
 
-Every step receives and returns one process context:
-
-| Group | Meaning |
-| --- | --- |
-| `scope` | The process or sub-process being laid out. |
-| `options` | Expansion, participant, message-endpoint, step-list, and private recursive scope-layout options. |
-| `elements` | Extracted groups and connections. |
-| `graph` | Flow nodes, ordinary edges, and boundary-handler edges. |
-| `semantics` | Semantic policy and assigned ranks. |
-| `placement` | Mutable per-element placement records. |
-| `layout` | Shape, edge, and child-scope geometry. |
-| `warnings` | Diagnostics from this scope and its descendants. |
-
-Extraction initializes elements and placement records. Semantic analysis
-replaces graph and policy state without writing geometry. Placement writes
-shape bounds, and process routing writes edge waypoints. Child-scope layout
-re-enters the process entrypoint through the context's private recursive
-scope-layout function.
+Each step receives and returns one context containing the scope and recursive
+options, extracted elements, graph and semantic state, mutable placement
+records, layout state, and warnings. Extraction initializes elements and
+placement; semantic analysis replaces graph and policy state without writing
+geometry. Placement writes shape bounds, routing writes edge waypoints, and
+nested scopes re-enter the process entrypoint through a private callback.
 
 ### Collaboration pipeline
 
@@ -564,37 +546,17 @@ validateCollaboration
 → placeArtifacts
 ```
 
-The collaboration context tracks participant layouts and order, message-routing
-state, generated geometry, and warnings. Message routing writes edges and may
+The collaboration context tracks participant layouts, ordering, geometry, and
+warnings. Its phases live with their domain implementations; message routing may
 expand resizable participant bounds until every participant-side dock fits.
-The ordering, positioning, and message-routing phase interfaces live with their
-owning domain implementations. Participant-row compaction remains a separate
-packing phase.
 
 Reusable context contracts live in
 [`Types.ts`](../lib/layout/Types.ts). Runtime modules reference them through
 type-only JSDoc imports.
 
-### Source organization
-
-```text
-layout/index.js                parse, select root, finalize, emit
-layout/process/                process lifecycle, stages, semantics, placement, and routing
-layout/collaboration/          collaboration lifecycle, participant placement, and message routing
-layout/artifacts/              artifact ownership, placement, and association routing
-layout/routing/                shared orthogonal search and BPMN routing adapter
-layout/connections/            final connection docking
-layout/labels/                 external label placement
-layout/groups/                 explicit group bounds
-layout/geometry/               layout state and geometry primitives
-layout/bpmn/                   BPMN predicates and validation
-```
-
-Entrypoints call ordered stages; stages delegate to named domain algorithms.
 Process, collaboration, artifact, and connection-finalization routing reuse the
-shared orthogonal-routing module where their geometric contracts are the same.
-BPMN endpoint and shared-channel semantics cross that seam through the BPMN
-routing adapter.
+shared orthogonal search where their geometric contracts match. BPMN endpoint
+and shared-channel semantics remain in its adapter.
 
 ### Decomposition standard
 
@@ -617,10 +579,7 @@ complete generated geometry.
 | --- | --- |
 | Layout engine entrypoint | [`layout/index.js`](../lib/layout/index.js) |
 | Process pipeline and stages | [`process/`](../lib/layout/process) |
-| Collaboration pipeline | [`collaboration/index.js`](../lib/layout/collaboration/index.js) |
-| Participant ordering phase and algorithms | [`collaboration/ordering/ParticipantOrdering.js`](../lib/layout/collaboration/ordering/ParticipantOrdering.js) |
-| Participant positioning phase and algorithms | [`collaboration/placement/ParticipantPlacement.js`](../lib/layout/collaboration/placement/ParticipantPlacement.js) |
-| Message-routing fixed point and algorithms | [`collaboration/routing/MessageFlowRouting.js`](../lib/layout/collaboration/routing/MessageFlowRouting.js) |
+| Collaboration pipeline and geometry | [`collaboration/`](../lib/layout/collaboration) |
 | Spine, components, bands, cycles, and ranks | [`process/semantics/`](../lib/layout/process/semantics) |
 | Coordinates, component packing, and boundary events | [`process/placement/ShapePlacement.js`](../lib/layout/process/placement/ShapePlacement.js) |
 | Lane membership, measurement, and placement | [`process/placement/LanePlacement.js`](../lib/layout/process/placement/LanePlacement.js) |
@@ -641,19 +600,12 @@ complete generated geometry.
 
 For an intentional behavior change:
 
-1. add or update a focused concept or pipeline spec for a named internal
-   contract, and use [`LayoutSpec.js`](../test/LayoutSpec.js) with a minimal
-   [fixture](../test/fixtures) when complete generated geometry changes;
-2. inspect the generated output and committed snapshot as described in
+1. update the focused spec or a minimal [`LayoutSpec.js`](../test/LayoutSpec.js)
+   [fixture](../test/fixtures);
+2. inspect snapshots and corpus metrics as described in
    [`test/README.md`](../test/README.md);
-3. review the corpus metrics;
-4. update this document when the rule or mechanism changed.
+3. update this document when the rule or mechanism changes.
 
-Snapshots record exact geometry. Metrics report crossings, bends, shape
-overlaps, edge/shape intersections, label/shape overlaps, wrong-way endpoint
-dockings, non-orthogonal sequence and message flows, label/edge overlaps,
-average edge length and segment-length variation, compactness, grid alignment,
-and non-default gateway-fan symmetry. Wrong-way docking and non-orthogonal
-connection counts must remain zero across the fixture corpus. Rectangular
-corner dockings count as wrong-way because they do not identify one unambiguous
-shape side. Neither snapshots nor metrics replace visual review.
+Snapshots record exact geometry; metrics expose quality trends. Wrong-way
+docking and non-orthogonal connection counts must remain zero across the fixture
+corpus. Neither replaces visual review.
