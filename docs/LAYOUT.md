@@ -63,7 +63,12 @@ layout/collaboration/steps/    one high-level implementation per stage
 layout/collaboration/ordering/ participant ordering algorithms
 layout/collaboration/placement participant sizing and positioning algorithms
 layout/collaboration/routing/  message-flow routing algorithms
-layout/artifacts/              artifact placement and association routing
+layout/artifacts/index.js      artifact layout orchestration
+layout/artifacts/Context.js    artifact layout working state
+layout/artifacts/Ownership.js  artifact ownership and containment
+layout/artifacts/Placement*.js placement candidates, scoring, and search
+layout/artifacts/ObstacleRoutes.js existing and reserved route obstacles
+layout/artifacts/AssociationRouting.js association docking and routing
 layout/connections/            final connection docking
 layout/geometry/               layout state and geometry primitives
 layout/bpmn/                   BPMN predicates and validation
@@ -624,7 +629,9 @@ task-sized fallback geometry.
 | Spine, components, bands, cycles, and ranks | [`process/semantics/`](../lib/layout/process/semantics) |
 | Coordinates, compaction, lanes, and boundary events | [`process/placement/`](../lib/layout/process/placement) |
 | Sequence-flow routing | [`process/routing/`](../lib/layout/process/routing) |
-| Artifact placement and association routing | [`artifacts/`](../lib/layout/artifacts) |
+| Artifact context and ownership | [`artifacts/Context.js`](../lib/layout/artifacts/Context.js), [`artifacts/Ownership.js`](../lib/layout/artifacts/Ownership.js) |
+| Artifact candidates, scoring, and placement | [`artifacts/Placement.js`](../lib/layout/artifacts/Placement.js), [`artifacts/PlacementCandidates.js`](../lib/layout/artifacts/PlacementCandidates.js), [`artifacts/PlacementScoring.js`](../lib/layout/artifacts/PlacementScoring.js) |
+| Artifact obstacle and association routing | [`artifacts/ObstacleRoutes.js`](../lib/layout/artifacts/ObstacleRoutes.js), [`artifacts/AssociationRouting.js`](../lib/layout/artifacts/AssociationRouting.js) |
 | External label placement | [`labels/`](../lib/layout/labels) |
 | Layout state and geometry | [`geometry/`](../lib/layout/geometry) |
 | BPMN predicates and validation | [`bpmn/`](../lib/layout/bpmn) |
