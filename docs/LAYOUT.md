@@ -4,16 +4,18 @@ This document describes the layout produced by `bpmn-auto-layout` and the
 algorithm that produces it. The [`layout` entrypoint](../lib/layout/index.js)
 handles parsing, validation, root selection, finalization, and DI output; the
 [`process` entrypoint](../lib/layout/process/index.js) lays out each process
-scope. Executable behavior lives
+scope, and the
+[`collaboration` entrypoint](../lib/layout/collaboration/index.js) lays out
+participants and message flows. Executable behavior lives
 in [`LayoutSpec.js`](../test/LayoutSpec.js) and the reviewed
 [fixture corpus](../test/fixtures).
 
-The process pipeline is an internal ordered list of transform functions.
-The default list is immutable. An internal caller may supply a different step
-list; customization is not part of the public package API.
+The process and collaboration pipelines are internal ordered lists of transform
+functions. Their default lists are immutable. An internal caller may supply a
+different step list; customization is not part of the public package API.
 
-Every step receives and returns the pipeline context; a customized list is also
-used for nested sub-process scopes.
+Every step receives and returns its pipeline context. A customized process list
+is also used for nested sub-process scopes.
 
 `createProcessLayoutContext` initializes its complete shape before the first
 step:
@@ -36,6 +38,12 @@ collections inside `layout`; routing mutates only `layout.edges`. A custom step
 therefore receives stable property names while still depending on the guarantees
 of its insertion phase.
 
+`createCollaborationLayoutContext` similarly groups the collaboration,
+participant layouts and ordering, message-flow routing state, generated layout,
+and warnings. Its stages validate the collaboration, lay out participants, order
+and position them, compact rows, route message flows, and place collaboration
+artifacts.
+
 Reusable structural contracts are exported from
 [`Types.ts`](../lib/layout/Types.ts). JavaScript implementation files reference
 them through type-only JSDoc imports; TypeScript validates that module without
@@ -50,7 +58,11 @@ layout/process/steps/          one high-level implementation per stage
 layout/process/semantics/      policy, ranking, and band algorithms
 layout/process/placement/      flow-node and container placement algorithms
 layout/process/routing/        sequence-flow routing algorithms
-layout/collaboration/          collaboration orchestration and message flows
+layout/collaboration/index.js  collaboration pipeline and ordered stage list
+layout/collaboration/steps/    one high-level implementation per stage
+layout/collaboration/ordering/ participant ordering algorithms
+layout/collaboration/placement participant sizing and positioning algorithms
+layout/collaboration/routing/  message-flow routing algorithms
 layout/artifacts/              artifact placement and association routing
 layout/connections/            final connection docking
 layout/geometry/               layout state and geometry primitives
@@ -60,7 +72,7 @@ layout/bpmn/                   BPMN predicates and validation
 Dependencies flow down this tree: entrypoints call stages, stages call
 domain algorithms, and domain algorithms use BPMN and geometry primitives.
 
-For a concrete trace through every pipeline stage, see the
+For a concrete trace through every process-pipeline stage, see the
 [boundary-error-event walkthrough](./WALKTHROUGH.md).
 
 ## Contract
