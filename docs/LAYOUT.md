@@ -1,10 +1,10 @@
 # How layout works
 
 This document describes the layout produced by `bpmn-auto-layout` and the
-algorithm that produces it. [`Layouter`](../lib/Layouter.js) handles parsing,
-validation, root selection, finalization, and DI output;
-[`ProcessLayoutPipeline`](../lib/layout/ProcessLayoutPipeline.js) lays out each
-process scope. Executable behavior lives
+algorithm that produces it. The [`layout` entrypoint](../lib/layout/index.js)
+handles parsing, validation, root selection, finalization, and DI output; the
+[`process` entrypoint](../lib/layout/process/index.js) lays out each process
+scope. Executable behavior lives
 in [`LayoutSpec.js`](../test/LayoutSpec.js) and the reviewed
 [fixture corpus](../test/fixtures).
 
@@ -40,6 +40,25 @@ Reusable structural contracts are exported from
 [`Types.ts`](../lib/layout/Types.ts). JavaScript implementation files reference
 them through type-only JSDoc imports; TypeScript validates that module without
 adding TypeScript to the runtime bundle.
+
+The source tree follows the same execution hierarchy:
+
+```text
+layout/index.js                parse, select root, finalize, emit
+layout/process/index.js        process pipeline and ordered stage list
+layout/process/steps/          one high-level implementation per stage
+layout/process/semantics/      policy, ranking, and band algorithms
+layout/process/placement/      flow-node and container placement algorithms
+layout/process/routing/        sequence-flow routing algorithms
+layout/collaboration/          collaboration orchestration and message flows
+layout/artifacts/              artifact placement and association routing
+layout/connections/            final connection docking
+layout/geometry/               layout state and geometry primitives
+layout/bpmn/                   BPMN predicates and validation
+```
+
+Dependencies flow down this tree: entrypoints call stages, stages call
+domain algorithms, and domain algorithms use BPMN and geometry primitives.
 
 For a concrete trace through every pipeline stage, see the
 [boundary-error-event walkthrough](./WALKTHROUGH.md).
@@ -528,7 +547,7 @@ attached wherever obstacles permit.
 ## Connection finalization and DI emission
 
 The complete layout is translated so its minimum extents begin at the 80 px
-outer margin. [`ConnectionDocking`](../lib/layout/ConnectionDocking.js) then
+outer margin. [`FinalizeConnections`](../lib/layout/connections/FinalizeConnections.js) then
 finalizes connection geometry on layout state. Only after routes are final does
 [`DiFactory`](../lib/di/DiFactory.js) emit BPMN shapes and edges without
 changing their geometry.
@@ -587,16 +606,17 @@ task-sized fallback geometry.
 
 | Concern | Main implementation |
 | --- | --- |
-| Root and recursive scope orchestration | [`Layouter`](../lib/Layouter.js) |
-| Collaboration and message-flow layout | [`CollaborationLayouter`](../lib/layout/CollaborationLayouter.js) |
-| Spine, components, bands, cycles, and ranks | [`SemanticPolicy`](../lib/layout/SemanticPolicy.js) |
-| Coordinates, compaction, lanes, and boundary events | [`ShapePlacement`](../lib/layout/ShapePlacement.js) |
-| Sequence-flow routing | [`SequenceFlowRouter`](../lib/layout/SequenceFlowRouter.js) |
-| Artifact placement and association routing | [`ArtifactLayouter`](../lib/layout/ArtifactLayouter.js) |
-| External label placement | [`LabelLayouter`](../lib/layout/LabelLayouter.js) |
-| Layout state and geometry | [`LayoutUtil`](../lib/layout/LayoutUtil.js) |
-| Input validation | [`Validation`](../lib/layout/Validation.js) |
-| Final connection docking | [`ConnectionDocking`](../lib/layout/ConnectionDocking.js) |
+| Layout engine entrypoint | [`layout/index.js`](../lib/layout/index.js) |
+| Process pipeline and stages | [`process/`](../lib/layout/process) |
+| Collaboration orchestration and message-flow layout | [`collaboration/`](../lib/layout/collaboration) |
+| Spine, components, bands, cycles, and ranks | [`process/semantics/`](../lib/layout/process/semantics) |
+| Coordinates, compaction, lanes, and boundary events | [`process/placement/`](../lib/layout/process/placement) |
+| Sequence-flow routing | [`process/routing/`](../lib/layout/process/routing) |
+| Artifact placement and association routing | [`artifacts/`](../lib/layout/artifacts) |
+| External label placement | [`labels/`](../lib/layout/labels) |
+| Layout state and geometry | [`geometry/`](../lib/layout/geometry) |
+| BPMN predicates and validation | [`bpmn/`](../lib/layout/bpmn) |
+| Final connection docking | [`connections/`](../lib/layout/connections) |
 | DI output | [`LayoutEmitter`](../lib/di/LayoutEmitter.js), [`DiFactory`](../lib/di/DiFactory.js) |
 
 ## Maintaining the contract

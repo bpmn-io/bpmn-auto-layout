@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { layoutProcess } from '../dist/index.js';
 import {
   orderParticipantsByMessageFlow
-} from '../lib/layout/CollaborationLayouter.js';
+} from '../lib/layout/collaboration/MessageFlowLayout.js';
 import { calculateStatistics } from './benchmark-util.mjs';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');

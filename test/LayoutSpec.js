@@ -14,14 +14,16 @@ import {
 import {
   getExternalLabelText,
   isExternalLabelOwner
-} from '../lib/layout/BpmnUtil.js';
+} from '../lib/layout/bpmn/Predicates.js';
 import {
   collinearOverlap,
   segmentEntersRect,
   segmentsProperlyCross,
   toSegments
-} from '../lib/layout/LayoutUtil.js';
-import { segmentIsClear } from '../lib/layout/SequenceFlowRouter.js';
+} from '../lib/layout/geometry/index.js';
+import {
+  segmentIsClear
+} from '../lib/layout/process/routing/SequenceFlowRouting.js';
 import { calculateStatistics } from '../tasks/benchmark-util.mjs';
 import {
   EXTERNAL_LABEL_CLEARANCE,
