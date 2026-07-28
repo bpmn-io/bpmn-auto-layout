@@ -1,107 +1,11 @@
 # How layout works
 
-This document describes the layout produced by `bpmn-auto-layout` and the
-algorithm that produces it. The [`layout` entrypoint](../lib/layout/index.js)
-handles parsing, validation, root selection, finalization, and DI output; the
-[`process` entrypoint](../lib/layout/process/index.js) lays out each process
-scope, and the
-[`collaboration` entrypoint](../lib/layout/collaboration/index.js) lays out
-participants and message flows. Executable behavior lives
-in [`LayoutSpec.js`](../test/LayoutSpec.js) and the reviewed
-[fixture corpus](../test/fixtures).
+`bpmn-auto-layout` turns semantic BPMN XML into complete BPMN DI. It recursively
+lays out process and sub-process scopes, arranges collaboration participants,
+routes connections, and emits shapes, edges, and labels. This document explains
+the resulting geometry and the algorithm that produces it.
 
-The process and collaboration pipelines are internal ordered lists of transform
-functions. Their default lists are immutable. An internal caller may supply a
-different step list; customization is not part of the public package API.
-
-Every step receives and returns its pipeline context. A customized process list
-is also used for nested sub-process scopes.
-
-`createProcessLayoutContext` initializes its complete shape before the first
-step:
-
-| Group | Meaning |
-| --- | --- |
-| `scope` | The semantic process or sub-process being laid out. |
-| `options` | Expansion state, participant mode, message endpoints, and the active step list. |
-| `elements` | Extracted groups and connections. |
-| `graph` | Flow nodes, ordinary graph edges, and boundary-handler edges. |
-| `semantics` | The semantic policy and assigned ranks, or `null` before analysis. |
-| `placement` | Mutable per-element working records used while placing geometry. |
-| `layout` | Mutable shape, edge, and child-scope geometry owned by layout stages. |
-| `warnings` | Diagnostics accumulated by this scope and its descendants. |
-
-Extraction replaces `elements` and initializes `placement`. Semantic analysis
-replaces `graph` and `semantics`, including final semantic-band compaction.
-Recursive layout and placement mutate their working records plus the geometry
-collections inside `layout`; routing mutates only `layout.edges`. A custom step
-therefore receives stable property names while still depending on the guarantees
-of its insertion phase.
-
-`createCollaborationLayoutContext` similarly groups the collaboration,
-participant layouts and ordering, message-flow routing state, generated layout,
-and warnings. Its stages validate the collaboration, lay out participants, order
-and position them, compact rows, route message flows, and place collaboration
-artifacts.
-
-Reusable structural contracts are exported from
-[`Types.ts`](../lib/layout/Types.ts). JavaScript implementation files reference
-them through type-only JSDoc imports; TypeScript validates that module without
-adding TypeScript to the runtime bundle.
-
-The source tree follows the same execution hierarchy:
-
-```text
-layout/index.js                parse, select root, finalize, emit
-layout/process/index.js        process pipeline and ordered stage list
-layout/process/steps/          one high-level implementation per stage
-layout/process/semantics/      policy, ranking, and band algorithms
-layout/process/placement/      flow-node, lane, and container placement algorithms
-layout/process/routing/        sequence-flow routing algorithms
-layout/collaboration/index.js  collaboration pipeline and ordered stage list
-layout/collaboration/steps/    one high-level implementation per stage
-layout/collaboration/ordering/ participant ordering algorithms
-layout/collaboration/placement participant sizing and positioning algorithms
-layout/collaboration/routing/  message-flow routing algorithms
-layout/artifacts/index.js      artifact layout orchestration
-layout/artifacts/Context.js    artifact layout working state
-layout/artifacts/Ownership.js  artifact ownership and containment
-layout/artifacts/Placement*.js placement candidates, scoring, and search
-layout/artifacts/ObstacleRoutes.js existing and reserved route obstacles
-layout/artifacts/AssociationRouting.js association docking and routing
-layout/connections/            final connection docking
-layout/geometry/               layout state and geometry primitives
-layout/bpmn/                   BPMN predicates and validation
-```
-
-Dependencies flow down this tree: entrypoints call stages, stages call
-domain algorithms, and domain algorithms use BPMN and geometry primitives.
-
-### Decomposition standard
-
-Entrypoints and major domain operations should read top-down as an ordered
-sequence of named phases or decisions. Classification, preparation, candidate
-generation, validation, scoring, fallback selection, and result application
-belong behind explicit functions when they form independently understandable
-steps.
-
-Decomposition follows concepts rather than line counts. A cohesive algorithm
-kernel such as graph search, route scoring, or geometric candidate construction
-may remain in one function when splitting it would hide shared invariants or
-force state through generic helper APIs. Short helpers that exist only to close
-over one algorithm's state may remain local. Reusable or independently testable
-domain concepts belong at module scope or in a specifically named module.
-Generic `*Util` modules and wrappers that merely move code without revealing
-the execution model are avoided.
-
-Focused specs use the implementation concept's name and protect the boundaries
-that snapshots alone do not explain. Snapshot fixtures remain the integration
-contract for complete generated geometry.
-
-For a concrete trace through every process-pipeline stage, see the
-[boundary-error-event walkthrough](./WALKTHROUGH.md).
-
-## Contract
+## Layout contract
 
 Generated process flow reads from left to right. The engine prioritizes:
 
@@ -118,7 +22,7 @@ expanded.
 Equal alternatives are resolved by BPMN declaration order. The same semantic
 input therefore produces byte-identical output.
 
-## Model
+## Algorithm overview
 
 BPMN is directed, nested, and lane-constrained. The engine uses a constrained
 layered layout:
@@ -133,15 +37,16 @@ by BPMN patches.
 
 ```mermaid
 flowchart LR
-    A["Parse and validate"] --> B["Extract scopes"]
-    B --> C["Select spine and bands"]
-    C --> D["Break cycles and assign ranks"]
-    D --> E["Place and compact shapes"]
-    E --> F["Apply containers and lanes"]
-    F --> G["Route connections"]
-    G --> H["Finalize connection docking"]
-    H --> I["Emit BPMN DI"]
+    A["Parse, validate, and select root"] --> B["Recursively lay out process scopes"]
+    B --> C["Assemble collaboration, when present"]
+    C --> D["Normalize and finalize connections"]
+    D --> E["Emit BPMN DI and labels"]
 ```
+
+Within each process scope, the engine analyzes cycles and narrative structure,
+places flow nodes and containers, routes sequence flows, and then places
+artifacts and groups. A collaboration composes those completed process layouts,
+orders and aligns their participants, and routes message flows.
 
 The layout state for each process, sub-process, or collaboration scope contains
 shape bounds, edge waypoints, and child layouts. Its fields have one-way
@@ -151,14 +56,16 @@ ownership:
 | --- | --- | --- |
 | `scope` | scope extraction | The semantic BPMN scope represented by this layout. |
 | `children` | recursive scope layout | Independently laid-out child scopes. |
-| `shapes` | placement and container stages | Bounds for elements on this scope's plane. |
+| `shapes` | placement and container stages; message-routing fixed point | Bounds for elements on this scope's plane. |
 | `edges` | routing and connection finalization | Waypoints for connections on this scope's plane. |
 | `emitInParent` | container placement | Whether a child scope's geometry is included on its parent's plane. |
 
 Semantic policy produces placement decisions without mutating geometry.
-Placement writes shape bounds, routing writes initial edge waypoints, connection
-finalization may repair only edge waypoints, and DI emission reads finalized
-state without changing it.
+Placement writes shape bounds, routing writes initial edge waypoints, and the
+message-routing fixed point may enlarge resizable participant bounds.
+Connection finalization may repair only edge waypoints. DI emission reads
+finalized state without changing it; external-label layout adds only label DI
+after shape and edge serialization.
 
 ## Input and validation
 
@@ -174,9 +81,11 @@ undefined. [`LayoutError`](../lib/LayoutError.js) provides stable codes for:
 - invalid boundary-event hosts;
 - incompatible lane membership;
 - invalid link-event pairs;
+- invalid participant process references;
 - unsupported visual elements;
-- collaborations without a laid-out process;
-- routes that cannot avoid unrelated shapes.
+- collaborations without at least one participant that references a process;
+- routes that cannot avoid unrelated shapes;
+- artifact or external-label searches that cannot find collision-free geometry.
 
 Non-fatal omissions are reported as
 [`LayoutWarning`](../lib/LayoutWarning.js) instances. After DI emission, the
@@ -189,16 +98,18 @@ An empty definitions document remains valid and receives no invented process.
 
 ## Recursive scope layout
 
-Each process and sub-process is laid out independently. `layoutScope` separates:
+Each process and sub-process is laid out independently. `layoutProcessScope`
+separates:
 
 - ordinary flow nodes and sequence flows;
 - boundary events and their handlers;
 - event sub-processes;
 - artifacts and associations.
 
-Every visual node receives its BPMN element, declaration index, default size,
-role, expansion state, and eventual bounds. Sub-process contents are laid out
-before their parent.
+Every extracted process flow node or artifact receives a working record with
+its BPMN element, declaration index, default size, boundary/artifact
+classification, expansion state, optional child layout, and eventual bounds.
+Sub-process contents are laid out before their parent.
 
 Expanded sub-processes contain their child geometry on the parent plane.
 Collapsed sub-processes remain one parent-level activity and receive a separate
@@ -250,9 +161,12 @@ Band `0` is the spine. Other bands encode branch meaning:
 A band reservation includes the ranks over which its path exists. Disjoint
 paths may reuse a physical band; overlapping narratives may not.
 
-Boundary events stay attached to their host. Events of the same kind are
-distributed along the relevant host edge in declaration order. Handler flows
-leave through the outside-facing side and never enter the host interior.
+Boundary events stay attached to their host. Escalation events use the top host
+edge and other boundary events use the bottom edge. Events sharing a host side
+are ordered by their handlers' outward destination distance, longest first;
+declaration order breaks equal-distance ties. Handler flows leave through the
+outside-facing side and never enter the host interior.
+
 Named events attached to the top edge receive an explicit external label above
 the event and beside the handler exit, opposite its first horizontal direction.
 
@@ -268,32 +182,26 @@ edges.
 handlers participate in a bounded fixed-point pass so their targets cannot
 precede their hosts.
 
-When consecutive spine nodes both introduce alternatives, a detached,
-non-cyclic alternative reserves a horizontal bay before the spine continues.
-This lets adjacent terminal and boundary-handler paths reuse a nearby semantic
-band instead of being forced progressively farther from the spine. A detached,
-single-lane boundary-handler path also reserves its complete rank span before
-an immediate convergence.
+Rank assignment applies three BPMN-specific refinements:
 
-Within one side of the spine, a boundary handler that reserves such a horizontal
-bay claims the closest available semantic band before ordinary gateway
-alternatives. This keeps the handler adjacent to its host and moves the less
-constrained alternative outward when their rank spans overlap.
-
-A nested gateway join that feeds an enclosing join of the same gateway type
-from another semantic band has zero rank distance. The two joins therefore
-share a column and connect vertically instead of introducing an empty
-horizontal step. Different gateway types retain a forward step.
+- Detached, non-cyclic alternatives may reserve a horizontal bay before the
+  spine continues. Boundary-handler paths reserve their complete single-lane
+  span, allowing nearby alternatives to reuse bands.
+- A boundary handler with a reserved bay claims the closest available band
+  before a gateway alternative on the same side of the spine.
+- Nested joins of the same gateway type may share a rank and connect vertically.
+  Different gateway types retain a forward step.
 
 Each rank becomes an x-position. Its width is the widest node in that rank.
 Each semantic band becomes a y-position. Nodes sharing a rank and band are
 separated in declaration order.
 
-Initial placement is refined in this order:
+Semantic analysis compacts non-overlapping band intervals before any bounds are
+created. Shape placement then proceeds in this order:
 
-1. clear boundary-handler exits;
-2. reuse non-overlapping band intervals;
-3. separate same-rank shape overlaps;
+1. create initial coordinates from ranks and compacted bands;
+2. clear boundary-handler exits;
+3. separate same-rank shape overlaps inside each component;
 4. pack disconnected components;
 5. apply lane membership;
 6. dock boundary events.
@@ -304,7 +212,7 @@ Geometry uses these base constants:
 | --- | ---: |
 | Horizontal gap | 100 px |
 | Vertical gap | 80 px |
-| Plane margin | 80 px |
+| Outer shape margin | 80 px |
 | Expanded sub-process padding | 40 px |
 | Named expanded sub-process title band | 28 px |
 | Group padding | 40 px |
@@ -340,10 +248,12 @@ Connected components still preserve their sequence-flow order.
 An expanded embedded sub-process is sized around its child layout with 40 px
 padding and a minimum size of 140 x 120 px. A named sub-process reserves a
 centered, fixed-height 28 px title area inside its top padding; multiline titles
-do not enlarge this area. If an external label has no close preferred position
-other than that title area, the complete child layout moves down by 28 px so the
-label can remain adjacent to its owner. Parent sequence flows dock at the
-sub-process perimeter; child flows remain inside.
+do not enlarge this area.
+
+If an external label has no close preferred position other than that title
+area, the complete child layout moves down by 28 px so the label can remain
+adjacent to its owner. Parent sequence flows dock at the sub-process perimeter;
+child flows remain inside.
 
 A collapsed sub-process uses normal activity dimensions in its parent. Its child
 plane is normalized independently and has no coordinate relationship to the
@@ -364,88 +274,78 @@ traversable; flow-node shapes in intervening lanes remain routing obstacles.
 
 ### Artifacts
 
-Text annotations, data object references, and data store references are a
-post-routing decoration pass for process, sub-process, and collaboration
-scopes. They do not affect ranks, bands, process-shape placement, or
-sequence-flow routing.
+Text annotations and data references are decorations: they never influence
+ranks, semantic bands, or flow-node placement. Process and sub-process artifacts
+are placed after sequence flows; collaboration artifacts are placed after
+message flows. Core connections treat artifacts as transparent routing geometry.
 
-Text annotation dimensions are derived from deterministic word wrapping across
-several candidate widths. Placement evaluates positions above, below, left, and
-right of the associated owner, sliding along each side when needed. Every
-artifact candidate must stay clear of process shapes, sequence flows, message
-flows, and previously placed artifacts. Among valid positions, routed
-association length is the primary cost, with a bounded penalty for non-straight
-associations so a near-shortest single horizontal or vertical segment is
-preferred over a diagonal or bent route. Readable annotation aspect ratio,
-association crossings, diagram expansion, and displacement from the preferred
-side break later ties.
-Boundary events reserve additional space for their outward handler channels.
-Long and multiply-associated artifacts are placed first. Data object and data
-store references receive candidates around every distinct owner. They first
-minimize association crossings with sequence and message flows.
-Multiply-associated references next prefer candidates with two routing margins
-of shape clearance. References then prefer alignment with at least one distinct
-owner, maximize the number of aligned owners, and minimize association bends
-and owner-balanced route length, so repeated read/write associations do not pull
-a reference toward one owner. Data object and data store associations are orthogonal: aligned docks
-connect directly, while unaligned docks choose a clear one- or two-bend route
-with fewer flow crossings. Their first and last legs leave their docking sides
-normally, and routes may not enter either endpoint interior. Repeated
-associations use distributed docking points and the same parallel route family
-instead of overlapping.
-Text annotations may be placed in the outermost diagram scope regardless of
-their semantic owner.
-They must be wholly inside or wholly outside every subprocess, lane, and
-participant, never crossing a container edge. Participant header strips are
-also reserved. Exterior process annotations attached to message endpoints
-prefer to remain outside the participant, with a bounded cost of one normal
-vertical gap so a substantially shorter association may pull them inside. In a
-single-participant collaboration, collaboration-owned
-annotations prefer positions above or below their owner participant, with a
-centered vertical association. For process-owned annotations in a collaboration,
-the future participant boundary is derived before exterior artifacts are
-placed, using the same content extents and padding as final participant sizing.
-Participant bounds are derived from process containers and flow shapes rather
-than exterior decorations, while participant spacing still accounts for the
-decorations' complete footprint. Data object references remain fully contained
-in their owner's lane. All artifacts emitted on the same BPMN plane share one
-collision domain regardless of semantic ownership or declaration scope.
+#### Placement rules
 
-Data object and data store references retain their standard dimensions but use
-the same obstacle-aware search. Resolvable associations are routed after both
-bounds are known, including associations from a parent- or collaboration-scope
-artifact to a visible element inside an expanded subprocess or participant
-process. Artifact placement admits only candidates whose association routes
-clear flow-node shapes. Text annotation associations retain direct routes;
-data object and data store associations use the orthogonal routes described
-above. Process-internal connections treat artifacts as transparent. Artifact
-placement reserves the vertical approach
-corridor above an incoming message endpoint and below an outgoing endpoint;
-endpoints used in both directions reserve both approaches. This moves
-annotations out of the way before collaboration routing, preserving straight
-message flows and visible associations. Exterior process annotations
-prefer a participant's left or right side over positions above or below it, so
-they do not expand collaboration rows and lengthen unrelated message flows.
-That preference has the bounded cost of four normal participant gaps and cannot
-justify a substantially longer association.
-Other artifact intersections remain excluded from hard geometry defects.
+- Artifacts with more associations are placed first, followed by larger
+  artifacts and then declaration order.
+- Candidates avoid flow-node shapes, routes already present on the plane,
+  previously placed artifacts, boundary-handler exits, and participant headers.
+- An artifact must be wholly inside or wholly outside each sub-process, lane, and
+  participant; it may not straddle a container boundary.
+- Artifacts emitted on the same BPMN plane share one collision domain, including
+  artifacts from visible expanded child scopes.
+- Associations are routed only after both endpoint bounds are available.
+  Parent- and collaboration-scope artifacts may therefore connect to visible
+  elements inside expanded sub-processes or participant processes.
+
+#### Text annotations
+
+Annotation sizes come from deterministic word wrapping over bounded candidate
+widths. Placement searches above, below, left, and right of the owner and slides
+along those sides when blocked. It prefers a short direct association, then a
+readable aspect ratio, fewer crossings, less diagram expansion, and proximity
+to the preferred side.
+
+Annotations may sit outside their owner's container, but never across its
+boundary. Process annotations attached to message endpoints reserve the future
+vertical message-flow approach. In collaborations they prefer participant sides
+that do not expand participant rows. A collaboration annotation associated with
+a single participant instead prefers a centered position above or below it.
+Participant sizing ignores exterior annotations, while participant spacing
+still includes their footprint.
+
+#### Data references
+
+Data object and data store references retain their standard dimensions and
+receive candidates around every distinct owner. Their placement minimizes, in
+order, flow crossings, insufficient shape clearance, missing owner alignment,
+association bends, and owner-balanced route length. Repeated read/write
+associations therefore do not pull a reference toward only one owner.
+
+Data object references remain inside their owner's lane. Their associations,
+and data store associations, use clear orthogonal routes with normal endpoint
+legs. Repeated associations receive distributed docking points rather than
+overlapping one another.
+
+#### Groups
 
 Groups are placed after artifacts and routing. Membership is explicit: a node
 or connection belongs to a group when its `categoryValueRef` contains the
 group's category value. Group bounds are the union of member shape bounds and
-member connection waypoints, expanded by 40 px on every side. Groups are
-transparent to routing and hard overlap metrics. Their category value is shown
-as an external label above the group. Groups without visible explicit members
-remain semantic-only and are omitted; authored group DI is not used to infer
-membership.
+member connection waypoints, expanded by 40 px on every side.
+
+Groups are transparent to routing and hard overlap metrics. Their category
+value is shown as an external label above the group. Groups without visible
+explicit members remain semantic-only and are omitted; authored group DI is not
+used to infer membership.
 
 ## Sequence-flow routing
 
-Routing starts only after shape coordinates are final. Straight spine edges are
-routed first, followed by cross-band gateway branches, other detours, and
-feedback edges. Cross-band gateway branches claim their constrained top or
-bottom channels before same-band detours choose an outer depth. Later edges
-treat accepted routes as allocated geometry.
+Sequence-flow routing starts only after ordinary flow-node, lane, boundary-event,
+and expanded-child coordinates used by sequence flows are final. Event
+sub-process containers, artifacts, and groups are placed later because they do
+not participate in parent-scope sequence-flow routing.
+
+Spine edges and other marked straight continuations are routed first, followed
+by cross-band gateway branches, other detours, and feedback edges. Cross-band
+gateway branches claim their constrained top or bottom channels before same-band
+detours choose an outer depth. Later edges treat accepted routes as allocated
+geometry.
 
 Ports follow semantics:
 
@@ -462,9 +362,8 @@ Ports follow semantics:
   and equal routes use the top channel as the deterministic tie-break. Local
   U-channels include rendered-stroke clearance around unrelated shapes.
 
-Boundary events attached to the same host side are ordered by their handlers'
-outward destination distance, longest first. This creates nested vertical exits
-without weaving; declaration order breaks equal-distance ties.
+The boundary-event placement order described above creates nested vertical exits
+without weaving.
 
 The router escalates from the simplest candidate to the most general:
 
@@ -495,77 +394,55 @@ connections enter or leave their common endpoint.
 
 ## Collaborations and message flows
 
+### Participant sizing
+
 Every participant with a process reference contains an independently laid-out
 process. Its pool is sized around that process. Participants without process
 content are positioned and minimally sized from message-flow anchors, whether
-they have an empty process reference or no process reference. An empty
-process-backed pool keeps its current alignment when every anchor already fits
-with participant-header clearance.
+they have an empty process or no process reference. An empty process-backed pool
+keeps its alignment when all anchors already fit with header clearance.
 
 For process participants without lanes, the 30 px participant header is added
 before the normal 40 px process-content padding; it does not consume that
 padding. Lane-backed participants start their lane tiles after the header, and
 the lane layout supplies its own 40 px content padding.
 
-After vertical ordering in a collaboration with multiple process-backed
-participants, the largest process footprint remains the stable horizontal
-anchor. Other expanded participants may move horizontally together with their
-complete process layouts. Flow-node endpoints contribute their center as a
-docking candidate. Participant endpoints contribute the usable interval along
-their horizontal edge, inset by the routing margin, so candidate translations
-can align a node with either end of that interval instead of forcing every
-message flow through the participant center. No coordinate grid or authored DI
-is consulted.
+### Ordering and alignment
 
-Deterministic coordinate descent compares the fully routed candidate geometry.
-For collaborations above the exhaustive participant-ordering threshold it
-minimizes bent message flows, proper edge crossings, the longest message-flow
-route, total routed distance, and finally displacement from the initially
-left-aligned layout, in that order. Smaller collaborations retain their
-established crossing-first policy. Collaboration width is not
-constrained because pool alignment is more important than the overall
-footprint. Anchor-positioned participant geometry is recomputed from its
-translated message anchors for every candidate. Single-process collaborations
-retain their established process position and satellite geometry.
-
-Once internal offsets are fixed, each disconnected message-flow component is
-translated as a unit to the common left participant edge. This removes
-arbitrary global X offsets between unrelated participant groups without
-changing their internal message-flow geometry.
-
-For a single process-backed participant, direct communication between
-black-box participants first minimizes unrelated pools between connected
-pairs. The established deterministic score then combines vertical message-flow
-travel and bend cost. For multiple process-backed participants, every message
-flow additionally contributes the vertical separation between non-adjacent
-participant rows. This weighted separation places strongly interacting process
-blocks around one another without changing the single-process satellite
-policy:
+Vertical participant order follows message-flow relationships:
 
 - up to eight participants use exhaustive permutation search;
 - larger collaborations use deterministic greedy insertion followed by
   remove-and-reinsert refinement.
 
-After horizontal alignment, consecutive black-box participants may share a
-vertical row when their horizontal bounds retain the normal horizontal gap.
-Expanded participants always occupy an exclusive row with their complete
-process footprint. Message-flow adjacency is computed by distinct participant
-rows, so multiple black-box pools on one row do not create fictitious
-intervening layers.
+With one process-backed participant, connected black-box pools first prefer
+adjacency and then shorter, straighter message travel. With multiple
+process-backed participants, connected rows also prefer less vertical
+separation.
+
+The largest process footprint anchors horizontal alignment. Other process
+layouts may translate as a unit to align endpoint centers or usable participant
+edge intervals. Candidate positions are scored using fully rerouted message
+geometry: crossings, bends, longest route, total distance, and displacement.
+Large collaborations prioritize bends before crossings; smaller ones use
+crossings first. Single-process collaborations keep their process position.
+
+Disconnected message-flow components are translated to a common left edge.
+Consecutive black-box participants may share a row when they retain the normal
+horizontal gap; process-backed participants always occupy an exclusive row.
+
+### Message routing
 
 Message flows are generated when both endpoints resolve to visible layout
 geometry. An endpoint inside a collapsed sub-process resolves to its nearest
 visible collapsed ancestor. Opposing directions receive stable channel offsets.
 Adjacent pools use their shared gutter; non-adjacent pools may use an outside
-channel. Above the exhaustive participant-ordering threshold, endpoint-aligned
-vertical corridors and the boundaries of intervening participants are evaluated
-before either diagram exterior, and the shorter complete route is selected.
-Smaller collaborations retain their established exterior-channel policy.
-Routes avoid process-node obstacles. Horizontal message-flow segments claim
-exclusive y-channels and cannot overlap an allocated horizontal segment.
-Perpendicular vertical and horizontal message-flow segments may cross without
-forming a junction, so a vertical endpoint leg does not take a long detour
-around an occupied horizontal channel.
+channel. Large collaborations also consider endpoint-aligned corridors and the
+sides of intervening pools before either diagram exterior.
+
+Routes avoid process-node obstacles. Horizontal segments claim exclusive
+y-channels; perpendicular vertical segments may cross them without forming a
+junction.
 
 Empty pool sizing and message routing form a fixed point:
 
@@ -578,67 +455,152 @@ flowchart LR
     E --> A
 ```
 
-Participant docks are constrained to their pool bounds while routing. Empty
-pools then expand around uncovered docks and reroute until straight flows stay
-attached wherever obstacles permit.
+Participant docks remain inside their pool while routing. Empty pools expand
+around uncovered docks and reroute until every dock fits.
 
 ## Connection finalization and DI emission
 
-The complete layout is translated so its minimum extents begin at the 80 px
-outer margin. [`FinalizeConnections`](../lib/layout/connections/FinalizeConnections.js) then
-finalizes connection geometry on layout state. Only after routes are final does
-[`DiFactory`](../lib/di/DiFactory.js) emit BPMN shapes and edges without
+The layout is translated so its minimum shape extents begin at the 80 px outer
+margin; its edge waypoints move by the same offset and may occupy that outer
+routing space. [`FinalizeConnections`](../lib/layout/connections/FinalizeConnections.js)
+then finalizes connection geometry on layout state. Only after routes are final
+does [`DiFactory`](../lib/di/DiFactory.js) emit BPMN shapes and edges without
 changing their geometry.
 
 Expanded child layouts are emitted on their parent plane. Collapsed sub-process
 children are normalized and emitted recursively on separate planes.
 
-Before serialization, endpoint geometry is normalized across the complete
-layout plane. A docked segment must have an outward component normal to its shape side;
-tangent segments are redirected to the matching side, and redundant waypoints
-inside endpoint bounds are removed. If redirecting would collapse the endpoint
-segment, a short outside dogleg preserves an explicit outward approach.
-An orthogonal segment touching a rectangular corner is ambiguous; its endpoint
-moves one routing margin inward along the intended side before the outside
-dogleg is added.
-Boundary handlers always leave from the attached event's top or bottom center
-through a short vertical outward stub. Obstacle avoidance may turn only after
-that stub and approaches the target through its facing side center. If that
-approach would require a 180-degree turn at the target stub, routing switches
-to the opposite target side.
-Clear orthogonal sequence-flow elbows are rebuilt from side centers. If the
-direct centered L-route is obstructed, cross-band flows first search the gap
-between their vertically facing sides, then transpose their source and target
-sides before global routing. A short outside channel approaches the target
-through the facing side instead of moving either endpoint to a corner.
-Candidates without proper edge crossings are preferred, but an unavoidable
-edge crossing does not permit corner docking; shape-clear side-center docking
-remains a hard constraint.
+### Docking repair
 
-Named events, gateways, data references, sequence flows, and message flows
-receive explicit external label DI after final connection docking on each
-diagram plane. External label bounds use the estimated width of the widest
-wrapped line plus horizontal padding, capped at 90 px; their height follows the
-wrapped line count. Element labels try below, above, left, then right. Labels
-on horizontal connection segments try above then below; labels on vertical
-segments try right then left. Connection candidates begin at the central
-segment and move toward neighboring segments and segment ends. Collinearly
-shared portions are deferred until every unique portion of the owning
-connection has been tried, so a label remains attributable when several flows
-share a trunk.
+Before serialization, finalization enforces these endpoint contracts:
 
-Candidates may not overlap non-container shapes, connection interiors, or
-already placed labels. They may not straddle lane, participant, or expanded
-sub-process borders; participant headers and named expanded-subprocess title
-areas remain clear. Title areas use a fixed 28 px height and a centered width
-derived from the subprocess name; multiline titles do not increase the reserved
-height. The shortest straight attachment from a label to its
-owning shape or connection may not enter an unrelated non-container shape. If every preferred position is
-occupied, an expanding search preserves the nearest conventional fallback
-when its attachment remains clear. If that fallback would be visually
-detached, the search chooses the collision-free candidate nearest to the owner
-without changing connection routes. Unknown visual elements do not receive
-task-sized fallback geometry.
+- Endpoint segments leave and enter through an unambiguous shape side. Tangent
+  segments are redirected, interior waypoints are removed, and a short dogleg
+  preserves an outward approach when needed.
+- Corner dockings move one routing margin inward along the intended side.
+- Boundary handlers leave the event's top or bottom center through a vertical
+  stub and approach their target through a facing side.
+- Clear three-point sequence-flow elbows are centered on shape sides.
+  Obstructed cross-band elbows try the facing gap, transposed sides, and then
+  global routing.
+
+Crossing-free candidates are preferred, but an unavoidable edge crossing never
+permits ambiguous corner docking.
+
+### External labels
+
+Named events, gateways, data references, sequence flows, message flows, and
+groups receive external label DI after connection finalization. Label width is
+estimated from wrapped text and capped at 90 px.
+
+- Shape labels try below, above, left, and right; group labels try above first.
+- Horizontal connection labels try above then below; vertical labels try right
+  then left.
+- Unique portions near a connection's center are tried before shared trunks.
+- Candidates avoid shapes, connection interiors, other labels, participant
+  headers, sub-process title areas, and container borders. Their direct visual
+  attachment to the owner must also remain clear.
+
+If preferred positions are occupied, a bounded expanding search chooses the
+nearest clear fallback without changing connection routes. Unknown visual
+elements never receive task-sized fallback geometry.
+
+## Execution architecture
+
+The [`layout` entrypoint](../lib/layout/index.js) handles parsing, root selection,
+normalization, finalization, and DI output. It delegates process scopes to the
+[`process` entrypoint](../lib/layout/process/index.js) and collaborations to the
+[`collaboration` entrypoint](../lib/layout/collaboration/index.js).
+
+Process and collaboration layout use internal functional pipelines. Their
+default step lists are immutable; custom step lists are an internal testing and
+extension seam, not part of the public package API. A custom process list also
+applies to nested sub-process scopes.
+
+### Process pipeline
+
+```text
+extractElements
+→ layoutChildScopes
+→ validateScope
+→ analyzeSemantics
+→ placeFlowNodes
+→ placeExpandedChildren
+→ routeSequenceFlows
+→ placeEventSubProcesses
+→ placeArtifacts
+→ placeGroups
+```
+
+Every step receives and returns one process context:
+
+| Group | Meaning |
+| --- | --- |
+| `scope` | The process or sub-process being laid out. |
+| `options` | Expansion, participant, message-endpoint, and step-list options. |
+| `elements` | Extracted groups and connections. |
+| `graph` | Flow nodes, ordinary edges, and boundary-handler edges. |
+| `semantics` | Semantic policy and assigned ranks. |
+| `placement` | Mutable per-element placement records. |
+| `layout` | Shape, edge, and child-scope geometry. |
+| `warnings` | Diagnostics from this scope and its descendants. |
+
+Extraction initializes elements and placement records. Semantic analysis
+replaces graph and policy state without writing geometry. Placement writes
+shape bounds, and process routing writes edge waypoints.
+
+### Collaboration pipeline
+
+```text
+validateCollaboration
+→ layoutParticipants
+→ orderParticipants
+→ positionParticipants
+→ compactParticipantRows
+→ routeMessageFlows
+→ placeArtifacts
+```
+
+The collaboration context tracks participant layouts and order, message-routing
+state, generated geometry, and warnings. Message routing writes edges and may
+expand resizable participant bounds until every participant-side dock fits.
+
+Reusable context contracts live in
+[`Types.ts`](../lib/layout/Types.ts). Runtime modules reference them through
+type-only JSDoc imports.
+
+### Source organization
+
+```text
+layout/index.js                parse, select root, finalize, emit
+layout/process/                process stages, semantics, placement, and routing
+layout/collaboration/          participant ordering, placement, and message routing
+layout/artifacts/              artifact ownership, placement, and association routing
+layout/connections/            final connection docking
+layout/labels/                 external label placement
+layout/groups/                 explicit group bounds
+layout/geometry/               layout state and geometry primitives
+layout/bpmn/                   BPMN predicates and validation
+```
+
+Entrypoints call ordered stages; stages delegate to named domain algorithms.
+Artifact and collaboration routing reuse the process routing primitives where
+their geometric contracts are the same.
+
+### Decomposition standard
+
+Entrypoints and major domain operations read top-down as named phases or
+decisions. Independently meaningful classification, preparation, candidate
+generation, validation, scoring, fallback, and application steps are extracted.
+
+Decomposition follows concepts rather than line counts. Cohesive graph-search,
+route-scoring, and candidate-construction kernels remain intact when splitting
+would obscure shared invariants. Generic utility modules and wrapper-only
+modules are avoided.
+
+Focused specs use the implementation concept's name and protect boundaries that
+snapshots do not explain. Snapshot fixtures remain the integration contract for
+complete generated geometry.
 
 ## Implementation map
 
@@ -650,11 +612,12 @@ task-sized fallback geometry.
 | Spine, components, bands, cycles, and ranks | [`process/semantics/`](../lib/layout/process/semantics) |
 | Coordinates, component packing, and boundary events | [`process/placement/ShapePlacement.js`](../lib/layout/process/placement/ShapePlacement.js) |
 | Lane membership, measurement, and placement | [`process/placement/LanePlacement.js`](../lib/layout/process/placement/LanePlacement.js) |
-| Participant container bounds and expanded subprocesses | [`process/placement/ParticipantBounds.js`](../lib/layout/process/placement/ParticipantBounds.js), [`process/placement/ExpandedSubProcess.js`](../lib/layout/process/placement/ExpandedSubProcess.js) |
+| Participant container bounds and expanded sub-processes | [`process/placement/ParticipantBounds.js`](../lib/layout/process/placement/ParticipantBounds.js), [`process/placement/ExpandedSubProcess.js`](../lib/layout/process/placement/ExpandedSubProcess.js) |
 | Sequence-flow routing | [`process/routing/`](../lib/layout/process/routing) |
 | Artifact context and ownership | [`artifacts/Context.js`](../lib/layout/artifacts/Context.js), [`artifacts/Ownership.js`](../lib/layout/artifacts/Ownership.js) |
 | Artifact candidates, scoring, search, and placement | [`artifacts/Placement.js`](../lib/layout/artifacts/Placement.js), [`artifacts/PlacementSearch.js`](../lib/layout/artifacts/PlacementSearch.js), [`artifacts/PlacementCandidates.js`](../lib/layout/artifacts/PlacementCandidates.js), [`artifacts/PlacementScoring.js`](../lib/layout/artifacts/PlacementScoring.js) |
 | Artifact obstacle and association routing | [`artifacts/ObstacleRoutes.js`](../lib/layout/artifacts/ObstacleRoutes.js), [`artifacts/AssociationRouting.js`](../lib/layout/artifacts/AssociationRouting.js) |
+| Explicit group bounds | [`groups/LayoutGroups.js`](../lib/layout/groups/LayoutGroups.js) |
 | External label placement | [`labels/`](../lib/layout/labels) |
 | Layout state and geometry | [`geometry/`](../lib/layout/geometry) |
 | BPMN predicates and validation | [`bpmn/`](../lib/layout/bpmn) |
@@ -665,9 +628,9 @@ task-sized fallback geometry.
 
 For an intentional behavior change:
 
-1. add or update a focused assertion in
-   [`LayoutSpec.js`](../test/LayoutSpec.js) or a minimal
-   [fixture](../test/fixtures);
+1. add or update a focused concept or pipeline spec for a named internal
+   contract, and use [`LayoutSpec.js`](../test/LayoutSpec.js) with a minimal
+   [fixture](../test/fixtures) when complete generated geometry changes;
 2. inspect the generated output and committed snapshot as described in
    [`test/README.md`](../test/README.md);
 3. review the corpus metrics;
