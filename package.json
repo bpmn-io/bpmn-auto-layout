@@ -17,8 +17,9 @@
     "dist"
   ],
   "scripts": {
-    "all": "run-s lint test",
+    "all": "run-s lint typecheck test",
     "lint": "eslint .",
+    "typecheck": "tsc",
     "test": "mocha --timeout 15000",
     "test:inspect": "node tasks/inspect.mjs",
     "test:update-snapshots": "cross-env UPDATE_SNAPSHOTS=true mocha --timeout 15000",
@@ -59,13 +60,15 @@
     "@rollup/plugin-node-resolve": "^16.0.3",
     "bpmn-to-image": "^0.10.0",
     "cross-env": "^10.1.0",
+    "diagram-js": "^15.23.0",
     "eslint": "^9.39.2",
     "eslint-plugin-bpmn-io": "^2.2.0",
     "mocha": "^11.7.5",
     "npm-run-all": "^4.1.5",
     "open-cli": "^8.0.0",
     "puppeteer": "^25.3.0",
-    "rollup": "^4.57.1"
+    "rollup": "^4.57.1",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">= 18"
