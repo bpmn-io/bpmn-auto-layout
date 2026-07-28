@@ -1,10 +1,42 @@
 # How layout works
 
 This document describes the layout produced by `bpmn-auto-layout` and the
-algorithm that produces it. The implementation is
-[`Layouter`](../lib/Layouter.js); executable behavior lives
+algorithm that produces it. [`Layouter`](../lib/Layouter.js) handles parsing,
+validation, root selection, finalization, and DI output;
+[`ProcessLayoutPipeline`](../lib/layout/ProcessLayoutPipeline.js) lays out each
+process scope. Executable behavior lives
 in [`LayoutSpec.js`](../test/LayoutSpec.js) and the reviewed
 [fixture corpus](../test/fixtures).
+
+The process pipeline is an internal ordered list of transform functions.
+The default list is immutable. An internal caller may supply a different step
+list; customization is not part of the public package API.
+
+Every step receives and returns the pipeline context; a customized list is also
+used for nested sub-process scopes.
+
+`createProcessLayoutContext` initializes its complete shape before the first
+step:
+
+| Group | Meaning |
+| --- | --- |
+| `scope` | The semantic process or sub-process being laid out. |
+| `options` | Expansion state, participant mode, message endpoints, and the active step list. |
+| `elements` | Extracted BPMN elements, connections, and layout records. |
+| `graph` | Flow-node records, ordinary graph edges, and boundary-handler edges. |
+| `semantics` | The semantic policy and assigned ranks, or `null` before analysis. |
+| `layout` | Mutable shape, edge, and child-scope geometry owned by layout stages. |
+| `warnings` | Diagnostics accumulated by this scope and its descendants. |
+
+Extraction replaces `elements`; semantic analysis replaces `graph` and
+`semantics`. Placement and routing mutate only their owned geometry collections
+inside `layout`. A custom step therefore receives stable property names while
+still depending on the guarantees of its insertion phase.
+
+Reusable structural contracts are exported from
+[`Types.ts`](../lib/layout/Types.ts). JavaScript implementation files reference
+them through type-only JSDoc imports; TypeScript validates that module without
+adding TypeScript to the runtime bundle.
 
 For a concrete trace through every pipeline stage, see the
 [boundary-error-event walkthrough](./WALKTHROUGH.md).
@@ -51,8 +83,22 @@ flowchart LR
     H --> I["Emit BPMN DI"]
 ```
 
-The layout state for each process or sub-process contains shape bounds, edge
-waypoints, child layouts, and the BPMN plane on which each child is emitted.
+The layout state for each process, sub-process, or collaboration scope contains
+shape bounds, edge waypoints, and child layouts. Its fields have one-way
+ownership:
+
+| Field | Owner | Meaning |
+| --- | --- | --- |
+| `scope` | scope extraction | The semantic BPMN scope represented by this layout. |
+| `children` | recursive scope layout | Independently laid-out child scopes. |
+| `shapes` | placement and container stages | Bounds for elements on this scope's plane. |
+| `edges` | routing and connection finalization | Waypoints for connections on this scope's plane. |
+| `emitInParent` | container placement | Whether a child scope's geometry is included on its parent's plane. |
+
+Semantic policy produces placement decisions without mutating geometry.
+Placement writes shape bounds, routing writes initial edge waypoints, connection
+finalization may repair only edge waypoints, and DI emission reads finalized
+state without changing it.
 
 ## Input and validation
 

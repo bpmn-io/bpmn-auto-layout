@@ -214,9 +214,9 @@ passes through the attached task.
 
 ## 7. Normalize, finalize docking, and emit DI
 
-`normalizeLayout` rounds bounds and waypoints to integer coordinates.
-`ConnectionDocking` then removes redundant collinear points and ensures that
-sequence-flow endpoint segments leave and enter their shapes through
+`normalizeLayout` translates the completed root-plane geometry to the outer
+margin. `ConnectionDocking` then removes redundant collinear points and
+ensures that sequence-flow endpoint segments leave and enter their shapes through
 outward-facing sides. It also resolves final boundary-event exits and
 orthogonal elbows against the completed layout.
 

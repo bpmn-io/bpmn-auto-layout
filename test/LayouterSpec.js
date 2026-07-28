@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 
-import { collectArtifactObstacleRoutes } from '../lib/Layouter.js';
+import { collectArtifactObstacleRoutes } from '../lib/layout/ArtifactLayoutStage.js';
 
 describe('Layouter', function() {
 
