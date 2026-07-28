@@ -11,6 +11,23 @@ import {
 
 describe('ProcessPipeline', function() {
 
+  it('should define immutable process phases in lifecycle order', function() {
+    assert.ok(Object.isFrozen(PROCESS_LAYOUT_STEPS));
+    assert.deepStrictEqual(PROCESS_LAYOUT_STEPS.map(step => step.name), [
+      'extractElements',
+      'layoutChildScopes',
+      'validateScope',
+      'analyzeSemantics',
+      'placeFlowNodes',
+      'placeExpandedChildren',
+      'routeSequenceFlows',
+      'placeEventSubProcesses',
+      'placeArtifacts',
+      'placeGroups'
+    ]);
+  });
+
+
   it('should create a complete process-layout context before the first step', function() {
     const process = createProcess();
 
@@ -119,6 +136,127 @@ describe('ProcessPipeline', function() {
       analyzed.boundaryBayEdges
     );
   });
+
+
+  it('should publish geometry only in its owning phase', async function() {
+    const process = await importProcess('text-annotation.basic.bpmn');
+    const annotation = process.artifacts.find(element => {
+      return element.$instanceOf('bpmn:TextAnnotation');
+    });
+    const association = process.artifacts.find(element => {
+      return element.$instanceOf('bpmn:Association');
+    });
+    const sequenceFlows = process.flowElements.filter(element => {
+      return element.$instanceOf('bpmn:SequenceFlow');
+    });
+    const observed = new Map();
+    const steps = PROCESS_LAYOUT_STEPS.flatMap(runStep => [
+      runStep,
+      function capturePhaseState(context) {
+        observed.set(runStep.name, {
+          graphNodes: context.graph.nodes.length,
+          hasSemantics: Boolean(context.semantics.policy),
+          hasGraphShapes: context.graph.nodes.length > 0 &&
+            context.graph.nodes.every(element => {
+              return context.layout.shapes.has(element);
+            }),
+          hasAnnotationShape: context.layout.shapes.has(annotation),
+          hasSequenceFlows: sequenceFlows.every(flow => {
+            return context.layout.edges.has(flow);
+          }),
+          hasAssociation: context.layout.edges.has(association)
+        });
+
+        return context;
+      }
+    ]);
+
+    layoutProcessScope(process, { steps });
+
+    assert.deepStrictEqual(observed.get('extractElements'), {
+      graphNodes: 0,
+      hasSemantics: false,
+      hasGraphShapes: false,
+      hasAnnotationShape: false,
+      hasSequenceFlows: false,
+      hasAssociation: false
+    });
+    assert.deepStrictEqual(observed.get('analyzeSemantics'), {
+      graphNodes: 3,
+      hasSemantics: true,
+      hasGraphShapes: false,
+      hasAnnotationShape: false,
+      hasSequenceFlows: false,
+      hasAssociation: false
+    });
+    assert.deepStrictEqual(observed.get('placeFlowNodes'), {
+      graphNodes: 3,
+      hasSemantics: true,
+      hasGraphShapes: true,
+      hasAnnotationShape: false,
+      hasSequenceFlows: false,
+      hasAssociation: false
+    });
+    assert.deepStrictEqual(observed.get('routeSequenceFlows'), {
+      graphNodes: 3,
+      hasSemantics: true,
+      hasGraphShapes: true,
+      hasAnnotationShape: false,
+      hasSequenceFlows: true,
+      hasAssociation: false
+    });
+    assert.deepStrictEqual(observed.get('placeArtifacts'), {
+      graphNodes: 3,
+      hasSemantics: true,
+      hasGraphShapes: true,
+      hasAnnotationShape: true,
+      hasSequenceFlows: true,
+      hasAssociation: true
+    });
+  });
+
+
+  it('should propagate phases and publish expanded child geometry', async function() {
+    const process = await importProcess('sub-process.expanded.bpmn');
+    const subProcess = process.flowElements.find(element => {
+      return element.$instanceOf('bpmn:SubProcess');
+    });
+    const analyzedScopes = [];
+    const publication = {};
+    const steps = PROCESS_LAYOUT_STEPS.flatMap(runStep => [
+      runStep,
+      function captureChildBoundary(context) {
+        if (runStep.name === 'analyzeSemantics') {
+          analyzedScopes.push(context.scope.id);
+        }
+
+        if (context.scope === process) {
+          const record = context.placement.recordsByElement.get(subProcess);
+
+          if (runStep.name === 'layoutChildScopes') {
+            publication.beforeParentPlacement = record.child.emitInParent;
+          }
+
+          if (runStep.name === 'placeExpandedChildren') {
+            publication.afterParentPlacement = record.child.emitInParent;
+          }
+        }
+
+        return context;
+      }
+    ]);
+
+    layoutProcessScope(process, {
+      expandedIds: new Set([ subProcess.id ]),
+      steps
+    });
+
+    assert.deepStrictEqual(analyzedScopes, [ subProcess.id, process.id ]);
+    assert.deepStrictEqual(publication, {
+      beforeParentPlacement: false,
+      afterParentPlacement: true
+    });
+  });
 });
 
 function createProcess() {
@@ -134,4 +272,13 @@ function createProcess() {
 
 async function importFixture(name) {
   return readFile(new URL(`fixtures/${ name }`, import.meta.url), 'utf8');
+}
+
+async function importProcess(name) {
+  const xml = await importFixture(name);
+  const { rootElement } = await new BpmnModdle().fromXML(xml);
+
+  return rootElement.rootElements.find(element => {
+    return element.$instanceOf('bpmn:Process');
+  });
 }
