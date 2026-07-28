@@ -22,16 +22,19 @@ step:
 | --- | --- |
 | `scope` | The semantic process or sub-process being laid out. |
 | `options` | Expansion state, participant mode, message endpoints, and the active step list. |
-| `elements` | Extracted BPMN elements, connections, and layout records. |
-| `graph` | Flow-node records, ordinary graph edges, and boundary-handler edges. |
+| `elements` | Extracted groups and connections. |
+| `graph` | Flow nodes, ordinary graph edges, and boundary-handler edges. |
 | `semantics` | The semantic policy and assigned ranks, or `null` before analysis. |
+| `placement` | Mutable per-element working records used while placing geometry. |
 | `layout` | Mutable shape, edge, and child-scope geometry owned by layout stages. |
 | `warnings` | Diagnostics accumulated by this scope and its descendants. |
 
-Extraction replaces `elements`; semantic analysis replaces `graph` and
-`semantics`. Placement and routing mutate only their owned geometry collections
-inside `layout`. A custom step therefore receives stable property names while
-still depending on the guarantees of its insertion phase.
+Extraction replaces `elements` and initializes `placement`. Semantic analysis
+replaces `graph` and `semantics`, including final semantic-band compaction.
+Recursive layout and placement mutate their working records plus the geometry
+collections inside `layout`; routing mutates only `layout.edges`. A custom step
+therefore receives stable property names while still depending on the guarantees
+of its insertion phase.
 
 Reusable structural contracts are exported from
 [`Types.ts`](../lib/layout/Types.ts). JavaScript implementation files reference

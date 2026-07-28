@@ -35,10 +35,6 @@ export type LayoutRecord = {
   expanded: boolean;
   child: LayoutState | null;
   bounds?: Bounds;
-  associationObstacles?: Array<{
-    element: BpmnElement;
-    rect: Bounds;
-  }>;
 };
 
 export type SemanticPolicy = {
@@ -57,7 +53,6 @@ export type SemanticPolicy = {
 
 export type RankAssignment = {
   rank: Map<BpmnElement, number>;
-  backEdges: Set<BpmnElement>;
 };
 
 export type ProcessLayoutStep = (
@@ -75,12 +70,15 @@ export type ProcessElements = {
   groups: BpmnElement[];
   sequenceFlows: BpmnElement[];
   associations: BpmnElement[];
+};
+
+export type ProcessPlacement = {
   records: LayoutRecord[];
   recordsByElement: Map<BpmnElement, LayoutRecord>;
 };
 
 export type ProcessGraph = {
-  records: LayoutRecord[];
+  nodes: BpmnElement[];
   edges: BpmnElement[];
   boundaryEdges: BpmnElement[];
 };
@@ -96,6 +94,7 @@ export type ProcessLayoutContext = {
   elements: ProcessElements;
   graph: ProcessGraph;
   semantics: ProcessSemantics;
+  placement: ProcessPlacement;
   layout: LayoutState;
   warnings: LayoutWarning[];
 };
