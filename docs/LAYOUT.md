@@ -587,7 +587,7 @@ complete generated geometry.
 | Sequence-flow routing | [`process/routing/`](../lib/layout/process/routing) |
 | Shared orthogonal search and BPMN routing adapter | [`routing/`](../lib/layout/routing) |
 | Artifact context and ownership | [`artifacts/Context.js`](../lib/layout/artifacts/Context.js), [`artifacts/Ownership.js`](../lib/layout/artifacts/Ownership.js) |
-| Artifact candidates, scoring, search, and placement | [`artifacts/Placement.js`](../lib/layout/artifacts/Placement.js), [`artifacts/PlacementSearch.js`](../lib/layout/artifacts/PlacementSearch.js), [`artifacts/PlacementCandidates.js`](../lib/layout/artifacts/PlacementCandidates.js), [`artifacts/PlacementScoring.js`](../lib/layout/artifacts/PlacementScoring.js) |
+| Artifact placement and candidate generation | [`artifacts/Placement.js`](../lib/layout/artifacts/Placement.js), [`artifacts/PlacementCandidates.js`](../lib/layout/artifacts/PlacementCandidates.js) |
 | Artifact obstacle and association routing | [`artifacts/ObstacleRoutes.js`](../lib/layout/artifacts/ObstacleRoutes.js), [`artifacts/AssociationRouting.js`](../lib/layout/artifacts/AssociationRouting.js) |
 | Explicit group bounds | [`groups/LayoutGroups.js`](../lib/layout/groups/LayoutGroups.js) |
 | External label placement | [`labels/`](../lib/layout/labels) |
