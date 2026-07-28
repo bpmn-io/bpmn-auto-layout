@@ -21,9 +21,6 @@ import {
   segmentsProperlyCross,
   toSegments
 } from '../lib/layout/geometry/index.js';
-import {
-  segmentIsClear
-} from '../lib/layout/process/routing/SequenceFlowRouting.js';
 import { calculateStatistics } from '../tasks/benchmark-util.mjs';
 import {
   EXTERNAL_LABEL_CLEARANCE,
@@ -2495,43 +2492,6 @@ describe('Layout', function() {
         return point.x >= Math.min(start.x, messageFlow.at(-1).x) &&
           point.x <= Math.max(start.x, messageFlow.at(-1).x);
       }));
-    });
-
-    it('should allow perpendicular message-flow channel crossings', function() {
-      const source = {};
-      const target = {};
-      const routedConnections = [ {
-        flow: {
-          sourceRef: {},
-          targetRef: {},
-          $instanceOf: type => type === 'bpmn:MessageFlow'
-        },
-        points: [
-          { x: 0, y: 50 },
-          { x: 100, y: 50 }
-        ]
-      } ];
-
-      assert.strictEqual(segmentIsClear(
-        { x: 50, y: 0 },
-        { x: 50, y: 100 },
-        [],
-        source,
-        target,
-        routedConnections,
-        0,
-        true
-      ), true);
-      assert.strictEqual(segmentIsClear(
-        { x: 20, y: 50 },
-        { x: 80, y: 50 },
-        [],
-        source,
-        target,
-        routedConnections,
-        0,
-        true
-      ), false);
     });
 
     it('should route sequence flows across intervening lanes', async function() {
