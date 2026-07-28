@@ -567,6 +567,9 @@ validateCollaboration
 The collaboration context tracks participant layouts and order, message-routing
 state, generated geometry, and warnings. Message routing writes edges and may
 expand resizable participant bounds until every participant-side dock fits.
+The ordering, positioning, and message-routing phase interfaces live with their
+owning domain implementations. Participant-row compaction remains a separate
+packing phase.
 
 Reusable context contracts live in
 [`Types.ts`](../lib/layout/Types.ts). Runtime modules reference them through
@@ -614,7 +617,10 @@ complete generated geometry.
 | --- | --- |
 | Layout engine entrypoint | [`layout/index.js`](../lib/layout/index.js) |
 | Process pipeline and stages | [`process/`](../lib/layout/process) |
-| Collaboration orchestration and message-flow layout | [`collaboration/`](../lib/layout/collaboration) |
+| Collaboration pipeline | [`collaboration/index.js`](../lib/layout/collaboration/index.js) |
+| Participant ordering phase and algorithms | [`collaboration/ordering/ParticipantOrdering.js`](../lib/layout/collaboration/ordering/ParticipantOrdering.js) |
+| Participant positioning phase and algorithms | [`collaboration/placement/ParticipantPlacement.js`](../lib/layout/collaboration/placement/ParticipantPlacement.js) |
+| Message-routing fixed point and algorithms | [`collaboration/routing/MessageFlowRouting.js`](../lib/layout/collaboration/routing/MessageFlowRouting.js) |
 | Spine, components, bands, cycles, and ranks | [`process/semantics/`](../lib/layout/process/semantics) |
 | Coordinates, component packing, and boundary events | [`process/placement/ShapePlacement.js`](../lib/layout/process/placement/ShapePlacement.js) |
 | Lane membership, measurement, and placement | [`process/placement/LanePlacement.js`](../lib/layout/process/placement/LanePlacement.js) |
