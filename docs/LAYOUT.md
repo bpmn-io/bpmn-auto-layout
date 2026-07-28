@@ -576,6 +576,7 @@ layout/index.js                parse, select root, finalize, emit
 layout/process/                process stages, semantics, placement, and routing
 layout/collaboration/          participant ordering, placement, and message routing
 layout/artifacts/              artifact ownership, placement, and association routing
+layout/routing/                shared orthogonal search and BPMN routing adapter
 layout/connections/            final connection docking
 layout/labels/                 external label placement
 layout/groups/                 explicit group bounds
@@ -584,8 +585,10 @@ layout/bpmn/                   BPMN predicates and validation
 ```
 
 Entrypoints call ordered stages; stages delegate to named domain algorithms.
-Artifact and collaboration routing reuse the process routing primitives where
-their geometric contracts are the same.
+Process, collaboration, artifact, and connection-finalization routing reuse the
+shared orthogonal-routing module where their geometric contracts are the same.
+BPMN endpoint and shared-channel semantics cross that seam through the BPMN
+routing adapter.
 
 ### Decomposition standard
 
@@ -614,6 +617,7 @@ complete generated geometry.
 | Lane membership, measurement, and placement | [`process/placement/LanePlacement.js`](../lib/layout/process/placement/LanePlacement.js) |
 | Participant container bounds and expanded sub-processes | [`process/placement/ParticipantBounds.js`](../lib/layout/process/placement/ParticipantBounds.js), [`process/placement/ExpandedSubProcess.js`](../lib/layout/process/placement/ExpandedSubProcess.js) |
 | Sequence-flow routing | [`process/routing/`](../lib/layout/process/routing) |
+| Shared orthogonal search and BPMN routing adapter | [`routing/`](../lib/layout/routing) |
 | Artifact context and ownership | [`artifacts/Context.js`](../lib/layout/artifacts/Context.js), [`artifacts/Ownership.js`](../lib/layout/artifacts/Ownership.js) |
 | Artifact candidates, scoring, search, and placement | [`artifacts/Placement.js`](../lib/layout/artifacts/Placement.js), [`artifacts/PlacementSearch.js`](../lib/layout/artifacts/PlacementSearch.js), [`artifacts/PlacementCandidates.js`](../lib/layout/artifacts/PlacementCandidates.js), [`artifacts/PlacementScoring.js`](../lib/layout/artifacts/PlacementScoring.js) |
 | Artifact obstacle and association routing | [`artifacts/ObstacleRoutes.js`](../lib/layout/artifacts/ObstacleRoutes.js), [`artifacts/AssociationRouting.js`](../lib/layout/artifacts/AssociationRouting.js) |
