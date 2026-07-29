@@ -596,7 +596,7 @@ complete generated geometry.
 | Explicit group bounds | [`groups/LayoutGroups.js`](../lib/layout/groups/LayoutGroups.js) |
 | External label placement | [`labels/`](../lib/layout/labels) |
 | Layout state and geometry | [`geometry/`](../lib/layout/geometry) |
-| BPMN predicates and validation | [`bpmn/`](../lib/layout/bpmn) |
+| BPMN predicates | [`bpmn/`](../lib/layout/bpmn) |
 | Final connection docking | [`connections/`](../lib/layout/connections) |
 | Diagram generation and DI output | [`DiagramGeneration.js`](../lib/layout/DiagramGeneration.js), [`DiFactory`](../lib/di/DiFactory.js) |
 
