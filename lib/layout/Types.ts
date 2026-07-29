@@ -68,7 +68,6 @@ export type ProcessLayoutOptions = {
   expandedIds: Set<string>;
   participantProcess: boolean;
   messageFlowEndpointDirections: Map<BpmnElement, Set<string>>;
-  steps: ReadonlyArray<ProcessLayoutStep>;
   layoutScope: (
     scope: BpmnElement,
     options?: Partial<ProcessLayoutOptions>
@@ -114,7 +113,6 @@ export type CollaborationLayoutStep = (
 
 export type CollaborationLayoutOptions = {
   expandedIds: Set<string>;
-  steps: ReadonlyArray<CollaborationLayoutStep>;
 };
 
 export type CollaborationLayoutContext = {

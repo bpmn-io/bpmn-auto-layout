@@ -514,8 +514,8 @@ It passes the complete layout tree to the deep
 [`DiagramGeneration`](../lib/layout/DiagramGeneration.js) module,
 which owns normalization, finalization, external labels, plane traversal, and
 DI output behind one interface. Process and collaboration entrypoints build
-their contexts and run immutable default step lists. Custom lists are an
-internal seam and propagate into nested process scopes.
+their contexts and run private immutable phase lists. Nested process scopes
+re-enter the same fixed lifecycle.
 
 ### Process pipeline
 
