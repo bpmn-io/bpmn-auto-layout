@@ -464,7 +464,7 @@ margin. Edge waypoints move by the same offset and may occupy that routing
 space. [`FinalizeConnections`](../lib/layout/connections/FinalizeConnections.js)
 then finalizes connection geometry. [`DiagramGeneration`](../lib/layout/DiagramGeneration.js)
 computes external-label bounds for every independent plane before
-[`DiFactory`](../lib/di/DiFactory.js) creates any BPMN DI.
+creating any BPMN DI.
 
 Expanded child layouts are emitted on their parent plane. Collapsed sub-process
 children are normalized and emitted recursively on separate planes. Diagram
@@ -598,7 +598,7 @@ complete generated geometry.
 | Layout state and geometry | [`geometry/`](../lib/layout/geometry) |
 | BPMN predicates | [`bpmn/`](../lib/layout/bpmn) |
 | Final connection docking | [`connections/`](../lib/layout/connections) |
-| Diagram generation and DI output | [`DiagramGeneration.js`](../lib/layout/DiagramGeneration.js), [`DiFactory`](../lib/di/DiFactory.js) |
+| Diagram generation and DI output | [`DiagramGeneration.js`](../lib/layout/DiagramGeneration.js) |
 
 ## Maintaining the contract
 
