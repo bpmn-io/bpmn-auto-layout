@@ -544,16 +544,15 @@ nested scopes re-enter the process entrypoint through a private callback.
 ```text
 validateCollaboration
 → layoutParticipants
-→ orderParticipants
-→ positionParticipants
-→ compactParticipantRows
+→ layoutParticipantGeometry
 → routeMessageFlows
 → placeArtifacts
 ```
 
-The collaboration context tracks participant layouts, ordering, geometry, and
-warnings. Its phases live with their domain implementations; message routing may
-expand resizable participant bounds until every participant-side dock fits.
+The collaboration context tracks participant layouts, geometry, routing, and
+warnings. Participant geometry owns ordering, sizing, horizontal alignment, and
+row placement behind one phase. Message routing may expand resizable participant
+bounds until every participant-side dock fits.
 
 Reusable context contracts live in
 [`Types.ts`](../lib/layout/Types.ts). Runtime modules reference them through
