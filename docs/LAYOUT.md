@@ -63,9 +63,9 @@ ownership:
 Semantic policy produces placement decisions without mutating geometry.
 Placement writes shape bounds, routing writes initial edge waypoints, and the
 message-routing fixed point may enlarge resizable participant bounds.
-Connection finalization may repair only edge waypoints. DI emission reads
-finalized state without changing it; external-label layout adds only label DI
-after shape and edge serialization.
+Connection finalization may repair only edge waypoints. External-label layout
+then computes label bounds from finalized plane geometry. Diagram generation
+reads that complete geometry without changing it and creates all BPMN DI.
 
 ## Input and validation
 
@@ -457,16 +457,18 @@ flowchart LR
 Participant docks remain inside their pool while routing. Empty pools expand
 around uncovered docks and reroute until every dock fits.
 
-## Connection finalization and DI emission
+## Connection finalization and diagram generation
 
 The layout is translated so its minimum shape extents begin at the outer shape
 margin. Edge waypoints move by the same offset and may occupy that routing
 space. [`FinalizeConnections`](../lib/layout/connections/FinalizeConnections.js)
-then finalizes connection geometry; only afterward does
-[`DiFactory`](../lib/di/DiFactory.js) emit BPMN shapes and edges.
+then finalizes connection geometry. [`DiagramGeneration`](../lib/layout/DiagramGeneration.js)
+computes external-label bounds for every independent plane before
+[`DiFactory`](../lib/di/DiFactory.js) creates any BPMN DI.
 
 Expanded child layouts are emitted on their parent plane. Collapsed sub-process
-children are normalized and emitted recursively on separate planes.
+children are normalized and emitted recursively on separate planes. Diagram
+generation owns that traversal and returns the complete diagram collection.
 
 ### Docking repair
 
@@ -488,8 +490,8 @@ permits ambiguous corner docking.
 ### External labels
 
 Named events, gateways, data references, sequence flows, message flows, and
-groups receive external label DI after connection finalization. Label width is
-estimated from wrapped text and capped at 90 px.
+groups receive external label bounds after connection finalization and before
+BPMN DI creation. Label width is estimated from wrapped text and capped at 90 px.
 
 - Shape labels try below, above, left, and right; group labels try above first.
 - Horizontal connection labels try above then below; vertical labels try right
@@ -505,10 +507,13 @@ elements never receive task-sized fallback geometry.
 
 ## Execution architecture
 
-The [`layout` entrypoint](../lib/layout/index.js) owns parsing, root selection,
-normalization, finalization, and DI output, delegating process scopes to
-[`process`](../lib/layout/process/index.js) and collaborations to
-[`collaboration`](../lib/layout/collaboration/index.js). Those entrypoints build
+The [`layout` entrypoint](../lib/layout/index.js) owns parsing and root
+selection, delegating process scopes to [`process`](../lib/layout/process/index.js)
+and collaborations to [`collaboration`](../lib/layout/collaboration/index.js).
+It passes the complete layout tree to the deep
+[`DiagramGeneration`](../lib/layout/DiagramGeneration.js) module,
+which owns normalization, finalization, external labels, plane traversal, and
+DI output behind one interface. Process and collaboration entrypoints build
 their contexts and run immutable default step lists. Custom lists are an
 internal seam and propagate into nested process scopes.
 
@@ -594,7 +599,7 @@ complete generated geometry.
 | Layout state and geometry | [`geometry/`](../lib/layout/geometry) |
 | BPMN predicates and validation | [`bpmn/`](../lib/layout/bpmn) |
 | Final connection docking | [`connections/`](../lib/layout/connections) |
-| DI output | [`LayoutEmitter`](../lib/di/LayoutEmitter.js), [`DiFactory`](../lib/di/DiFactory.js) |
+| Diagram generation and DI output | [`DiagramGeneration.js`](../lib/layout/DiagramGeneration.js), [`DiFactory`](../lib/di/DiFactory.js) |
 
 ## Maintaining the contract
 

@@ -2,7 +2,6 @@ import assert from 'node:assert';
 
 import { BpmnModdle } from 'bpmn-moddle';
 
-import { DiFactory } from '../lib/di/DiFactory.js';
 import {
   externalLabelSize,
   layoutExternalLabels
@@ -12,11 +11,9 @@ import { rectanglesOverlap } from '../lib/layout/geometry/index.js';
 describe('LayoutLabels', function() {
 
   let moddle;
-  let factory;
 
   beforeEach(function() {
     moddle = new BpmnModdle();
-    factory = new DiFactory(moddle);
   });
 
   it('should use below, above, left, and right shape fallbacks', function() {
@@ -37,7 +34,7 @@ describe('LayoutLabels', function() {
       taskShape('RightLeftBlock', 595, 80, 100, 60)
     ];
 
-    layoutExternalLabels(factory, elements);
+    placeLabels(elements);
 
     assert.deepStrictEqual(toBounds(below.label.bounds), {
       x: 96, y: 141, width: 44, height: 14
@@ -63,7 +60,7 @@ describe('LayoutLabels', function() {
       { x: 500, y: 300 }
     ]);
 
-    layoutExternalLabels(factory, [ horizontal, vertical ]);
+    placeLabels([ horizontal, vertical ]);
 
     assert.deepStrictEqual(toBounds(horizontal.label.bounds), {
       x: 162, y: 78, width: 76, height: 14
@@ -95,7 +92,7 @@ describe('LayoutLabels', function() {
       ], false)
     ];
 
-    layoutExternalLabels(factory, elements);
+    placeLabels(elements);
 
     assert.deepStrictEqual(toBounds(horizontal.label.bounds), {
       x: 162, y: 108, width: 76, height: 14
@@ -122,7 +119,7 @@ describe('LayoutLabels', function() {
       { x: 300, y: 400 }
     ]);
 
-    layoutExternalLabels(factory, [ sales, technical, legal ]);
+    placeLabels([ sales, technical, legal ]);
 
     assert.deepStrictEqual(toBounds(sales.label.bounds), {
       x: 181, y: 178, width: 39, height: 14
@@ -145,7 +142,7 @@ describe('LayoutLabels', function() {
       { x: 300, y: 100 }
     ]);
 
-    layoutExternalLabels(factory, [ first, second ]);
+    placeLabels([ first, second ]);
 
     assert.ok(!rectanglesOverlap(first.label.bounds, second.label.bounds));
   });
@@ -160,7 +157,7 @@ describe('LayoutLabels', function() {
       taskShape('Right', 141, 111, 90, 14)
     ];
 
-    layoutExternalLabels(factory, elements);
+    placeLabels(elements);
 
     const label = toBounds(event.label.bounds);
 
@@ -182,7 +179,7 @@ describe('LayoutLabels', function() {
       { x: 350, y: 40 }
     ], false);
 
-    layoutExternalLabels(factory, [
+    placeLabels([
       subprocess,
       event,
       blockingTask,
@@ -206,7 +203,7 @@ describe('LayoutLabels', function() {
     const event = eventShape('Event', 180, 140);
     const below = taskShape('Below', 140, 176, 120, 40);
 
-    layoutExternalLabels(factory, [ subprocess, event, below ]);
+    placeLabels([ subprocess, event, below ]);
 
     const label = toBounds(event.label.bounds);
     const titleBand = { x: 0, y: 100, width: 400, height: 28 };
@@ -226,7 +223,7 @@ describe('LayoutLabels', function() {
     const event = eventShape('Event', 50, 140);
     const below = taskShape('Below', 10, 176, 120, 40);
 
-    layoutExternalLabels(factory, [ subprocess, event, below ]);
+    placeLabels([ subprocess, event, below ]);
 
     assert.deepStrictEqual(toBounds(event.label.bounds), {
       x: 48, y: 121, width: 41, height: 14
@@ -253,23 +250,29 @@ describe('LayoutLabels', function() {
       name: id
     });
 
-    return factory.createDiShape(element, { x, y, width: 36, height: 36 });
+    return {
+      element,
+      bounds: { x, y, width: 36, height: 36 }
+    };
   }
 
   function taskShape(id, x, y, width, height) {
     const element = moddle.create('bpmn:Task', { id });
 
-    return factory.createDiShape(element, { x, y, width, height });
+    return {
+      element,
+      bounds: { x, y, width, height }
+    };
   }
 
   function expandedSubProcess(id, x, y, width, height, name) {
     const element = moddle.create('bpmn:SubProcess', { id, name });
 
-    return factory.createDiShape(
+    return {
       element,
-      { x, y, width, height },
-      { isExpanded: true }
-    );
+      bounds: { x, y, width, height },
+      expanded: true
+    };
   }
 
   function edge(id, waypoints, named = true) {
@@ -278,7 +281,35 @@ describe('LayoutLabels', function() {
       name: named ? id : undefined
     });
 
-    return factory.createDiEdge(element, waypoints);
+    return {
+      element,
+      waypoints
+    };
+  }
+
+  function placeLabels(elements) {
+    const shapes = elements.filter(element => element.bounds);
+    const edges = elements.filter(element => element.waypoints);
+    const layout = {
+      shapes: new Map(shapes.map(shape => [ shape.element, shape.bounds ])),
+      edges: new Map(edges.map(edge => [ edge.element, edge.waypoints ])),
+      children: shapes.filter(shape => shape.expanded).map(shape => ({
+        scope: shape.element,
+        shapes: new Map(),
+        edges: new Map(),
+        children: [],
+        emitInParent: true
+      }))
+    };
+    const labels = layoutExternalLabels(layout);
+
+    for (const element of elements) {
+      const bounds = labels.get(element.element);
+
+      if (bounds) {
+        element.label = { bounds };
+      }
+    }
   }
 });
 
