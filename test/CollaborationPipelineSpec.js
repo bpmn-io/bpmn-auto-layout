@@ -81,7 +81,7 @@ describe('CollaborationPipeline', function() {
   });
 
 
-  it('should publish participant and message geometry in order', async function() {
+  it('should write participant and message geometry in order', async function() {
     const collaboration = await importCollaboration(
       'collaboration.message-flow-between-pools.bpmn'
     );
@@ -138,7 +138,7 @@ describe('CollaborationPipeline', function() {
   });
 
 
-  it('should publish collaboration artifacts only in the final phase', async function() {
+  it('should add collaboration artifacts only in the final phase', async function() {
     const collaboration = await importCollaboration(
       'artifact.collaboration-association.bpmn'
     );

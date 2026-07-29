@@ -146,7 +146,7 @@ describe('ProcessPipeline', function() {
   });
 
 
-  it('should publish geometry only in its owning phase', async function() {
+  it('should write geometry only in its owning phase', async function() {
     const process = await importProcess('text-annotation.basic.bpmn');
     const annotation = process.artifacts.find(element => {
       return element.$instanceOf('bpmn:TextAnnotation');
@@ -224,13 +224,13 @@ describe('ProcessPipeline', function() {
   });
 
 
-  it('should propagate phases and publish expanded child geometry', async function() {
+  it('should propagate phases and include expanded child geometry on its parent plane', async function() {
     const process = await importProcess('sub-process.expanded.bpmn');
     const subProcess = process.flowElements.find(element => {
       return element.$instanceOf('bpmn:SubProcess');
     });
     const analyzedScopes = [];
-    const publication = {};
+    const parentPlaneInclusion = {};
     const steps = PROCESS_LAYOUT_STEPS.flatMap(runStep => [
       runStep,
       function captureChildBoundary(context) {
@@ -242,11 +242,11 @@ describe('ProcessPipeline', function() {
           const record = context.placement.recordsByElement.get(subProcess);
 
           if (runStep.name === 'layoutChildScopes') {
-            publication.beforeParentPlacement = record.child.emitInParent;
+            parentPlaneInclusion.beforeParentPlacement = record.child.emitInParent;
           }
 
           if (runStep.name === 'placeExpandedChildren') {
-            publication.afterParentPlacement = record.child.emitInParent;
+            parentPlaneInclusion.afterParentPlacement = record.child.emitInParent;
           }
         }
 
@@ -260,7 +260,7 @@ describe('ProcessPipeline', function() {
     });
 
     assert.deepStrictEqual(analyzedScopes, [ subProcess.id, process.id ]);
-    assert.deepStrictEqual(publication, {
+    assert.deepStrictEqual(parentPlaneInclusion, {
       beforeParentPlacement: false,
       afterParentPlacement: true
     });
