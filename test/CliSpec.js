@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const cli = path.join(__dirname, '..', 'bin', 'bpmn-auto-layout.js');
+const cli = path.join(__dirname, '..', 'dist', 'bpmn-auto-layout.js');
 const fixtures = path.join(__dirname, 'fixtures');
 
 describe('CLI', function() {
