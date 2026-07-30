@@ -5,24 +5,23 @@ import {
   isSupportedVisualElement
 } from '../bpmn/Predicates.js';
 
-/**
- * @typedef {import('../Types.js').BpmnElement} BpmnElement
- * @typedef {import('../Types.js').LayoutRecord} LayoutRecord
- */
+import type {
+  BpmnElement,
+  LayoutRecord
+} from '../Types.js';
 
-/**
- * @param {BpmnElement} element
- * @param {number} index
- * @param {Set<string>} expandedIds
- * @returns {LayoutRecord}
- */
-export function createLayoutRecord(element, index, expandedIds = new Set()) {
+export function createLayoutRecord(
+    element: BpmnElement,
+    index: number,
+    expandedIds: Set<string> = new Set()
+): LayoutRecord {
   const size = getDefaultSize(element);
+  const elementId = typeof element.id === 'string' ? element.id : undefined;
 
   if (!size || !isSupportedVisualElement(element)) {
     throw new LayoutError(
       'UNSUPPORTED_ELEMENT',
-      element.id,
+      elementId,
       `Cannot generate DI for visual BPMN element "${element.$type}".`
     );
   }
@@ -33,7 +32,9 @@ export function createLayoutRecord(element, index, expandedIds = new Set()) {
     size,
     isBoundary: is(element, 'bpmn:BoundaryEvent'),
     isArtifact: isArtifact(element),
-    expanded: is(element, 'bpmn:SubProcess') && expandedIds.has(element.id),
+    expanded: is(element, 'bpmn:SubProcess') &&
+      !!elementId &&
+      expandedIds.has(elementId),
     child: null
   };
 }
