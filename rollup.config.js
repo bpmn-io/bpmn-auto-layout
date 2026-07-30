@@ -5,7 +5,7 @@ import fs from 'fs';
 const pkg = importPkg();
 
 export default {
-  input: 'lib/index.js',
+  input: 'lib/index.ts',
   output: [
     {
       sourcemap: true,
