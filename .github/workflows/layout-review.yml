@@ -1,0 +1,174 @@
+name: Layout Review
+
+on:
+  workflow_run:
+    workflows: [ CI ]
+    types: [ completed ]
+  pull_request_target:
+    types: [ closed ]
+
+permissions:
+  actions: read
+  contents: write
+  issues: write
+
+jobs:
+  Publish:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages-publish
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+    - name: Resolve pull request
+      id: pull_request
+      run: |
+        PR_NUMBER="$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA/pulls" \
+          --jq ".[] | select((.state == \"open\" or .merged_at != null) and .head.sha == \"$HEAD_SHA\") | .number" \
+          | head -n 1)"
+        if [ -z "$PR_NUMBER" ]; then
+          echo "active=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        BASE_SHA="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq .base.sha)"
+        echo "active=true" >> "$GITHUB_OUTPUT"
+        echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
+        echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+    - name: Checkout trusted report generator
+      if: steps.pull_request.outputs.active == 'true'
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - name: Use Node.js
+      if: steps.pull_request.outputs.active == 'true'
+      uses: actions/setup-node@v6
+      with:
+        node-version: 24
+        cache: 'npm'
+    - name: Install dependencies
+      if: steps.pull_request.outputs.active == 'true'
+      run: npm ci
+    - name: Generate layout review
+      if: steps.pull_request.outputs.active == 'true'
+      id: report
+      env:
+        BASE_SHA: ${{ steps.pull_request.outputs.base_sha }}
+        PR_NUMBER: ${{ steps.pull_request.outputs.number }}
+      run: |
+        git fetch origin "$HEAD_SHA"
+        OUTPUT_DIRECTORY="test/output/layout-review"
+        npm run review:layout -- \
+          --base "$BASE_SHA" \
+          --head "$HEAD_SHA" \
+          --output "$OUTPUT_DIRECTORY"
+        COUNT="$(node -p "require('./$OUTPUT_DIRECTORY/manifest.json').changeCount")"
+        echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+        echo "short_sha=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
+    - name: Checkout Pages
+      if: steps.pull_request.outputs.active == 'true'
+      uses: actions/checkout@v6
+      with:
+        ref: gh-pages
+        path: pages
+    - name: Publish layout review
+      if: steps.pull_request.outputs.active == 'true'
+      env:
+        CHANGE_COUNT: ${{ steps.report.outputs.count }}
+        PR_NUMBER: ${{ steps.pull_request.outputs.number }}
+      run: |
+        REVIEW_DIRECTORY="pages/reviews/pr-$PR_NUMBER"
+        node -e "require('node:fs').rmSync(process.argv[1], { recursive: true, force: true })" "$REVIEW_DIRECTORY"
+        if [ "$CHANGE_COUNT" -gt 0 ]; then
+          mkdir -p "$REVIEW_DIRECTORY/$HEAD_SHA"
+          cp -R test/output/layout-review/. "$REVIEW_DIRECTORY/$HEAD_SHA/"
+        fi
+        cd pages
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add -A
+        if ! git diff --cached --quiet; then
+          git commit -m "chore: update layout review for PR #$PR_NUMBER"
+          git push origin gh-pages
+        fi
+    - name: Add report link to pull request
+      if: steps.pull_request.outputs.active == 'true'
+      env:
+        CHANGE_COUNT: ${{ steps.report.outputs.count }}
+        PR_NUMBER: ${{ steps.pull_request.outputs.number }}
+        SHORT_SHA: ${{ steps.report.outputs.short_sha }}
+      run: |
+        MARKER="<!-- layout-change-report -->"
+        if [ "$CHANGE_COUNT" -eq 1 ]; then
+          SUMMARY="1 snapshot change was detected for \`$SHORT_SHA\`."
+        else
+          SUMMARY="$CHANGE_COUNT snapshot changes were detected for \`$SHORT_SHA\`."
+        fi
+        if [ "$CHANGE_COUNT" -gt 0 ]; then
+          REPORT_URL="https://bpmn-io.github.io/bpmn-auto-layout/reviews/pr-$PR_NUMBER/$HEAD_SHA/"
+          BODY="$MARKER
+
+        ### Layout change report
+
+        $SUMMARY
+
+        [Review layout changes →]($REPORT_URL)"
+        else
+          BODY="$MARKER
+
+        ### Layout change report
+
+        No snapshot changes were detected for \`$SHORT_SHA\`."
+        fi
+        COMMENT_ID="$(gh api --paginate \
+          "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+          --jq ".[] | select(.user.type == \"Bot\" and (.body | startswith(\"$MARKER\"))) | .id" \
+          | head -n 1)"
+        if [ -n "$COMMENT_ID" ]; then
+          gh api --method PATCH \
+            "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID" \
+            -f body="$BODY"
+        else
+          gh api --method POST \
+            "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+            -f body="$BODY"
+        fi
+        {
+          echo "### Layout change report"
+          echo
+          echo "$SUMMARY"
+          if [ "$CHANGE_COUNT" -gt 0 ]; then
+            echo
+            echo "[Review layout changes →]($REPORT_URL)"
+          fi
+        } >> "$GITHUB_STEP_SUMMARY"
+
+  Cleanup:
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      !github.event.pull_request.merged
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages-publish
+      cancel-in-progress: false
+    steps:
+    - name: Checkout Pages
+      uses: actions/checkout@v6
+      with:
+        ref: gh-pages
+    - name: Remove layout review
+      env:
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        node -e "require('node:fs').rmSync(process.argv[1], { recursive: true, force: true })" "reviews/pr-$PR_NUMBER"
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add -A
+        if ! git diff --cached --quiet; then
+          git commit -m "chore: remove layout review for PR #$PR_NUMBER"
+          git push origin gh-pages
+        fi

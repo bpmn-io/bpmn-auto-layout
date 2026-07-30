@@ -22,6 +22,7 @@ import {
   toSegments
 } from '../lib/layout/geometry/index.js';
 import { calculateStatistics } from '../tasks/benchmark-util.mjs';
+import { writeInspectorReport } from './inspector/Report.js';
 import {
   EXTERNAL_LABEL_CLEARANCE,
   EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE,
@@ -3326,12 +3327,9 @@ describe('Layout', function() {
       };
     }));
 
-    const template = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8');
-    const serializedResults = Buffer.from(JSON.stringify(results)).toString('base64');
-
-    const index = template.replace(
-      /\/\* results-start \*\/[\s\S]*\/\* results-end \*\//,
-      `const results = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob('${ serializedResults }'), character => character.charCodeAt(0))));`
+    const index = writeInspectorReport(
+      results,
+      path.join(outputDirectory, 'index.html')
     );
 
     assert.ok(index.includes('createMetricsPanel'));
@@ -3401,7 +3399,6 @@ describe('Layout', function() {
     assert.ok(index.includes("outputViewer.on('canvas.viewbox.changed', syncSnapshotViewport)"));
     assert.ok(index.includes('snapshotViewport.setAttribute('));
 
-    fs.writeFileSync(path.join(outputDirectory, 'index.html'), index, 'utf8');
   });
 
   this.afterAll(() => {

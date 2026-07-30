@@ -17,8 +17,9 @@ mkdir -p "$TEMP_DIR"
 git clone --depth=1 "https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/bpmn-io/bpmn-auto-layout.git" "$GH_PAGES_DIR"
 
 cd "$GH_PAGES_DIR"
-git checkout --orphan gh-pages
-git reset --hard
+git fetch --depth=1 origin gh-pages
+git checkout -B gh-pages FETCH_HEAD
+git rm -r -q --ignore-unmatch -- . ':(exclude)reviews' ':(exclude)reviews/**'
 
 (cd "$WORK_DIR" && cp -r example/dist/* $GH_PAGES_DIR)
 
@@ -31,8 +32,10 @@ if [[ "x$SKIP_COMMIT" = "x" ]]; then
 
   # add all resources
   git add -A
-  git commit -m "chore: update example"
-  git push -qf -u origin gh-pages &2>/dev/null
+  if ! git diff --cached --quiet; then
+    git commit -m "chore: update example"
+    git push -q -u origin gh-pages 2>/dev/null
+  fi
 else
   echo "Skipping commit (SKIP_COMMIT=$SKIP_COMMIT)"
 fi

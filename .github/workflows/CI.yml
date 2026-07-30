@@ -28,8 +28,27 @@ jobs:
     - name: Build example
       if: ${{ matrix.node-version == 24 }}
       run: npm run build:example
+
+  PublishExample:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: Build
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages-publish
+      cancel-in-progress: false
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+    - name: Use Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: 24
+        cache: 'npm'
+    - name: Install dependencies
+      run: npm ci
+    - name: Build example
+      run: npm run build:example
     - name: Update example
-      if: ${{ matrix.node-version == 24 && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       env:
         GIT_USER_NAME: ${{secrets.BPMN_IO_USER_NAME}}
         GIT_USER_EMAIL: ${{secrets.BPMN_IO_EMAIL}}
