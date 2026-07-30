@@ -21,7 +21,7 @@ import {
   segmentsProperlyCross,
   toSegments
 } from '../lib/layout/geometry/index.js';
-import { calculateStatistics } from '../tasks/benchmark-util.mjs';
+import { calculateStatistics } from '../tasks/benchmark-util.js';
 import { writeInspectorReport } from './inspector/Report.js';
 import {
   INSPECTOR_LAYOUT_TIMING_RUNS,

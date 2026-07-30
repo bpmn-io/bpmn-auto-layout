@@ -16,6 +16,8 @@
   },
   "include": [
     "bin/**/*.ts",
-    "lib/**/*.ts"
+    "lib/**/*.ts",
+    "tasks/benchmark-util.ts",
+    "tasks/benchmark-fixture.ts"
   ]
 }
