@@ -2,17 +2,16 @@ import { OUTER_MARGIN } from '../Constants.js';
 import { isExteriorArtifact } from '../bpmn/Predicates.js';
 import { getShapeExtents } from './Geometry.js';
 
-/**
- * @typedef {import('../Types.js').LayoutState} LayoutState
- */
+import type {
+  BpmnElement,
+  Bounds,
+  LayoutRecord,
+  LayoutState,
+  Waypoint
+} from '../Types.js';
+import type { Extents } from './Geometry.js';
 
-/**
- * Create the empty state for one independently laid-out BPMN scope.
- *
- * @param {Object} scope
- * @returns {LayoutState}
- */
-export function createLayout(scope) {
+export function createLayout(scope: BpmnElement): LayoutState {
   return {
     scope,
     shapes: new Map(),
@@ -22,7 +21,7 @@ export function createLayout(scope) {
   };
 }
 
-export function normalizeLayout(layout) {
+export function normalizeLayout(layout: LayoutState): void {
   const extents = getShapeExtents([
     ...layout.shapes.entries(),
     ...getExpandedChildShapes(layout)
@@ -35,7 +34,11 @@ export function normalizeLayout(layout) {
   );
 }
 
-export function translateLayout(layout, dx, dy) {
+export function translateLayout(
+    layout: LayoutState,
+    dx: number,
+    dy: number
+): void {
   for (const rect of layout.shapes.values()) {
     rect.x += dx;
     rect.y += dy;
@@ -55,7 +58,7 @@ export function translateLayout(layout, dx, dy) {
   }
 }
 
-export function getExtents(layout) {
+export function getExtents(layout: LayoutState): Extents {
   return getShapeExtents(
     [ ...layout.shapes.entries() ].map(([ element, rect ]) => ({
       element,
@@ -64,7 +67,7 @@ export function getExtents(layout) {
   );
 }
 
-export function getParticipantContentExtents(layout) {
+export function getParticipantContentExtents(layout: LayoutState): Extents {
   return getShapeExtents(
     [ ...layout.shapes.entries() ]
       .filter(([ element ]) => !isExteriorArtifact(element))
@@ -72,18 +75,22 @@ export function getParticipantContentExtents(layout) {
   );
 }
 
-export function hasParticipantContent(layout) {
+export function hasParticipantContent(layout: LayoutState): boolean {
   return [ ...layout.shapes.keys() ].some(element => {
     return !isExteriorArtifact(element);
   });
 }
 
-export function getRecordExtents(records) {
+export function getRecordExtents(
+    records: Array<LayoutRecord & { bounds: Bounds }>
+): Extents {
   return getShapeExtents(records.map(record => ({ rect: record.bounds })));
 }
 
-export function getExpandedChildShapes(layout) {
-  const shapes = [];
+export function getExpandedChildShapes(
+    layout: LayoutState
+): Array<[ BpmnElement, Bounds ]> {
+  const shapes: Array<[ BpmnElement, Bounds ]> = [];
 
   for (const child of layout.children) {
     if (!child.emitInParent) {
@@ -97,8 +104,10 @@ export function getExpandedChildShapes(layout) {
   return shapes;
 }
 
-export function getExpandedChildEdges(layout) {
-  const edges = [];
+export function getExpandedChildEdges(
+    layout: LayoutState
+): Array<[ BpmnElement, Waypoint[] ]> {
+  const edges: Array<[ BpmnElement, Waypoint[] ]> = [];
 
   for (const child of layout.children) {
     if (!child.emitInParent) {
