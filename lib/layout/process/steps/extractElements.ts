@@ -2,30 +2,35 @@ import { is } from '../../../di/DiUtil.js';
 import { isArtifact } from '../../bpmn/Predicates.js';
 import { createLayoutRecord } from '../LayoutRecord.js';
 
-/**
- * @typedef {import('../../Types.js').ProcessLayoutContext} ProcessLayoutContext
- */
+import type { BpmnElement, ProcessLayoutContext } from '../../Types.js';
 
-/**
- * @param {ProcessLayoutContext} context
- * @returns {ProcessLayoutContext}
- */
-export function extractElements(context) {
+export function extractElements(context: ProcessLayoutContext): ProcessLayoutContext {
   const { scope } = context;
   const { expandedIds } = context.options;
-  const flowElements = scope.flowElements || [];
-  const artifacts = scope.artifacts || [];
+  const isFlowElementsContainer = is(scope, 'bpmn:Process') ||
+    is(scope, 'bpmn:SubProcess');
+  const flowElements = isFlowElementsContainer ? scope.flowElements || [] : [];
+  const artifacts = isFlowElementsContainer && 'artifacts' in scope
+    ? scope.artifacts || []
+    : [];
   const groups = artifacts.filter(element => is(element, 'bpmn:Group'));
   const sequenceFlows = flowElements.filter(element => {
     return is(element, 'bpmn:SequenceFlow');
   });
-  const dataAssociations = flowElements.flatMap(element => [
-    ...(element.dataInputAssociations || []),
-    ...(element.dataOutputAssociations || [])
-  ]);
-  const associations = [ ...flowElements, ...artifacts ]
-    .filter(element => is(element, 'bpmn:Association'))
-    .concat(dataAssociations);
+  const dataAssociations = flowElements.flatMap(element => {
+    if (!is(element, 'bpmn:Activity')) {
+      return [];
+    }
+
+    return [
+      ...(element.dataInputAssociations || []),
+      ...(element.dataOutputAssociations || [])
+    ];
+  });
+  const associations: BpmnElement[] = [ ...flowElements, ...artifacts ]
+    .filter(element => is(element, 'bpmn:Association'));
+
+  associations.push(...dataAssociations);
   const nodeElements = [ ...new Set([
     ...flowElements.filter(element => {
       return !is(element, 'bpmn:SequenceFlow') &&
