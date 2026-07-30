@@ -1,10 +1,79 @@
+import type { ModdleElement } from 'moddle';
+
+import type {
+  BpmnElement,
+  Bounds,
+  LayoutRecord,
+  RankAssignment,
+  SemanticPolicy
+} from '../../Types.js';
+import type {
+  BpmnBoundaryEvent,
+  BpmnFlowNode,
+  BpmnSequenceFlow
+} from '../../../moddle-types/bpmn.js';
+
+type FlowNode = ModdleElement<BpmnFlowNode>;
+type BoundaryEvent = ModdleElement<BpmnBoundaryEvent> & {
+  attachedToRef: FlowNode;
+};
+type FlowEdge = ModdleElement<BpmnSequenceFlow> & {
+  sourceRef: FlowNode;
+  targetRef: FlowNode;
+};
+type BoundaryEdge = FlowEdge & {
+  sourceRef: BoundaryEvent;
+};
+type ShapeRecord = LayoutRecord & {
+  element: FlowNode;
+  bounds: Bounds;
+};
+type BoundaryRecord = ShapeRecord & {
+  element: BoundaryEvent;
+};
+type ShapeRecordsByElement = Map<FlowNode, ShapeRecord>;
+type PlacementPolicy = Pick<SemanticPolicy,
+  'bands' | 'components' | 'backEdges' | 'straightEdges'
+>;
+type RankRecords = Map<number, ShapeRecord[]>;
+type ComponentItem = {
+  component: ShapeRecord[];
+  extents: {
+    minX: number;
+    minY: number;
+    width: number;
+    height: number;
+  };
+  index: number;
+  width: number;
+  height: number;
+};
+
+function getRequired<Value>(value: Value | undefined): Value {
+  if (value === undefined) {
+    throw new Error('Expected shape placement value');
+  }
+
+  return value;
+}
+
+function isBoundaryRecord(record: ShapeRecord): record is BoundaryRecord {
+  return record.isBoundary &&
+    is(record.element, 'bpmn:BoundaryEvent') &&
+    !!record.element.attachedToRef;
+}
+
 import { is } from '../../../di/DiUtil.js';
 import { HORIZONTAL_GAP, VERTICAL_GAP, ROUTING_MARGIN, SEMANTIC_BAND_HEIGHT, BOUNDARY_EVENT_SPACING } from '../../Constants.js';
 import { hasEventDefinition } from '../../bpmn/Predicates.js';
 import { bounds, rectanglesOverlap, getRecordExtents } from '../../geometry/index.js';
 
-export function placeRecords(records, ranks, policy) {
-  const byRank = new Map();
+export function placeRecords(
+    records: ShapeRecord[],
+    ranks: RankAssignment,
+    policy: PlacementPolicy
+): void {
+  const byRank: RankRecords = new Map();
 
   for (const record of records) {
     const rank = ranks.rank.get(record.element) || 0;
@@ -13,18 +82,18 @@ export function placeRecords(records, ranks, policy) {
       byRank.set(rank, []);
     }
 
-    byRank.get(rank).push(record);
+    getRequired(byRank.get(rank)).push(record);
   }
 
   const rankNumbers = [ ...byRank.keys() ].sort((a, b) => a - b);
-  const rankWidths = new Map();
+  const rankWidths = new Map<number, number>();
   let x = 0;
 
   for (const rank of rankNumbers) {
-    const width = Math.max(...byRank.get(rank).map(record => record.size.width));
+    const width = Math.max(...getRequired(byRank.get(rank)).map(record => record.size.width));
     rankWidths.set(rank, width);
 
-    for (const record of byRank.get(rank)) {
+    for (const record of getRequired(byRank.get(rank))) {
       record.bounds = bounds(
         x + Math.round((width - record.size.width) / 2),
         (policy.bands.get(record.element) || 0) * (VERTICAL_GAP + SEMANTIC_BAND_HEIGHT) - record.size.height / 2,
@@ -37,9 +106,9 @@ export function placeRecords(records, ranks, policy) {
   }
 
   for (const rank of rankNumbers) {
-    const occupied = new Map();
+    const occupied = new Map<string, number>();
 
-    for (const record of byRank.get(rank).sort((a, b) => a.index - b.index)) {
+    for (const record of getRequired(byRank.get(rank)).sort((a, b) => a.index - b.index)) {
       const band = policy.bands.get(record.element) || 0;
       const key = `${policy.components.get(record.element)}:${band}`;
       const offset = occupied.get(key) || 0;
@@ -50,7 +119,12 @@ export function placeRecords(records, ranks, policy) {
 
 }
 
-export function clearBoundaryHandlerExits(records, boundaryEdges, recordsByElement, policy) {
+export function clearBoundaryHandlerExits(
+    records: ShapeRecord[],
+    boundaryEdges: BoundaryEdge[],
+    recordsByElement: ShapeRecordsByElement,
+    policy: PlacementPolicy
+): void {
   const ordered = [ ...boundaryEdges ].sort((a, b) => {
     const bandA = policy.bands.get(a.targetRef) || 0;
     const bandB = policy.bands.get(b.targetRef) || 0;
@@ -59,9 +133,9 @@ export function clearBoundaryHandlerExits(records, boundaryEdges, recordsByEleme
   });
 
   for (const edge of ordered) {
-    const boundary = recordsByElement.get(edge.sourceRef);
-    const host = recordsByElement.get(edge.sourceRef.attachedToRef);
-    const target = recordsByElement.get(edge.targetRef);
+    const boundary = getRequired(recordsByElement.get(edge.sourceRef));
+    const host = getRequired(recordsByElement.get(edge.sourceRef.attachedToRef));
+    const target = getRequired(recordsByElement.get(edge.targetRef));
     const targetBand = policy.bands.get(edge.targetRef) || 0;
     const hostBand = policy.bands.get(edge.sourceRef.attachedToRef) || 0;
     const component = policy.components.get(edge.targetRef);
@@ -104,10 +178,18 @@ export function clearBoundaryHandlerExits(records, boundaryEdges, recordsByEleme
   }
 }
 
-export function packComponents(scope, records, graphEdges, boundaryEdges, ranks) {
-  const parent = new Map(records.map(record => [ record.element, record.element ]));
-  const find = element => {
-    const root = parent.get(element);
+export function packComponents(
+    scope: BpmnElement,
+    records: ShapeRecord[],
+    graphEdges: FlowEdge[],
+    boundaryEdges: BoundaryEdge[],
+    ranks: RankAssignment
+): void {
+  const parent = new Map<FlowNode, FlowNode>(
+    records.map(record => [ record.element, record.element ])
+  );
+  const find = (element: FlowNode): FlowNode => {
+    const root = getRequired(parent.get(element));
 
     if (root === element) {
       return root;
@@ -117,7 +199,7 @@ export function packComponents(scope, records, graphEdges, boundaryEdges, ranks)
     parent.set(element, compressed);
     return compressed;
   };
-  const union = (a, b) => {
+  const union = (a: FlowNode, b: FlowNode): void => {
     const rootA = find(a);
     const rootB = find(b);
 
@@ -127,16 +209,21 @@ export function packComponents(scope, records, graphEdges, boundaryEdges, ranks)
   };
 
   for (const edge of [ ...graphEdges, ...boundaryEdges ]) {
+    if (is(edge.sourceRef, 'bpmn:BoundaryEvent') &&
+        !edge.sourceRef.attachedToRef) {
+      continue;
+    }
+
     const source = is(edge.sourceRef, 'bpmn:BoundaryEvent')
       ? edge.sourceRef.attachedToRef
       : edge.sourceRef;
 
-    if (parent.has(source) && parent.has(edge.targetRef)) {
+    if (source && parent.has(source) && parent.has(edge.targetRef)) {
       union(source, edge.targetRef);
     }
   }
 
-  const components = new Map();
+  const components = new Map<FlowNode, ShapeRecord[]>();
 
   for (const record of records) {
     const root = find(record.element);
@@ -145,10 +232,10 @@ export function packComponents(scope, records, graphEdges, boundaryEdges, ranks)
       components.set(root, []);
     }
 
-    components.get(root).push(record);
+    getRequired(components.get(root)).push(record);
   }
 
-  const ordered = [ ...components.values() ].sort((a, b) => {
+  const ordered: ShapeRecord[][] = [ ...components.values() ].sort((a, b) => {
     return Math.min(...a.map(record => record.index)) - Math.min(...b.map(record => record.index));
   });
 
@@ -177,8 +264,8 @@ export function packComponents(scope, records, graphEdges, boundaryEdges, ranks)
   }
 }
 
-function packCompactComponents(components) {
-  const items = components.map(component => {
+function packCompactComponents(components: ShapeRecord[][]): void {
+  const items: ComponentItem[] = components.map(component => {
     const extents = getRecordExtents(component);
 
     return {
@@ -202,7 +289,7 @@ function packCompactComponents(components) {
     ...items.map(item => item.width),
     Math.ceil(Math.sqrt(totalArea))
   );
-  const placed = [];
+  const placed: Bounds[] = [];
 
   for (const item of items) {
     const xs = [ 0, ...placed.map(candidate => candidate.x + candidate.width + HORIZONTAL_GAP) ];
@@ -249,15 +336,15 @@ function packCompactComponents(components) {
   }
 }
 
-function rectanglesOverlapWithGap(a, b) {
+function rectanglesOverlapWithGap(a: Bounds, b: Bounds): boolean {
   return a.x < b.x + b.width + HORIZONTAL_GAP &&
     a.x + a.width + HORIZONTAL_GAP > b.x &&
     a.y < b.y + b.height + VERTICAL_GAP &&
     a.y + a.height + VERTICAL_GAP > b.y;
 }
 
-function separateRankOverlaps(records, ranks) {
-  const byRank = new Map();
+function separateRankOverlaps(records: ShapeRecord[], ranks: RankAssignment): void {
+  const byRank: RankRecords = new Map();
 
   for (const record of records) {
     const rank = ranks.rank.get(record.element) || 0;
@@ -266,11 +353,11 @@ function separateRankOverlaps(records, ranks) {
       byRank.set(rank, []);
     }
 
-    byRank.get(rank).push(record);
+    getRequired(byRank.get(rank)).push(record);
   }
 
   for (const rankRecords of byRank.values()) {
-    const placed = [];
+    const placed: ShapeRecord[] = [];
 
     for (const record of rankRecords.sort((a, b) => a.index - b.index)) {
       let blockers;
@@ -287,9 +374,12 @@ function separateRankOverlaps(records, ranks) {
   }
 }
 
-export function placeBoundaryEvents(records, recordsByElement) {
-  const boundaries = records.filter(record => record.isBoundary);
-  const byHost = new Map();
+export function placeBoundaryEvents(
+    records: ShapeRecord[],
+    recordsByElement: ShapeRecordsByElement
+): void {
+  const boundaries = records.filter(isBoundaryRecord);
+  const byHost = new Map<FlowNode, BoundaryRecord[]>();
 
   for (const record of boundaries) {
     const host = record.element.attachedToRef;
@@ -298,11 +388,11 @@ export function placeBoundaryEvents(records, recordsByElement) {
       byHost.set(host, []);
     }
 
-    byHost.get(host).push(record);
+    getRequired(byHost.get(host)).push(record);
   }
 
   for (const [ host, attachers ] of byHost) {
-    const hostRecord = recordsByElement.get(host);
+    const hostRecord = getRequired(recordsByElement.get(host));
     const hostBounds = hostRecord.bounds;
     const top = attachers.filter(record => hasEventDefinition(record.element, 'bpmn:EscalationEventDefinition'));
     const bottom = attachers.filter(record => !top.includes(record));
@@ -312,7 +402,12 @@ export function placeBoundaryEvents(records, recordsByElement) {
   }
 }
 
-function placeAttachers(records, hostBounds, onTop, recordsByElement) {
+function placeAttachers(
+    records: BoundaryRecord[],
+    hostBounds: Bounds,
+    onTop: boolean,
+    recordsByElement: ShapeRecordsByElement
+): void {
   const outward = onTop ? -1 : 1;
 
   records.sort((a, b) => {
@@ -331,10 +426,16 @@ function placeAttachers(records, hostBounds, onTop, recordsByElement) {
   });
 }
 
-function boundaryHandlerDistance(record, hostBounds, outward, recordsByElement) {
+function boundaryHandlerDistance(
+    record: BoundaryRecord,
+    hostBounds: Bounds,
+    outward: number,
+    recordsByElement: ShapeRecordsByElement
+): number {
   const targets = (record.element.outgoing || [])
+    .filter((flow): flow is FlowEdge => !!flow.targetRef)
     .map(flow => recordsByElement.get(flow.targetRef)?.bounds)
-    .filter(Boolean);
+    .filter((target): target is Bounds => !!target);
 
   if (!targets.length) {
     return 0;
@@ -348,6 +449,6 @@ function boundaryHandlerDistance(record, hostBounds, outward, recordsByElement) 
   return outward * (targetCenterY - hostSideY);
 }
 
-function onHostSide(hostBounds, outward) {
+function onHostSide(hostBounds: Bounds, outward: number): number {
   return outward < 0 ? hostBounds.y : hostBounds.y + hostBounds.height;
 }
