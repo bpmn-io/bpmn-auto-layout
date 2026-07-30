@@ -3,8 +3,8 @@ import assert from 'node:assert';
 import {
   calculateStatistics,
   parseIterationCount
-} from '../tasks/benchmark-util.mjs';
-import { resolveFixturePath } from '../tasks/benchmark-fixture.mjs';
+} from '../tasks/benchmark-util.js';
+import { resolveFixturePath } from '../tasks/benchmark-fixture.js';
 
 describe('Fixture benchmark', function() {
 

@@ -8,7 +8,7 @@ import { layoutProcess } from '../dist/index.js';
 import {
   orderParticipantsByMessageFlow
 } from '../lib/layout/collaboration/ordering/ParticipantOrdering.js';
-import { calculateStatistics } from './benchmark-util.mjs';
+import { calculateStatistics } from './benchmark-util.js';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const budgets = [

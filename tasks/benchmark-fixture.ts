@@ -7,13 +7,16 @@ import { layoutProcess } from '../dist/index.js';
 import {
   calculateStatistics,
   parseIterationCount
-} from './benchmark-util.mjs';
+} from './benchmark-util.js';
 
 const WARMUP_ITERATIONS = 20;
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const fixturesDirectory = resolve(projectRoot, 'test', 'fixtures');
 
-export async function resolveFixturePath(fixtureArgument) {
+export async function resolveFixturePath(fixtureArgument: string): Promise<{
+  fixturePath: string;
+  fixtureRelativePath: string;
+}> {
   const fixtureName = fixtureArgument.endsWith('.bpmn')
     ? fixtureArgument
     : `${fixtureArgument}.bpmn`;
@@ -21,7 +24,7 @@ export async function resolveFixturePath(fixtureArgument) {
     resolve(fixturesDirectory, fixtureName),
     resolve(projectRoot, fixtureName)
   ];
-  let fixtureRelativePath;
+  let fixtureRelativePath: string | undefined;
 
   for (const fixturePath of new Set(candidates)) {
     const candidateRelativePath = relative(fixturesDirectory, fixturePath);
@@ -40,7 +43,7 @@ export async function resolveFixturePath(fixtureArgument) {
         fixtureRelativePath
       };
     } catch (error) {
-      if (error.code !== 'ENOENT') {
+      if (!hasCode(error, 'ENOENT')) {
         throw error;
       }
     }
@@ -53,7 +56,14 @@ export async function resolveFixturePath(fixtureArgument) {
   throw new Error(`Fixture not found: ${fixtureRelativePath}`);
 }
 
-async function benchmarkFixture(fixtureArgument, iterations) {
+async function benchmarkFixture(
+    fixtureArgument: string,
+    iterations: number
+): Promise<{
+  fixture: string;
+  iterations: number;
+  statistics: ReturnType<typeof calculateStatistics>;
+}> {
   const {
     fixturePath,
     fixtureRelativePath
@@ -69,7 +79,7 @@ async function benchmarkFixture(fixtureArgument, iterations) {
     await layoutProcess(fixtureXml);
   }
 
-  const times = [];
+  const times: number[] = [];
 
   for (let index = 0; index < iterations; index++) {
     const started = performance.now();
@@ -85,7 +95,7 @@ async function benchmarkFixture(fixtureArgument, iterations) {
   };
 }
 
-function formatMilliseconds(value) {
+function formatMilliseconds(value: number): string {
   return `${value.toFixed(2)} ms`;
 }
 
@@ -111,4 +121,8 @@ async function run() {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   await run();
+}
+
+function hasCode(error: unknown, code: string): boolean {
+  return error instanceof Error && 'code' in error && error.code === code;
 }

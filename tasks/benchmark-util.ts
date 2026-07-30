@@ -1,4 +1,10 @@
-export function parseIterationCount(value) {
+export interface BenchmarkStatistics {
+  averageMs: number;
+  p50Ms: number;
+  p90Ms: number;
+}
+
+export function parseIterationCount(value: string | undefined): number {
   const iterations = Number(value);
 
   if (!Number.isSafeInteger(iterations) || iterations < 1) {
@@ -8,7 +14,7 @@ export function parseIterationCount(value) {
   return iterations;
 }
 
-export function calculateStatistics(times) {
+export function calculateStatistics(times: readonly number[]): BenchmarkStatistics {
   if (!times.length) {
     throw new Error('At least one timing is required.');
   }
@@ -23,7 +29,7 @@ export function calculateStatistics(times) {
   };
 }
 
-function percentile(sortedTimes, quantile) {
+function percentile(sortedTimes: readonly number[], quantile: number): number {
   const index = (sortedTimes.length - 1) * quantile;
   const lowerIndex = Math.floor(index);
   const upperIndex = Math.ceil(index);
