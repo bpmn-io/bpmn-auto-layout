@@ -10,15 +10,9 @@ import {
   needsExpandedSubProcessTitleClearance
 } from '../../labels/LayoutLabels.js';
 
-/**
- * @typedef {import('../../Types.js').ProcessLayoutContext} ProcessLayoutContext
- */
+import type { ProcessLayoutContext } from '../../Types.js';
 
-/**
- * @param {ProcessLayoutContext} context
- * @returns {ProcessLayoutContext}
- */
-export function placeExpandedChildren(context) {
+export function placeExpandedChildren(context: ProcessLayoutContext): ProcessLayoutContext {
   for (const record of context.placement.records) {
     if (!record.expanded || !record.child || !record.bounds) {
       continue;
