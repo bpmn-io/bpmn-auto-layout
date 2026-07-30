@@ -34,6 +34,22 @@ console.warn(warnings);
 `LayoutWarning` instances. Invalid or unsupported input rejects with an exported
 `LayoutError`.
 
+> [!NOTE]
+> The `{ xml, warnings }` return shape, the `LayoutWarning`/`LayoutError`
+> exports and the command line below are part of the upcoming `2.0` line,
+> currently published under the `next` dist-tag (`npm install bpmn-auto-layout@next`).
+> The current stable release (`latest`, `1.x`) resolves `layoutProcess` with
+> the layouted **XML string** directly:
+>
+> ```javascript
+> // bpmn-auto-layout@latest (1.x)
+> const diagramWithLayoutXML = await layoutProcess(diagramXML);
+> ```
+>
+> If you consume the default `npm install bpmn-auto-layout`, use the `1.x`
+> form above; the `{ xml, warnings }` destructuring and the CLI require
+> `2.0` (`@next`).
+
 ## Command line
 
 The package also provides a command-line interface:
