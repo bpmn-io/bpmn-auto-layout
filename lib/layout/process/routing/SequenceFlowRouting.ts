@@ -1,3 +1,30 @@
+import type { Point, Rect } from 'diagram-js/lib/util/Types.js';
+
+import type { BpmnElement } from '../../Types.js';
+import type { BpmnFlowNode, BpmnSequenceFlow } from '../../../moddle-types/bpmn.js';
+import type { ModdleElement } from 'moddle';
+
+type FlowNode = ModdleElement<BpmnFlowNode> & { default?: FlowEdge; eventDefinitions?: BpmnElement[] };
+type FlowEdge = ModdleElement<BpmnSequenceFlow> & { sourceRef: FlowNode; targetRef: FlowNode };
+type RouterShape = { element: BpmnElement; rect: Rect };
+type RoutedConnection = { flow: FlowEdge; points: Point[] };
+type Router = ReturnType<typeof createBpmnOrthogonalRouter>;
+type RoutingPolicy = { backEdges: Set<FlowEdge>; bands: Map<BpmnElement, number>; straightEdges: Set<FlowEdge>; spine: Set<FlowEdge>; graphEdges: FlowEdge[] };
+type Classification = {
+  feedback: boolean; isBack: boolean; sourceCenterX: number; targetCenterX: number;
+  sourceCenterY: number; targetCenterY: number; horizontalTargetDock: boolean;
+  targetDockY: number; longForward: boolean; sourceBoundary: boolean; sourceTop: boolean;
+  boundaryRejoin: boolean; gatewayBranch: boolean; boundaryBranch: boolean;
+  implicitBranch: boolean; crossBand: boolean; verticalTarget: boolean;
+  alignedCrossBand: boolean; gatewayCrossBand: boolean; gatewayTargetAbove: boolean;
+  targetFromAbove: boolean;
+};
+type Routing = Classification & { flow: FlowEdge; source: Rect; target: Rect; shapes: RouterShape[];
+  routedConnections: RoutedConnection[]; policy: RoutingPolicy; router: Router; clearRouter: Router;
+  start: Point; end: Point };
+type ShapeByElement = Map<BpmnElement, Rect>;
+type MaybeRoute = Point[] | null;
+
 import { is } from '../../../di/DiUtil.js';
 import { LayoutError } from '../../../LayoutError.js';
 import {
@@ -22,9 +49,17 @@ import {
 
 // Preferred fractional x-offsets (in that order) when searching for a clear
 // vertical rejoin dock along a target's width.
+function getRequired<Value>(value: Value | undefined): Value {
+  if (value === undefined) {
+    throw new Error('Expected sequence flow routing value');
+  }
+
+  return value;
+}
+
 const CLEAR_DOCK_X_FRACTIONS = [ 0.5, 0.25, 0.75 ];
 
-export function routeConnection(flow, source, target, shapes, routedConnections, policy) {
+export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shapes: RouterShape[], routedConnections: RoutedConnection[], policy: RoutingPolicy): Point[] {
   const router = createSequenceFlowRouter(
     shapes,
     flow.sourceRef,
@@ -79,7 +114,7 @@ export function routeConnection(flow, source, target, shapes, routedConnections,
   return routeConnectionWithFallbacks(routing);
 }
 
-function isSelfLoop(flow) {
+function isSelfLoop(flow: FlowEdge): boolean {
   return flow.sourceRef === flow.targetRef ||
     (
       is(flow.sourceRef, 'bpmn:BoundaryEvent') &&
@@ -87,7 +122,7 @@ function isSelfLoop(flow) {
     );
 }
 
-function classifyConnection(flow, source, target, clearRouter, policy) {
+function classifyConnection(flow: FlowEdge, source: Rect, target: Rect, clearRouter: Router, policy: RoutingPolicy): Classification {
   const feedback = policy.backEdges?.has(flow);
   const isBack = feedback || target.x < source.x;
   const sourceCenterX = source.x + source.width / 2;
@@ -106,7 +141,7 @@ function classifyConnection(flow, source, target, clearRouter, policy) {
   const forwardEnd = point(target.x, targetDockY);
   const longForward = !isBack &&
     sourceCenterY === targetCenterY &&
-    !clearRouter.isSegmentClear(forwardStart, forwardEnd);
+    !clearRouter.isClear([ forwardStart, forwardEnd ]);
   const sourceBoundary = is(flow.sourceRef, 'bpmn:BoundaryEvent');
   const sourceDefinition = flow.sourceRef.eventDefinitions || [];
   const sourceTop = sourceBoundary && sourceDefinition.some(definition => is(definition, 'bpmn:EscalationEventDefinition'));
@@ -156,11 +191,12 @@ function classifyConnection(flow, source, target, clearRouter, policy) {
 }
 
 function selectConnectionDocks(
-    flow,
-    source,
-    target,
-    clearRouter,
-    classification) {
+    flow: FlowEdge,
+    source: Rect,
+    target: Rect,
+    clearRouter: Router,
+    classification: Classification
+): { start: Point; end: Point } {
   const {
     alignedCrossBand,
     boundaryRejoin,
@@ -212,7 +248,7 @@ function selectConnectionDocks(
   return { start, end };
 }
 
-function tryPreferredConnectionRoutes(routing) {
+function tryPreferredConnectionRoutes(routing: Routing): MaybeRoute {
   return tryDirectRoute(routing) ||
     tryBranchRoute(routing) ||
     tryCrossBandRoute(routing) ||
@@ -224,11 +260,11 @@ function tryDirectRoute({
   isBack,
   router,
   start
-}) {
+}: Routing): MaybeRoute {
   if (
     !isBack &&
     start.y === end.y &&
-    router.isSegmentClear(start, end)
+    router.isClear([ start, end ])
   ) {
     return [ start, end ];
   }
@@ -236,7 +272,7 @@ function tryDirectRoute({
   return null;
 }
 
-function tryBranchRoute(routing) {
+function tryBranchRoute(routing: Routing): MaybeRoute {
   const {
     boundaryBranch,
     end,
@@ -271,7 +307,7 @@ function tryBranchRoute(routing) {
   return null;
 }
 
-function tryCrossBandRoute(routing) {
+function tryCrossBandRoute(routing: Routing): MaybeRoute {
   const {
     crossBand,
     end,
@@ -366,7 +402,7 @@ function tryLocalBypassRoute({
   shapes,
   sourceBoundary,
   start
-}) {
+}: Routing): MaybeRoute {
   if (!longForward && (!feedback || sourceBoundary)) {
     return null;
   }
@@ -381,7 +417,7 @@ function tryLocalBypassRoute({
   );
 }
 
-function routeConnectionWithFallbacks(routing) {
+function routeConnectionWithFallbacks(routing: Routing): Point[] {
   const extents = getShapeExtents(routing.shapes);
 
   return tryBoundaryRejoinChannels(routing) ||
@@ -398,7 +434,7 @@ function tryBoundaryRejoinChannels({
   router,
   sourceTop,
   start
-}) {
+}: Routing) {
   if (!boundaryRejoin) {
     return null;
   }
@@ -430,8 +466,8 @@ function tryFeedbackChannels(
       longForward,
       router,
       start
-    },
-    extents) {
+    }: Routing,
+    extents: { maxY: number }): MaybeRoute {
   if (!feedback && !longForward) {
     return null;
   }
@@ -453,7 +489,7 @@ function tryFeedbackChannels(
   return null;
 }
 
-function tryPreferredChannel(routing, extents) {
+function tryPreferredChannel(routing: Routing, extents: { minY: number; maxY: number }): MaybeRoute {
   const {
     end,
     isBack,
@@ -488,7 +524,7 @@ function tryVisibilityRoutes({
   end,
   router,
   start
-}) {
+}: Routing) {
   return router.findRoute(start, end) || clearRouter.findRoute(start, end);
 }
 
@@ -501,7 +537,7 @@ function tryOuterRoutes({
   sourceBoundary,
   sourceTop,
   start
-}) {
+}: Routing) {
   return findOuterRoute(
     start,
     end,
@@ -528,7 +564,7 @@ function routePerimeterOrThrow({
   shapes,
   source,
   target
-}) {
+}: Routing) {
   const route = findPerimeterRoute(
     source,
     target,
@@ -552,7 +588,7 @@ function routePerimeterOrThrow({
   return route;
 }
 
-function routeSelfLoop(flow, source, target, clearRouter) {
+function routeSelfLoop(flow: FlowEdge, source: Rect, target: Rect, clearRouter: Router): Point[] {
   const start = point(source.x + source.width / 2, source.y + source.height);
   const end = point(target.x, target.y + target.height / 2);
 
@@ -583,7 +619,7 @@ function routeSelfLoop(flow, source, target, clearRouter) {
   );
 }
 
-function findClearVerticalDock(target, onTop, clearRouter) {
+function findClearVerticalDock(target: Rect, onTop: boolean, clearRouter: Router): Point {
   const y = onTop ? target.y : target.y + target.height;
   const candidates = CLEAR_DOCK_X_FRACTIONS.map(offset => {
     return point(target.x + target.width * offset, y);
@@ -592,22 +628,16 @@ function findClearVerticalDock(target, onTop, clearRouter) {
   return candidates.find(candidate => {
     const outside = point(candidate.x, candidate.y + (onTop ? -ROUTING_MARGIN : ROUTING_MARGIN));
 
-    return clearRouter.isSegmentClear(outside, candidate);
+    return clearRouter.isClear([ outside, candidate ]);
   }) || candidates[0];
 }
 
-function findLocalUBypass(
-    flow,
-    start,
-    end,
-    shapes,
-    policy,
-    routedConnections) {
+function findLocalUBypass(flow: FlowEdge, start: Point, end: Point, shapes: RouterShape[], policy: RoutingPolicy, routedConnections: RoutedConnection[]): MaybeRoute {
   const sourceElement = flow.sourceRef;
   const targetElement = flow.targetRef;
-  const shapeByElement = new Map(shapes.map(({ element, rect }) => [ element, rect ]));
-  const source = shapeByElement.get(sourceElement);
-  const target = shapeByElement.get(targetElement);
+  const shapeByElement: ShapeByElement = new Map(shapes.map(({ element, rect }) => [ element, rect ]));
+  const source = getRequired(shapeByElement.get(sourceElement));
+  const target = getRequired(shapeByElement.get(targetElement));
   const centerY = source.y + source.height / 2;
   const directStart = source.x < target.x
     ? point(source.x + source.width, centerY)
@@ -704,7 +734,7 @@ function findLocalUBypass(
       depth,
       candidateRouter
     );
-    const candidates = [ top, bottom ].filter(Boolean);
+    const candidates = [ top, bottom ].filter((route): route is Point[] => !!route);
 
     if (candidates.length) {
       return candidates.sort((a, b) => routeLength(a) - routeLength(b))[0];
@@ -714,13 +744,7 @@ function findLocalUBypass(
   return null;
 }
 
-function findClearLocalUChannel(
-    start,
-    end,
-    nearest,
-    direction,
-    depth,
-    router) {
+function findClearLocalUChannel(start: Point, end: Point, nearest: number, direction: number, depth: number, router: Router): MaybeRoute {
   for (let attempt = 0; attempt < MAX_LOCAL_U_CHANNEL_ATTEMPTS; attempt++) {
     const channelY = nearest + direction * (depth + attempt) * ROUTING_MARGIN;
     const candidate = cleanPoints([
@@ -738,11 +762,11 @@ function findClearLocalUChannel(
   return null;
 }
 
-function uShapeDepth(flow, shapeByElement, candidates) {
-  const memo = new Map();
-  const depth = edge => {
+function uShapeDepth(flow: FlowEdge, shapeByElement: ShapeByElement, candidates: FlowEdge[]): number {
+  const memo = new Map<FlowEdge, number>();
+  const depth = (edge: FlowEdge): number => {
     if (memo.has(edge)) {
-      return memo.get(edge);
+      return getRequired(memo.get(edge));
     }
 
     const [ left, right ] = uShapeSpan(edge, shapeByElement);
@@ -751,11 +775,11 @@ function uShapeDepth(flow, shapeByElement, candidates) {
         return false;
       }
 
-      const otherSource = shapeByElement.get(other.sourceRef);
+      const otherSource = getRequired(shapeByElement.get(other.sourceRef));
       const [ otherLeft ] = uShapeSpan(other, shapeByElement);
 
       return otherSource.y + otherSource.height / 2 ===
-          shapeByElement.get(edge.sourceRef).y + shapeByElement.get(edge.sourceRef).height / 2 &&
+          getRequired(shapeByElement.get(edge.sourceRef)).y + getRequired(shapeByElement.get(edge.sourceRef)).height / 2 &&
         otherLeft > left && otherLeft < right;
     });
     const value = 1 + Math.max(0, ...nested.map(depth));
@@ -767,8 +791,8 @@ function uShapeDepth(flow, shapeByElement, candidates) {
   return depth(flow);
 }
 
-function hasOverlappingUShape(flow, shapeByElement, candidates) {
-  const source = shapeByElement.get(flow.sourceRef);
+function hasOverlappingUShape(flow: FlowEdge, shapeByElement: ShapeByElement, candidates: FlowEdge[]): boolean {
+  const source = getRequired(shapeByElement.get(flow.sourceRef));
   const [ left, right ] = uShapeSpan(flow, shapeByElement);
 
   return candidates.some(other => {
@@ -776,7 +800,7 @@ function hasOverlappingUShape(flow, shapeByElement, candidates) {
       return false;
     }
 
-    const otherSource = shapeByElement.get(other.sourceRef);
+    const otherSource = getRequired(shapeByElement.get(other.sourceRef));
     const [ otherLeft, otherRight ] = uShapeSpan(other, shapeByElement);
 
     return otherSource.y + otherSource.height / 2 ===
@@ -786,8 +810,8 @@ function hasOverlappingUShape(flow, shapeByElement, candidates) {
   });
 }
 
-function uShapeCandidates(shapes, policy, shapeByElement) {
-  return (policy.graphEdges || []).filter(edge => {
+function uShapeCandidates(shapes: RouterShape[], policy: RoutingPolicy, shapeByElement: ShapeByElement): FlowEdge[] {
+  return policy.graphEdges.filter(edge => {
     const source = shapeByElement.get(edge.sourceRef);
     const target = shapeByElement.get(edge.targetRef);
 
@@ -808,9 +832,9 @@ function uShapeCandidates(shapes, policy, shapeByElement) {
   });
 }
 
-function uShapeSpan(edge, shapeByElement) {
-  const source = shapeByElement.get(edge.sourceRef);
-  const target = shapeByElement.get(edge.targetRef);
+function uShapeSpan(edge: FlowEdge, shapeByElement: ShapeByElement): [ number, number ] {
+  const source = getRequired(shapeByElement.get(edge.sourceRef));
+  const target = getRequired(shapeByElement.get(edge.targetRef));
 
   return [
     Math.min(source.x, target.x),
@@ -818,14 +842,7 @@ function uShapeSpan(edge, shapeByElement) {
   ];
 }
 
-function findOuterRoute(
-    start,
-    end,
-    shapes,
-    router,
-    isBack,
-    sourceBoundary,
-    sourceTop) {
+function findOuterRoute(start: Point, end: Point, shapes: RouterShape[], router: Router, isBack: boolean, sourceBoundary: boolean, sourceTop: boolean): MaybeRoute {
   const extents = getShapeExtents(shapes);
 
   for (let attempt = 1; attempt <= MAX_ROUTE_SEARCH_ATTEMPTS; attempt++) {
@@ -851,7 +868,7 @@ function findOuterRoute(
   return null;
 }
 
-function findPerimeterRoute(source, target, shapes, router) {
+function findPerimeterRoute(source: Rect, target: Rect, shapes: RouterShape[], router: Router): MaybeRoute {
   const extents = getShapeExtents(shapes);
   const corners = [
     point(extents.minX - ROUTING_MARGIN, extents.minY - ROUTING_MARGIN),
@@ -881,7 +898,7 @@ function findPerimeterRoute(source, target, shapes, router) {
   return null;
 }
 
-function outerLegs(rect, corner) {
+function outerLegs(rect: Rect, corner: Point): Point[][] {
   const horizontalPort = point(
     corner.x < rect.x ? rect.x : rect.x + rect.width,
     rect.y + rect.height / 2
@@ -897,15 +914,7 @@ function outerLegs(rect, corner) {
   ];
 }
 
-function segmentIsClear(
-    a,
-    b,
-    shapes,
-    sourceElement,
-    targetElement,
-    routedConnections,
-    obstacleInset = ROUTE_OBSTACLE_INSET,
-    allowPerpendicularCrossings = false) {
+function segmentIsClear(a: Point, b: Point, shapes: RouterShape[], sourceElement: BpmnElement, targetElement: BpmnElement, routedConnections: RoutedConnection[], obstacleInset = ROUTE_OBSTACLE_INSET, allowPerpendicularCrossings = false): boolean {
   return createSequenceFlowRouter(
     shapes,
     sourceElement,
@@ -915,15 +924,10 @@ function segmentIsClear(
       obstacleInset,
       allowPerpendicularCrossings
     }
-  ).isSegmentClear(a, b);
+  ).isClear([ a, b ]);
 }
 
-function createSequenceFlowRouter(
-    shapes,
-    sourceElement,
-    targetElement,
-    routedConnections,
-    options = {}) {
+function createSequenceFlowRouter(shapes: RouterShape[], sourceElement: BpmnElement, targetElement: BpmnElement, routedConnections: RoutedConnection[], options: { obstacleInset?: number; allowPerpendicularCrossings?: boolean; maxVisibilityPoints?: number } = {}): Router {
   return createBpmnOrthogonalRouter({
     shapes,
     sourceElement,
