@@ -14,7 +14,40 @@ import {
   createOrthogonalRouter
 } from '../routing/OrthogonalRouting.js';
 
-export function finalizeLayoutConnections(layout, normalizePlaneDockings = false) {
+import type {
+  Point,
+  Rect
+} from 'diagram-js/lib/util/Types.js';
+import type {
+  BpmnElement,
+  LayoutState,
+  Waypoint
+} from '../Types.js';
+
+type RoutedConnection = {
+  flow: BpmnElement;
+  points: Waypoint[];
+};
+
+type ConnectionObstacle = {
+  element: BpmnElement;
+  rect: Rect;
+};
+
+type OrthogonalElbow = {
+  start: Point;
+  corner: Point;
+  end: Point;
+  sourceVertical: boolean;
+  targetVertical: boolean;
+};
+
+type PointFactory = (x: number, y: number) => Point;
+
+export function finalizeLayoutConnections(
+    layout: LayoutState,
+    normalizePlaneDockings = false
+): void {
   orientLayoutConnections(layout);
 
   if (normalizePlaneDockings) {
@@ -22,12 +55,12 @@ export function finalizeLayoutConnections(layout, normalizePlaneDockings = false
   }
 }
 
-function orientLayoutConnections(layout) {
+function orientLayoutConnections(layout: LayoutState): void {
   const shapes = new Map([
     ...layout.shapes,
     ...getExpandedChildShapes(layout)
   ]);
-  const connections = [ ...layout.edges ]
+  const connections: RoutedConnection[] = [ ...layout.edges ]
     .map(([ flow, points ]) => ({ flow, points }));
   const oriented = new Map();
 
@@ -51,14 +84,45 @@ function orientLayoutConnections(layout) {
   }
 }
 
-function orientDockingPoints(element, points, shapes, routedConnections) {
+function getConnectionSource(element: BpmnElement): BpmnElement | undefined {
+  if (is(element, 'bpmn:DataAssociation')) {
+    return element.sourceRef?.[0];
+  }
+
+  if (
+    is(element, 'bpmn:Association') ||
+    is(element, 'bpmn:MessageFlow') ||
+    is(element, 'bpmn:SequenceFlow')
+  ) {
+    return element.sourceRef;
+  }
+}
+
+function getConnectionTarget(element: BpmnElement): BpmnElement | undefined {
+  if (
+    is(element, 'bpmn:Association') ||
+    is(element, 'bpmn:DataAssociation') ||
+    is(element, 'bpmn:MessageFlow') ||
+    is(element, 'bpmn:SequenceFlow')
+  ) {
+    return element.targetRef;
+  }
+}
+
+function orientDockingPoints(
+    element: BpmnElement,
+    points: Waypoint[],
+    shapes: Map<BpmnElement, Rect>,
+    routedConnections: RoutedConnection[]
+): Waypoint[] {
   if (is(element, 'bpmn:Association') || is(element, 'bpmn:DataAssociation')) {
     return points;
   }
 
-  const source = Array.isArray(element.sourceRef) ? element.sourceRef[0] : element.sourceRef;
-  const sourceBounds = shapes.get(source);
-  const targetBounds = shapes.get(element.targetRef);
+  const source = getConnectionSource(element);
+  const target = getConnectionTarget(element);
+  const sourceBounds = source ? shapes.get(source) : undefined;
+  const targetBounds = target ? shapes.get(target) : undefined;
   const boundaryRoute = sourceBounds && targetBounds
     ? enforceBoundaryVerticalExit(
       element,
@@ -104,18 +168,20 @@ function orientDockingPoints(element, points, shapes, routedConnections) {
 }
 
 function enforceBoundaryVerticalExit(
-    element,
-    sourceElement,
-    points,
-    sourceBounds,
-    targetBounds,
-    shapes,
-    routedConnections) {
+    element: BpmnElement,
+    sourceElement: BpmnElement | undefined,
+    points: Waypoint[],
+    sourceBounds: Rect,
+    targetBounds: Rect,
+    shapes: Map<BpmnElement, Rect>,
+    routedConnections: RoutedConnection[]
+): Waypoint[] {
   if (!is(sourceElement, 'bpmn:BoundaryEvent') || points.length < 2) {
     return points;
   }
 
-  const host = shapes.get(sourceElement.attachedToRef);
+  const host = sourceElement.attachedToRef &&
+    shapes.get(sourceElement.attachedToRef);
   const sourceCenterY = sourceBounds.y + sourceBounds.height / 2;
   const sourceTop = host &&
     Math.abs(sourceCenterY - host.y) <
@@ -146,13 +212,13 @@ function enforceBoundaryVerticalExit(
   const router = createBpmnOrthogonalRouter({
     shapes: obstacles,
     sourceElement,
-    targetElement: element.targetRef,
+    targetElement: getConnectionTarget(element),
     routedConnections: routedConnections.filter(({ flow }) => flow !== element)
   });
   const clearRouter = createBpmnOrthogonalRouter({
     shapes: obstacles,
     sourceElement,
-    targetElement: element.targetRef
+    targetElement: getConnectionTarget(element)
   });
 
   for (const candidateDock of targetDocks) {
@@ -176,7 +242,7 @@ function enforceBoundaryVerticalExit(
   return fallback || points;
 }
 
-function outwardDockingStub(dock, rect) {
+function outwardDockingStub(dock: Point, rect: Rect): Point {
   if (dock.x === rect.x) {
     return point(dock.x - ROUTING_MARGIN, dock.y);
   }
@@ -190,7 +256,7 @@ function outwardDockingStub(dock, rect) {
   return point(dock.x, dock.y + ROUTING_MARGIN);
 }
 
-function oppositeDock(dock, rect) {
+function oppositeDock(dock: Point, rect: Rect): Point {
   if (dock.x === rect.x) {
     return point(rect.x + rect.width, rect.y + rect.height / 2);
   }
@@ -204,7 +270,7 @@ function oppositeDock(dock, rect) {
   return point(rect.x + rect.width / 2, rect.y);
 }
 
-function hasUTurn(points) {
+function hasUTurn(points: Point[]): boolean {
   for (let index = 1; index < points.length - 1; index++) {
     const incomingX = points[index].x - points[index - 1].x;
     const incomingY = points[index].y - points[index - 1].y;
@@ -221,7 +287,7 @@ function hasUTurn(points) {
   return false;
 }
 
-function facingDock(source, rect) {
+function facingDock(source: Point, rect: Rect): Point {
   if (source.x < rect.x) {
     return point(rect.x, rect.y + rect.height / 2);
   }
@@ -235,13 +301,14 @@ function facingDock(source, rect) {
 }
 
 function centerOrthogonalElbow(
-    element,
-    sourceElement,
-    points,
-    sourceBounds,
-    targetBounds,
-    shapes,
-    routedConnections) {
+    element: BpmnElement,
+    sourceElement: BpmnElement | undefined,
+    points: Waypoint[],
+    sourceBounds: Rect,
+    targetBounds: Rect,
+    shapes: Map<BpmnElement, Rect>,
+    routedConnections: RoutedConnection[]
+): Waypoint[] {
   const elbow = classifyOrthogonalElbow(element, points);
 
   if (!elbow) {
@@ -306,7 +373,10 @@ function centerOrthogonalElbow(
   );
 }
 
-function classifyOrthogonalElbow(element, points) {
+function classifyOrthogonalElbow(
+    element: BpmnElement,
+    points: Waypoint[]
+): OrthogonalElbow | null {
   if (!is(element, 'bpmn:SequenceFlow') || points.length !== 3) {
     return null;
   }
@@ -333,7 +403,11 @@ function classifyOrthogonalElbow(element, points) {
   };
 }
 
-function createCenteredElbowRoute(elbow, sourceBounds, targetBounds) {
+function createCenteredElbowRoute(
+    elbow: OrthogonalElbow,
+    sourceBounds: Rect,
+    targetBounds: Rect
+): Waypoint[] {
   const { start, corner, end, sourceVertical, targetVertical } = elbow;
   const sourceDock = sourceVertical
     ? point(
@@ -368,10 +442,11 @@ function createCenteredElbowRoute(elbow, sourceBounds, targetBounds) {
 }
 
 function createAlternateElbowRoutes(
-    elbow,
-    sourceBounds,
-    targetBounds,
-    centered) {
+    elbow: OrthogonalElbow,
+    sourceBounds: Rect,
+    targetBounds: Rect,
+    centered: Waypoint[]
+): { bypass: Waypoint[]; transposed: Waypoint[] } {
   const { sourceVertical } = elbow;
   const sourceDock = centered[0];
   const sourceCenterX = sourceBounds.x + sourceBounds.width / 2;
@@ -442,16 +517,17 @@ function createAlternateElbowRoutes(
 }
 
 function selectClearElbowRoute(
-    candidates,
-    element,
-    sourceElement,
-    obstacles,
-    routedConnections,
-    ignoredFlow = element) {
+    candidates: Waypoint[][],
+    element: BpmnElement,
+    sourceElement: BpmnElement | undefined,
+    obstacles: ConnectionObstacle[],
+    routedConnections: RoutedConnection[],
+    ignoredFlow: BpmnElement | null = element
+): Waypoint[] | null {
   const router = createEndpointRouteRouter(
     obstacles,
     sourceElement,
-    element.targetRef,
+    getConnectionTarget(element),
     routedConnections,
     ignoredFlow
   );
@@ -460,29 +536,31 @@ function selectClearElbowRoute(
 }
 
 function elbowRouteIsClear(
-    route,
-    element,
-    sourceElement,
-    obstacles,
-    routedConnections,
-    ignoredFlow = element) {
+    route: Waypoint[],
+    element: BpmnElement,
+    sourceElement: BpmnElement | undefined,
+    obstacles: ConnectionObstacle[],
+    routedConnections: RoutedConnection[],
+    ignoredFlow: BpmnElement | null = element
+): boolean {
   return endpointRouteIsClear(
     route,
     obstacles,
     sourceElement,
-    element.targetRef,
+    getConnectionTarget(element),
     routedConnections,
     ignoredFlow
   );
 }
 
 function routeElbowAroundObstacles(
-    element,
-    sourceElement,
-    sourceBounds,
-    targetBounds,
-    obstacles,
-    originalPoints) {
+    element: BpmnElement,
+    sourceElement: BpmnElement | undefined,
+    sourceBounds: Rect,
+    targetBounds: Rect,
+    obstacles: ConnectionObstacle[],
+    originalPoints: Waypoint[]
+): Waypoint[] {
   const sourceCenter = point(
     sourceBounds.x + sourceBounds.width / 2,
     sourceBounds.y + sourceBounds.height / 2
@@ -498,7 +576,7 @@ function routeElbowAroundObstacles(
   const visibilityRouteWithCrossings = createBpmnOrthogonalRouter({
     shapes: obstacles,
     sourceElement,
-    targetElement: element.targetRef
+    targetElement: getConnectionTarget(element)
   }).findRoute(sourceStub, targetStub);
 
   return visibilityRouteWithCrossings
@@ -511,12 +589,13 @@ function routeElbowAroundObstacles(
 }
 
 function endpointRouteIsClear(
-    points,
-    obstacles,
-    sourceElement,
-    targetElement,
-    routedConnections,
-    ignoredFlow = null) {
+    points: Waypoint[],
+    obstacles: ConnectionObstacle[],
+    sourceElement: BpmnElement | undefined,
+    targetElement: BpmnElement | undefined,
+    routedConnections: RoutedConnection[],
+    ignoredFlow: BpmnElement | null = null
+): boolean {
   return createEndpointRouteRouter(
     obstacles,
     sourceElement,
@@ -527,11 +606,12 @@ function endpointRouteIsClear(
 }
 
 function createEndpointRouteRouter(
-    obstacles,
-    sourceElement,
-    targetElement,
-    routedConnections,
-    ignoredFlow) {
+    obstacles: ConnectionObstacle[],
+    sourceElement: BpmnElement | undefined,
+    targetElement: BpmnElement | undefined,
+    routedConnections: RoutedConnection[],
+    ignoredFlow: BpmnElement | null
+) {
   return createOrthogonalRouter({
     obstacles: obstacles.map(({ element, rect }) => ({
       excluded: element === sourceElement || element === targetElement,
@@ -546,18 +626,29 @@ function createEndpointRouteRouter(
   });
 }
 
-function flipTangentElbow(element, sourceElement, points, sourceBounds, targetBounds, shapes) {
+function flipTangentElbow(
+    element: BpmnElement,
+    sourceElement: BpmnElement | undefined,
+    points: Waypoint[],
+    sourceBounds: Rect,
+    targetBounds: Rect,
+    shapes: Map<BpmnElement, Rect>
+): Waypoint[] {
+  const [ start, corner, end ] = points;
+
   if (!is(sourceElement, 'bpmn:BoundaryEvent') ||
-      points.length !== 3 ||
-      dockingDirectionMatches(points[0], points[1], sourceBounds) ||
-      dockingDirectionMatches(points.at(-1), points.at(-2), targetBounds)) {
+      !start ||
+      !corner ||
+      !end ||
+      dockingDirectionMatches(start, corner, sourceBounds) ||
+      dockingDirectionMatches(end, corner, targetBounds)) {
     return points;
   }
 
   const alternate = cleanPoints([
-    points[0],
-    point(points[0].x, points.at(-1).y),
-    points.at(-1)
+    start,
+    point(start.x, end.y),
+    end
   ]);
 
   if (alternate.length !== 3) {
@@ -567,11 +658,13 @@ function flipTangentElbow(element, sourceElement, points, sourceBounds, targetBo
   return createBpmnOrthogonalRouter({
     shapes: connectionObstacles(shapes),
     sourceElement,
-    targetElement: element.targetRef
+    targetElement: getConnectionTarget(element)
   }).isClear(alternate) ? alternate : points;
 }
 
-function connectionObstacles(shapes) {
+function connectionObstacles(
+    shapes: Map<BpmnElement, Rect>
+): ConnectionObstacle[] {
   return [ ...shapes.entries() ]
     .filter(([ candidate ]) => {
       return !is(candidate, 'bpmn:Lane') &&
@@ -581,7 +674,7 @@ function connectionObstacles(shapes) {
     .map(([ candidate, rect ]) => ({ element: candidate, rect }));
 }
 
-function orientPlaneDockings(layout) {
+function orientPlaneDockings(layout: LayoutState): void {
   const shapes = new Map([
     ...layout.shapes,
     ...getExpandedChildShapes(layout)
@@ -597,9 +690,10 @@ function orientPlaneDockings(layout) {
       continue;
     }
 
-    const source = Array.isArray(element.sourceRef) ? element.sourceRef[0] : element.sourceRef;
-    const sourceBounds = shapes.get(source);
-    const targetBounds = shapes.get(element.targetRef);
+    const source = getConnectionSource(element);
+    const sourceBounds = source ? shapes.get(source) : undefined;
+    const target = getConnectionTarget(element);
+    const targetBounds = target ? shapes.get(target) : undefined;
     const requireOrthogonal = !is(element, 'bpmn:Association') &&
       !is(element, 'bpmn:DataAssociation');
 
@@ -622,20 +716,21 @@ function orientPlaneDockings(layout) {
         true,
         point,
         requireOrthogonal,
-        requiresCenteredDocking(element.targetRef)
+        requiresCenteredDocking(target)
       );
     }
   }
 }
 
 function orientPlaneEdgeDocking(
-    points,
-    rect,
-    source,
+    points: Waypoint[],
+    rect: Rect,
+    source: boolean,
     allowDogleg = false,
-    createPoint = point,
+    createPoint: PointFactory = point,
     requireOrthogonal = true,
-    centerSides = false) {
+    centerSides = false
+): void {
   while (points.length > 1) {
     const endpointIndex = source ? 0 : points.length - 1;
     const adjacentIndex = source ? 1 : points.length - 2;
@@ -710,11 +805,11 @@ function orientPlaneEdgeDocking(
   }
 }
 
-function requiresCenteredDocking(element) {
+function requiresCenteredDocking(element: BpmnElement | undefined): boolean {
   return is(element, 'bpmn:Event') || is(element, 'bpmn:Gateway');
 }
 
-function centerDockingPoint(dock, adjacent, rect) {
+function centerDockingPoint(dock: Point, adjacent: Point, rect: Rect): Point {
   if (dock.x === adjacent.x) {
     if (dock.y === rect.y) {
       return point(rect.x + rect.width / 2, rect.y);
@@ -736,13 +831,14 @@ function centerDockingPoint(dock, adjacent, rect) {
 }
 
 function addDockingDogleg(
-    points,
-    endpointIndex,
-    adjacent,
-    rect,
-    source,
-    createPoint,
-    replaceAdjacentBridge = false) {
+    points: Waypoint[],
+    endpointIndex: number,
+    adjacent: Point,
+    rect: Rect,
+    source: boolean,
+    createPoint: PointFactory,
+    replaceAdjacentBridge = false
+): void {
   const endpoint = points[endpointIndex];
   let outward;
   let bridge;
@@ -800,7 +896,11 @@ function addDockingDogleg(
   }
 }
 
-function moveAmbiguousCornerDocking(endpoint, adjacent, rect) {
+function moveAmbiguousCornerDocking(
+    endpoint: Point,
+    adjacent: Point,
+    rect: Rect
+): boolean {
   const onVerticalSide =
     endpoint.x === rect.x ||
     endpoint.x === rect.x + rect.width;
@@ -825,14 +925,19 @@ function moveAmbiguousCornerDocking(endpoint, adjacent, rect) {
   return false;
 }
 
-function pointIsWithin(candidatePoint, rect) {
+function pointIsWithin(candidatePoint: Point, rect: Rect): boolean {
   return candidatePoint.x >= rect.x &&
     candidatePoint.x <= rect.x + rect.width &&
     candidatePoint.y >= rect.y &&
     candidatePoint.y <= rect.y + rect.height;
 }
 
-function orientDockingPoint(endpoint, adjacent, rect, requireOrthogonal = true) {
+function orientDockingPoint(
+    endpoint: Point,
+    adjacent: Point,
+    rect: Rect,
+    requireOrthogonal = true
+): Point {
   if (dockingDirectionMatches(endpoint, adjacent, rect, requireOrthogonal)) {
     return endpoint;
   }
@@ -871,7 +976,12 @@ function orientDockingPoint(endpoint, adjacent, rect, requireOrthogonal = true) 
   return endpoint;
 }
 
-function dockingDirectionMatches(endpoint, adjacent, rect, requireOrthogonal = true) {
+function dockingDirectionMatches(
+    endpoint: Point,
+    adjacent: Point,
+    rect: Rect,
+    requireOrthogonal = true
+): boolean {
   const vertical = !requireOrthogonal || endpoint.x === adjacent.x;
   const horizontal = !requireOrthogonal || endpoint.y === adjacent.y;
 
