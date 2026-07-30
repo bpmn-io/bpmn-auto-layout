@@ -6,6 +6,12 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+* `CHORE`: require Node.js >= 22
+
+### Breaking Changes
+
+* Require Node.js >= 22; Node.js 18 and 20 are no longer supported.
+
 ## 2.0.0-alpha.2
 
 * `FEAT`: add a command-line interface for in-place BPMN layout ([#142](https://github.com/bpmn-io/bpmn-auto-layout/pull/142))
