@@ -1,27 +1,59 @@
+import type { ModdleElement } from 'moddle';
+
+import type {
+  BpmnElement,
+  LayoutRecord,
+  ProcessLayoutContext
+} from '../../Types.js';
+import type {
+  BpmnBoundaryEvent,
+  BpmnFlowNode,
+  BpmnSequenceFlow
+} from '../../../moddle-types/bpmn.js';
+
+type SequenceFlow = ModdleElement<BpmnSequenceFlow>;
+type BoundaryEvent = ModdleElement<BpmnBoundaryEvent>;
+type BoundaryRecord = LayoutRecord & { element: BoundaryEvent };
+type RecordsByElement = Map<BpmnElement, LayoutRecord>;
+type LinkEvent = ModdleElement<BpmnFlowNode> & { eventDefinitions?: BpmnElement[] };
+
+function isLinkEvent(record: LayoutRecord): record is LayoutRecord & { element: LinkEvent } {
+  return is(record.element, 'bpmn:IntermediateThrowEvent') ||
+    is(record.element, 'bpmn:IntermediateCatchEvent');
+}
+
+function isBoundaryRecord(record: LayoutRecord): record is BoundaryRecord {
+  return record.isBoundary && is(record.element, 'bpmn:BoundaryEvent');
+}
+
 import { is } from '../../../di/DiUtil.js';
 import { LayoutError } from '../../../LayoutError.js';
 
-/**
- * @typedef {import('../../Types.js').ProcessLayoutContext} ProcessLayoutContext
- */
+function getRequired<Value>(value: Value | undefined): Value {
+  if (value === undefined) {
+    throw new Error('Expected scope validation value');
+  }
 
-/**
- * @param {ProcessLayoutContext} context
- * @returns {ProcessLayoutContext}
- */
-export function validateScope(context) {
+  return value;
+}
+
+export function validateScope(context: ProcessLayoutContext): ProcessLayoutContext {
   const { scope } = context;
   const { sequenceFlows } = context.elements;
   const { records, recordsByElement } = context.placement;
 
-  validateSequenceFlows(sequenceFlows, recordsByElement, scope);
+  validateSequenceFlows(
+    sequenceFlows.filter((flow): flow is SequenceFlow => is(flow, 'bpmn:SequenceFlow')),
+    recordsByElement,
+    scope
+  );
   validateBoundaryEvents(records, recordsByElement, scope);
   validateLinks(records, scope);
 
   return context;
 }
 
-function validateSequenceFlows(flows, recordsByElement, scope) {
+function validateSequenceFlows(flows: SequenceFlow[], recordsByElement: RecordsByElement, scope: BpmnElement): void {
   for (const flow of flows) {
     const source = flow.sourceRef;
     const target = flow.targetRef;
@@ -31,7 +63,7 @@ function validateSequenceFlows(flows, recordsByElement, scope) {
         'CROSS_SCOPE_SEQUENCE_FLOW',
         flow.id,
         'A sequence flow cannot cross a containment scope.',
-        [ source.id, target.id ]
+        [ source.id, target.id ].filter((id): id is string => typeof id === 'string')
       );
     }
 
@@ -50,8 +82,8 @@ function validateSequenceFlows(flows, recordsByElement, scope) {
   }
 }
 
-function validateBoundaryEvents(records, recordsByElement, scope) {
-  for (const record of records.filter(record => record.isBoundary)) {
+function validateBoundaryEvents(records: LayoutRecord[], recordsByElement: RecordsByElement, scope: BpmnElement): void {
+  for (const record of records.filter(isBoundaryRecord)) {
     const host = record.element.attachedToRef;
 
     if (!host || !recordsByElement.has(host) || host.$parent !== scope) {
@@ -65,12 +97,9 @@ function validateBoundaryEvents(records, recordsByElement, scope) {
   }
 }
 
-function validateLinks(records, scope) {
-  const events = records.filter(record => {
-    return is(record.element, 'bpmn:IntermediateThrowEvent') ||
-      is(record.element, 'bpmn:IntermediateCatchEvent');
-  });
-  const links = new Map();
+function validateLinks(records: LayoutRecord[], scope: BpmnElement): void {
+  const events = records.filter(isLinkEvent);
+  const links = new Map<string, LinkEvent[]>();
 
   for (const record of events) {
     const definition = (record.element.eventDefinitions || []).find(candidate => {
@@ -87,7 +116,7 @@ function validateLinks(records, scope) {
       links.set(name, []);
     }
 
-    links.get(name).push(record.element);
+    getRequired(links.get(name)).push(record.element);
   }
 
   for (const [ name, elements ] of links) {
@@ -101,9 +130,10 @@ function validateLinks(records, scope) {
     if (throws.length !== 1 || catches.length !== 1) {
       throw new LayoutError(
         'INVALID_LINK_EVENT_PAIR',
-        elements[0].id,
+        getRequired(elements[0]).id,
         `Link event "${name}" must have exactly one throw and one catch in scope "${scope.id}".`,
         elements.map(element => element.id)
+          .filter((id): id is string => typeof id === 'string')
       );
     }
   }
