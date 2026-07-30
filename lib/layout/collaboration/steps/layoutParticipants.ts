@@ -9,17 +9,18 @@ import {
   layoutProcessScope
 } from '../../process/index.js';
 import { collectMessageFlowEndpointDirections } from '../Helpers.js';
+import { isBpmnType } from '../../bpmn/Types.js';
 
-/**
- * @typedef {import('../../Types.js').CollaborationLayoutContext} CollaborationLayoutContext
- */
+import type { BpmnElementFor } from '../../bpmn/Types.js';
+import type { CollaborationLayoutContext } from '../../Types.js';
 
-/**
- * @param {CollaborationLayoutContext} context
- * @returns {CollaborationLayoutContext}
- */
-export function layoutParticipants(context) {
-  const { collaboration, layout, warnings } = context;
+type Collaboration = BpmnElementFor<'bpmn:Collaboration'>;
+
+export function layoutParticipants(
+    context: CollaborationLayoutContext
+): CollaborationLayoutContext {
+  const { layout, warnings } = context;
+  const collaboration = getCollaboration(context);
   const { expandedIds } = context.options;
   const {
     layouts,
@@ -36,7 +37,7 @@ export function layoutParticipants(context) {
     const process = participant.processRef;
 
     if (!process) {
-      const size = getDefaultSize(participant);
+      const size = getRequired(getDefaultSize(participant));
 
       layout.shapes.set(participant, bounds(
         0,
@@ -84,4 +85,21 @@ export function layoutParticipants(context) {
   }
 
   return context;
+}
+
+
+function getCollaboration(context: CollaborationLayoutContext): Collaboration {
+  if (!isBpmnType(context.collaboration, 'bpmn:Collaboration')) {
+    throw new Error('Expected BPMN collaboration');
+  }
+
+  return context.collaboration;
+}
+
+function getRequired<Value>(value: Value | null): Value {
+  if (value === null) {
+    throw new Error('Expected participant default size');
+  }
+
+  return value;
 }
