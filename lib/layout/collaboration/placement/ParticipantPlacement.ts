@@ -26,14 +26,34 @@ import {
   includeHorizontalRange
 } from '../Helpers.js';
 
+import type { ModdleElement } from 'moddle';
+
+import type {
+  BpmnElement,
+  Bounds,
+  Waypoint
+} from '../../Types.js';
+import type { BpmnElementFor } from '../../bpmn/Types.js';
+import type { BpmnParticipant } from '../../../moddle-types/bpmn.js';
+
+type Collaboration = BpmnElementFor<'bpmn:Collaboration'>;
+type Participant = ModdleElement<BpmnParticipant>;
+type ParticipantShapes = Map<BpmnElement, Bounds>;
+type EndpointShapes = Map<BpmnElement, Bounds>;
+type ConnectionRoutes = Array<[ BpmnElement, Waypoint[] ]>;
+type Positions = Map<BpmnElement, number>;
+type ParticipantConnections = Array<[ Participant, Participant ]>;
+type Score = number[];
+
 export function alignParticipantsHorizontally(
-    collaboration,
-    participantShapes,
-    endpointShapes,
-    connectionRoutes,
-    channelOffsets,
-    anchorPositionedParticipants,
-    expandableParticipants) {
+    collaboration: Collaboration,
+    participantShapes: ParticipantShapes,
+    endpointShapes: EndpointShapes,
+    connectionRoutes: ConnectionRoutes,
+    channelOffsets: Map<BpmnElement, number>,
+    anchorPositionedParticipants: Set<BpmnElement>,
+    expandableParticipants: Set<BpmnElement>
+) {
   const alignment = createParticipantAlignmentProblem(
     collaboration,
     participantShapes,
@@ -55,13 +75,14 @@ export function alignParticipantsHorizontally(
 }
 
 function createParticipantAlignmentProblem(
-    collaboration,
-    participantShapes,
-    endpointShapes,
-    connectionRoutes,
-    channelOffsets,
-    anchorPositionedParticipants,
-    expandableParticipants) {
+    collaboration: Collaboration,
+    participantShapes: ParticipantShapes,
+    endpointShapes: EndpointShapes,
+    connectionRoutes: ConnectionRoutes,
+    channelOffsets: Map<BpmnElement, number>,
+    anchorPositionedParticipants: Set<BpmnElement>,
+    expandableParticipants: Set<BpmnElement>
+) {
   const participants = collaboration.participants || [];
   const processParticipants = participants.filter(participant => {
     return participant.processRef;
@@ -74,7 +95,7 @@ function createParticipantAlignmentProblem(
     return participant !== anchorParticipant;
   });
   const initialPositions = new Map(participants.map(participant => {
-    return [ participant, participantShapes.get(participant).x ];
+    return [ participant, getRequired(participantShapes.get(participant)).x ];
   }));
   const positions = new Map(initialPositions);
   const endpointRecords = collectAlignmentEndpointRecords(
@@ -105,14 +126,17 @@ function createParticipantAlignmentProblem(
   };
 }
 
-function selectAnchorParticipant(processParticipants, participantShapes) {
-  return processParticipants.reduce((largest, participant) => {
+function selectAnchorParticipant(
+    processParticipants: Participant[],
+    participantShapes: ParticipantShapes
+): Participant | null {
+  return processParticipants.reduce<Participant | null>((largest, participant) => {
     if (!largest) {
       return participant;
     }
 
-    const rect = participantShapes.get(participant);
-    const largestRect = participantShapes.get(largest);
+    const rect = getRequired(participantShapes.get(participant));
+    const largestRect = getRequired(participantShapes.get(largest));
 
     return rect.width * rect.height > largestRect.width * largestRect.height
       ? participant
@@ -121,9 +145,10 @@ function selectAnchorParticipant(processParticipants, participantShapes) {
 }
 
 function collectAlignmentEndpointRecords(
-    collaboration,
-    endpointShapes,
-    movableParticipants) {
+    collaboration: Collaboration,
+    endpointShapes: EndpointShapes,
+    movableParticipants: Participant[]
+) {
   return (collaboration.messageFlows || []).map(messageFlow => {
     const source = resolveMessageFlowEndpoint(messageFlow.sourceRef, endpointShapes);
     const target = resolveMessageFlowEndpoint(messageFlow.targetRef, endpointShapes);
@@ -151,9 +176,10 @@ function collectAlignmentEndpointRecords(
 }
 
 function collectEndpointLocalIntervals(
-    endpointRecords,
-    endpointShapes,
-    participantShapes) {
+    endpointRecords: ReturnType<typeof collectAlignmentEndpointRecords>,
+    endpointShapes: EndpointShapes,
+    participantShapes: ParticipantShapes
+) {
   const localIntervals = new Map();
 
   for (const { source, target, sourceParticipant, targetParticipant } of endpointRecords) {
@@ -180,7 +206,9 @@ function collectEndpointLocalIntervals(
   return localIntervals;
 }
 
-function createHorizontalAlignmentScorer(alignment) {
+function createHorizontalAlignmentScorer(
+    alignment: ReturnType<typeof createParticipantAlignmentProblem>
+) {
   const {
     anchorPositionedParticipants,
     channelOffsets,
@@ -192,9 +220,9 @@ function createHorizontalAlignmentScorer(alignment) {
     participantShapes,
     participants
   } = alignment;
-  const scoreCache = new Map();
+  const scoreCache = new Map<string, Score>();
 
-  return candidatePositions => {
+  return (candidatePositions: Positions): Score => {
     const key = participants
       .map(participant => candidatePositions.get(participant))
       .join(':');
@@ -213,11 +241,14 @@ function createHorizontalAlignmentScorer(alignment) {
       ));
     }
 
-    return scoreCache.get(key);
+    return getRequired(scoreCache.get(key));
   };
 }
 
-function optimizeParticipantPositions(alignment, scorePositions) {
+function optimizeParticipantPositions(
+    alignment: ReturnType<typeof createParticipantAlignmentProblem>,
+    scorePositions: ReturnType<typeof createHorizontalAlignmentScorer>
+): Positions {
   const {
     endpointRecords,
     localIntervals,
@@ -231,14 +262,14 @@ function optimizeParticipantPositions(alignment, scorePositions) {
     changed = false;
 
     for (const participant of movableParticipants) {
-      const candidates = [ positions.get(participant) ];
+      const candidates: number[] = [ getRequired(positions.get(participant)) ];
 
       for (const record of endpointRecords) {
         if (record.sourceParticipant === participant) {
           for (const sourceOffset of localIntervals.get(record.source)) {
             for (const targetOffset of localIntervals.get(record.target)) {
               candidates.push(Math.round(
-                positions.get(record.targetParticipant) +
+                getRequired(positions.get(record.targetParticipant)) +
                 targetOffset -
                 sourceOffset
               ));
@@ -248,7 +279,7 @@ function optimizeParticipantPositions(alignment, scorePositions) {
           for (const sourceOffset of localIntervals.get(record.source)) {
             for (const targetOffset of localIntervals.get(record.target)) {
               candidates.push(Math.round(
-                positions.get(record.sourceParticipant) +
+                getRequired(positions.get(record.sourceParticipant)) +
                 sourceOffset -
                 targetOffset
               ));
@@ -257,7 +288,7 @@ function optimizeParticipantPositions(alignment, scorePositions) {
         }
       }
 
-      let bestPosition = positions.get(participant);
+      let bestPosition = getRequired(positions.get(participant));
       let bestScore = currentScore;
 
       for (const candidate of [ ...new Set(candidates) ]) {
@@ -288,14 +319,17 @@ function optimizeParticipantPositions(alignment, scorePositions) {
   return positions;
 }
 
-export function alignParticipantComponentsLeft(collaboration, participantShapes) {
+export function alignParticipantComponentsLeft(
+    collaboration: Collaboration,
+    participantShapes: ParticipantShapes
+): Positions {
   const participants = collaboration.participants || [];
 
   if (participants.length < 2) {
     return new Map();
   }
 
-  const neighbors = new Map(participants.map(participant => {
+  const neighbors = new Map<Participant, Set<Participant>>(participants.map(participant => {
     return [ participant, new Set() ];
   }));
 
@@ -307,32 +341,32 @@ export function alignParticipantComponentsLeft(collaboration, participantShapes)
       continue;
     }
 
-    neighbors.get(source).add(target);
-    neighbors.get(target).add(source);
+    getRequired(neighbors.get(source)).add(target);
+    getRequired(neighbors.get(target)).add(source);
   }
 
   const targetX = Math.min(...participants.map(participant => {
-    return participantShapes.get(participant).x;
+    return getRequired(participantShapes.get(participant)).x;
   }));
-  const offsets = new Map();
-  const visited = new Set();
+  const offsets = new Map<BpmnElement, number>();
+  const visited = new Set<Participant>();
 
   for (const participant of participants) {
     if (visited.has(participant)) {
       continue;
     }
 
-    const component = [];
-    const queue = [ participant ];
+    const component: Participant[] = [];
+    const queue: Participant[] = [ participant ];
 
     visited.add(participant);
 
     while (queue.length) {
-      const current = queue.shift();
+      const current = getRequired(queue.shift());
 
       component.push(current);
 
-      for (const neighbor of neighbors.get(current)) {
+      for (const neighbor of getRequired(neighbors.get(current))) {
         if (!visited.has(neighbor)) {
           visited.add(neighbor);
           queue.push(neighbor);
@@ -341,7 +375,7 @@ export function alignParticipantComponentsLeft(collaboration, participantShapes)
     }
 
     const componentX = Math.min(...component.map(member => {
-      return participantShapes.get(member).x;
+      return getRequired(participantShapes.get(member)).x;
     }));
     const dx = targetX - componentX;
 
@@ -354,12 +388,13 @@ export function alignParticipantComponentsLeft(collaboration, participantShapes)
 }
 
 function getLocalHorizontalInterval(
-    element,
-    participant,
-    endpointShapes,
-    participantShapes) {
-  const rect = endpointShapes.get(element);
-  const participantBounds = participantShapes.get(participant);
+    element: BpmnElement,
+    participant: Participant,
+    endpointShapes: EndpointShapes,
+    participantShapes: ParticipantShapes
+): number[] {
+  const rect = getRequired(endpointShapes.get(element));
+  const participantBounds = getRequired(participantShapes.get(participant));
 
   if (is(element, 'bpmn:Participant')) {
     const inset = ROUTING_MARGIN + MESSAGE_FLOW_SIDE_OFFSET;
@@ -371,19 +406,21 @@ function getLocalHorizontalInterval(
 }
 
 function horizontalAlignmentScore(
-    positions,
-    initialPositions,
-    collaboration,
-    participantShapes,
-    endpointShapes,
-    connectionRoutes,
-    channelOffsets,
-    anchorPositionedParticipants,
-    expandableParticipants) {
+    positions: Positions,
+    initialPositions: Positions,
+    collaboration: Collaboration,
+    participantShapes: ParticipantShapes,
+    endpointShapes: EndpointShapes,
+    connectionRoutes: ConnectionRoutes,
+    channelOffsets: Map<BpmnElement, number>,
+    anchorPositionedParticipants: Set<BpmnElement>,
+    expandableParticipants: Set<BpmnElement>
+) {
   const translatedShapes = new Map([ ...endpointShapes ].map(([ element, rect ]) => {
     const participant = findEndpointParticipant(element, collaboration);
     const dx = positions.has(participant)
-      ? positions.get(participant) - initialPositions.get(participant)
+      ? getRequired(positions.get(participant)) -
+        getRequired(initialPositions.get(participant))
       : 0;
 
     return [
@@ -392,7 +429,7 @@ function horizontalAlignmentScore(
     ];
   }));
   const translatedParticipants = new Map((collaboration.participants || []).map(participant => {
-    return [ participant, translatedShapes.get(participant) ];
+    return [ participant, getRequired(translatedShapes.get(participant)) ];
   }));
 
   sizeAndPositionParticipantsFromMessageAnchors(
@@ -423,7 +460,8 @@ function horizontalAlignmentScore(
   const translatedConnections = connectionRoutes.map(([ element, points ]) => {
     const participant = findEndpointParticipant(element, collaboration);
     const dx = positions.has(participant)
-      ? positions.get(participant) - initialPositions.get(participant)
+      ? getRequired(positions.get(participant)) -
+        getRequired(initialPositions.get(participant))
       : 0;
 
     return points.map(routePoint => point(routePoint.x + dx, routePoint.y));
@@ -433,7 +471,7 @@ function horizontalAlignmentScore(
     ...routes.values()
   ]);
   const displacement = [ ...positions ].reduce((total, [ participant, x ]) => {
-    return total + Math.abs(x - initialPositions.get(participant));
+    return total + Math.abs(x - getRequired(initialPositions.get(participant)));
   }, 0);
 
   const routeQuality = (collaboration.participants || []).length >
@@ -449,7 +487,7 @@ function horizontalAlignmentScore(
   ];
 }
 
-function countRouteCrossings(routes) {
+function countRouteCrossings(routes: Waypoint[][]): number {
   const segments = routes.map(toSegments);
   let crossings = 0;
 
@@ -467,12 +505,13 @@ function countRouteCrossings(routes) {
 }
 
 export function sizeAndPositionParticipantsFromMessageAnchors(
-    collaboration,
-    participantShapes,
-    endpointShapes,
-    channelOffsets,
-    anchorPositionedParticipants,
-    expandableParticipants) {
+    collaboration: Collaboration,
+    participantShapes: ParticipantShapes,
+    endpointShapes: EndpointShapes,
+    channelOffsets: Map<BpmnElement, number>,
+    anchorPositionedParticipants: Set<BpmnElement>,
+    expandableParticipants: Set<BpmnElement>
+): void {
   const participants = collaboration.participants || [];
   const anchorPositioned = participants.filter(participant => {
     return anchorPositionedParticipants.has(participant);
@@ -509,12 +548,15 @@ export function sizeAndPositionParticipantsFromMessageAnchors(
 }
 
 function collectParticipantAnchorConstraints(
-    collaboration,
-    endpointShapes,
-    channelOffsets,
-    anchorPositioned) {
-  const anchors = new Map(anchorPositioned.map(participant => [ participant, [] ]));
-  const participantConnections = [];
+    collaboration: Collaboration,
+    endpointShapes: EndpointShapes,
+    channelOffsets: Map<BpmnElement, number>,
+    anchorPositioned: Participant[]
+) {
+  const anchors = new Map<Participant, number[]>(
+    anchorPositioned.map(participant => [ participant, [] ])
+  );
+  const participantConnections: ParticipantConnections = [];
 
   for (const messageFlow of collaboration.messageFlows || []) {
     const source = resolveMessageFlowEndpoint(messageFlow.sourceRef, endpointShapes);
@@ -524,12 +566,16 @@ function collectParticipantAnchorConstraints(
     if (anchors.has(source) && !is(target, 'bpmn:Participant')) {
       const targetBounds = endpointShapes.get(target);
 
-      anchors.get(source).push(targetBounds.x + targetBounds.width / 2 + offset);
+      getRequired(anchors.get(source)).push(
+        getRequired(targetBounds).x + getRequired(targetBounds).width / 2 + offset
+      );
     }
     if (anchors.has(target) && !is(source, 'bpmn:Participant')) {
       const sourceBounds = endpointShapes.get(source);
 
-      anchors.get(target).push(sourceBounds.x + sourceBounds.width / 2 + offset);
+      getRequired(anchors.get(target)).push(
+        getRequired(sourceBounds).x + getRequired(sourceBounds).width / 2 + offset
+      );
     }
     if (
       is(source, 'bpmn:Participant') &&
@@ -544,24 +590,25 @@ function collectParticipantAnchorConstraints(
 }
 
 function positionParticipantsFromAnchors(
-    participants,
-    anchorPositioned,
-    anchors,
-    participantShapes,
-    anchorPositionedParticipants,
-    expandableParticipants) {
+    participants: Participant[],
+    anchorPositioned: Participant[],
+    anchors: Map<Participant, number[]>,
+    participantShapes: ParticipantShapes,
+    anchorPositionedParticipants: Set<BpmnElement>,
+    expandableParticipants: Set<BpmnElement>
+): Set<Participant> {
   const positioned = new Set(participants.filter(participant => {
     return !anchorPositionedParticipants.has(participant);
   }));
 
   for (const participant of anchorPositioned) {
-    const participantAnchors = anchors.get(participant);
+    const participantAnchors = getRequired(anchors.get(participant));
 
     if (!participantAnchors.length) {
       continue;
     }
 
-    const participantBounds = participantShapes.get(participant);
+    const participantBounds = getRequired(participantShapes.get(participant));
     const anchorsFitCurrentBounds = participantAnchors.every(anchor => {
       return anchor >= participantBounds.x + PARTICIPANT_HEADER_WIDTH &&
         anchor <= participantBounds.x + participantBounds.width - PARTICIPANT_HEADER_WIDTH;
@@ -591,10 +638,11 @@ function positionParticipantsFromAnchors(
 }
 
 function positionConnectedParticipants(
-    anchorPositioned,
-    participantConnections,
-    positioned,
-    participantShapes) {
+    anchorPositioned: Participant[],
+    participantConnections: ParticipantConnections,
+    positioned: Set<Participant>,
+    participantShapes: ParticipantShapes
+): void {
   let changed = true;
 
   while (changed) {
@@ -620,11 +668,11 @@ function positionConnectedParticipants(
       }
 
       const center = neighbors.reduce((sum, neighbor) => {
-        const neighborBounds = participantShapes.get(neighbor);
+        const neighborBounds = getRequired(participantShapes.get(neighbor));
 
         return sum + neighborBounds.x + neighborBounds.width / 2;
       }, 0) / neighbors.length;
-      const participantBounds = participantShapes.get(participant);
+      const participantBounds = getRequired(participantShapes.get(participant));
 
       participantBounds.x = Math.round(center - participantBounds.width / 2);
       positioned.add(participant);
@@ -634,13 +682,14 @@ function positionConnectedParticipants(
 }
 
 function ensureParticipantConnectionOverlap(
-    participantConnections,
-    participantShapes,
-    expandableParticipants) {
+    participantConnections: ParticipantConnections,
+    participantShapes: ParticipantShapes,
+    expandableParticipants: Set<BpmnElement>
+): void {
   for (const [ source, target ] of participantConnections) {
     ensureParticipantDockOverlap(
-      participantShapes.get(source),
-      participantShapes.get(target),
+      getRequired(participantShapes.get(source)),
+      getRequired(participantShapes.get(target)),
       expandableParticipants.has(source),
       expandableParticipants.has(target)
     );
@@ -648,10 +697,11 @@ function ensureParticipantConnectionOverlap(
 }
 
 function ensureParticipantDockOverlap(
-    source,
-    target,
+    source: Bounds,
+    target: Bounds,
     sourceResizable = true,
-    targetResizable = true) {
+    targetResizable = true
+): void {
   const sourceRight = source.x + source.width;
   const targetRight = target.x + target.width;
   const overlapStart = Math.max(source.x, target.x);
@@ -689,4 +739,13 @@ function ensureParticipantDockOverlap(
   if (targetResizable) {
     includeHorizontalRange(target, dockStart, dockEnd);
   }
+}
+
+
+function getRequired<Value>(value: Value | undefined): Value {
+  if (value === undefined) {
+    throw new Error('Expected participant placement value');
+  }
+
+  return value;
 }
