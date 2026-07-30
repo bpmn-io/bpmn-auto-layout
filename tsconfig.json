@@ -19,6 +19,8 @@
     "lib/**/*.ts",
     "tasks/benchmark-util.ts",
     "tasks/benchmark-fixture.ts",
-    "tasks/performance-guardrails.ts"
+    "tasks/performance-guardrails.ts",
+    "tasks/bpmn-to-image.d.ts",
+    "tasks/render-fixture.ts"
   ]
 }
