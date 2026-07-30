@@ -18,6 +18,7 @@
     "bin/**/*.ts",
     "lib/**/*.ts",
     "tasks/benchmark-util.ts",
-    "tasks/benchmark-fixture.ts"
+    "tasks/benchmark-fixture.ts",
+    "tasks/performance-guardrails.ts"
   ]
 }

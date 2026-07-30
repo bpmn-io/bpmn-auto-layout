@@ -28,7 +28,7 @@
     "render:fixture": "npm run build && node tasks/render-fixture.mjs",
     "review:layout": "node tasks/layout-review.mjs",
     "benchmark:fixture": "npm run build && tsx tasks/benchmark-fixture.ts",
-    "test:performance": "npm run build && tsx tasks/performance-guardrails.mjs",
+    "test:performance": "npm run build && tsx tasks/performance-guardrails.ts",
     "trace:fixture": "npm run build:example && node tasks/trace-fixture.mjs",
     "metrics": "node test/metrics.mjs",
     "metrics:update": "cross-env UPDATE_BASELINE=true node test/metrics.mjs",
