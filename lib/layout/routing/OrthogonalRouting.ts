@@ -16,41 +16,78 @@ import {
   toSegments
 } from '../geometry/index.js';
 
-/**
- * @typedef { import('diagram-js/lib/util/Types.js').Point } Point
- * @typedef { import('diagram-js/lib/util/Types.js').Rect } Rect
- * @typedef {{
- *   excluded?: boolean;
- *   rect: Rect;
- * }} RouterObstacle
- * @typedef {{
- *   allowCollinearOverlap?: boolean;
- *   points: Point[];
- * }} RouterRoute
- * @typedef {{
- *   obstacles?: RouterObstacle[];
- *   routes?: RouterRoute[];
- *   obstacleInset?: number;
- *   allowPerpendicularCrossings?: boolean;
- *   maxVisibilityPoints?: number;
- * }} OrthogonalRouterOptions
- * @typedef {{
- *   findRoute(start: Point, end: Point): Point[] | null;
- *   isClear(points: Point[]): boolean;
- * }} OrthogonalRouter
- */
+import type {
+  Point,
+  Rect
+} from 'diagram-js/lib/util/Types.js';
+import type { Segment } from '../geometry/Geometry.js';
 
-/**
- * @param { OrthogonalRouterOptions } [options]
- * @returns { OrthogonalRouter }
- */
+export type { Point, Rect };
+
+export type RouterObstacle = {
+  excluded?: boolean;
+  rect: Rect;
+};
+
+export type RouterRoute = {
+  allowCollinearOverlap?: boolean;
+  points: Point[];
+};
+
+export type OrthogonalRouterOptions = {
+  obstacles?: RouterObstacle[];
+  routes?: RouterRoute[];
+  obstacleInset?: number;
+  allowPerpendicularCrossings?: boolean;
+  maxVisibilityPoints?: number;
+};
+
+export type OrthogonalRouter = {
+  findRoute(start: Point, end: Point): Point[] | null;
+  isClear(points: Point[]): boolean;
+  isSegmentClear(a: Point, b: Point): boolean;
+};
+
+type RouterObstacleSnapshot = {
+  excluded: boolean;
+  rect: Rect;
+};
+
+type RouterRouteSnapshot = {
+  allowCollinearOverlap: boolean;
+  points: Point[];
+};
+
+type AllocatedSegment = {
+  allowCollinearOverlap: boolean;
+  end: Segment[1];
+  start: Segment[0];
+};
+
+type VisibilityPointIndexes = {
+  pointsByX: Map<number, number[]>;
+  pointsByY: Map<number, number[]>;
+};
+
+type VisibilityNode = {
+  distance: number;
+  index: number;
+};
+
+const RECT_COORDINATE_KEYS: readonly (keyof Rect)[] = [
+  'x',
+  'y',
+  'width',
+  'height'
+];
+
 export function createOrthogonalRouter({
   obstacles = [],
   routes = [],
   obstacleInset = ROUTE_OBSTACLE_INSET,
   allowPerpendicularCrossings = false,
   maxVisibilityPoints = Infinity
-} = {}) {
+}: OrthogonalRouterOptions = {}): OrthogonalRouter {
   validateRouterOptions(
     obstacles,
     routes,
@@ -61,10 +98,10 @@ export function createOrthogonalRouter({
 
   const obstacleSnapshots = obstacles.map(snapshotObstacle);
   const routeSnapshots = routes.map(snapshotRoute);
-  const collisionObstacles = obstacleSnapshots
+  const collisionObstacles: Rect[] = obstacleSnapshots
     .filter(({ excluded }) => !excluded)
     .map(({ rect }) => inset(rect, obstacleInset));
-  const allocatedSegments = routeSnapshots.flatMap(route => {
+  const allocatedSegments: AllocatedSegment[] = routeSnapshots.flatMap(route => {
     return toSegments(route.points).map(([ start, end ]) => ({
       allowCollinearOverlap: route.allowCollinearOverlap,
       end,
@@ -72,14 +109,14 @@ export function createOrthogonalRouter({
     }));
   });
 
-  function isSegmentClear(a, b) {
+  function isSegmentClear(a: Point, b: Point): boolean {
     validatePoint(a, 'segment start');
     validatePoint(b, 'segment end');
 
     return segmentIsClear(a, b);
   }
 
-  function segmentIsClear(a, b) {
+  function segmentIsClear(a: Point, b: Point): boolean {
     if (a.x === b.x && a.y === b.y) {
       return false;
     }
@@ -99,7 +136,7 @@ export function createOrthogonalRouter({
     });
   }
 
-  function isClear(points) {
+  function isClear(points: Point[]): boolean {
     validatePoints(points, 'path');
 
     return toSegments(points).every(([ start, end ]) => {
@@ -107,7 +144,7 @@ export function createOrthogonalRouter({
     });
   }
 
-  function findRoute(start, end) {
+  function findRoute(start: Point, end: Point): Point[] | null {
     validatePoint(start, 'route start');
     validatePoint(end, 'route end');
 
@@ -136,7 +173,7 @@ export function createOrthogonalRouter({
       return null;
     }
 
-    const points = [];
+    const points: Point[] = [];
 
     for (const x of xs) {
       for (const y of ys) {
@@ -151,10 +188,10 @@ export function createOrthogonalRouter({
     const startIndex = points.push(start) - 1;
     const endIndex = points.push(end) - 1;
     const { pointsByX, pointsByY } = indexVisibilityPoints(points);
-    const distance = Array(points.length).fill(Infinity);
-    const previous = Array(points.length).fill(-1);
-    const pending = new Set(points.map((_, index) => index));
-    const queue = [];
+    const distance = Array<number>(points.length).fill(Infinity);
+    const previous = Array<number>(points.length).fill(-1);
+    const pending = new Set<number>(points.map((_, index) => index));
+    const queue: VisibilityNode[] = [];
     distance[startIndex] = 0;
     pushVisibilityNode(queue, { index: startIndex, distance: 0 });
 
@@ -217,7 +254,7 @@ export function createOrthogonalRouter({
       return null;
     }
 
-    const route = [];
+    const route: Point[] = [];
 
     for (let current = endIndex; current !== -1; current = previous[current]) {
       route.unshift(points[current]);
@@ -233,7 +270,10 @@ export function createOrthogonalRouter({
   });
 }
 
-function snapshotObstacle(obstacle, index) {
+function snapshotObstacle(
+    obstacle: RouterObstacle,
+    index: number
+): RouterObstacleSnapshot {
   if (!obstacle || typeof obstacle !== 'object') {
     throw new TypeError(`obstacles[${ index }] must be an object`);
   }
@@ -252,7 +292,7 @@ function snapshotObstacle(obstacle, index) {
   };
 }
 
-function snapshotRoute(route, index) {
+function snapshotRoute(route: RouterRoute, index: number): RouterRouteSnapshot {
   if (!route || typeof route !== 'object') {
     throw new TypeError(`routes[${ index }] must be an object`);
   }
@@ -277,11 +317,12 @@ function snapshotRoute(route, index) {
 }
 
 function validateRouterOptions(
-    obstacles,
-    routes,
-    obstacleInset,
-    allowPerpendicularCrossings,
-    maxVisibilityPoints) {
+    obstacles: RouterObstacle[],
+    routes: RouterRoute[],
+    obstacleInset: number,
+    allowPerpendicularCrossings: boolean,
+    maxVisibilityPoints: number
+): void {
   if (!Array.isArray(obstacles)) {
     throw new TypeError('obstacles must be an array');
   }
@@ -308,19 +349,19 @@ function validateRouterOptions(
   }
 }
 
-function validateRect(rect, name) {
+function validateRect(rect: Rect, name: string): void {
   if (!rect || typeof rect !== 'object') {
     throw new TypeError(`${ name } must be an object`);
   }
 
-  for (const key of [ 'x', 'y', 'width', 'height' ]) {
+  for (const key of RECT_COORDINATE_KEYS) {
     if (!Number.isFinite(rect[key])) {
       throw new TypeError(`${ name }.${ key } must be finite`);
     }
   }
 }
 
-function validatePoints(points, name) {
+function validatePoints(points: Point[], name: string): void {
   if (!Array.isArray(points)) {
     throw new TypeError(`${ name } must be an array`);
   }
@@ -330,7 +371,7 @@ function validatePoints(points, name) {
   });
 }
 
-function validatePoint(candidate, name) {
+function validatePoint(candidate: Point, name: string): void {
   if (!candidate || typeof candidate !== 'object') {
     throw new TypeError(`${ name } must be an object`);
   }
@@ -340,9 +381,9 @@ function validatePoint(candidate, name) {
   }
 }
 
-function indexVisibilityPoints(points) {
-  const pointsByX = new Map();
-  const pointsByY = new Map();
+function indexVisibilityPoints(points: Point[]): VisibilityPointIndexes {
+  const pointsByX = new Map<number, number[]>();
+  const pointsByY = new Map<number, number[]>();
 
   points.forEach((candidate, index) => {
     if (!Number.isNaN(candidate.x)) {
@@ -357,7 +398,11 @@ function indexVisibilityPoints(points) {
   return { pointsByX, pointsByY };
 }
 
-function appendVisibilityPoint(index, coordinate, pointIndex) {
+function appendVisibilityPoint(
+    index: Map<number, number[]>,
+    coordinate: number,
+    pointIndex: number
+): void {
   const points = index.get(coordinate);
 
   if (points) {
@@ -367,7 +412,7 @@ function appendVisibilityPoint(index, coordinate, pointIndex) {
   }
 }
 
-function pushVisibilityNode(queue, entry) {
+function pushVisibilityNode(queue: VisibilityNode[], entry: VisibilityNode): void {
   queue.push(entry);
 
   let index = queue.length - 1;
@@ -386,11 +431,11 @@ function pushVisibilityNode(queue, entry) {
   queue[index] = entry;
 }
 
-function popVisibilityNode(queue) {
+function popVisibilityNode(queue: VisibilityNode[]): VisibilityNode {
   const first = queue[0];
   const last = queue.pop();
 
-  if (queue.length) {
+  if (queue.length && last) {
     let index = 0;
 
     while (index * 2 + 1 < queue.length) {
@@ -415,11 +460,14 @@ function popVisibilityNode(queue) {
   return first;
 }
 
-function compareVisibilityNodes(a, b) {
+function compareVisibilityNodes(a: VisibilityNode, b: VisibilityNode): number {
   return a.distance - b.distance || a.index - b.index;
 }
 
-function isInsideAny(candidate, obstacles) {
+function isInsideAny(
+    candidate: Point,
+    obstacles: RouterObstacleSnapshot[]
+): boolean {
   return obstacles.some(({ excluded, rect }) => {
     return !excluded && pointInRect(candidate, rect);
   });

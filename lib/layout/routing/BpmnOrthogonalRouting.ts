@@ -1,31 +1,24 @@
 import { createOrthogonalRouter } from './OrthogonalRouting.js';
 
-/**
- * @typedef { import('diagram-js/lib/util/Types.js').Point } Point
- * @typedef { import('diagram-js/lib/util/Types.js').Rect } Rect
- * @typedef { import('../Types.js').BpmnElement } BpmnElement
- * @typedef {{
- *   element: BpmnElement;
- *   rect: Rect;
- * }} BpmnRouterShape
- * @typedef {{
- *   flow: BpmnElement;
- *   points: Point[];
- * }} RoutedConnection
- * @typedef {{
- *   shapes?: BpmnRouterShape[];
- *   sourceElement?: BpmnElement;
- *   targetElement?: BpmnElement;
- *   routedConnections?: RoutedConnection[];
- *   obstacleInset?: number;
- *   allowPerpendicularCrossings?: boolean;
- *   maxVisibilityPoints?: number;
- * }} BpmnOrthogonalRouterOptions
- */
+import type { Point, Rect } from 'diagram-js/lib/util/Types.js';
 
-/**
- * @param { BpmnOrthogonalRouterOptions } [options]
- */
+import type { BpmnElement } from '../Types.js';
+
+type BpmnRouterShape = { element: BpmnElement; rect: Rect };
+type RoutedConnection = {
+  flow: BpmnElement & { sourceRef?: BpmnElement; targetRef?: BpmnElement };
+  points: Point[];
+};
+type BpmnOrthogonalRouterOptions = {
+  shapes?: BpmnRouterShape[];
+  sourceElement?: BpmnElement;
+  targetElement?: BpmnElement;
+  routedConnections?: RoutedConnection[];
+  obstacleInset?: number;
+  allowPerpendicularCrossings?: boolean;
+  maxVisibilityPoints?: number;
+};
+
 export function createBpmnOrthogonalRouter({
   shapes = [],
   sourceElement,
@@ -34,7 +27,7 @@ export function createBpmnOrthogonalRouter({
   obstacleInset,
   allowPerpendicularCrossings,
   maxVisibilityPoints
-} = {}) {
+}: BpmnOrthogonalRouterOptions = {}): ReturnType<typeof createOrthogonalRouter> {
   return createOrthogonalRouter({
     obstacles: shapes.map(({ element, rect }) => ({
       excluded: element === sourceElement || element === targetElement,
@@ -54,7 +47,11 @@ export function createBpmnOrthogonalRouter({
   });
 }
 
-function sharesEndpointChannel(flow, source, target) {
+function sharesEndpointChannel(
+    flow: RoutedConnection['flow'],
+    source: BpmnElement | undefined,
+    target: BpmnElement | undefined
+): boolean {
   return flow.sourceRef === source ||
     flow.targetRef === target ||
     (flow.$instanceOf('bpmn:MessageFlow') && (
