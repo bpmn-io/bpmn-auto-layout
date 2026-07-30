@@ -181,6 +181,26 @@ Use it when a layout change is **intentional**. The workflow is:
 > A snapshot you didn't look at is not a test — it just locks in whatever the
 > code happened to produce.
 
+## Reviewing snapshot changes in a pull request
+
+Generate a base-versus-head comparison locally with:
+
+```sh
+npm run review:layout -- --base origin/main
+```
+
+The command writes `test/output/layout-review/index.html`. It includes only
+snapshot files changed between the base and head revisions, showing the
+previous snapshot behind the proposed snapshot and reporting metric deltas.
+New normal fixtures without matching snapshots fail the command.
+
+After pull-request CI succeeds, the trusted `Layout Review` workflow publishes
+the same comparison under the repository's GitHub Pages site. It creates or
+updates one `Layout change report` comment on the pull request with a link for
+the exact head commit. The report describes snapshot changes without treating
+them as test failures; normal snapshot tests separately guarantee that current
+layout output matches the proposed snapshots.
+
 ## The visual inspector
 
 After every run the `after` hook builds `output/index.html` from

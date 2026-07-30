@@ -311,6 +311,11 @@
         background: linear-gradient(135deg, #fff 0%, #fef2f2 100%);
       }
 
+      body.layout-review .snapshot-mismatch:not(:has(.error)) .container.after {
+        border-color: #93c5fd;
+        background: linear-gradient(135deg, #fff 0%, #eff6ff 100%);
+      }
+
       #scroll-container {
         height: 100vh;
         overflow-y: auto;
@@ -700,6 +705,7 @@
     <script src="https://unpkg.com/bpmn-js/dist/bpmn-navigated-viewer.development.js"></script>
     <script>
       /* results-start */
+      const reportConfig = { mode: 'test' };
       const results = [
         {
           diagram: `<?xml version="1.0" encoding="UTF-8"?>
@@ -1153,6 +1159,18 @@
         }
       ]
       /* results-end */
+      const reviewMode = reportConfig.mode === 'review';
+
+      if (reviewMode) {
+        document.title = 'bpmn-auto-layout - Layout Review';
+        document.body.classList.add('layout-review');
+
+        for (const id of [ 'overlay-toggle', 'maximize-overlay-toggle' ]) {
+          const toggle = document.getElementById(id);
+
+          toggle.lastChild.textContent = 'Show previous snapshot overlay';
+        }
+      }
 
       const scrollContainer = document.getElementById('scroll-container')
       const inspectContent = document.getElementById('inspect-content');
@@ -1349,27 +1367,35 @@
       });
 
       /* show stat */
-      const passCount = results.filter(element => element.diagramSnapshotMatching).length
-      const failCount = results.filter(element => element.diagramSnapshotMatching === false).length
-      const newCount = results.filter(element => element.diagramSnapshotMatching === null).length
-
       const failStat = document.getElementById('fail')
-      failStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Failed ' + failCount
-      failStat.setAttribute('aria-label', `Show failed fixtures (${failCount})`)
-
       const passStat = document.getElementById('pass')
-      passStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Passed ' + passCount
-      passStat.setAttribute('aria-label', `Show passed fixtures (${passCount})`)
-
       const newStat = document.getElementById('new')
-      newStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>New ' + newCount
-      newStat.setAttribute('aria-label', `Show new fixtures (${newCount})`)
+      let resultFilters;
 
-      const resultFilters = [
-        [ 'passed', passStat ],
-        [ 'failed', failStat ],
-        [ 'new', newStat ]
-      ];
+      if (reviewMode) {
+        failStat.className = 'badge badge-secondary filter-toggle';
+        failStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12h8"/><path d="M12 8v8"/></svg>Snapshot changes ' + results.length;
+        failStat.setAttribute('aria-label', `Show snapshot changes (${results.length})`);
+        passStat.hidden = true;
+        newStat.hidden = true;
+        resultFilters = [ [ 'changed', failStat ] ];
+      } else {
+        const passCount = results.filter(element => element.diagramSnapshotMatching).length
+        const failCount = results.filter(element => element.diagramSnapshotMatching === false).length
+        const newCount = results.filter(element => element.diagramSnapshotMatching === null).length
+
+        failStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Failed ' + failCount
+        failStat.setAttribute('aria-label', `Show failed fixtures (${failCount})`)
+        passStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Passed ' + passCount
+        passStat.setAttribute('aria-label', `Show passed fixtures (${passCount})`)
+        newStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>New ' + newCount
+        newStat.setAttribute('aria-label', `Show new fixtures (${newCount})`)
+        resultFilters = [
+          [ 'passed', passStat ],
+          [ 'failed', failStat ],
+          [ 'new', newStat ]
+        ];
+      }
       const pathFilter = document.getElementById('path-filter');
       const clearPathFilter = document.getElementById('clear-path-filter');
       const sortBy = document.getElementById('sort-by');
@@ -1890,7 +1916,13 @@
           .join(' ');
         parent.dataset.hasWarnings = String(warnings.length > 0);
 
-        if (diagramSnapshotMatching === true) {
+        if (reviewMode) {
+          parent.dataset.status = 'changed';
+
+          if (diagramSnapshot) {
+            parent.classList.add('snapshot-mismatch');
+          }
+        } else if (diagramSnapshotMatching === true) {
           parent.dataset.status = 'passed';
           parent.classList.add('snapshot-match');
         } else if (diagramSnapshotMatching === false) {
@@ -1906,7 +1938,19 @@
         const status = document.createElement('span');
         status.className = 'badge fixture-status';
 
-        if (diagramSnapshotMatching === true) {
+        if (reviewMode) {
+          const label = {
+            added: 'Added',
+            modified: 'Modified',
+            removed: 'Removed',
+            renamed: 'Renamed'
+          }[result.changeType] || 'Changed';
+
+          status.classList.add('badge-secondary');
+          status.title = label;
+          status.setAttribute('aria-label', label);
+          status.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12h8"/><path d="M12 8v8"/></svg>' + label;
+        } else if (diagramSnapshotMatching === true) {
           status.classList.add('badge-success');
           status.title = 'Passed';
           status.setAttribute('aria-label', 'Passed');
