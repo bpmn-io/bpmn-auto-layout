@@ -1,6 +1,27 @@
 import { SEGMENT_INTERSECTION_EPSILON } from '../Constants.js';
 
-export function bounds(x, y, width, height) {
+import type {
+  Point,
+  Rect
+} from 'diagram-js/lib/util/Types.js';
+
+export type Extents = {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+  width: number;
+  height: number;
+};
+
+export type Segment = [ Point, Point ];
+
+export function bounds(
+    x: number,
+    y: number,
+    width: number,
+    height: number
+): Rect {
   return {
     x: Math.round(x),
     y: Math.round(y),
@@ -9,18 +30,18 @@ export function bounds(x, y, width, height) {
   };
 }
 
-export function point(x, y) {
+export function point(x: number, y: number): Point {
   return { x: Math.round(x), y: Math.round(y) };
 }
 
-export function rectanglesOverlap(a, b) {
+export function rectanglesOverlap(a: Rect, b: Rect): boolean {
   return a.x < b.x + b.width &&
     b.x < a.x + a.width &&
     a.y < b.y + b.height &&
     b.y < a.y + a.height;
 }
 
-export function integerBounds(rect) {
+export function integerBounds(rect: Rect): Rect {
   return {
     x: Math.round(rect.x),
     y: Math.round(rect.y),
@@ -29,7 +50,9 @@ export function integerBounds(rect) {
   };
 }
 
-export function getShapeExtents(shapes) {
+export function getShapeExtents(
+    shapes: Array<{ rect: Rect }>
+): Extents {
   if (!shapes.length) {
     return {
       minX: 0,
@@ -56,7 +79,7 @@ export function getShapeExtents(shapes) {
   };
 }
 
-export function directConnection(source, target) {
+export function directConnection(source: Rect, target: Rect): Point[] {
   const sourceCenter = point(
     source.x + source.width / 2,
     source.y + source.height / 2
@@ -69,7 +92,7 @@ export function directConnection(source, target) {
   return [ sourceCenter, targetCenter ];
 }
 
-export function compareScores(a, b) {
+export function compareScores(a: number[], b: number[]): number {
   for (let index = 0; index < a.length; index++) {
     if (a[index] !== b[index]) {
       return a[index] - b[index];
@@ -79,14 +102,14 @@ export function compareScores(a, b) {
   return 0;
 }
 
-export function routeLength(points) {
+export function routeLength(points: Point[]): number {
   return toSegments(points).reduce((total, [ start, end ]) => {
     return total + manhattan(start, end);
   }, 0);
 }
 
-export function cleanPoints(points) {
-  const cleaned = [];
+export function cleanPoints(points: Point[]): Point[] {
+  const cleaned: Point[] = [];
 
   for (const candidate of points) {
     const previous = cleaned.at(-1);
@@ -103,6 +126,10 @@ export function cleanPoints(points) {
       const next = cleaned.at(-1);
       const middle = cleaned.at(-2);
       const before = cleaned.at(-3);
+
+      if (!before || !middle || !next) {
+        break;
+      }
       const collinear =
         (before.x - middle.x) * (next.y - middle.y) ===
         (before.y - middle.y) * (next.x - middle.x);
@@ -122,16 +149,16 @@ export function cleanPoints(points) {
   return cleaned.map(candidate => point(candidate.x, candidate.y));
 }
 
-export function toSegments(points) {
+export function toSegments(points: Point[]): Segment[] {
   return points.slice(1).map((end, index) => [ points[index], end ]);
 }
 
-export function pointInRect(candidate, rect) {
+export function pointInRect(candidate: Point, rect: Rect): boolean {
   return candidate.x > rect.x && candidate.x < rect.x + rect.width &&
     candidate.y > rect.y && candidate.y < rect.y + rect.height;
 }
 
-export function inset(rect, margin) {
+export function inset(rect: Rect, margin: number): Rect {
   return {
     x: rect.x + margin,
     y: rect.y + margin,
@@ -140,7 +167,7 @@ export function inset(rect, margin) {
   };
 }
 
-export function segmentEntersRect(a, b, rect) {
+export function segmentEntersRect(a: Point, b: Point, rect: Rect): boolean {
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const edgeDirections = [ -dx, dx, -dy, dy ];
@@ -179,7 +206,12 @@ export function segmentEntersRect(a, b, rect) {
   return end - start > SEGMENT_INTERSECTION_EPSILON;
 }
 
-export function collinearOverlap(a, b, c, d) {
+export function collinearOverlap(
+    a: Point,
+    b: Point,
+    c: Point,
+    d: Point
+): boolean {
   const horizontal = a.y === b.y && c.y === d.y && a.y === c.y;
   const vertical = a.x === b.x && c.x === d.x && a.x === c.x;
 
@@ -204,7 +236,12 @@ export function collinearOverlap(a, b, c, d) {
   return Math.min(aEnd, cEnd) - Math.max(aStart, cStart) > 0;
 }
 
-export function segmentsProperlyCross(a, b, c, d) {
+export function segmentsProperlyCross(
+    a: Point,
+    b: Point,
+    c: Point,
+    d: Point
+): boolean {
   const abC = segmentDirection(a, b, c);
   const abD = segmentDirection(a, b, d);
   const cdA = segmentDirection(c, d, a);
@@ -213,13 +250,13 @@ export function segmentsProperlyCross(a, b, c, d) {
   return abC * abD < 0 && cdA * cdB < 0;
 }
 
-export function segmentDirection(a, b, c) {
+export function segmentDirection(a: Point, b: Point, c: Point): number {
   return Math.sign(
     (b.x - a.x) * (c.y - a.y) -
     (b.y - a.y) * (c.x - a.x)
   );
 }
 
-export function manhattan(a, b) {
+export function manhattan(a: Point, b: Point): number {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 }
