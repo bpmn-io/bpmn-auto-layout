@@ -1,4 +1,5 @@
 import resolve from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
 
 import fs from 'fs';
 const pkg = importPkg();
@@ -19,7 +20,8 @@ export default {
   ],
   external: Object.keys(pkg.dependencies),
   plugins: [
-    resolve()
+    resolve(),
+    typescript({ tsconfig: './tsconfig.rollup.json' })
   ]
 };
 

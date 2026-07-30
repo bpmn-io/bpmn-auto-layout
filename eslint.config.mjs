@@ -1,6 +1,7 @@
 import { defineConfig } from 'eslint/config';
 
 import bpmnIoPlugin from 'eslint-plugin-bpmn-io';
+import tseslint from 'typescript-eslint';
 
 export default defineConfig([
   {
@@ -18,6 +19,12 @@ export default defineConfig([
       files: [
         'test/**/*',
       ]
+    };
+  }),
+  ...tseslint.configs.recommended.map(config => {
+    return {
+      ...config,
+      files: [ '**/*.ts' ]
     };
   })
 ]);
