@@ -10,7 +10,15 @@ import {
 } from '../../geometry/index.js';
 import { flattenLanes } from './LanePlacement.js';
 
-export function getParticipantContainerBounds(process, layout) {
+import type { ModdleElement } from 'moddle';
+
+import type { LayoutState } from '../../Types.js';
+import type { BpmnProcess } from '../../../moddle-types/bpmn.js';
+
+export function getParticipantContainerBounds(
+    process: ModdleElement<BpmnProcess>,
+    layout: LayoutState
+) {
   const extents = getParticipantContentExtents(layout);
   const hasLanes = flattenLanes(process.laneSets || []).length > 0;
   const leadingPadding = hasLanes
