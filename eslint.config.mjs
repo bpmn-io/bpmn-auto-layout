@@ -5,7 +5,12 @@ import tseslint from 'typescript-eslint';
 
 export default defineConfig([
   {
-    ignores: [ 'node_modules/**/*', 'dist/**/*', 'example/dist/**/*' ],
+    ignores: [
+      'node_modules/**/*',
+      'dist/**/*',
+      'example/dist/**/*',
+      'lib/moddle-types/**/*'
+    ],
   },
   ...bpmnIoPlugin.configs.browser.map(config => {
     return {

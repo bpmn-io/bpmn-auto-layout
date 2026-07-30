@@ -37,6 +37,8 @@
     "build": "run-s build:bundle build:types",
     "build:bundle": "rollup -c",
     "build:types": "tsc --project tsconfig.declarations.json",
+    "generate:moddle-types": "moddle-generate-types --augment --index lib/moddle-types/index.d.ts node_modules/bpmn-moddle/resources/bpmn/json/bpmn.json lib/moddle-types/bpmn.d.ts node_modules/bpmn-moddle/resources/bpmn/json/bpmndi.json lib/moddle-types/bpmndi.d.ts node_modules/bpmn-moddle/resources/bpmn/json/dc.json lib/moddle-types/dc.d.ts node_modules/bpmn-moddle/resources/bpmn/json/di.json lib/moddle-types/di.d.ts",
+    "check:moddle-types": "npm run generate:moddle-types && git diff --exit-code -- lib/moddle-types",
     "build:example": "npm run build -w example",
     "prepare": "run-s build",
     "start": "npm run start -w example"
@@ -63,8 +65,10 @@
     "min-dash": "^5.0.0"
   },
   "devDependencies": {
+    "@bpmn-io/moddle-types-generator": "^0.2.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-typescript": "^12.3.0",
+    "@types/moddle": "^5.0.3",
     "@types/node": "^24.13.3",
     "bpmn-to-image": "^0.10.0",
     "cross-env": "^10.1.0",
