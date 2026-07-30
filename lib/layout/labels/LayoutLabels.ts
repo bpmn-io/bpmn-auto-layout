@@ -30,7 +30,89 @@ import {
   segmentEntersRect
 } from '../geometry/index.js';
 
-export function layoutExternalLabels(layout) {
+import type {
+  Point,
+  Rect
+} from 'diagram-js/lib/util/Types.js';
+import type {
+  Bounds,
+  BpmnElement,
+  LayoutState,
+  Waypoint
+} from '../Types.js';
+
+type LabelSize = {
+  width: number;
+  height: number;
+};
+
+type ShapeRecord = {
+  element: BpmnElement;
+  rect: Bounds;
+  index: number;
+  isContainer: boolean;
+  titleBounds: Bounds | null;
+};
+
+type EdgeRecord = {
+  element: BpmnElement;
+  points: Waypoint[];
+  index: number;
+};
+
+type LabelOwner = ShapeRecord | EdgeRecord;
+
+type LabelRecord = LabelOwner & {
+  index: number;
+  text: string;
+  size: LabelSize;
+};
+
+type EdgeSegment = {
+  start: Point;
+  end: Point;
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+};
+
+type IndexedSegment = {
+  start: Point;
+  end: Point;
+  index: number;
+};
+
+type SegmentPart = IndexedSegment & {
+  centerOffset: number;
+};
+
+type SegmentPartitions = {
+  unique: SegmentPart[];
+  shared: SegmentPart[];
+};
+
+type Attachment = {
+  labelPoint: Point;
+  ownerPoint: Point;
+  distance: number;
+};
+
+type CandidateRecord = {
+  rect: Bounds;
+  displacement: number;
+  index: number;
+  ownerDistance: number;
+};
+
+type ShapeRecordOptions = {
+  expanded: boolean;
+  groupsAreContainers?: boolean;
+};
+
+export function layoutExternalLabels(
+    layout: LayoutState
+): Map<BpmnElement, Bounds> {
   const expandedElements = collectExpandedElements(layout);
   const shapes = [
     ...layout.shapes,
@@ -55,19 +137,22 @@ export function layoutExternalLabels(layout) {
   return placeExternalLabels(shapes, edges);
 }
 
-function placeExternalLabels(shapes, edges) {
+function placeExternalLabels(
+    shapes: ShapeRecord[],
+    edges: EdgeRecord[]
+): Map<BpmnElement, Bounds> {
   const edgeSegments = flattenEdgeSegments(edges);
   const shapeByElement = new Map(shapes.map(shape => [ shape.element, shape ]));
   const labels = [
     ...shapes.map(shape => labelRecord(shape, shape.index)),
     ...edges.map(edge => labelRecord(edge, shapes.length + edge.index))
-  ].filter(Boolean);
-  const occupied = [];
+  ].filter(isLabelRecord);
+  const occupied: Bounds[] = [];
   const preferredByLabel = new Map(labels.map(label => {
     return [ label, preferredCandidates(label, shapeByElement, edges) ];
   }));
   const staticCandidateCountByLabel = new Map(labels.map(label => {
-    const count = preferredByLabel.get(label)
+    const count = mapValue(preferredByLabel, label)
       .filter(candidate => candidateIsClear(candidate, label, shapes, edgeSegments, []))
       .length;
 
@@ -76,13 +161,14 @@ function placeExternalLabels(shapes, edges) {
   const labelBounds = new Map();
 
   labels.sort((a, b) => {
-    return staticCandidateCountByLabel.get(a) - staticCandidateCountByLabel.get(b) ||
+    return mapValue(staticCandidateCountByLabel, a) -
+      mapValue(staticCandidateCountByLabel, b) ||
       b.size.width * b.size.height - a.size.width * a.size.height ||
       a.index - b.index;
   });
 
   for (const label of labels) {
-    const preferred = preferredByLabel.get(label);
+    const preferred = mapValue(preferredByLabel, label);
     const defaultCandidate = preferred[0];
     const candidate = preferred.find(rect => {
       return candidateIsClear(rect, label, shapes, edgeSegments, occupied);
@@ -104,10 +190,11 @@ function placeExternalLabels(shapes, edges) {
 }
 
 function shapeRecord(
-    element,
-    rect,
-    index,
-    { expanded, groupsAreContainers = true }) {
+    element: BpmnElement,
+    rect: Bounds,
+    index: number,
+    { expanded, groupsAreContainers = true }: ShapeRecordOptions
+): ShapeRecord {
   return {
     element,
     rect,
@@ -120,7 +207,11 @@ function shapeRecord(
   };
 }
 
-export function needsExpandedSubProcessTitleClearance(element, rect, childLayout) {
+export function needsExpandedSubProcessTitleClearance(
+    element: BpmnElement,
+    rect: Bounds,
+    childLayout: LayoutState
+): boolean {
   const expandedElements = collectExpandedElements(childLayout);
   const shapes = [
     ...childLayout.shapes.entries(),
@@ -139,6 +230,7 @@ export function needsExpandedSubProcessTitleClearance(element, rect, childLayout
   const container = {
     element,
     rect,
+    index: -1,
     isContainer: true,
     titleBounds: expandedSubProcessTitleBounds(element, rect, true)
   };
@@ -156,7 +248,7 @@ export function needsExpandedSubProcessTitleClearance(element, rect, childLayout
   const labels = [
     ...shapes.map(shape => labelRecord(shape, shape.index)),
     ...edges.map(edge => labelRecord(edge, shapes.length + edge.index))
-  ].filter(Boolean);
+  ].filter(isLabelRecord);
 
   return labels.some(label => {
     const preferred = preferredCandidates(label, shapeByElement, edges);
@@ -179,8 +271,8 @@ export function needsExpandedSubProcessTitleClearance(element, rect, childLayout
   });
 }
 
-function collectExpandedElements(layout) {
-  const elements = new Set();
+function collectExpandedElements(layout: LayoutState): Set<BpmnElement> {
+  const elements = new Set<BpmnElement>();
 
   for (const child of layout.children) {
     if (!child.emitInParent) {
@@ -197,7 +289,7 @@ function collectExpandedElements(layout) {
   return elements;
 }
 
-function labelRecord(owner, index) {
+function labelRecord(owner: LabelOwner, index: number): LabelRecord | null {
   const element = owner.element;
   const text = isExternalLabelOwner(element)
     ? getExternalLabelText(element).trim()
@@ -215,7 +307,21 @@ function labelRecord(owner, index) {
   };
 }
 
-export function externalLabelSize(text) {
+function isLabelRecord(label: LabelRecord | null): label is LabelRecord {
+  return !!label;
+}
+
+function mapValue<Key, Value>(map: Map<Key, Value>, key: Key): Value {
+  const value = map.get(key);
+
+  if (value === undefined) {
+    throw new Error('Missing map value.');
+  }
+
+  return value;
+}
+
+export function externalLabelSize(text: string): LabelSize {
   const availableWidth = EXTERNAL_LABEL_WIDTH -
     2 * EXTERNAL_LABEL_HORIZONTAL_PADDING;
   let lineCount = 0;
@@ -264,8 +370,8 @@ export function externalLabelSize(text) {
   };
 }
 
-function wordChunks(word) {
-  const chunks = [];
+function wordChunks(word: string): number[] {
+  const chunks: number[] = [];
   let width = 0;
 
   for (const character of word) {
@@ -287,7 +393,7 @@ function wordChunks(word) {
   return chunks;
 }
 
-function externalCharacterWidth(character) {
+function externalCharacterWidth(character: string): number {
   if (/[MW]/.test(character)) {
     return EXTERNAL_LABEL_WIDE_CHARACTER_WIDTH;
   }
@@ -301,8 +407,12 @@ function externalCharacterWidth(character) {
   return EXTERNAL_LABEL_CHARACTER_WIDTH;
 }
 
-function preferredCandidates(label, shapeByElement, edges) {
-  if (label.points) {
+function preferredCandidates(
+    label: LabelRecord,
+    shapeByElement: Map<BpmnElement, ShapeRecord>,
+    edges: EdgeRecord[]
+): Bounds[] {
+  if ('points' in label) {
     return connectionLabelCandidates(label, edges);
   }
 
@@ -319,7 +429,7 @@ function preferredCandidates(label, shapeByElement, edges) {
     : candidates;
 }
 
-function shapeLabelCandidates(owner, size) {
+function shapeLabelCandidates(owner: Rect, size: LabelSize): Bounds[] {
   const centerX = owner.x + owner.width / 2;
   const centerY = owner.y + owner.height / 2;
 
@@ -351,7 +461,10 @@ function shapeLabelCandidates(owner, size) {
   ];
 }
 
-function connectionLabelCandidates(label, edges) {
+function connectionLabelCandidates(
+    label: LabelRecord & EdgeRecord,
+    edges: EdgeRecord[]
+): Bounds[] {
   const segments = label.points.slice(0, -1).map((start, index) => ({
     start,
     end: label.points[index + 1],
@@ -364,7 +477,7 @@ function connectionLabelCandidates(label, edges) {
   const unique = partitioned.flatMap(parts => parts.unique);
   const shared = partitioned.flatMap(parts => parts.shared);
 
-  const compare = (a, b) => {
+  const compare = (a: SegmentPart, b: SegmentPart) => {
     return Math.abs(a.index - middle) - Math.abs(b.index - middle) ||
       a.index - b.index ||
       a.centerOffset - b.centerOffset;
@@ -375,7 +488,11 @@ function connectionLabelCandidates(label, edges) {
   });
 }
 
-function partitionConnectionSegment(segment, owner, edges) {
+function partitionConnectionSegment(
+    segment: IndexedSegment,
+    owner: BpmnElement,
+    edges: EdgeRecord[]
+): SegmentPartitions {
   const horizontal = segment.start.y === segment.end.y;
   const vertical = segment.start.x === segment.end.x;
 
@@ -392,7 +509,7 @@ function partitionConnectionSegment(segment, owner, edges) {
   const end = horizontal
     ? Math.max(segment.start.x, segment.end.x)
     : Math.max(segment.start.y, segment.end.y);
-  const overlaps = [];
+  const overlaps: Array<[ number, number ]> = [];
 
   for (const edge of edges) {
     if (edge.element === owner) {
@@ -446,8 +563,10 @@ function partitionConnectionSegment(segment, owner, edges) {
   return { unique, shared };
 }
 
-function mergeIntervals(intervals) {
-  const merged = [];
+function mergeIntervals(
+    intervals: Array<[ number, number ]>
+): Array<[ number, number ]> {
+  const merged: Array<[ number, number ]> = [];
 
   for (const interval of intervals.sort((a, b) => a[0] - b[0] || a[1] - b[1])) {
     const previous = merged.at(-1);
@@ -462,7 +581,12 @@ function mergeIntervals(intervals) {
   return merged;
 }
 
-function toSegmentPart(segment, start, end, horizontal) {
+function toSegmentPart(
+    segment: IndexedSegment,
+    start: number,
+    end: number,
+    horizontal: boolean
+): SegmentPart {
   return segmentPart(
     segment,
     horizontal
@@ -474,7 +598,11 @@ function toSegmentPart(segment, start, end, horizontal) {
   );
 }
 
-function segmentPart(segment, start, end) {
+function segmentPart(
+    segment: Pick<SegmentPart, 'start' | 'end' | 'index'>,
+    start: Point,
+    end: Point
+): SegmentPart {
   const originalCenter = {
     x: (segment.start.x + segment.end.x) / 2,
     y: (segment.start.y + segment.end.y) / 2
@@ -495,7 +623,11 @@ function segmentPart(segment, start, end) {
   };
 }
 
-function segmentLabelCandidates(start, end, size) {
+function segmentLabelCandidates(
+    start: Point,
+    end: Point,
+    size: LabelSize
+): Bounds[] {
   const horizontal = start.y === end.y;
   const vertical = start.x === end.x;
   const length = Math.hypot(end.x - start.x, end.y - start.y);
@@ -570,12 +702,18 @@ function segmentLabelCandidates(start, end, size) {
   ));
 }
 
-function freeCandidate(label, preferred, shapes, edgeSegments, occupied) {
+function freeCandidate(
+    label: LabelRecord,
+    preferred: Bounds | undefined,
+    shapes: ShapeRecord[],
+    edgeSegments: EdgeSegment[],
+    occupied: Bounds[]
+): Bounds | null {
   if (!preferred) {
     return null;
   }
 
-  const candidates = [];
+  const candidates: CandidateRecord[] = [];
   let detachedFallback = false;
 
   for (let step = 1; step <= MAX_LABEL_SEARCH_STEPS; step++) {
@@ -592,7 +730,8 @@ function freeCandidate(label, preferred, shapes, edgeSegments, occupied) {
             label.size.height
           ),
           displacement: step,
-          index: candidates.length
+          index: candidates.length,
+          ownerDistance: 0
         };
 
         candidates.push(candidate);
@@ -630,17 +769,24 @@ function freeCandidate(label, preferred, shapes, edgeSegments, occupied) {
     }) || null;
 }
 
-function candidateIsClear(candidate, label, shapes, edgeSegments, occupied) {
+function candidateIsClear(
+    candidate: Bounds,
+    label: LabelRecord,
+    shapes: ShapeRecord[],
+    edgeSegments: EdgeSegment[],
+    occupied: Bounds[]
+): boolean {
   return candidateIsCollisionFree(candidate, shapes, edgeSegments, occupied) &&
     hasClearOwnerCorridor(candidate, label, shapes);
 }
 
 function candidateIsCollisionFree(
-    candidate,
-    shapes,
-    edgeSegments,
-    occupied,
-    ignoreContainerTitles = false) {
+    candidate: Bounds,
+    shapes: ShapeRecord[],
+    edgeSegments: EdgeSegment[],
+    occupied: Bounds[],
+    ignoreContainerTitles = false
+): boolean {
   const footprint = expand(candidate, EXTERNAL_LABEL_CLEARANCE);
   const edgeFootprint = expand(candidate, EXTERNAL_LABEL_CLEARANCE - 1);
 
@@ -679,8 +825,8 @@ function candidateIsCollisionFree(
   return true;
 }
 
-function flattenEdgeSegments(edges) {
-  const segments = [];
+function flattenEdgeSegments(edges: EdgeRecord[]): EdgeSegment[] {
+  const segments: EdgeSegment[] = [];
 
   for (const edge of edges) {
     for (let index = 0; index < edge.points.length - 1; index++) {
@@ -701,7 +847,10 @@ function flattenEdgeSegments(edges) {
   return segments;
 }
 
-function overlapsAnyContainerTitle(candidate, shapes) {
+function overlapsAnyContainerTitle(
+    candidate: Bounds,
+    shapes: ShapeRecord[]
+): boolean {
   const footprint = expand(candidate, EXTERNAL_LABEL_CLEARANCE);
 
   return shapes.some(shape => {
@@ -709,7 +858,11 @@ function overlapsAnyContainerTitle(candidate, shapes) {
   });
 }
 
-function hasClearOwnerCorridor(candidate, label, shapes) {
+function hasClearOwnerCorridor(
+    candidate: Bounds,
+    label: LabelRecord,
+    shapes: ShapeRecord[]
+): boolean {
   const attachment = ownerAttachment(label, candidate);
 
   return !shapes.some(shape => {
@@ -723,15 +876,15 @@ function hasClearOwnerCorridor(candidate, label, shapes) {
   });
 }
 
-function ownerAttachment(label, candidate) {
-  if (label.rect) {
+function ownerAttachment(label: LabelRecord, candidate: Bounds): Attachment {
+  if ('rect' in label) {
     return rectangleAttachment(candidate, label.rect);
   }
 
   return polylineAttachment(candidate, label.points);
 }
 
-function rectangleAttachment(candidate, owner) {
+function rectangleAttachment(candidate: Bounds, owner: Bounds): Attachment {
   const [ labelX, ownerX ] = closestAxisPoints(
     candidate.x,
     candidate.x + candidate.width,
@@ -751,7 +904,12 @@ function rectangleAttachment(candidate, owner) {
   );
 }
 
-function closestAxisPoints(aStart, aEnd, bStart, bEnd) {
+function closestAxisPoints(
+    aStart: number,
+    aEnd: number,
+    bStart: number,
+    bEnd: number
+): [ number, number ] {
   if (aEnd < bStart) {
     return [ aEnd, bStart ];
   }
@@ -764,8 +922,8 @@ function closestAxisPoints(aStart, aEnd, bStart, bEnd) {
   return [ shared, shared ];
 }
 
-function polylineAttachment(candidate, points) {
-  let closest = null;
+function polylineAttachment(candidate: Bounds, points: Waypoint[]): Attachment {
+  let closest: Attachment | null = null;
 
   for (let index = 0; index < points.length - 1; index++) {
     const current = segmentRectangleAttachment(
@@ -779,10 +937,18 @@ function polylineAttachment(candidate, points) {
     }
   }
 
+  if (!closest) {
+    throw new Error('A connection label requires at least one waypoint segment.');
+  }
+
   return closest;
 }
 
-function segmentRectangleAttachment(rect, start, end) {
+function segmentRectangleAttachment(
+    rect: Bounds,
+    start: Point,
+    end: Point
+): Attachment {
   const corners = [
     { x: rect.x, y: rect.y },
     { x: rect.x + rect.width, y: rect.y },
@@ -805,7 +971,11 @@ function segmentRectangleAttachment(rect, start, end) {
   });
 }
 
-function closestPointOnSegment(candidate, start, end) {
+function closestPointOnSegment(
+    candidate: Point,
+    start: Point,
+    end: Point
+): Point {
   const dx = end.x - start.x;
   const dy = end.y - start.y;
   const lengthSquared = dx * dx + dy * dy;
@@ -822,14 +992,14 @@ function closestPointOnSegment(candidate, start, end) {
   };
 }
 
-function closestPointInRectangle(candidate, rect) {
+function closestPointInRectangle(candidate: Point, rect: Bounds): Point {
   return {
     x: Math.max(rect.x, Math.min(candidate.x, rect.x + rect.width)),
     y: Math.max(rect.y, Math.min(candidate.y, rect.y + rect.height))
   };
 }
 
-function attachment(labelPoint, ownerPoint) {
+function attachment(labelPoint: Point, ownerPoint: Point): Attachment {
   return {
     labelPoint,
     ownerPoint,
@@ -840,19 +1010,22 @@ function attachment(labelPoint, ownerPoint) {
   };
 }
 
-function straddles(candidate, container) {
+function straddles(candidate: Bounds, container: Bounds): boolean {
   return rectanglesOverlap(candidate, container) &&
     !contains(container, candidate);
 }
 
-function contains(container, candidate) {
+function contains(container: Bounds, candidate: Bounds): boolean {
   return candidate.x >= container.x &&
     candidate.y >= container.y &&
     candidate.x + candidate.width <= container.x + container.width &&
     candidate.y + candidate.height <= container.y + container.height;
 }
 
-function overlapsParticipantHeader(candidate, shape) {
+function overlapsParticipantHeader(
+    candidate: Bounds,
+    shape: ShapeRecord
+): boolean {
   if (!is(shape.element, 'bpmn:Participant')) {
     return false;
   }
@@ -865,7 +1038,10 @@ function overlapsParticipantHeader(candidate, shape) {
   ));
 }
 
-function overlapsContainerTitle(candidate, shape) {
+function overlapsContainerTitle(
+    candidate: Bounds,
+    shape: ShapeRecord
+): boolean {
   if (!shape.titleBounds) {
     return false;
   }
@@ -873,8 +1049,16 @@ function overlapsContainerTitle(candidate, shape) {
   return rectanglesOverlap(candidate, shape.titleBounds);
 }
 
-function expandedSubProcessTitleBounds(element, rect, expanded) {
-  if (!expanded || !hasSubProcessLabel(element)) {
+function expandedSubProcessTitleBounds(
+    element: BpmnElement,
+    rect: Bounds,
+    expanded: boolean
+): Bounds | null {
+  if (
+    !expanded ||
+    !is(element, 'bpmn:SubProcess') ||
+    !hasSubProcessLabel(element)
+  ) {
     return null;
   }
 
@@ -882,7 +1066,13 @@ function expandedSubProcessTitleBounds(element, rect, expanded) {
     0,
     rect.width - 2 * EXPANDED_SUBPROCESS_LABEL_PADDING
   );
-  const textWidth = Math.max(...element.name.split('\n').map(line => {
+  const name = element.name;
+
+  if (!name) {
+    return null;
+  }
+
+  const textWidth = Math.max(...name.split('\n').map(line => {
     return [ ...line ].reduce((width, character) => {
       return width + (character === ' '
         ? EXTERNAL_LABEL_SPACE_WIDTH
@@ -902,7 +1092,7 @@ function expandedSubProcessTitleBounds(element, rect, expanded) {
   );
 }
 
-function expand(rect, margin) {
+function expand(rect: Bounds, margin: number): Bounds {
   return bounds(
     rect.x - margin,
     rect.y - margin,
