@@ -12,18 +12,80 @@ import {
   createBpmnOrthogonalRouter
 } from '../routing/BpmnOrthogonalRouting.js';
 
+import type { BpmnElementFor } from '../bpmn/Types.js';
+import type {
+  BpmnElement,
+  Bounds,
+  LayoutRecord,
+  Waypoint
+} from '../Types.js';
+import type { Point } from 'diagram-js/lib/util/Types.js';
+import type { Segment } from '../geometry/Geometry.js';
+
 const ASSOCIATION_OBSTACLE_CLEARANCE = 1;
 
+type ArtifactAssociation =
+  | BpmnElementFor<'bpmn:Association'>
+  | BpmnElementFor<'bpmn:DataAssociation'>;
+
+type ArtifactObstacle = {
+  element: BpmnElement;
+  rect: Bounds;
+};
+
+type ArtifactRoute = {
+  element: BpmnElement;
+  points: Waypoint[];
+};
+
+type ArtifactOwnerReference = {
+  association: ArtifactAssociation;
+  owner: BpmnElement;
+  ownerConnectionIndex?: number;
+  ownerConnectionCount?: number;
+};
+
+type AssociationAxis = 'horizontal' | 'vertical';
+
+type AssociationDockPair = {
+  artifact: Point;
+  owner: Point;
+};
+
+type AssociationRouteCandidate = {
+  points: Waypoint[];
+  artifactAxis: AssociationAxis;
+  ownerAxis: AssociationAxis;
+};
+
+type ScoredAssociationRoute = {
+  points: Waypoint[];
+  score: number[];
+};
+
+type ArtifactAssociationRoutingContext = {
+  artifactRecords: LayoutRecord[];
+  graphRoutes: ArtifactRoute[];
+  graphShapes: Map<BpmnElement, Bounds>;
+  layout: {
+    shapes: Map<BpmnElement, Bounds>;
+    edges: Map<BpmnElement, Waypoint[]>;
+  };
+  obstaclesByArtifact: Map<BpmnElement, ArtifactObstacle[]>;
+  owners: Map<BpmnElement, ArtifactOwnerReference[]>;
+};
+
 export function artifactAssociationConnection(
-    association,
-    owner,
-    ownerBounds,
-    artifact,
-    artifactBounds,
+    association: ArtifactAssociation,
+    owner: BpmnElement,
+    ownerBounds: Bounds,
+    artifact: BpmnElement,
+    artifactBounds: Bounds,
     connectionIndex = 0,
     connectionCount = 1,
-    obstacles = [],
-    routeSegments = []) {
+    obstacles: ArtifactObstacle[] = [],
+    routeSegments: Segment[] = []
+): Waypoint[] {
   const artifactIsSource = is(association, 'bpmn:DataInputAssociation') ||
     association.sourceRef === artifact ||
     (Array.isArray(association.sourceRef) && association.sourceRef.includes(artifact));
@@ -126,7 +188,12 @@ export function artifactAssociationConnection(
     : [ ownerPoint, artifactPoint ];
 }
 
-function associationDockOffset(ownerSpan, artifactSpan, index, count) {
+function associationDockOffset(
+    ownerSpan: number,
+    artifactSpan: number,
+    index: number,
+    count: number
+): number {
   if (count < 2) {
     return 0;
   }
@@ -137,14 +204,15 @@ function associationDockOffset(ownerSpan, artifactSpan, index, count) {
 }
 
 function orthogonalAssociationRoute(
-    owner,
-    ownerBounds,
-    artifact,
-    artifactBounds,
-    obstacles,
-    routeSegments,
-    connectionIndex,
-    connectionCount) {
+    owner: BpmnElement,
+    ownerBounds: Bounds,
+    artifact: BpmnElement,
+    artifactBounds: Bounds,
+    obstacles: ArtifactObstacle[],
+    routeSegments: Segment[],
+    connectionIndex: number,
+    connectionCount: number
+): Waypoint[] {
   const horizontal = horizontalAssociationDocks(
     artifactBounds,
     ownerBounds,
@@ -159,7 +227,7 @@ function orthogonalAssociationRoute(
   );
   const centeredIndex = connectionIndex - (connectionCount - 1) / 2;
   const channelOffset = centeredIndex * ROUTING_MARGIN;
-  const candidates = [
+  const candidateRoutes: AssociationRouteCandidate[] = [
     {
       points: [
         horizontal.artifact,
@@ -210,7 +278,8 @@ function orthogonalAssociationRoute(
       artifactAxis: 'vertical',
       ownerAxis: 'vertical'
     }
-  ].map(candidate => ({
+  ];
+  const candidates = candidateRoutes.map(candidate => ({
     ...candidate,
     points: simplifyOrthogonalRoute(candidate.points)
   })).filter(({ points, artifactAxis, ownerAxis }) => {
@@ -223,7 +292,9 @@ function orthogonalAssociationRoute(
     obstacleInset: -ASSOCIATION_OBSTACLE_CLEARANCE
   });
 
-  return candidates.map(({ points }, index) => {
+  const scoredCandidates: ScoredAssociationRoute[] = candidates.map(({
+    points
+  }, index) => {
     const clear = routeAvoidsEndpointInteriors(
       points,
       artifactBounds,
@@ -240,21 +311,36 @@ function orthogonalAssociationRoute(
         routeLength(points)
       ]
     };
-  }).sort((a, b) => compareScores(a.score, b.score))[0].points;
+  }).sort((a, b) => compareScores(a.score, b.score));
+
+  return scoredCandidates[0].points;
 }
 
-function routeAvoidsEndpointInteriors(points, artifactBounds, ownerBounds) {
+function routeAvoidsEndpointInteriors(
+    points: Waypoint[],
+    artifactBounds: Bounds,
+    ownerBounds: Bounds
+): boolean {
   return toSegments(points).every(([ start, end ]) => {
     return !segmentEntersRect(start, end, artifactBounds) &&
       !segmentEntersRect(start, end, ownerBounds);
   });
 }
 
-function routeHasDockDirections(points, artifactAxis, ownerAxis) {
+function routeHasDockDirections(
+    points: Waypoint[],
+    artifactAxis: AssociationAxis,
+    ownerAxis: AssociationAxis
+): boolean {
   const first = points[0];
   const second = points[1];
   const penultimate = points.at(-2);
   const last = points.at(-1);
+
+  if (!first || !second || !penultimate || !last) {
+    return false;
+  }
+
   const firstAxis = first.y === second.y ? 'horizontal' : 'vertical';
   const lastAxis = penultimate.y === last.y ? 'horizontal' : 'vertical';
 
@@ -262,10 +348,11 @@ function routeHasDockDirections(points, artifactAxis, ownerAxis) {
 }
 
 function horizontalAssociationDocks(
-    artifactBounds,
-    ownerBounds,
-    connectionIndex,
-    connectionCount) {
+    artifactBounds: Bounds,
+    ownerBounds: Bounds,
+    connectionIndex: number,
+    connectionCount: number
+): AssociationDockPair {
   const artifactLeft = artifactBounds.x + artifactBounds.width / 2 <
     ownerBounds.x + ownerBounds.width / 2;
   const offset = associationDockOffset(
@@ -292,10 +379,11 @@ function horizontalAssociationDocks(
 }
 
 function verticalAssociationDocks(
-    artifactBounds,
-    ownerBounds,
-    connectionIndex,
-    connectionCount) {
+    artifactBounds: Bounds,
+    ownerBounds: Bounds,
+    connectionIndex: number,
+    connectionCount: number
+): AssociationDockPair {
   const artifactAbove = artifactBounds.y + artifactBounds.height / 2 <
     ownerBounds.y + ownerBounds.height / 2;
   const offset = associationDockOffset(
@@ -321,7 +409,7 @@ function verticalAssociationDocks(
   };
 }
 
-function simplifyOrthogonalRoute(points) {
+function simplifyOrthogonalRoute(points: Waypoint[]): Waypoint[] {
   const deduplicated = points.filter((candidate, index) => {
     const previous = points[index - 1];
 
@@ -341,7 +429,10 @@ function simplifyOrthogonalRoute(points) {
   });
 }
 
-export function routeCrossings(points, routeSegments) {
+export function routeCrossings(
+    points: Waypoint[],
+    routeSegments: Segment[]
+): number {
   return toSegments(points).reduce((total, [ start, end ]) => {
     return total + routeSegments.filter(([ a, b ]) => {
       return segmentsProperlyCross(start, end, a, b);
@@ -349,7 +440,9 @@ export function routeCrossings(points, routeSegments) {
   }, 0);
 }
 
-export function routePlacedArtifactAssociations(context) {
+export function routePlacedArtifactAssociations(
+    context: ArtifactAssociationRoutingContext
+): void {
   const {
     artifactRecords,
     graphRoutes,
@@ -363,16 +456,26 @@ export function routePlacedArtifactAssociations(context) {
     const artifactBounds = layout.shapes.get(record.element);
     const references = owners.get(record.element) || [];
 
+    if (!artifactBounds) {
+      continue;
+    }
+
     for (const {
       association,
       owner,
       ownerConnectionIndex,
       ownerConnectionCount
     } of references) {
+      const ownerBounds = graphShapes.get(owner);
+
+      if (!ownerBounds) {
+        continue;
+      }
+
       layout.edges.set(association, routeArtifactAssociation(
         association,
         owner,
-        graphShapes.get(owner),
+        ownerBounds,
         record.element,
         artifactBounds,
         ownerConnectionIndex,
@@ -385,15 +488,16 @@ export function routePlacedArtifactAssociations(context) {
 }
 
 function routeArtifactAssociation(
-    association,
-    owner,
-    ownerBounds,
-    artifact,
-    artifactBounds,
-    connectionIndex,
-    connectionCount,
-    obstacles = [],
-    routes = []) {
+    association: ArtifactAssociation,
+    owner: BpmnElement,
+    ownerBounds: Bounds,
+    artifact: BpmnElement,
+    artifactBounds: Bounds,
+    connectionIndex: number | undefined,
+    connectionCount: number | undefined,
+    obstacles: ArtifactObstacle[] = [],
+    routes: ArtifactRoute[] = []
+): Waypoint[] {
   return artifactAssociationConnection(
     association,
     owner,
