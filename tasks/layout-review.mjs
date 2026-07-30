@@ -19,25 +19,26 @@ export async function createLayoutReview({
   outputDirectory = path.resolve(projectRoot, 'test', 'output', 'layout-review'),
   repositoryDirectory = projectRoot
 }) {
-  await resolveCommit(repositoryDirectory, baseRef);
-  await resolveCommit(repositoryDirectory, headRef);
-  await assertFixturesHaveSnapshots(repositoryDirectory, headRef);
+  const [ resolvedBase, resolvedHead ] = await Promise.all([
+    resolveCommit(repositoryDirectory, baseRef),
+    resolveCommit(repositoryDirectory, headRef)
+  ]);
+
+  await assertFixturesHaveSnapshots(repositoryDirectory, resolvedHead);
 
   const changes = await findSnapshotChanges(
     repositoryDirectory,
-    baseRef,
-    headRef
+    resolvedBase,
+    resolvedHead
   );
   const results = await Promise.all(changes.map(change => {
     return createReviewResult(
       repositoryDirectory,
-      baseRef,
-      headRef,
+      resolvedBase,
+      resolvedHead,
       change
     );
   }));
-  const resolvedBase = await resolveCommit(repositoryDirectory, baseRef);
-  const resolvedHead = await resolveCommit(repositoryDirectory, headRef);
   const manifest = {
     base: resolvedBase,
     head: resolvedHead,
@@ -162,35 +163,23 @@ function parseSnapshotChange(line) {
 }
 
 async function assertFixturesHaveSnapshots(repositoryDirectory, headRef) {
-  const fixtureOutput = await git(repositoryDirectory, [
+  const files = (await git(repositoryDirectory, [
     'ls-tree',
     '-r',
     '--name-only',
     headRef,
     '--',
-    'test/fixtures'
-  ]);
-  const snapshotOutput = await git(repositoryDirectory, [
-    'ls-tree',
-    '-r',
-    '--name-only',
-    headRef,
-    '--',
+    'test/fixtures',
     'test/snapshots'
-  ]);
-  const fixtureNames = fixtureOutput
-    .trim()
-    .split(/\r?\n/)
-    .filter(Boolean)
+  ])).trim().split(/\r?\n/).filter(Boolean);
+  const fixtureNames = files
     .filter(filePath => {
       return path.posix.dirname(filePath) === 'test/fixtures' &&
         filePath.endsWith('.bpmn');
     })
     .map(filePath => path.posix.basename(filePath));
-  const snapshotNames = new Set(snapshotOutput
-    .trim()
-    .split(/\r?\n/)
-    .filter(Boolean)
+  const snapshotNames = new Set(files
+    .filter(filePath => path.posix.dirname(filePath) === 'test/snapshots')
     .map(filePath => path.posix.basename(filePath)));
 
   for (const fixtureName of fixtureNames) {
@@ -218,19 +207,15 @@ async function readGitFile(repositoryDirectory, ref, filePath) {
 }
 
 async function readOptionalGitFile(repositoryDirectory, ref, filePath) {
-  const entry = (await git(repositoryDirectory, [
-    'ls-tree',
-    '--name-only',
-    ref,
-    '--',
-    filePath
-  ])).trim();
+  try {
+    return await readGitFile(repositoryDirectory, ref, filePath);
+  } catch (error) {
+    if (error.code === 128 && error.stderr.includes(`path '${ filePath }'`)) {
+      return null;
+    }
 
-  if (entry !== filePath) {
-    return null;
+    throw error;
   }
-
-  return readGitFile(repositoryDirectory, ref, filePath);
 }
 
 async function git(repositoryDirectory, args) {
