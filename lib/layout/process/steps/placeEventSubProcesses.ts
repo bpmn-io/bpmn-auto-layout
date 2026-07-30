@@ -12,21 +12,29 @@ import {
   sizeExpandedSubProcess
 } from '../placement/ExpandedSubProcess.js';
 
-/**
- * @typedef {import('../../Types.js').ProcessLayoutContext} ProcessLayoutContext
- */
+import type { LayoutRecord, ProcessLayoutContext } from '../../Types.js';
+import type { BpmnElementFor } from '../../bpmn/Types.js';
 
-/**
- * @param {ProcessLayoutContext} context
- * @returns {ProcessLayoutContext}
- */
-export function placeEventSubProcesses(context) {
+type EventSubProcessRecord = LayoutRecord & {
+  element: BpmnElementFor<'bpmn:SubProcess'>;
+};
+
+function isEventSubProcessRecord(record: LayoutRecord): record is EventSubProcessRecord {
+  return is(record.element, 'bpmn:SubProcess') && !!record.element.triggeredByEvent;
+}
+
+function getRequired<Value>(value: Value | null): Value {
+  if (value === null) {
+    throw new Error('Expected event sub-process child layout');
+  }
+
+  return value;
+}
+
+export function placeEventSubProcesses(context: ProcessLayoutContext): ProcessLayoutContext {
   const { layout } = context;
   const { records } = context.placement;
-  const eventSubProcesses = records.filter(record => {
-    return is(record.element, 'bpmn:SubProcess') &&
-      record.element.triggeredByEvent;
-  });
+  const eventSubProcesses = records.filter(isEventSubProcessRecord);
   let nextY = getExtents(layout).maxY + VERTICAL_GAP;
 
   for (const record of eventSubProcesses) {
@@ -42,17 +50,18 @@ export function placeEventSubProcesses(context) {
       continue;
     }
 
-    const extents = getExtents(record.child);
+    const child = getRequired(record.child);
+    const extents = getExtents(child);
     const size = sizeExpandedSubProcess(extents);
 
     record.bounds = bounds(0, nextY, size.width, size.height);
     layout.shapes.set(record.element, record.bounds);
     translateLayout(
-      record.child,
+      child,
       record.bounds.x + SUB_PROCESS_PADDING - extents.minX,
       record.bounds.y + SUB_PROCESS_PADDING - extents.minY
     );
-    record.child.emitInParent = true;
+    child.emitInParent = true;
     nextY += size.height + VERTICAL_GAP;
   }
 
