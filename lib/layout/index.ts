@@ -1,4 +1,8 @@
-import { BpmnModdle } from 'bpmn-moddle';
+import {
+  BpmnModdle,
+  type BpmnModdleParseWarning,
+  type BpmnModdleReferenceWarning
+} from 'bpmn-moddle';
 
 import { getDefaultSize, is } from '../di/DiUtil.js';
 import { LayoutError } from '../LayoutError.js';
@@ -9,21 +13,37 @@ import {
   isSupportedVisualElement,
   getExpandedIds
 } from './bpmn/Predicates.js';
+import {
+  type BpmnDiModdleElementFor,
+  type BpmnElement,
+  type BpmnElementFor
+} from './bpmn/Types.js';
 import { layoutCollaboration } from './collaboration/index.js';
 import { layoutProcessScope } from './process/index.js';
+
+type BpmnDefinitions = BpmnElementFor<'bpmn:Definitions'>;
+type BpmnDiagram = BpmnDiModdleElementFor<'bpmndi:BPMNDiagram'>;
+type BpmnPlaneElement = NonNullable<
+  NonNullable<BpmnDiagram['plane']>['planeElement']
+>[number];
+type BpmnPlaneElementType = 'bpmndi:BPMNEdge' | 'bpmndi:BPMNShape';
 
 /**
  * Orchestrates greenfield BPMN layout across semantic analysis, placement,
  * routing, and DI emission.
  */
 class LayoutEngine {
+  moddle: BpmnModdle;
+  expandedIds: Set<string>;
+  warnings: LayoutWarning[];
+
   constructor() {
     this.moddle = new BpmnModdle();
     this.expandedIds = new Set();
     this.warnings = [];
   }
 
-  async layoutProcess(xml) {
+  async layoutProcess(xml: string) {
     this.warnings = [];
     const parsed = await this.moddle.fromXML(xml);
     const definitions = parsed.rootElement;
@@ -56,8 +76,10 @@ class LayoutEngine {
       this.warnings.push(...result.warnings);
     }
 
-    definitions.diagrams = generateDiagrams(this.moddle, layout);
-    this.warnForMissingDi(root, definitions);
+    const diagrams = generateDiagrams(this.moddle, layout);
+
+    definitions.diagrams = diagrams;
+    this.warnForMissingDi(root, diagrams);
 
     return {
       xml: (await this.moddle.toXML(definitions, { format: true })).xml,
@@ -65,7 +87,7 @@ class LayoutEngine {
     };
   }
 
-  selectRoot(definitions) {
+  selectRoot(definitions: BpmnDefinitions): BpmnElement | null {
     const roots = definitions.rootElements || [];
     const collaboration = roots.find(element => is(element, 'bpmn:Collaboration'));
 
@@ -73,7 +95,7 @@ class LayoutEngine {
       const participants = collaboration.participants || [];
 
       if (!participants.some(participant => participant.processRef)) {
-        const invalidParticipant = participants.find(participant => participant.$attrs.processRef);
+        const invalidParticipant = participants.find(participant => participant.$attrs?.processRef);
 
         if (invalidParticipant) {
           throw new LayoutError(
@@ -96,15 +118,21 @@ class LayoutEngine {
     return roots.find(element => is(element, 'bpmn:Process')) || null;
   }
 
-  warnForMissingDi(root, definitions) {
-    const shapeElements = new Set();
-    const edgeElements = new Set();
+  warnForMissingDi(root: BpmnElement, diagrams: BpmnDiagram[]): void {
+    const shapeElements = new Set<BpmnElement | undefined>();
+    const edgeElements = new Set<BpmnElement | undefined>();
 
-    for (const diagram of definitions.diagrams) {
-      for (const di of diagram.plane.planeElement) {
-        if (di.$instanceOf('bpmndi:BPMNShape')) {
+    for (const diagram of diagrams) {
+      const plane = diagram.plane;
+
+      if (!plane) {
+        continue;
+      }
+
+      for (const di of plane.planeElement || []) {
+        if (isBpmnPlaneElement(di, 'bpmndi:BPMNShape')) {
           shapeElements.add(di.bpmnElement);
-        } else if (di.$instanceOf('bpmndi:BPMNEdge')) {
+        } else if (isBpmnPlaneElement(di, 'bpmndi:BPMNEdge')) {
           edgeElements.add(di.bpmnElement);
         }
       }
@@ -129,17 +157,20 @@ class LayoutEngine {
   }
 }
 
-export function layoutProcess(xml) {
+export function layoutProcess(xml: string) {
   return new LayoutEngine().layoutProcess(xml);
 }
 
-function validateInputVisuals(definitions, root) {
+function validateInputVisuals(
+    definitions: BpmnDefinitions,
+    root: BpmnElement
+): void {
   const diagram = (definitions.diagrams || []).find(candidate => {
     return candidate.plane?.bpmnElement === root;
   });
 
   for (const di of diagram?.plane?.planeElement || []) {
-    if (!di.$instanceOf('bpmndi:BPMNShape')) {
+    if (!isBpmnPlaneElement(di, 'bpmndi:BPMNShape')) {
       continue;
     }
 
@@ -161,10 +192,16 @@ function validateInputVisuals(definitions, root) {
   }
 }
 
-function validateParseWarnings(warnings, xml) {
-  const invalidProcessRef = warnings.find(warning => {
-    return warning.property === 'bpmn:processRef';
-  });
+function validateParseWarnings(
+    warnings: BpmnModdleParseWarning[],
+    xml: string
+): void {
+  const invalidProcessRef = warnings.find(
+    (warning): warning is BpmnModdleReferenceWarning => {
+      return 'property' in warning &&
+        warning.property === 'bpmn:processRef';
+    }
+  );
 
   if (invalidProcessRef) {
     throw new LayoutError(
@@ -187,4 +224,11 @@ function validateParseWarnings(warnings, xml) {
       'Cannot generate DI for an unknown BPMN visual element.'
     );
   }
+}
+
+function isBpmnPlaneElement<Type extends BpmnPlaneElementType>(
+    element: BpmnPlaneElement,
+    type: Type
+): element is BpmnDiModdleElementFor<Type> {
+  return element.$instanceOf(type);
 }
