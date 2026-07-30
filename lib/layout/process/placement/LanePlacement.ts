@@ -1,3 +1,47 @@
+import type { ModdleElement } from 'moddle';
+
+import type {
+  Bounds,
+  LayoutRecord,
+  LayoutState,
+  SemanticPolicy
+} from '../../Types.js';
+import type {
+  BpmnFlowElementsContainer,
+  BpmnFlowNode,
+  BpmnLane,
+  BpmnLaneSet,
+  BpmnSequenceFlow
+} from '../../../moddle-types/bpmn.js';
+
+type FlowNode = ModdleElement<BpmnFlowNode>;
+type Lane = ModdleElement<BpmnLane>;
+type LaneSet = ModdleElement<BpmnLaneSet>;
+type FlowEdge = ModdleElement<BpmnSequenceFlow> & {
+  sourceRef: FlowNode;
+  targetRef: FlowNode;
+};
+type LaneRecord = LayoutRecord & {
+  element: FlowNode;
+  bounds: Bounds;
+};
+type LaneMemberships = Map<FlowNode, Lane[]>;
+type LaneRowState = {
+  parents: Map<LaneRecord, LaneRecord>;
+  members: Map<LaneRecord, LaneRecord[]>;
+};
+type RowsByLane = Map<Lane, LaneRecord[][]>;
+type LaneHeights = Map<Lane, number>;
+type LaneSemanticPolicy = Pick<SemanticPolicy, 'backEdges' | 'straightEdges'>;
+
+function getRequired<Value>(value: Value | undefined): Value {
+  if (value === undefined) {
+    throw new Error('Expected lane layout value');
+  }
+
+  return value;
+}
+
 import { is } from '../../../di/DiUtil.js';
 import { LayoutError } from '../../../LayoutError.js';
 import {
@@ -9,11 +53,12 @@ import {
 import { bounds } from '../../geometry/index.js';
 
 export function applyLaneMembership(
-    scope,
-    records,
-    graphEdges,
-    policy,
-    layout) {
+    scope: ModdleElement<BpmnFlowElementsContainer>,
+    records: LaneRecord[],
+    graphEdges: FlowEdge[],
+    policy: LaneSemanticPolicy,
+    layout: LayoutState
+): void {
   const lanes = flattenLanes(scope.laneSets || []);
 
   if (!lanes.length) {
@@ -35,8 +80,8 @@ export function applyLaneMembership(
   positionLaneRows(lanes, rowsByLane, layout);
 }
 
-function collectLaneMemberships(lanes) {
-  const memberships = new Map();
+function collectLaneMemberships(lanes: Lane[]): LaneMemberships {
+  const memberships: LaneMemberships = new Map();
 
   for (const lane of lanes) {
     for (const node of lane.flowNodeRef || []) {
@@ -44,7 +89,7 @@ function collectLaneMemberships(lanes) {
         memberships.set(node, []);
       }
 
-      memberships.get(node).push(lane);
+      getRequired(memberships.get(node)).push(lane);
     }
   }
 
@@ -61,6 +106,7 @@ function collectLaneMemberships(lanes) {
         node.id,
         'A flow node must have one deepest lane membership.',
         deepest.map(lane => lane.id)
+          .filter((id): id is string => typeof id === 'string')
       );
     }
 
@@ -70,7 +116,7 @@ function collectLaneMemberships(lanes) {
   return memberships;
 }
 
-function prepareLaneContent(records) {
+function prepareLaneContent(records: LaneRecord[]): number {
   const maxRight = Math.max(
     ...records.map(record => record.bounds.x + record.bounds.width),
     MIN_LANE_CONTENT_WIDTH
@@ -83,9 +129,15 @@ function prepareLaneContent(records) {
   return maxRight + 2 * LANE_CONTENT_PADDING;
 }
 
-function groupLaneRows(lanes, records, graphEdges, memberships, policy) {
+function groupLaneRows(
+    lanes: Lane[],
+    records: LaneRecord[],
+    graphEdges: FlowEdge[],
+    memberships: LaneMemberships,
+    policy: LaneSemanticPolicy
+): RowsByLane {
   const rowState = createLaneRowState(records);
-  const recordByElement = new Map(
+  const recordByElement = new Map<FlowNode, LaneRecord>(
     records.map(record => [ record.element, record ])
   );
 
@@ -106,16 +158,21 @@ function groupLaneRows(lanes, records, graphEdges, memberships, policy) {
   return collectRowsByLane(lanes, records, memberships, rowState);
 }
 
-function createLaneRowState(records) {
+function createLaneRowState(records: LaneRecord[]): LaneRowState {
   return {
-    parents: new Map(records.map(record => [ record, record ])),
-    members: new Map(records.map(record => [ record, [ record ] ]))
+    parents: new Map<LaneRecord, LaneRecord>(records.map(record => [ record, record ])),
+    members: new Map<LaneRecord, LaneRecord[]>(records.map(record => [ record, [ record ] ]))
   };
 }
 
-function mergeInitiallyAlignedRows(lanes, records, memberships, rowState) {
+function mergeInitiallyAlignedRows(
+    lanes: Lane[],
+    records: LaneRecord[],
+    memberships: LaneMemberships,
+    rowState: LaneRowState
+): void {
   for (const lane of lanes) {
-    const recordsByCenter = new Map();
+    const recordsByCenter = new Map<number, LaneRecord>();
 
     for (const record of records.filter(candidate => {
       return memberships.get(candidate.element)?.[0] === lane;
@@ -133,11 +190,12 @@ function mergeInitiallyAlignedRows(lanes, records, memberships, rowState) {
 }
 
 function mergeStraightFlowRows(
-    graphEdges,
-    memberships,
-    recordByElement,
-    policy,
-    rowState) {
+    graphEdges: FlowEdge[],
+    memberships: LaneMemberships,
+    recordByElement: Map<FlowNode, LaneRecord>,
+    policy: LaneSemanticPolicy,
+    rowState: LaneRowState
+): void {
   for (const edge of graphEdges) {
     const source = recordByElement.get(edge.sourceRef);
     const target = recordByElement.get(edge.targetRef);
@@ -162,7 +220,11 @@ function mergeStraightFlowRows(
   }
 }
 
-function mergeLaneRows(rowState, a, b) {
+function mergeLaneRows(
+    rowState: LaneRowState,
+    a: LaneRecord,
+    b: LaneRecord
+): void {
   const rootA = findLaneRow(rowState.parents, a);
   const rootB = findLaneRow(rowState.parents, b);
 
@@ -170,8 +232,8 @@ function mergeLaneRows(rowState, a, b) {
     return;
   }
 
-  const membersA = rowState.members.get(rootA);
-  const membersB = rowState.members.get(rootB);
+  const membersA = getRequired(rowState.members.get(rootA));
+  const membersB = getRequired(rowState.members.get(rootB));
   const collides = membersA.some(recordA => {
     return membersB.some(recordB => {
       return recordA.bounds.x < recordB.bounds.x + recordB.bounds.width &&
@@ -188,15 +250,18 @@ function mergeLaneRows(rowState, a, b) {
   rowState.members.delete(rootB);
 }
 
-function findLaneRow(parents, record) {
+function findLaneRow(
+    parents: Map<LaneRecord, LaneRecord>,
+    record: LaneRecord
+): LaneRecord {
   let root = record;
 
   while (parents.get(root) !== root) {
-    root = parents.get(root);
+    root = getRequired(parents.get(root));
   }
 
   while (parents.get(record) !== record) {
-    const parent = parents.get(record);
+    const parent = getRequired(parents.get(record));
 
     parents.set(record, root);
     record = parent;
@@ -205,11 +270,16 @@ function findLaneRow(parents, record) {
   return root;
 }
 
-function collectRowsByLane(lanes, records, memberships, rowState) {
-  const rowsByLane = new Map();
+function collectRowsByLane(
+    lanes: Lane[],
+    records: LaneRecord[],
+    memberships: LaneMemberships,
+    rowState: LaneRowState
+): RowsByLane {
+  const rowsByLane: RowsByLane = new Map();
 
   for (const lane of lanes) {
-    const rows = new Map();
+    const rows = new Map<LaneRecord, LaneRecord[]>();
     const directRecords = records.filter(record => {
       return memberships.get(record.element)?.[0] === lane;
     });
@@ -221,7 +291,7 @@ function collectRowsByLane(lanes, records, memberships, rowState) {
         rows.set(root, []);
       }
 
-      rows.get(root).push(record);
+      getRequired(rows.get(root)).push(record);
     }
 
     rowsByLane.set(
@@ -242,8 +312,8 @@ function collectRowsByLane(lanes, records, memberships, rowState) {
   return rowsByLane;
 }
 
-function measureLaneHeights(lanes, rowsByLane) {
-  const laneHeights = new Map();
+function measureLaneHeights(lanes: Lane[], rowsByLane: RowsByLane): LaneHeights {
+  const laneHeights: LaneHeights = new Map();
 
   for (const lane of topLevelLanes(lanes)) {
     requiredLaneHeight(lane, rowsByLane, laneHeights);
@@ -252,9 +322,13 @@ function measureLaneHeights(lanes, rowsByLane) {
   return laneHeights;
 }
 
-function requiredLaneHeight(lane, rowsByLane, laneHeights) {
+function requiredLaneHeight(
+    lane: Lane,
+    rowsByLane: RowsByLane,
+    laneHeights: LaneHeights
+): number {
   if (laneHeights.has(lane)) {
-    return laneHeights.get(lane);
+    return getRequired(laneHeights.get(lane));
   }
 
   const rows = rowsByLane.get(lane) || [];
@@ -275,18 +349,27 @@ function requiredLaneHeight(lane, rowsByLane, laneHeights) {
   return height;
 }
 
-function createLaneBounds(lanes, width, laneHeights, layout) {
+function createLaneBounds(
+    lanes: Lane[],
+    width: number,
+    laneHeights: LaneHeights,
+    layout: LayoutState
+): void {
   let y = 0;
 
   for (const lane of topLevelLanes(lanes)) {
-    const height = laneHeights.get(lane);
+    const height = getRequired(laneHeights.get(lane));
 
     addLaneLayout(lane, y, height, width, layout, laneHeights);
     y += height;
   }
 }
 
-function positionLaneRows(lanes, rowsByLane, layout) {
+function positionLaneRows(
+    lanes: Lane[],
+    rowsByLane: RowsByLane,
+    layout: LayoutState
+): void {
   for (const lane of lanes) {
     const laneBounds = layout.shapes.get(lane);
     const rows = rowsByLane.get(lane) || [];
@@ -316,7 +399,7 @@ function positionLaneRows(lanes, rowsByLane, layout) {
   }
 }
 
-function topLevelLanes(lanes) {
+function topLevelLanes(lanes: Lane[]): Lane[] {
   return lanes.filter(lane => {
     return !lanes.some(other => {
       return other !== lane && laneContains(other, lane);
@@ -324,8 +407,8 @@ function topLevelLanes(lanes) {
   });
 }
 
-export function flattenLanes(laneSets) {
-  const lanes = [];
+export function flattenLanes(laneSets: LaneSet[]): Lane[] {
+  const lanes: Lane[] = [];
 
   for (const laneSet of laneSets) {
     for (const lane of laneSet.lanes || []) {
@@ -339,13 +422,20 @@ export function flattenLanes(laneSets) {
   return lanes;
 }
 
-function laneContains(ancestor, candidate) {
+function laneContains(ancestor: Lane, candidate: Lane): boolean {
   return flattenLanes(
     ancestor.childLaneSet ? [ ancestor.childLaneSet ] : []
   ).includes(candidate);
 }
 
-function addLaneLayout(lane, y, height, width, layout, laneHeights) {
+function addLaneLayout(
+    lane: Lane,
+    y: number,
+    height: number,
+    width: number,
+    layout: LayoutState,
+    laneHeights: LaneHeights
+): void {
   layout.shapes.set(lane, bounds(0, y, width, height));
 
   const children = lane.childLaneSet?.lanes || [];
@@ -357,7 +447,7 @@ function addLaneLayout(lane, y, height, width, layout, laneHeights) {
   let childY = y;
 
   for (const child of children) {
-    const childHeight = laneHeights.get(child);
+    const childHeight = getRequired(laneHeights.get(child));
 
     addLaneLayout(child, childY, childHeight, width, layout, laneHeights);
     childY += childHeight;
