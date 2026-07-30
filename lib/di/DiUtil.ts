@@ -1,7 +1,18 @@
+import {
+  isBpmnType,
+  type BpmnElementFor,
+  type BpmnTypeName
+} from '../layout/bpmn/Types.js';
+
 export const DEFAULT_TASK_HEIGHT = 80;
 export const DEFAULT_TASK_WIDTH = 100;
 
-export function getDefaultSize(element) {
+export type ElementSize = {
+  width: number;
+  height: number;
+};
+
+export function getDefaultSize(element: unknown): ElementSize | null {
   if (is(element, 'bpmn:Activity')) {
     return { width: DEFAULT_TASK_WIDTH, height: DEFAULT_TASK_HEIGHT };
   }
@@ -37,6 +48,9 @@ export function getDefaultSize(element) {
   return null;
 }
 
-export function is(element, type) {
-  return !!element && element.$instanceOf(type);
+export function is<Type extends BpmnTypeName>(
+    element: unknown,
+    type: Type
+): element is BpmnElementFor<Type> {
+  return isBpmnType(element, type);
 }
