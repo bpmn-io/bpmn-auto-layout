@@ -2,7 +2,12 @@
  * A non-fatal layout diagnostic.
  */
 export class LayoutWarning extends Error {
-  constructor(code, elementId, message, relatedElementIds = []) {
+  constructor(
+      public code: string,
+      public elementId: string | undefined,
+      message: string,
+      public relatedElementIds: string[] = []
+  ) {
     super(message);
 
     this.name = 'LayoutWarning';
