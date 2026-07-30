@@ -9,7 +9,7 @@ export type BpmnElement = {
   $type?: string;
   $parent?: BpmnElement;
   $instanceOf?(type: string): boolean;
-} & Record<string, any>;
+} & Record<string, unknown>;
 
 export type Bounds = Rect;
 

@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
@@ -19,8 +20,10 @@
   "scripts": {
     "all": "run-s lint typecheck test",
     "lint": "eslint .",
-    "typecheck": "tsc",
-    "test": "mocha --timeout 15000",
+    "typecheck": "run-s typecheck:source typecheck:public-api",
+    "typecheck:source": "tsc",
+    "typecheck:public-api": "tsc --project tsconfig.public-api.json",
+    "test": "tsx node_modules/mocha/bin/mocha.js --extension js --extension ts --timeout 15000",
     "test:inspect": "node tasks/inspect.mjs",
     "test:update-snapshots": "cross-env UPDATE_SNAPSHOTS=true mocha --timeout 15000",
     "render:fixture": "npm run build && node tasks/render-fixture.mjs",
@@ -31,7 +34,9 @@
     "metrics": "node test/metrics.mjs",
     "metrics:update": "cross-env UPDATE_BASELINE=true node test/metrics.mjs",
     "pretest": "run-s build",
-    "build": "rollup -c",
+    "build": "run-s build:bundle build:types",
+    "build:bundle": "rollup -c",
+    "build:types": "tsc --project tsconfig.declarations.json",
     "build:example": "npm run build -w example",
     "prepare": "run-s build",
     "start": "npm run start -w example"
@@ -59,6 +64,8 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@types/node": "^24.13.3",
     "bpmn-to-image": "^0.10.0",
     "cross-env": "^10.1.0",
     "diagram-js": "^15.23.0",
@@ -69,7 +76,10 @@
     "open-cli": "^8.0.0",
     "puppeteer": "^25.3.0",
     "rollup": "^4.57.1",
-    "typescript": "^5.9.3"
+    "tslib": "^2.8.1",
+    "tsx": "^4.23.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.65.0"
   },
   "engines": {
     "node": ">= 22"
