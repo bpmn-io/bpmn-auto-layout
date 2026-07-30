@@ -6,6 +6,7 @@
     ]
   },
   "include": [
+    "lib/ModdleTypes.d.ts",
     "test/types/**/*.ts"
   ]
 }

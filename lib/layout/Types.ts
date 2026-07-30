@@ -4,12 +4,9 @@ import type {
   Rect
 } from 'diagram-js/lib/util/Types.js';
 
-export type BpmnElement = {
-  id?: string;
-  $type?: string;
-  $parent?: BpmnElement;
-  $instanceOf?(type: string): boolean;
-} & Record<string, unknown>;
+import type { BpmnElement } from './bpmn/Types.js';
+
+export type { BpmnElement } from './bpmn/Types.js';
 
 export type Bounds = Rect;
 
