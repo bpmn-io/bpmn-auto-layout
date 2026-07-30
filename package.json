@@ -25,7 +25,7 @@
     "test": "tsx node_modules/mocha/bin/mocha.js --extension js --extension ts --timeout 15000",
     "test:inspect": "node tasks/inspect.mjs",
     "test:update-snapshots": "cross-env UPDATE_SNAPSHOTS=true mocha --timeout 15000",
-    "render:fixture": "npm run build && node tasks/render-fixture.mjs",
+    "render:fixture": "npm run build && tsx tasks/render-fixture.ts",
     "review:layout": "node tasks/layout-review.mjs",
     "benchmark:fixture": "npm run build && tsx tasks/benchmark-fixture.ts",
     "test:performance": "npm run build && tsx tasks/performance-guardrails.ts",
