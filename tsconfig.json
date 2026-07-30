@@ -10,9 +10,12 @@
     "noEmit": true,
     "strict": true,
     "target": "ES2022",
-    "types": []
+    "types": [
+      "node"
+    ]
   },
   "include": [
+    "bin/**/*.ts",
     "lib/**/*.ts"
   ]
 }

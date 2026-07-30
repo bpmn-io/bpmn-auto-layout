@@ -11,10 +11,9 @@
     }
   },
   "bin": {
-    "bpmn-auto-layout": "./bin/bpmn-auto-layout.js"
+    "bpmn-auto-layout": "./dist/bpmn-auto-layout.js"
   },
   "files": [
-    "bin",
     "dist"
   ],
   "scripts": {

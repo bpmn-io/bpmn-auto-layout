@@ -9,6 +9,7 @@
     "outDir": "./dist"
   },
   "include": [
+    "bin/**/*.ts",
     "lib/**/*.js",
     "lib/**/*.ts"
   ]
