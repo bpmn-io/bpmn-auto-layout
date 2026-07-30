@@ -1,5 +1,90 @@
 import { is } from '../../../di/DiUtil.js';
 import { hasEventDefinition } from '../../bpmn/Predicates.js';
+import type {
+  LayoutRecord,
+  RankAssignment,
+  SemanticPolicy as LayoutSemanticPolicy
+} from '../../Types.js';
+import type { BpmnElement } from '../../bpmn/Types.js';
+import type { ModdleElement } from 'moddle';
+import type {
+  BpmnBoundaryEvent,
+  BpmnFlowElementsContainer,
+  BpmnFlowNode,
+  BpmnLane,
+  BpmnSequenceFlow
+} from '../../../moddle-types/bpmn.js';
+
+type FlowNode = ModdleElement<BpmnFlowNode> & {
+  default?: FlowEdge;
+  eventDefinitions?: BpmnElement[];
+};
+type FlowEdge = ModdleElement<BpmnSequenceFlow> & {
+  sourceRef: FlowNode;
+  targetRef: FlowNode;
+};
+type BoundaryEvent = ModdleElement<BpmnBoundaryEvent> & {
+  attachedToRef: FlowNode;
+};
+type BoundaryEdge = FlowEdge & {
+  sourceRef: BoundaryEvent;
+};
+type FlowRecord = LayoutRecord & {
+  element: FlowNode;
+};
+type CompactFlowRegion = {
+  split: FlowNode;
+  join: FlowNode;
+  paths: FlowEdge[][];
+  primaryPath: FlowEdge[] | undefined;
+};
+type EdgeOrder = Map<FlowEdge, number>;
+type SemanticPolicy = Omit<LayoutSemanticPolicy,
+  'spine' | 'straightEdges' | 'bands' | 'components' | 'edgeOrder' |
+  'flowNodeDocumentIndex' | 'graphEdges' | 'compactFlowRegions' |
+  'rankWeights' | 'backEdges' | 'boundaryBayEdges'
+> & {
+  spine: Set<FlowEdge>;
+  straightEdges: Set<FlowEdge>;
+  bands: Map<FlowNode, number>;
+  components: Map<FlowNode, number>;
+  edgeOrder: EdgeOrder;
+  flowNodeDocumentIndex: FlowNodeIndex;
+  graphEdges: FlowEdge[];
+  compactFlowRegions: CompactFlowRegion[];
+  rankWeights: Map<FlowEdge, number>;
+  backEdges: Set<FlowEdge>;
+  boundaryBayEdges: Set<FlowEdge>;
+};
+type OutgoingEdges = Map<FlowNode, FlowEdge[]>;
+type FlowNodeIndex = Map<FlowNode, number>;
+type LinkEvents = {
+  throwEvent?: FlowNode;
+  catchEvent?: FlowNode;
+};
+type BoundaryEdgesByEvent = Map<BoundaryEvent, BoundaryEdge[]>;
+type BoundaryEdgesBySide = {
+  top: BoundaryEdgesByEvent;
+  bottom: BoundaryEdgesByEvent;
+};
+
+function getRequired<Value>(value: Value | undefined): Value {
+  if (value === undefined) {
+    throw new Error('Expected semantic layout value');
+  }
+
+  return value;
+}
+
+function getOutgoing(outgoing: OutgoingEdges, node: FlowNode): FlowEdge[] {
+  return getRequired(outgoing.get(node));
+}
+
+function isFlowElementsContainer(
+    element: unknown
+): element is ModdleElement<BpmnFlowElementsContainer> {
+  return is(element, 'bpmn:Process') || is(element, 'bpmn:SubProcess');
+}
 
 const EDGE_PRIORITY = {
   SPINE: 0,
@@ -9,7 +94,13 @@ const EDGE_PRIORITY = {
   BACK_EDGE: 4
 };
 
-export function createSemanticPolicy(scope, records, graphEdges, boundaryEdges, allRecords) {
+export function createSemanticPolicy(
+    scope: BpmnElement,
+    records: FlowRecord[],
+    graphEdges: FlowEdge[],
+    boundaryEdges: BoundaryEdge[],
+    allRecords: LayoutRecord[]
+): SemanticPolicy {
   const {
     allElementsDocumentIndex,
     edgeOrder,
@@ -76,27 +167,32 @@ export function createSemanticPolicy(scope, records, graphEdges, boundaryEdges, 
     compactFlowRegions,
     rankWeights,
     backEdges,
-    boundaryBayEdges: new Set()
+    boundaryBayEdges: new Set<FlowEdge>()
   };
 }
 
 function createSemanticIndexes(
-    records,
-    graphEdges,
-    boundaryEdges,
-    allRecords) {
-  const edgeOrder = new Map();
-  const flowNodeDocumentIndex = new Map(
-    records.map(record => [ record.element, record.index ])
-  );
-  const allElementsDocumentIndex = new Map(
-    allRecords.map(record => [ record.element, record.index ])
-  );
-  const outgoing = new Map(records.map(record => [ record.element, [] ]));
+    records: FlowRecord[],
+    graphEdges: FlowEdge[],
+    boundaryEdges: BoundaryEdge[],
+    allRecords: LayoutRecord[]
+) {
+  const edgeOrder: EdgeOrder = new Map();
+  const flowNodeDocumentIndex: FlowNodeIndex = new Map();
+  const allElementsDocumentIndex = new Map<BpmnElement, number>();
+  const outgoing: OutgoingEdges = new Map();
+
+  for (const record of records) {
+    flowNodeDocumentIndex.set(record.element, record.index);
+    outgoing.set(record.element, []);
+  }
+  for (const record of allRecords) {
+    allElementsDocumentIndex.set(record.element, record.index);
+  }
 
   graphEdges.forEach((edge, edgeIndex) => {
     edgeOrder.set(edge, edgeIndex);
-    outgoing.get(edge.sourceRef).push(edge);
+    getOutgoing(outgoing, edge.sourceRef).push(edge);
   });
   boundaryEdges.forEach((edge, edgeIndex) => edgeOrder.set(edge, graphEdges.length + edgeIndex));
 
@@ -109,20 +205,25 @@ function createSemanticIndexes(
 }
 
 function findBackEdges(
-    records,
-    graphEdges,
-    boundaryEdges,
-    flowNodeDocumentIndex) {
-  const cycleOutgoing = new Map(records.map(record => [ record.element, [] ]));
+    records: FlowRecord[],
+    graphEdges: FlowEdge[],
+    boundaryEdges: BoundaryEdge[],
+    flowNodeDocumentIndex: FlowNodeIndex
+) {
+  const cycleOutgoing: OutgoingEdges = new Map();
+
+  for (const record of records) {
+    cycleOutgoing.set(record.element, []);
+  }
 
   for (const edge of graphEdges) {
-    cycleOutgoing.get(edge.sourceRef).push(edge);
+    getOutgoing(cycleOutgoing, edge.sourceRef).push(edge);
   }
   for (const edge of boundaryEdges) {
-    cycleOutgoing.get(edge.sourceRef.attachedToRef).push(edge);
+    getOutgoing(cycleOutgoing, edge.sourceRef.attachedToRef).push(edge);
   }
 
-  const backEdges = new Set();
+  const backEdges = new Set<FlowEdge>();
 
   markBackEdges(
     records.map(record => record.element),
@@ -134,21 +235,29 @@ function findBackEdges(
   return backEdges;
 }
 
-function findConnectedComponents(records, graphEdges, boundaryEdges) {
-  const components = new Map();
-  const claimed = new Set();
-  const adjacent = new Map(records.map(record => [ record.element, [] ]));
+function findConnectedComponents(
+    records: FlowRecord[],
+    graphEdges: FlowEdge[],
+    boundaryEdges: BoundaryEdge[]
+): Map<FlowNode, number> {
+  const components = new Map<FlowNode, number>();
+  const claimed = new Set<FlowNode>();
+  const adjacent = new Map<FlowNode, FlowNode[]>();
+
+  for (const record of records) {
+    adjacent.set(record.element, []);
+  }
   let componentIndex = 0;
 
   for (const edge of graphEdges) {
-    adjacent.get(edge.sourceRef).push(edge.targetRef);
-    adjacent.get(edge.targetRef).push(edge.sourceRef);
+    getRequired(adjacent.get(edge.sourceRef)).push(edge.targetRef);
+    getRequired(adjacent.get(edge.targetRef)).push(edge.sourceRef);
   }
   for (const edge of boundaryEdges) {
     const host = edge.sourceRef.attachedToRef;
 
-    adjacent.get(host).push(edge.targetRef);
-    adjacent.get(edge.targetRef).push(host);
+    getRequired(adjacent.get(host)).push(edge.targetRef);
+    getRequired(adjacent.get(edge.targetRef)).push(host);
   }
 
   for (const seed of records.map(record => record.element)) {
@@ -161,9 +270,9 @@ function findConnectedComponents(records, graphEdges, boundaryEdges) {
     components.set(seed, componentIndex);
 
     while (componentQueue.length) {
-      const element = componentQueue.shift();
+      const element = getRequired(componentQueue.shift());
 
-      for (const neighbor of adjacent.get(element)) {
+      for (const neighbor of getRequired(adjacent.get(element))) {
         if (!claimed.has(neighbor)) {
           claimed.add(neighbor);
           components.set(neighbor, componentIndex);
@@ -179,13 +288,14 @@ function findConnectedComponents(records, graphEdges, boundaryEdges) {
 }
 
 function selectSemanticSpine(
-    scope,
-    records,
-    graphEdges,
-    outgoing,
-    edgeOrder,
-    components) {
-  const spine = new Set();
+    scope: BpmnElement,
+    records: FlowRecord[],
+    graphEdges: FlowEdge[],
+    outgoing: OutgoingEdges,
+    edgeOrder: EdgeOrder,
+    components: Map<FlowNode, number>
+): Set<FlowEdge> {
+  const spine = new Set<FlowEdge>();
   const starts = records.filter(record => is(record.element, 'bpmn:StartEvent'))
     .sort((a, b) => a.index - b.index);
   const incomingNodes = new Set(graphEdges.map(edge => edge.targetRef));
@@ -196,7 +306,7 @@ function selectSemanticSpine(
     sourceNodes[0] ||
     records[0]?.element;
   const adHocSources = is(scope, 'bpmn:AdHocSubProcess') ? sourceNodes : [];
-  const seeds = [
+  const seeds: Array<FlowNode | undefined> = [
     primarySeed,
     ...adHocSources,
     ...records.filter(record => {
@@ -206,12 +316,12 @@ function selectSemanticSpine(
         });
     }).map(record => record.element)
   ];
-  const visited = new Set();
-  const mainComponent = components.get(primarySeed);
-  const componentSeeds = new Map();
+  const visited = new Set<FlowNode>();
+  const mainComponent = primarySeed ? components.get(primarySeed) : undefined;
+  const componentSeeds = new Map<number, FlowNode>();
 
   for (const record of starts) {
-    const component = components.get(record.element);
+    const component = getRequired(components.get(record.element));
 
     if (!componentSeeds.has(component)) {
       componentSeeds.set(component, record.element);
@@ -255,20 +365,29 @@ function selectSemanticSpine(
   return spine;
 }
 
-function selectStraightEdges(records, outgoing, edgeOrder, spine) {
-  const straightEdges = new Set(spine);
+function selectStraightEdges(
+    records: FlowRecord[],
+    outgoing: OutgoingEdges,
+    edgeOrder: EdgeOrder,
+    spine: Set<FlowEdge>
+): Set<FlowEdge> {
+  const straightEdges = new Set<FlowEdge>(spine);
 
   for (const record of records) {
     const candidates = outgoing.get(record.element) || [];
 
     if (is(record.element, 'bpmn:Gateway') && candidates.length > 1) {
-      straightEdges.add(selectPrimaryEdge(
+      const primaryEdge = selectPrimaryEdge(
         record.element,
         candidates,
         edgeOrder,
-        new Set(),
+        new Set<FlowNode>(),
         outgoing
-      ));
+      );
+
+      if (primaryEdge) {
+        straightEdges.add(primaryEdge);
+      }
     }
   }
 
@@ -276,7 +395,7 @@ function selectStraightEdges(records, outgoing, edgeOrder, spine) {
 
   while (straightTargets.length) {
     const node = straightTargets.shift();
-    const candidates = outgoing.get(node) || [];
+    const candidates = node ? outgoing.get(node) || [] : [];
 
     if (candidates.length !== 1 || straightEdges.has(candidates[0])) {
       continue;
@@ -289,7 +408,11 @@ function selectStraightEdges(records, outgoing, edgeOrder, spine) {
   return straightEdges;
 }
 
-function adjustJoinRankWeights(graphEdges, bands, rankWeights) {
+function adjustJoinRankWeights(
+    graphEdges: FlowEdge[],
+    bands: Map<FlowNode, number>,
+    rankWeights: Map<FlowEdge, number>
+): void {
   for (const edge of graphEdges) {
     const sourceIsJoin = is(edge.sourceRef, 'bpmn:Gateway') &&
       (edge.sourceRef.incoming || []).length > 1 &&
@@ -305,14 +428,23 @@ function adjustJoinRankWeights(graphEdges, bands, rankWeights) {
   }
 }
 
-function findCompactFlowRegions(records, graphEdges, outgoing, edgeOrder) {
-  const incomingCount = new Map(records.map(record => [ record.element, 0 ]));
+function findCompactFlowRegions(
+    records: FlowRecord[],
+    graphEdges: FlowEdge[],
+    outgoing: OutgoingEdges,
+    edgeOrder: EdgeOrder
+): CompactFlowRegion[] {
+  const incomingCount = new Map<FlowNode, number>();
 
-  for (const edge of graphEdges) {
-    incomingCount.set(edge.targetRef, incomingCount.get(edge.targetRef) + 1);
+  for (const record of records) {
+    incomingCount.set(record.element, 0);
   }
 
-  const regions = [];
+  for (const edge of graphEdges) {
+    incomingCount.set(edge.targetRef, (incomingCount.get(edge.targetRef) ?? 0) + 1);
+  }
+
+  const regions: CompactFlowRegion[] = [];
 
   for (const record of records) {
     const split = record.element;
@@ -325,9 +457,9 @@ function findCompactFlowRegions(records, graphEdges, outgoing, edgeOrder) {
     const distances = branches.map(branch => {
       return descendantDistances(branch.targetRef, outgoing, split);
     });
-    const common = [ ...distances[0].keys() ].filter(node => {
+    const common = [ ...getRequired(distances[0]).keys() ].filter(node => {
       return node !== split &&
-        incomingCount.get(node) > 1 &&
+        (incomingCount.get(node) ?? 0) > 1 &&
         distances.every(distance => distance.has(node));
     });
 
@@ -336,8 +468,8 @@ function findCompactFlowRegions(records, graphEdges, outgoing, edgeOrder) {
     }
 
     const join = common.sort((a, b) => {
-      const distancesA = distances.map(distance => distance.get(a));
-      const distancesB = distances.map(distance => distance.get(b));
+      const distancesA = distances.map(distance => getRequired(distance.get(a)));
+      const distancesB = distances.map(distance => getRequired(distance.get(b)));
 
       return Math.max(...distancesA) - Math.max(...distancesB) ||
         distancesA.reduce((sum, distance) => sum + distance, 0) -
@@ -359,12 +491,16 @@ function findCompactFlowRegions(records, graphEdges, outgoing, edgeOrder) {
   return regions;
 }
 
-function descendantDistances(start, outgoing, blocked) {
-  const distances = new Map([ [ start, 0 ] ]);
-  const pending = [ start ];
+function descendantDistances(
+    start: FlowNode,
+    outgoing: OutgoingEdges,
+    blocked: FlowNode
+): Map<FlowNode, number> {
+  const distances = new Map<FlowNode, number>([ [ start, 0 ] ]);
+  const pending: FlowNode[] = [ start ];
 
   while (pending.length) {
-    const node = pending.shift();
+    const node = getRequired(pending.shift());
 
     for (const edge of outgoing.get(node) || []) {
       const target = edge.targetRef;
@@ -373,7 +509,7 @@ function descendantDistances(start, outgoing, blocked) {
         continue;
       }
 
-      distances.set(target, distances.get(node) + 1);
+      distances.set(target, getRequired(distances.get(node)) + 1);
       pending.push(target);
     }
   }
@@ -381,19 +517,25 @@ function descendantDistances(start, outgoing, blocked) {
   return distances;
 }
 
-function shortestFlowPath(start, target, outgoing, edgeOrder, blocked) {
+function shortestFlowPath(
+    start: FlowNode,
+    target: FlowNode,
+    outgoing: OutgoingEdges,
+    edgeOrder: EdgeOrder,
+    blocked: FlowNode
+): FlowEdge[] {
   if (start === target) {
     return [];
   }
 
-  const pending = [ start ];
-  const previous = new Map();
-  const visited = new Set([ start, blocked ]);
+  const pending: FlowNode[] = [ start ];
+  const previous = new Map<FlowNode, FlowEdge>();
+  const visited = new Set<FlowNode>([ start, blocked ]);
 
   while (pending.length) {
-    const node = pending.shift();
+    const node = getRequired(pending.shift());
     const edges = [ ...(outgoing.get(node) || []) ]
-      .sort((a, b) => edgeOrder.get(a) - edgeOrder.get(b));
+      .sort((a, b) => (edgeOrder.get(a) ?? 0) - (edgeOrder.get(b) ?? 0));
 
     for (const edge of edges) {
       if (visited.has(edge.targetRef)) {
@@ -404,10 +546,10 @@ function shortestFlowPath(start, target, outgoing, edgeOrder, blocked) {
       previous.set(edge.targetRef, edge);
 
       if (edge.targetRef === target) {
-        const path = [];
+        const path: FlowEdge[] = [];
 
         for (let current = target; current !== start;) {
-          const previousEdge = previous.get(current);
+          const previousEdge = getRequired(previous.get(current));
 
           path.unshift(previousEdge);
           current = previousEdge.sourceRef;
@@ -423,14 +565,20 @@ function shortestFlowPath(start, target, outgoing, edgeOrder, blocked) {
   return [];
 }
 
-function indexOfNode(node, records) {
+function indexOfNode(node: FlowNode, records: FlowRecord[]): number {
   return records.find(record => record.element === node)?.index ?? Infinity;
 }
 
-function createCompactRankWeights(regions) {
-  const weights = new Map();
+function createCompactRankWeights(
+    regions: CompactFlowRegion[]
+): Map<FlowEdge, number> {
+  const weights = new Map<FlowEdge, number>();
 
   for (const { paths, primaryPath } of regions) {
+    if (!primaryPath) {
+      continue;
+    }
+
     const span = primaryPath.length;
 
     for (const path of paths) {
@@ -462,14 +610,27 @@ function createCompactRankWeights(regions) {
   return weights;
 }
 
-function alignLinkEventContinuationBands(records, graphEdges, bands) {
-  const links = new Map();
-  const outgoing = new Map(records.map(record => [ record.element, [] ]));
-  const incomingCount = new Map(records.map(record => [ record.element, 0 ]));
+function alignLinkEventContinuationBands(
+    records: FlowRecord[],
+    graphEdges: FlowEdge[],
+    bands: Map<FlowNode, number>
+): void {
+  const links = new Map<string, LinkEvents>();
+  const outgoing: OutgoingEdges = new Map();
+  const incomingCount = new Map<FlowNode, number>();
+
+  for (const record of records) {
+    outgoing.set(record.element, []);
+    incomingCount.set(record.element, 0);
+  }
+
+  for (const record of records) {
+    incomingCount.set(record.element, 0);
+  }
 
   for (const edge of graphEdges) {
-    outgoing.get(edge.sourceRef).push(edge);
-    incomingCount.set(edge.targetRef, incomingCount.get(edge.targetRef) + 1);
+    getOutgoing(outgoing, edge.sourceRef).push(edge);
+    incomingCount.set(edge.targetRef, (incomingCount.get(edge.targetRef) ?? 0) + 1);
   }
 
   for (const record of records) {
@@ -488,9 +649,9 @@ function alignLinkEventContinuationBands(records, graphEdges, bands) {
     }
 
     if (is(record.element, 'bpmn:IntermediateThrowEvent')) {
-      links.get(name).throwEvent = record.element;
+      getRequired(links.get(name)).throwEvent = record.element;
     } else if (is(record.element, 'bpmn:IntermediateCatchEvent')) {
-      links.get(name).catchEvent = record.element;
+      getRequired(links.get(name)).catchEvent = record.element;
     }
   }
 
@@ -500,11 +661,11 @@ function alignLinkEventContinuationBands(records, graphEdges, bands) {
     }
 
     const offset = (bands.get(throwEvent) || 0) - (bands.get(catchEvent) || 0);
-    const pending = [ catchEvent ];
-    const visited = new Set();
+    const pending: FlowNode[] = [ catchEvent ];
+    const visited = new Set<FlowNode>();
 
     while (pending.length) {
-      const element = pending.shift();
+      const element = getRequired(pending.shift());
 
       if (visited.has(element)) {
         continue;
@@ -514,7 +675,7 @@ function alignLinkEventContinuationBands(records, graphEdges, bands) {
       bands.set(element, (bands.get(element) || 0) + offset);
 
       for (const edge of outgoing.get(element) || []) {
-        if (incomingCount.get(edge.targetRef) <= 1) {
+        if ((incomingCount.get(edge.targetRef) ?? 0) <= 1) {
           pending.push(edge.targetRef);
         }
       }
@@ -522,8 +683,11 @@ function alignLinkEventContinuationBands(records, graphEdges, bands) {
   }
 }
 
-function assignBoundaryBandOffsets(boundaryEdges, flowNodeDocumentIndex) {
-  const edgesByHost = new Map();
+function assignBoundaryBandOffsets(
+    boundaryEdges: BoundaryEdge[],
+    flowNodeDocumentIndex: Map<BpmnElement, number>
+): Map<BoundaryEdge, number> {
+  const edgesByHost = new Map<FlowNode, BoundaryEdgesBySide>();
 
   for (const edge of boundaryEdges) {
     const host = edge.sourceRef.attachedToRef;
@@ -532,26 +696,29 @@ function assignBoundaryBandOffsets(boundaryEdges, flowNodeDocumentIndex) {
       : 'bottom';
 
     if (!edgesByHost.has(host)) {
-      edgesByHost.set(host, { top: new Map(), bottom: new Map() });
+      edgesByHost.set(host, {
+        top: new Map<BoundaryEvent, BoundaryEdge[]>(),
+        bottom: new Map<BoundaryEvent, BoundaryEdge[]>()
+      });
     }
 
-    const edgesByEvent = edgesByHost.get(host)[side];
+    const edgesByEvent = getRequired(edgesByHost.get(host))[side];
 
     if (!edgesByEvent.has(edge.sourceRef)) {
       edgesByEvent.set(edge.sourceRef, []);
     }
 
-    edgesByEvent.get(edge.sourceRef).push(edge);
+    getRequired(edgesByEvent.get(edge.sourceRef)).push(edge);
   }
 
-  const assigned = new Map();
+  const assigned = new Map<BoundaryEdge, number>();
 
   for (const [ , sides ] of edgesByHost) {
     for (const [ side, edgesByEvent ] of Object.entries(sides)) {
       let offset = 1;
       const direction = side === 'top' ? -1 : 1;
       const eventGroups = [ ...edgesByEvent.entries() ]
-        .sort(([ eventA ], [ eventB ]) => flowNodeDocumentIndex.get(eventB) - flowNodeDocumentIndex.get(eventA))
+        .sort(([ eventA ], [ eventB ]) => (flowNodeDocumentIndex.get(eventB) ?? 0) - (flowNodeDocumentIndex.get(eventA) ?? 0))
         .map(([ , edges ]) => edges);
 
       for (const edges of eventGroups) {
@@ -567,38 +734,49 @@ function assignBoundaryBandOffsets(boundaryEdges, flowNodeDocumentIndex) {
 }
 
 function assignSemanticBands(
-    records,
-    graphEdges,
-    boundaryEdges,
-    straightEdges,
-    flowNodeDocumentIndex,
-    allElementsDocumentIndex,
-    edgeIndex,
-    components,
-    backEdges) {
+    records: FlowRecord[],
+    graphEdges: FlowEdge[],
+    boundaryEdges: BoundaryEdge[],
+    straightEdges: Set<FlowEdge>,
+    flowNodeDocumentIndex: FlowNodeIndex,
+    allElementsDocumentIndex: Map<BpmnElement, number>,
+    edgeIndex: EdgeOrder,
+    components: Map<FlowNode, number>,
+    backEdges: Set<FlowEdge>
+): Map<FlowNode, number> {
   const nodes = records.map(record => record.element);
-  const outgoing = new Map(nodes.map(node => [ node, [] ]));
-  const incomingCount = new Map(nodes.map(node => [ node, 0 ]));
+  const outgoing: OutgoingEdges = new Map();
+  const incomingCount = new Map<FlowNode, number>();
+
+  for (const node of nodes) {
+    outgoing.set(node, []);
+    incomingCount.set(node, 0);
+  }
 
   for (const edge of graphEdges) {
-    outgoing.get(edge.sourceRef).push(edge);
+    getOutgoing(outgoing, edge.sourceRef).push(edge);
   }
 
   for (const edge of graphEdges) {
     if (!backEdges.has(edge)) {
-      incomingCount.set(edge.targetRef, incomingCount.get(edge.targetRef) + 1);
+      incomingCount.set(edge.targetRef, (incomingCount.get(edge.targetRef) ?? 0) + 1);
     }
   }
 
-  const bands = new Map(nodes.map(node => [ node, 0 ]));
-  const occupied = new Map();
-  const visited = new Set();
-  const reserveBand = (component, base, offset) => {
+  const bands = new Map<FlowNode, number>();
+  const occupied = new Map<number, Set<number>>();
+  const visited = new Set<FlowNode>();
+
+  for (const node of nodes) {
+    bands.set(node, 0);
+  }
+
+  const reserveBand = (component: number, base: number, offset: number): number => {
     if (!occupied.has(component)) {
       occupied.set(component, new Set([ 0 ]));
     }
 
-    const used = occupied.get(component);
+    const used = getRequired(occupied.get(component));
     const direction = Math.sign(offset);
     let candidate = base + offset;
 
@@ -609,7 +787,7 @@ function assignSemanticBands(
     used.add(candidate);
     return candidate;
   };
-  const visit = (node, band, component = components.get(node)) => {
+  const visit = (node: FlowNode, band: number, component = getRequired(components.get(node))): void => {
     if (visited.has(node)) {
       return;
     }
@@ -620,11 +798,11 @@ function assignSemanticBands(
     if (!occupied.has(component)) {
       occupied.set(component, new Set());
     }
-    occupied.get(component).add(band);
+    getRequired(occupied.get(component)).add(band);
 
     const candidates = (outgoing.get(node) || [])
       .filter(edge => !backEdges.has(edge))
-      .sort((a, b) => edgeIndex.get(a) - edgeIndex.get(b));
+      .sort((a, b) => (edgeIndex.get(a) ?? 0) - (edgeIndex.get(b) ?? 0));
     const primary = candidates.find(edge => straightEdges.has(edge)) || candidates[0];
 
     if (primary) {
@@ -645,7 +823,7 @@ function assignSemanticBands(
       visit(edge.targetRef, reserveBand(component, band, offset), component);
     }
   };
-  const boundaryTargets = new Set(boundaryEdges.map(edge => edge.targetRef));
+  const boundaryTargets = new Set<FlowNode>(boundaryEdges.map(edge => edge.targetRef));
   const sources = records
     .filter(record => incomingCount.get(record.element) === 0 && !boundaryTargets.has(record.element))
     .sort((a, b) => a.index - b.index);
@@ -656,18 +834,18 @@ function assignSemanticBands(
 
   const boundaryOffsets = assignBoundaryBandOffsets(boundaryEdges, allElementsDocumentIndex);
 
-  for (const edge of [ ...boundaryEdges ].sort((a, b) => edgeIndex.get(a) - edgeIndex.get(b))) {
+  for (const edge of [ ...boundaryEdges ].sort((a, b) => (edgeIndex.get(a) ?? 0) - (edgeIndex.get(b) ?? 0))) {
     if (visited.has(edge.targetRef)) {
       continue;
     }
 
     const host = edge.sourceRef.attachedToRef;
-    const component = components.get(host);
+    const component = getRequired(components.get(host));
     const hostBand = bands.get(host) || 0;
 
     visit(
       edge.targetRef,
-      reserveBand(component, hostBand, boundaryOffsets.get(edge)),
+      reserveBand(component, hostBand, getRequired(boundaryOffsets.get(edge))),
       component
     );
   }
@@ -680,11 +858,12 @@ function assignSemanticBands(
 }
 
 function selectPrimaryEdge(
-    node,
-    edges,
-    edgeOrder,
-    visited = new Set(),
-    outgoing = new Map()) {
+    node: FlowNode,
+    edges: FlowEdge[],
+    edgeOrder: EdgeOrder,
+    visited: Set<FlowNode> = new Set(),
+    outgoing: OutgoingEdges = new Map()
+): FlowEdge | null {
   if (!edges.length) {
     return null;
   }
@@ -698,10 +877,14 @@ function selectPrimaryEdge(
   const preferred = endReaching.length ? endReaching : candidates;
 
   return preferred.find(edge => edge === defaultEdge) ||
-    [ ...preferred ].sort((a, b) => edgeOrder.get(a) - edgeOrder.get(b))[0];
+    [ ...preferred ].sort((a, b) => (edgeOrder.get(a) ?? 0) - (edgeOrder.get(b) ?? 0))[0] || null;
 }
 
-function canReachEndEvent(node, outgoing, path) {
+function canReachEndEvent(
+    node: FlowNode,
+    outgoing: OutgoingEdges,
+    path: Set<FlowNode>
+): boolean {
   if (is(node, 'bpmn:EndEvent')) {
     return true;
   }
@@ -723,7 +906,7 @@ function canReachEndEvent(node, outgoing, path) {
   return false;
 }
 
-function branchOffset(index, oneSided = false) {
+function branchOffset(index: number, oneSided = false): number {
   if (oneSided) {
     return index + 1;
   }
@@ -733,28 +916,39 @@ function branchOffset(index, oneSided = false) {
   return index % 2 === 0 ? distance : -distance;
 }
 
-export function assignRanks(records, graphEdges, boundaryEdges, policy) {
-  const rank = new Map(records.map(record => [ record.element, 0 ]));
-  const outgoing = new Map(records.map(record => [ record.element, [] ]));
-  const indegree = new Map(records.map(record => [ record.element, 0 ]));
+export function assignRanks(
+    records: FlowRecord[],
+    graphEdges: FlowEdge[],
+    boundaryEdges: BoundaryEdge[],
+    policy: SemanticPolicy
+): RankAssignment {
+  const rank = new Map<FlowNode, number>();
+  const outgoing: OutgoingEdges = new Map();
+  const indegree = new Map<FlowNode, number>();
+
+  for (const record of records) {
+    rank.set(record.element, 0);
+    outgoing.set(record.element, []);
+    indegree.set(record.element, 0);
+  }
   const backEdges = policy.backEdges;
 
   for (const edge of graphEdges) {
-    outgoing.get(edge.sourceRef).push(edge);
+    getOutgoing(outgoing, edge.sourceRef).push(edge);
   }
 
   for (const edge of graphEdges) {
     if (!backEdges.has(edge)) {
-      indegree.set(edge.targetRef, indegree.get(edge.targetRef) + 1);
+      indegree.set(edge.targetRef, (indegree.get(edge.targetRef) ?? 0) + 1);
     }
   }
 
   const ready = records.filter(record => indegree.get(record.element) === 0)
     .sort((a, b) => a.index - b.index);
-  const processed = new Set();
+  const processed = new Set<FlowNode>();
 
   while (ready.length) {
-    const record = ready.shift();
+    const record = getRequired(ready.shift());
     const source = record.element;
 
     if (processed.has(source)) {
@@ -763,7 +957,7 @@ export function assignRanks(records, graphEdges, boundaryEdges, policy) {
 
     processed.add(source);
 
-    for (const edge of outgoing.get(source)) {
+    for (const edge of getOutgoing(outgoing, source)) {
       if (backEdges.has(edge)) {
         continue;
       }
@@ -772,12 +966,16 @@ export function assignRanks(records, graphEdges, boundaryEdges, policy) {
 
       rank.set(
         edge.targetRef,
-        Math.max(rank.get(edge.targetRef), rank.get(source) + weight)
+        Math.max(getRequired(rank.get(edge.targetRef)), getRequired(rank.get(source)) + weight)
       );
-      indegree.set(edge.targetRef, indegree.get(edge.targetRef) - 1);
+      indegree.set(edge.targetRef, (indegree.get(edge.targetRef) ?? 0) - 1);
 
       if (indegree.get(edge.targetRef) === 0) {
-        ready.push(records.find(candidate => candidate.element === edge.targetRef));
+        const targetRecord = records.find(candidate => candidate.element === edge.targetRef);
+
+        if (targetRecord) {
+          ready.push(targetRecord);
+        }
         ready.sort((a, b) => a.index - b.index);
       }
     }
@@ -819,8 +1017,13 @@ export function assignRanks(records, graphEdges, boundaryEdges, policy) {
   return { rank };
 }
 
-function reserveGatewayBranchSpans(rank, outgoing, spine, backEdges) {
-  const spineNodes = new Set();
+function reserveGatewayBranchSpans(
+    rank: Map<FlowNode, number>,
+    outgoing: OutgoingEdges,
+    spine: Set<FlowEdge>,
+    backEdges: Set<FlowEdge>
+): void {
+  const spineNodes = new Set<FlowNode>();
 
   for (const edge of spine) {
     spineNodes.add(edge.sourceRef);
@@ -835,7 +1038,7 @@ function reserveGatewayBranchSpans(rank, outgoing, spine, backEdges) {
     const branches = (outgoing.get(spineEdge.sourceRef) || []).filter(edge => {
       return edge !== spineEdge && !backEdges.has(edge);
     });
-    let reservedUntil = rank.get(spineEdge.targetRef);
+    let reservedUntil = getRequired(rank.get(spineEdge.targetRef));
 
     for (const branch of branches) {
       const branchEnd = findDetachedBranchEnd(
@@ -847,15 +1050,21 @@ function reserveGatewayBranchSpans(rank, outgoing, spine, backEdges) {
       );
 
       if (branchEnd !== null) {
-        reservedUntil = Math.max(reservedUntil, branchEnd + 1);
+        reservedUntil = Math.max(getRequired(reservedUntil), branchEnd + 1);
       }
     }
 
-    rank.set(spineEdge.targetRef, reservedUntil);
+    rank.set(spineEdge.targetRef, getRequired(reservedUntil));
   }
 }
 
-function stabilizeRanks(rank, graphEdges, boundaryEdges, policy, maxIterations) {
+function stabilizeRanks(
+    rank: Map<FlowNode, number>,
+    graphEdges: FlowEdge[],
+    boundaryEdges: BoundaryEdge[],
+    policy: SemanticPolicy,
+    maxIterations: number
+): void {
   const backEdges = policy.backEdges;
 
   // Boundary handlers enter the normal graph after their host rank is known.
@@ -869,9 +1078,9 @@ function stabilizeRanks(rank, graphEdges, boundaryEdges, policy, maxIterations) 
         continue;
       }
 
-      const candidate = rank.get(edge.sourceRef) + (policy.rankWeights.get(edge) ?? 1);
+      const candidate = getRequired(rank.get(edge.sourceRef)) + (policy.rankWeights.get(edge) ?? 1);
 
-      if (candidate > rank.get(edge.targetRef)) {
+      if (candidate > getRequired(rank.get(edge.targetRef))) {
         rank.set(edge.targetRef, candidate);
         changed = true;
       }
@@ -883,10 +1092,10 @@ function stabilizeRanks(rank, graphEdges, boundaryEdges, policy, maxIterations) 
         continue;
       }
 
-      const hostRank = rank.get(edge.sourceRef.attachedToRef);
+      const hostRank = getRequired(rank.get(edge.sourceRef.attachedToRef));
       const candidate = hostRank + 1;
 
-      if (candidate > rank.get(edge.targetRef)) {
+      if (candidate > getRequired(rank.get(edge.targetRef))) {
         rank.set(edge.targetRef, candidate);
         changed = true;
       }
@@ -899,15 +1108,16 @@ function stabilizeRanks(rank, graphEdges, boundaryEdges, policy, maxIterations) 
 }
 
 function reserveDetachedBranchSpans(
-    rank,
-    outgoing,
-    boundaryEdges,
-    spine,
-    backEdges,
-    records,
-    policy) {
-  const spineNodes = new Set();
-  const boundaryBranches = new Map();
+    rank: Map<FlowNode, number>,
+    outgoing: OutgoingEdges,
+    boundaryEdges: BoundaryEdge[],
+    spine: Set<FlowEdge>,
+    backEdges: Set<FlowEdge>,
+    records: FlowRecord[],
+    policy: SemanticPolicy
+): boolean {
+  const spineNodes = new Set<FlowNode>();
+  const boundaryBranches = new Map<FlowNode, BoundaryEdge[]>();
   const laneByNode = getLaneMemberships(records);
   let changed = false;
 
@@ -922,7 +1132,7 @@ function reserveDetachedBranchSpans(
     if (!boundaryBranches.has(host)) {
       boundaryBranches.set(host, []);
     }
-    boundaryBranches.get(host).push(edge);
+    getRequired(boundaryBranches.get(host)).push(edge);
   }
 
   for (const spineEdge of spine) {
@@ -946,8 +1156,8 @@ function reserveDetachedBranchSpans(
         ...(outgoing.get(spineEdge.sourceRef) || []).filter(edge => edge !== spineEdge),
         ...sourceBoundaryBranches
       ].filter(edge => !backEdges.has(edge));
-    const sourceRank = rank.get(spineEdge.sourceRef);
-    let reservedUntil = rank.get(spineEdge.targetRef);
+    const sourceRank = getRequired(rank.get(spineEdge.sourceRef));
+    let reservedUntil = getRequired(rank.get(spineEdge.targetRef));
 
     for (const branch of branches) {
       const branchEnd = findDetachedBranchEnd(
@@ -965,12 +1175,12 @@ function reserveDetachedBranchSpans(
           policy.boundaryBayEdges.add(branch);
         }
 
-        reservedUntil = Math.max(reservedUntil, branchEnd + 1);
+        reservedUntil = Math.max(getRequired(reservedUntil), branchEnd + 1);
       }
     }
 
-    if (reservedUntil > rank.get(spineEdge.targetRef)) {
-      rank.set(spineEdge.targetRef, reservedUntil);
+    if (reservedUntil > getRequired(rank.get(spineEdge.targetRef))) {
+      rank.set(spineEdge.targetRef, getRequired(reservedUntil));
       changed = true;
     }
   }
@@ -978,10 +1188,11 @@ function reserveDetachedBranchSpans(
   return changed;
 }
 
-function getLaneMemberships(records) {
-  const laneByNode = new Map();
-  const scopes = new Set(records.map(record => record.element.$parent).filter(Boolean));
-  const visitLane = lane => {
+function getLaneMemberships(records: FlowRecord[]): Map<FlowNode, ModdleElement<BpmnLane>> {
+  const laneByNode = new Map<FlowNode, ModdleElement<BpmnLane>>();
+  const scopes = new Set(records.map(record => record.element.$parent)
+    .filter(isFlowElementsContainer));
+  const visitLane = (lane: ModdleElement<BpmnLane>): void => {
     for (const node of lane.flowNodeRef || []) {
       laneByNode.set(node, lane);
     }
@@ -1002,32 +1213,33 @@ function getLaneMemberships(records) {
 }
 
 function findDetachedBranchEnd(
-    branch,
-    rank,
-    outgoing,
-    spineNodes,
-    backEdges,
-    sourceRank = null,
-    laneByNode = null) {
+    branch: FlowEdge,
+    rank: Map<FlowNode, number>,
+    outgoing: OutgoingEdges,
+    spineNodes: Set<FlowNode>,
+    backEdges: Set<FlowEdge>,
+    sourceRank: number | null = null,
+    laneByNode: Map<FlowNode, ModdleElement<BpmnLane>> | null = null
+): number | null {
   const pending = [ { node: branch.targetRef, distance: 1 } ];
-  const visited = new Set();
+  const visited = new Set<FlowNode>();
   let detached = true;
   let cyclic = false;
-  let lane;
+  let lane: ModdleElement<BpmnLane> | null = null;
   let laneInitialized = false;
   let branchEnd = sourceRank === null
-    ? rank.get(branch.targetRef)
+    ? getRequired(rank.get(branch.targetRef))
     : sourceRank + 1;
 
   while (pending.length) {
-    const { node, distance } = pending.shift();
+    const { node, distance } = getRequired(pending.shift());
 
     if (visited.has(node)) {
       continue;
     }
 
     visited.add(node);
-    branchEnd = Math.max(branchEnd, rank.get(node));
+    branchEnd = Math.max(branchEnd, getRequired(rank.get(node)));
 
     if (laneByNode) {
       const nodeLane = laneByNode.get(node) || null;
@@ -1064,19 +1276,28 @@ function findDetachedBranchEnd(
   return detached && !cyclic ? branchEnd : null;
 }
 
-function markBackEdges(nodes, outgoing, backEdges, flowNodeDocumentIndex) {
-  const state = new Map();
-  const incomingCount = new Map(nodes.map(node => [ node, 0 ]));
+function markBackEdges(
+    nodes: FlowNode[],
+    outgoing: OutgoingEdges,
+    backEdges: Set<FlowEdge>,
+    flowNodeDocumentIndex: FlowNodeIndex
+): void {
+  const state = new Map<FlowNode, 'visiting' | 'visited'>();
+  const incomingCount = new Map<FlowNode, number>();
+
+  for (const node of nodes) {
+    incomingCount.set(node, 0);
+  }
 
   for (const edges of outgoing.values()) {
     for (const edge of edges) {
-      incomingCount.set(edge.targetRef, incomingCount.get(edge.targetRef) + 1);
+      incomingCount.set(edge.targetRef, (incomingCount.get(edge.targetRef) ?? 0) + 1);
     }
   }
 
-  function visit(node) {
+  function visit(node: FlowNode): void {
     state.set(node, 'visiting');
-    const edges = [ ...(outgoing.get(node) || []) ].sort((a, b) => flowNodeDocumentIndex.get(a.targetRef) - flowNodeDocumentIndex.get(b.targetRef));
+    const edges = [ ...(outgoing.get(node) || []) ].sort((a, b) => (flowNodeDocumentIndex.get(a.targetRef) ?? 0) - (flowNodeDocumentIndex.get(b.targetRef) ?? 0));
 
     for (const edge of edges) {
       const targetState = state.get(edge.targetRef);
@@ -1106,7 +1327,7 @@ function markBackEdges(nodes, outgoing, backEdges, flowNodeDocumentIndex) {
       return startA ? -1 : 1;
     }
 
-    return flowNodeDocumentIndex.get(a) - flowNodeDocumentIndex.get(b);
+    return (flowNodeDocumentIndex.get(a) ?? 0) - (flowNodeDocumentIndex.get(b) ?? 0);
   });
 
   for (const node of ordered) {
@@ -1116,26 +1337,33 @@ function markBackEdges(nodes, outgoing, backEdges, flowNodeDocumentIndex) {
   }
 }
 
-export function edgePriority(edge, policy) {
-  if (policy.spine?.has(edge)) {
+export function edgePriority(
+    edge: FlowEdge,
+    policy: SemanticPolicy | null
+): number {
+  if (!policy) {
+    return EDGE_PRIORITY.STANDARD;
+  }
+
+  if (policy.spine.has(edge)) {
     return EDGE_PRIORITY.SPINE;
   }
 
-  if (policy.straightEdges?.has(edge)) {
+  if (policy.straightEdges.has(edge)) {
     return EDGE_PRIORITY.STRAIGHT;
   }
 
-  const sourceBand = policy.bands?.get(edge.sourceRef) || 0;
-  const targetBand = policy.bands?.get(edge.targetRef) || 0;
+  const sourceBand = policy.bands.get(edge.sourceRef) || 0;
+  const targetBand = policy.bands.get(edge.targetRef) || 0;
   const crossBandGatewayBranch = is(edge.sourceRef, 'bpmn:Gateway') &&
     (edge.sourceRef.outgoing || []).length > 1 &&
     sourceBand !== targetBand;
 
-  if (!policy.backEdges?.has(edge) && crossBandGatewayBranch) {
+  if (!policy.backEdges.has(edge) && crossBandGatewayBranch) {
     return EDGE_PRIORITY.CROSS_BAND_GATEWAY_BRANCH;
   }
 
-  if (policy.backEdges?.has(edge)) {
+  if (policy.backEdges.has(edge)) {
     return EDGE_PRIORITY.BACK_EDGE;
   }
 
