@@ -2,10 +2,23 @@ import { is } from '../../di/DiUtil.js';
 import { MAX_ARTIFACT_SEARCH_OFFSET } from '../Constants.js';
 import { getExpandedChildEdges } from '../geometry/index.js';
 
+import type {
+  BpmnElement,
+  Bounds,
+  LayoutState,
+  Waypoint
+} from '../Types.js';
+
+type ArtifactRoute = {
+  element: BpmnElement;
+  points: Waypoint[];
+};
+
 export function collectArtifactObstacleRoutes(
-    layout,
-    annotatedMessageEndpoints,
-    graphShapes) {
+    layout: LayoutState,
+    annotatedMessageEndpoints: Map<BpmnElement, Set<string>>,
+    graphShapes: Map<BpmnElement, Bounds>
+): ArtifactRoute[] {
   const routes = [
     ...layout.edges.entries(),
     ...getExpandedChildEdges(layout)
@@ -44,7 +57,7 @@ export function collectArtifactObstacleRoutes(
           }
         ]
       }
-    ].filter(Boolean);
+    ].filter((route): route is ArtifactRoute => !!route);
   });
 
   return [ ...routes, ...reservedRoutes ];
