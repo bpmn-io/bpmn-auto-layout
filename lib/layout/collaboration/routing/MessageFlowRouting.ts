@@ -26,18 +26,85 @@ import {
   includeHorizontalRange
 } from '../Helpers.js';
 
-/**
- * @typedef {import('../../Types.js').CollaborationLayoutContext} CollaborationLayoutContext
- */
+import type { Point } from 'diagram-js/lib/util/Types.js';
+import type { ModdleElement } from 'moddle';
+import type { BpmnElementFor } from '../../bpmn/Types.js';
+import type { BpmnMessageFlow } from '../../../moddle-types/bpmn.js';
+import type {
+  BpmnElement,
+  Bounds,
+  CollaborationLayoutContext,
+  Waypoint
+} from '../../Types.js';
 
-/**
- * @param {CollaborationLayoutContext} context
- * @returns {CollaborationLayoutContext}
- */
-export function routeMessageFlows(context) {
-  const { collaboration, layout } = context;
+type Collaboration = BpmnElementFor<'bpmn:Collaboration'>;
+type MessageFlow = ModdleElement<BpmnMessageFlow>;
+type Participant = ReturnType<typeof findEndpointParticipant>;
+type EndpointShapes = Map<BpmnElement, Bounds>;
+type ParticipantShapes = Map<BpmnElement, Bounds>;
+type MessageObstacle = {
+  element: BpmnElement;
+  rect: Bounds;
+};
+type RoutedConnection = {
+  flow: BpmnElement;
+  points: Waypoint[];
+};
+type MessageFlowRouterOptions = {
+  obstacleInset?: number;
+  allowPerpendicularCrossings?: boolean;
+};
+type MessageFlowRoutingContext = {
+  source: BpmnElement;
+  target: BpmnElement;
+  sourceBounds: Bounds;
+  targetBounds: Bounds;
+  collaboration: Collaboration;
+  participantShapes: ParticipantShapes;
+  obstacles: MessageObstacle[];
+  routedConnections: RoutedConnection[];
+  channelOffset: number;
+  downward: boolean;
+  start: Point;
+  end: Point;
+  sourceParticipant: Participant;
+  targetParticipant: Participant;
+  sourceParticipantBounds: Bounds | undefined;
+  targetParticipantBounds: Bounds | undefined;
+  sourceIndex: number;
+  targetIndex: number;
+};
+type ScopedMessageFlowRoutingContext = MessageFlowRoutingContext & {
+  sourceParticipantBounds: Bounds;
+  targetParticipantBounds: Bounds;
+};
+type PreparedMessageFlowRoutingContext =
+  ScopedMessageFlowRoutingContext & {
+    sourceIsParticipant: boolean;
+    targetIsParticipant: boolean;
+    sourcePoolEdgeY: number;
+    targetPoolEdgeY: number;
+    sourceObstacles: MessageObstacle[];
+    targetObstacles: MessageObstacle[];
+  };
+type MessageFlowGroup = {
+  messageFlow: MessageFlow;
+  source: BpmnElement;
+  target: BpmnElement;
+};
+
+export function routeMessageFlows(
+    context: CollaborationLayoutContext
+): CollaborationLayoutContext {
+  const { layout } = context;
+  const collaboration = context.collaboration;
   const { expandable } = context.participants;
   const { channelOffsets } = context.routing;
+
+  if (!is(collaboration, 'bpmn:Collaboration')) {
+    return context;
+  }
+
   const shapes = collectCollaborationShapes(layout);
   const obstacles = getMessageObstacles(shapes);
   let participantBoundsChanged;
@@ -67,15 +134,16 @@ export function routeMessageFlows(context) {
 }
 
 export function routeMessageFlow(
-    source,
-    target,
-    sourceBounds,
-    targetBounds,
-    collaboration,
-    participantShapes,
-    obstacles,
-    routedConnections,
-    channelOffset) {
+    source: BpmnElement,
+    target: BpmnElement,
+    sourceBounds: Bounds,
+    targetBounds: Bounds,
+    collaboration: Collaboration,
+    participantShapes: ParticipantShapes,
+    obstacles: MessageObstacle[],
+    routedConnections: RoutedConnection[],
+    channelOffset: number
+): Waypoint[] {
   if (sameVerticalCenter(sourceBounds, targetBounds)) {
     return directConnection(sourceBounds, targetBounds);
   }
@@ -92,41 +160,39 @@ export function routeMessageFlow(
     channelOffset
   );
 
-  if (!routing.sourceParticipantBounds ||
-      !routing.targetParticipantBounds ||
-      routing.sourceIndex === -1 ||
-      routing.targetIndex === -1) {
+  if (!hasParticipantScope(routing)) {
     return routeUnscopedMessageFlow(routing);
   }
 
-  prepareMessageFlowDocks(routing);
+  const preparedRouting = prepareMessageFlowDocks(routing);
 
-  const verticalRoute = tryVerticalMessageFlowRoute(routing);
+  const verticalRoute = tryVerticalMessageFlowRoute(preparedRouting);
 
   if (verticalRoute) {
     return verticalRoute;
   }
 
-  return Math.abs(routing.sourceIndex - routing.targetIndex) === 1
-    ? routeAdjacentParticipantRows(routing)
-    : routeSeparatedParticipantRows(routing);
+  return Math.abs(preparedRouting.sourceIndex - preparedRouting.targetIndex) === 1
+    ? routeAdjacentParticipantRows(preparedRouting)
+    : routeSeparatedParticipantRows(preparedRouting);
 }
 
-function sameVerticalCenter(sourceBounds, targetBounds) {
+function sameVerticalCenter(sourceBounds: Bounds, targetBounds: Bounds): boolean {
   return sourceBounds.y + sourceBounds.height / 2 ===
     targetBounds.y + targetBounds.height / 2;
 }
 
 function createMessageFlowRoutingContext(
-    source,
-    target,
-    sourceBounds,
-    targetBounds,
-    collaboration,
-    participantShapes,
-    obstacles,
-    routedConnections,
-    channelOffset) {
+    source: BpmnElement,
+    target: BpmnElement,
+    sourceBounds: Bounds,
+    targetBounds: Bounds,
+    collaboration: Collaboration,
+    participantShapes: ParticipantShapes,
+    obstacles: MessageObstacle[],
+    routedConnections: RoutedConnection[],
+    channelOffset: number
+): MessageFlowRoutingContext {
   const sourceCenterY = sourceBounds.y + sourceBounds.height / 2;
   const targetCenterY = targetBounds.y + targetBounds.height / 2;
   const downward = targetCenterY > sourceCenterY;
@@ -144,11 +210,15 @@ function createMessageFlowRoutingContext(
   const targetParticipantBounds = participantShapes.get(targetParticipant);
   const participantRows = [ ...new Set(
     [ ...(collaboration.participants || []) ]
-      .map(participant => participantShapes.get(participant).y)
+      .map(participant => getRequired(participantShapes.get(participant)).y)
       .sort((a, b) => a - b)
   ) ];
-  const sourceIndex = participantRows.indexOf(sourceParticipantBounds?.y);
-  const targetIndex = participantRows.indexOf(targetParticipantBounds?.y);
+  const sourceIndex = sourceParticipantBounds
+    ? participantRows.indexOf(sourceParticipantBounds.y)
+    : -1;
+  const targetIndex = targetParticipantBounds
+    ? participantRows.indexOf(targetParticipantBounds.y)
+    : -1;
 
   return {
     source,
@@ -172,6 +242,15 @@ function createMessageFlowRoutingContext(
   };
 }
 
+function hasParticipantScope(
+    routing: MessageFlowRoutingContext
+): routing is ScopedMessageFlowRoutingContext {
+  return !!routing.sourceParticipantBounds &&
+    !!routing.targetParticipantBounds &&
+    routing.sourceIndex !== -1 &&
+    routing.targetIndex !== -1;
+}
+
 function routeUnscopedMessageFlow({
   end,
   obstacles,
@@ -181,7 +260,7 @@ function routeUnscopedMessageFlow({
   start,
   target,
   targetBounds
-}) {
+}: MessageFlowRoutingContext): Waypoint[] {
   return createMessageFlowRouter(
     obstacles,
     source,
@@ -194,7 +273,9 @@ function routeUnscopedMessageFlow({
   ).findRoute(start, end) || directConnection(sourceBounds, targetBounds);
 }
 
-function prepareMessageFlowDocks(routing) {
+function prepareMessageFlowDocks(
+    routing: ScopedMessageFlowRoutingContext
+): PreparedMessageFlowRoutingContext {
   const {
     channelOffset,
     downward,
@@ -254,23 +335,27 @@ function prepareMessageFlowDocks(routing) {
     end.x = overlapCenter;
   }
 
-  routing.sourceIsParticipant = sourceIsParticipant;
-  routing.targetIsParticipant = targetIsParticipant;
-  routing.sourcePoolEdgeY = downward
-    ? sourceParticipantBounds.y + sourceParticipantBounds.height
-    : sourceParticipantBounds.y;
-  routing.targetPoolEdgeY = downward
-    ? targetParticipantBounds.y
-    : targetParticipantBounds.y + targetParticipantBounds.height;
-  routing.sourceObstacles = obstacles.filter(({ rect }) => {
-    return centerIsInside(rect, sourceParticipantBounds);
-  });
-  routing.targetObstacles = obstacles.filter(({ rect }) => {
-    return centerIsInside(rect, targetParticipantBounds);
+  return Object.assign(routing, {
+    sourceIsParticipant,
+    targetIsParticipant,
+    sourcePoolEdgeY: downward
+      ? sourceParticipantBounds.y + sourceParticipantBounds.height
+      : sourceParticipantBounds.y,
+    targetPoolEdgeY: downward
+      ? targetParticipantBounds.y
+      : targetParticipantBounds.y + targetParticipantBounds.height,
+    sourceObstacles: obstacles.filter(({ rect }) => {
+      return centerIsInside(rect, sourceParticipantBounds);
+    }),
+    targetObstacles: obstacles.filter(({ rect }) => {
+      return centerIsInside(rect, targetParticipantBounds);
+    })
   });
 }
 
-function tryVerticalMessageFlowRoute(routing) {
+function tryVerticalMessageFlowRoute(
+    routing: PreparedMessageFlowRoutingContext
+): Waypoint[] | null {
   const {
     channelOffset,
     end,
@@ -286,7 +371,7 @@ function tryVerticalMessageFlowRoute(routing) {
   const clearRouter = createMessageFlowRouter(obstacles, source, target);
 
   if ((sourceIsParticipant || targetIsParticipant) && start.x === end.x) {
-    if (clearRouter.isSegmentClear(start, end)) {
+    if (clearRouter.isClear([ start, end ])) {
       return [ start, end ];
     }
 
@@ -314,7 +399,7 @@ function tryVerticalMessageFlowRoute(routing) {
     }
   } else if (
     start.x === end.x &&
-    clearRouter.isSegmentClear(start, end)
+    clearRouter.isClear([ start, end ])
   ) {
     return [ start, end ];
   }
@@ -332,7 +417,7 @@ function routeAdjacentParticipantRows({
   target,
   targetObstacles,
   targetPoolEdgeY
-}) {
+}: PreparedMessageFlowRoutingContext): Waypoint[] {
   const channelY = Math.round((sourcePoolEdgeY + targetPoolEdgeY) / 2);
   const sourceChannel = point(start.x, channelY);
   const targetChannel = point(end.x, channelY);
@@ -358,7 +443,9 @@ function routeAdjacentParticipantRows({
   ]);
 }
 
-function routeSeparatedParticipantRows(routing) {
+function routeSeparatedParticipantRows(
+    routing: PreparedMessageFlowRoutingContext
+): Waypoint[] {
   const {
     collaboration,
     downward,
@@ -438,7 +525,9 @@ function routeSeparatedParticipantRows(routing) {
   ]);
 }
 
-export function getMessageObstacles(shapes) {
+export function getMessageObstacles(
+    shapes: EndpointShapes
+): MessageObstacle[] {
   return [ ...shapes ]
     .filter(([ element ]) => {
       return !is(element, 'bpmn:Lane') &&
@@ -450,13 +539,14 @@ export function getMessageObstacles(shapes) {
 }
 
 export function routeAllMessageFlows(
-    collaboration,
-    participantShapes,
-    endpointShapes,
-    obstacles,
-    channelOffsets) {
-  const routes = new Map();
-  const routedConnections = [];
+    collaboration: Collaboration,
+    participantShapes: ParticipantShapes,
+    endpointShapes: EndpointShapes,
+    obstacles: MessageObstacle[],
+    channelOffsets: Map<BpmnElement, number>
+): Map<MessageFlow, Waypoint[]> {
+  const routes = new Map<MessageFlow, Waypoint[]>();
+  const routedConnections: RoutedConnection[] = [];
 
   for (const messageFlow of collaboration.messageFlows || []) {
     const source = resolveMessageFlowEndpoint(messageFlow.sourceRef, endpointShapes);
@@ -488,10 +578,11 @@ export function routeAllMessageFlows(
 }
 
 function includeResizableParticipantMessageDocks(
-    collaboration,
-    participantShapes,
-    edges,
-    expandableParticipants) {
+    collaboration: Collaboration,
+    participantShapes: ParticipantShapes,
+    edges: Map<BpmnElement, Waypoint[]>,
+    expandableParticipants: Set<BpmnElement>
+): boolean {
   let changed = false;
 
   for (const messageFlow of collaboration.messageFlows || []) {
@@ -501,10 +592,12 @@ function includeResizableParticipantMessageDocks(
       continue;
     }
 
-    for (const [ endpoint, dock ] of [
+    const endpointDocks: Array<[ BpmnElement | undefined, Point ]> = [
       [ messageFlow.sourceRef, points[0] ],
-      [ messageFlow.targetRef, points.at(-1) ]
-    ]) {
+      [ messageFlow.targetRef, points[points.length - 1] ]
+    ];
+
+    for (const [ endpoint, dock ] of endpointDocks) {
       if (
         !is(endpoint, 'bpmn:Participant') ||
         !expandableParticipants.has(endpoint)
@@ -512,7 +605,7 @@ function includeResizableParticipantMessageDocks(
         continue;
       }
 
-      const participantBounds = participantShapes.get(endpoint);
+      const participantBounds = getRequired(participantShapes.get(endpoint));
       const previousX = participantBounds.x;
       const previousWidth = participantBounds.width;
 
@@ -532,14 +625,15 @@ function includeResizableParticipantMessageDocks(
 }
 
 function findMessageFlowDockX(
-    endpointBounds,
-    downward,
-    source,
-    offset,
-    obstacles,
-    sourceElement,
-    targetElement,
-    routedConnections) {
+    endpointBounds: Bounds,
+    downward: boolean,
+    source: boolean,
+    offset: number,
+    obstacles: MessageObstacle[],
+    sourceElement: BpmnElement,
+    targetElement: BpmnElement,
+    routedConnections: RoutedConnection[]
+): number {
   const inset = Math.min(ROUTING_MARGIN, endpointBounds.width / 2);
   const minX = endpointBounds.x + inset;
   const maxX = endpointBounds.x + endpointBounds.width - inset;
@@ -567,24 +661,25 @@ function findMessageFlowDockX(
   );
 
   return candidates.find(candidate => {
-    return router.isSegmentClear(
+    return router.isClear([
       point(candidate, dockY),
       point(candidate, outsideY)
-    );
+    ]);
   }) || preferredX;
 }
 
 function findMessageFlowVerticalBypass(
-    source,
-    target,
-    sourceBounds,
-    targetBounds,
-    sourceIsParticipant,
-    targetIsParticipant,
-    start,
-    end,
-    obstacles,
-    channelOffset) {
+    source: BpmnElement,
+    target: BpmnElement,
+    sourceBounds: Bounds,
+    targetBounds: Bounds,
+    sourceIsParticipant: boolean,
+    targetIsParticipant: boolean,
+    start: Point,
+    end: Point,
+    obstacles: MessageObstacle[],
+    channelOffset: number
+): Waypoint[] | null {
   if (sourceIsParticipant === targetIsParticipant) {
     return null;
   }
@@ -628,7 +723,7 @@ function findMessageFlowVerticalBypass(
   return null;
 }
 
-function centerIsInside(rect, container) {
+function centerIsInside(rect: Bounds, container: Bounds): boolean {
   const x = rect.x + rect.width / 2;
   const y = rect.y + rect.height / 2;
 
@@ -638,7 +733,14 @@ function centerIsInside(rect, container) {
     y <= container.y + container.height;
 }
 
-function routeMessageLeg(start, end, obstacles, source, target, routedConnections) {
+function routeMessageLeg(
+    start: Point,
+    end: Point,
+    obstacles: MessageObstacle[],
+    source: BpmnElement,
+    target: BpmnElement,
+    routedConnections: RoutedConnection[]
+): Waypoint[] {
   const router = createMessageFlowRouter(
     obstacles,
     source,
@@ -650,7 +752,7 @@ function routeMessageLeg(start, end, obstacles, source, target, routedConnection
     }
   );
 
-  if (router.isSegmentClear(start, end)) {
+  if (router.isClear([ start, end ])) {
     return [ start, end ];
   }
 
@@ -669,11 +771,12 @@ function routeMessageLeg(start, end, obstacles, source, target, routedConnection
 }
 
 function createMessageFlowRouter(
-    obstacles,
-    sourceElement,
-    targetElement,
-    routedConnections = [],
-    options = {}) {
+    obstacles: MessageObstacle[],
+    sourceElement: BpmnElement,
+    targetElement: BpmnElement,
+    routedConnections: RoutedConnection[] = [],
+    options: MessageFlowRouterOptions = {}
+) {
   return createBpmnOrthogonalRouter({
     shapes: obstacles,
     sourceElement,
@@ -683,7 +786,7 @@ function createMessageFlowRouter(
   });
 }
 
-function constrainParticipantDockX(x, participantBounds) {
+function constrainParticipantDockX(x: number, participantBounds: Bounds): number {
   return Math.max(
     participantBounds.x + PARTICIPANT_HEADER_WIDTH,
     Math.min(
@@ -693,9 +796,12 @@ function constrainParticipantDockX(x, participantBounds) {
   );
 }
 
-export function assignMessageFlowChannelOffsets(collaboration, shapes) {
-  const groups = new Map();
-  const offsets = new Map();
+export function assignMessageFlowChannelOffsets(
+    collaboration: Collaboration,
+    shapes: EndpointShapes
+): Map<MessageFlow, number> {
+  const groups = new Map<string, MessageFlowGroup[]>();
+  const offsets = new Map<MessageFlow, number>();
 
   for (const messageFlow of collaboration.messageFlows || []) {
     const source = resolveMessageFlowEndpoint(messageFlow.sourceRef, shapes);
@@ -704,10 +810,13 @@ export function assignMessageFlowChannelOffsets(collaboration, shapes) {
     const targetId = target.id;
     const key = [ sourceId, targetId ].sort().join(':');
 
-    if (!groups.has(key)) {
-      groups.set(key, []);
+    const flows = groups.get(key);
+
+    if (flows) {
+      flows.push({ messageFlow, source, target });
+    } else {
+      groups.set(key, [ { messageFlow, source, target } ]);
     }
-    groups.get(key).push({ messageFlow, source, target });
   }
 
   for (const flows of groups.values()) {
@@ -747,4 +856,12 @@ export function assignMessageFlowChannelOffsets(collaboration, shapes) {
   }
 
   return offsets;
+}
+
+function getRequired<Value>(value: Value | undefined): Value {
+  if (value === undefined) {
+    throw new Error('Expected message flow routing value');
+  }
+
+  return value;
 }
