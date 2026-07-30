@@ -11,12 +11,15 @@ import {
   validateCollaboration
 } from './steps/validateCollaboration.js';
 
-/**
- * @typedef {import('../Types.js').CollaborationLayoutStep} CollaborationLayoutStep
- */
+import type {
+  BpmnElement,
+  CollaborationLayoutContext,
+  CollaborationLayoutOptions,
+  CollaborationLayoutStep,
+  ProcessLayoutResult
+} from '../Types.js';
 
-/** @type {ReadonlyArray<CollaborationLayoutStep>} */
-const COLLABORATION_LAYOUT_STEPS = Object.freeze([
+const COLLABORATION_LAYOUT_STEPS: readonly CollaborationLayoutStep[] = Object.freeze([
   validateCollaboration,
   layoutParticipants,
   layoutParticipantGeometry,
@@ -24,7 +27,10 @@ const COLLABORATION_LAYOUT_STEPS = Object.freeze([
   placeArtifacts
 ]);
 
-export function layoutCollaboration(collaboration, options = {}) {
+export function layoutCollaboration(
+    collaboration: BpmnElement,
+    options: Partial<CollaborationLayoutOptions> = {}
+): ProcessLayoutResult {
   const context = createCollaborationLayoutContext(collaboration, options);
   const completed = COLLABORATION_LAYOUT_STEPS.reduce((current, runStep) => {
     return runStep(current);
@@ -37,10 +43,11 @@ export function layoutCollaboration(collaboration, options = {}) {
 }
 
 function createCollaborationLayoutContext(
-    collaboration,
+    collaboration: BpmnElement,
     {
-      expandedIds = new Set()
-    }) {
+      expandedIds = new Set<string>()
+    }: Partial<CollaborationLayoutOptions>
+): CollaborationLayoutContext {
   return {
     collaboration,
     options: {
