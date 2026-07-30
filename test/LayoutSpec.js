@@ -24,6 +24,10 @@ import {
 import { calculateStatistics } from '../tasks/benchmark-util.mjs';
 import { writeInspectorReport } from './inspector/Report.js';
 import {
+  INSPECTOR_LAYOUT_TIMING_RUNS,
+  shouldMeasureLayoutTimings
+} from './inspector/Timing.js';
+import {
   EXTERNAL_LABEL_CLEARANCE,
   EXPANDED_SUBPROCESS_ANNOTATION_CLEARANCE,
   EXPANDED_SUBPROCESS_LABEL_HEIGHT,
@@ -46,9 +50,9 @@ const snapshotsDirectory = path.join(__dirname, 'snapshots');
 const metricsBaselineFile = path.join(__dirname, 'metrics', 'baseline.json');
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === 'true';
-const INSPECTOR_LAYOUT_TIMING_RUNS = 5;
 const layoutTimingsByFixture = new Map();
 const layoutWarningsByFixture = new Map();
+const MEASURE_INSPECTOR_TIMINGS = shouldMeasureLayoutTimings();
 
 async function layoutProcess(xml) {
   return (await layoutProcessResult(xml)).xml;
@@ -3245,31 +3249,22 @@ describe('Layout', function() {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fileName), 'utf8');
 
         // when
-        await layoutProcessResult(xml);
+        const result = await layoutProcessResult(xml);
+        const output = result.xml;
 
-        const timings = [];
-        let output;
-        let warnings;
-
-        for (let index = 0; index < INSPECTOR_LAYOUT_TIMING_RUNS; index++) {
-          const startedAt = performance.now();
-          const result = await layoutProcessResult(xml);
-
-          timings.push(performance.now() - startedAt);
-
-          if (index === 0) {
-            output = result.xml;
-            warnings = result.warnings;
-          }
-        }
-
-        layoutTimingsByFixture.set(fileName, timings);
-        layoutWarningsByFixture.set(fileName, warnings.map(warning => ({
+        layoutWarningsByFixture.set(fileName, result.warnings.map(warning => ({
           code: warning.code,
           elementId: warning.elementId,
           message: warning.message,
           relatedElementIds: warning.relatedElementIds
         })));
+
+        if (MEASURE_INSPECTOR_TIMINGS) {
+          layoutTimingsByFixture.set(
+            fileName,
+            await measureLayoutTimings(xml)
+          );
+        }
 
         fs.writeFileSync(path.join(outputDirectory, fileName), output, 'utf8');
 
@@ -3335,21 +3330,23 @@ describe('Layout', function() {
     assert.ok(index.includes('createMetricsPanel'));
     assert.ok(index.includes('createLayoutTiming'));
     assert.ok(index.includes('createWarningsPanel'));
-    assert.ok(results.every(result => {
-      return Number.isFinite(result.layoutTiming?.averageMs) &&
-        result.layoutTiming.averageMs >= 0 &&
-        Number.isFinite(result.layoutTiming.p50Ms) &&
-        result.layoutTiming.p50Ms >= 0 &&
-        Number.isFinite(result.layoutTiming.p90Ms) &&
-        result.layoutTiming.p90Ms >= 0 &&
-        result.layoutTiming.runs === INSPECTOR_LAYOUT_TIMING_RUNS;
-    }));
-    assert.deepStrictEqual(
-      results
-        .map(result => result.layoutTiming.rank)
-        .sort((first, second) => first - second),
-      results.map((result, index) => index + 1)
-    );
+    if (MEASURE_INSPECTOR_TIMINGS) {
+      assert.ok(results.every(result => {
+        return Number.isFinite(result.layoutTiming?.averageMs) &&
+          result.layoutTiming.averageMs >= 0 &&
+          Number.isFinite(result.layoutTiming.p50Ms) &&
+          result.layoutTiming.p50Ms >= 0 &&
+          Number.isFinite(result.layoutTiming.p90Ms) &&
+          result.layoutTiming.p90Ms >= 0 &&
+          result.layoutTiming.runs === INSPECTOR_LAYOUT_TIMING_RUNS;
+      }));
+      assert.deepStrictEqual(
+        results
+          .map(result => result.layoutTiming.rank)
+          .sort((first, second) => first - second),
+        results.map((result, index) => index + 1)
+      );
+    }
     const groupWarningFixture = results.find(result => {
       return result.name === 'artifact.group-without-members.bpmn';
     });
@@ -3426,6 +3423,21 @@ function iit(fileName) {
   }
 
   return it;
+}
+
+async function measureLayoutTimings(xml) {
+  await layoutProcessResult(xml);
+
+  const timings = [];
+
+  for (let index = 0; index < INSPECTOR_LAYOUT_TIMING_RUNS; index++) {
+    const startedAt = performance.now();
+
+    await layoutProcessResult(xml);
+    timings.push(performance.now() - startedAt);
+  }
+
+  return timings;
 }
 
 function summarizeLayoutTimings(timingsByFixture) {

@@ -9,7 +9,11 @@ if (!npmExecPath) {
   throw new Error('npm_execpath is required to run the inspector suite.');
 }
 
-const testExitCode = await run(process.execPath, [ npmExecPath, 'test' ]);
+const testExitCode = await run(
+  process.execPath,
+  [ npmExecPath, 'test' ],
+  { ...process.env, INSPECTOR_TIMINGS: 'true' }
+);
 
 if (!existsSync(inspectorPath)) {
   console.error(`Inspector report was not created: ${inspectorPath}`);
@@ -20,9 +24,12 @@ if (!existsSync(inspectorPath)) {
   process.exitCode = testExitCode || openExitCode;
 }
 
-function run(command, args) {
+function run(command, args, environment = process.env) {
   return new Promise(resolve => {
-    const child = spawn(command, args, { stdio: 'inherit' });
+    const child = spawn(command, args, {
+      env: environment,
+      stdio: 'inherit'
+    });
 
     child.on('exit', code => resolve(code ?? 1));
     child.on('error', () => resolve(1));
