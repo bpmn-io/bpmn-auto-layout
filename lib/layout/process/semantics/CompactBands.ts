@@ -1,9 +1,65 @@
+import type { ModdleElement } from 'moddle';
+
+import type {
+  LayoutRecord,
+  RankAssignment as LayoutRankAssignment,
+  SemanticPolicy as LayoutSemanticPolicy
+} from '../../Types.js';
+import type { BpmnFlowNode, BpmnSequenceFlow } from '../../../moddle-types/bpmn.js';
+
+type FlowNode = ModdleElement<BpmnFlowNode>;
+type FlowEdge = ModdleElement<BpmnSequenceFlow> & {
+  sourceRef: FlowNode;
+  targetRef: FlowNode;
+};
+type BoundaryEdge = FlowEdge & {
+  sourceRef: FlowNode & {
+    attachedToRef: FlowNode;
+  };
+};
+type FlowRecord = LayoutRecord & {
+  element: FlowNode;
+};
+type SemanticPolicy = Omit<LayoutSemanticPolicy,
+  'bands' | 'components' | 'backEdges' | 'boundaryBayEdges'
+> & {
+  bands: Map<FlowNode, number>;
+  components: Map<FlowNode, number>;
+  backEdges: Set<FlowEdge>;
+  boundaryBayEdges: Set<FlowEdge>;
+};
+type RankAssignment = Omit<LayoutRankAssignment, 'rank'> & {
+  rank: Map<FlowNode, number>;
+};
+type BandInterval = {
+  component: number;
+  band: number;
+  boundary: boolean;
+  spans: Array<{
+    min: number;
+    max: number;
+  }>;
+};
+type BandIntervals = Map<string, BandInterval>;
+type BandMapping = Map<string, number>;
+type BoundaryHostBands = Map<string, number[]>;
+type AssignedIntervals = Map<string, BandInterval[]>;
+
+function getRequired<Value>(value: Value | undefined): Value {
+  if (value === undefined) {
+    throw new Error('Expected semantic layout value');
+  }
+
+  return value;
+}
+
 export function compactSemanticBands(
-    records,
-    graphEdges,
-    boundaryEdges,
-    ranks,
-    policy) {
+    records: FlowRecord[],
+    graphEdges: FlowEdge[],
+    boundaryEdges: BoundaryEdge[],
+    ranks: RankAssignment,
+    policy: SemanticPolicy
+): void {
   const intervals = collectBandIntervals(
     records,
     graphEdges,
@@ -18,30 +74,33 @@ export function compactSemanticBands(
 }
 
 function collectBandIntervals(
-    records,
-    graphEdges,
-    boundaryEdges,
-    ranks,
-    policy) {
-  const intervals = new Map();
-  const outgoingCount = new Map(
-    records.map(record => [ record.element, 0 ])
-  );
+    records: FlowRecord[],
+    graphEdges: FlowEdge[],
+    boundaryEdges: BoundaryEdge[],
+    ranks: RankAssignment,
+    policy: SemanticPolicy
+): BandIntervals {
+  const intervals: BandIntervals = new Map();
+  const outgoingCount = new Map<FlowNode, number>();
+
+  for (const record of records) {
+    outgoingCount.set(record.element, 0);
+  }
 
   for (const edge of graphEdges) {
     outgoingCount.set(
       edge.sourceRef,
-      outgoingCount.get(edge.sourceRef) + 1
+      (outgoingCount.get(edge.sourceRef) ?? 0) + 1
     );
   }
 
   for (const record of records) {
     const element = record.element;
-    const rank = ranks.rank.get(element);
+    const rank = getRequired(ranks.rank.get(element));
 
     addBandInterval(
       intervals,
-      policy.components.get(element),
+      getRequired(policy.components.get(element)),
       policy.bands.get(element) || 0,
       rank,
       rank
@@ -53,21 +112,21 @@ function collectBandIntervals(
       continue;
     }
 
-    const sourceRank = ranks.rank.get(edge.sourceRef);
-    const targetRank = ranks.rank.get(edge.targetRef);
+    const sourceRank = getRequired(ranks.rank.get(edge.sourceRef));
+    const targetRank = getRequired(ranks.rank.get(edge.targetRef));
     const min = Math.min(sourceRank, targetRank);
     const max = Math.max(sourceRank, targetRank);
     const sourceBand = policy.bands.get(edge.sourceRef) || 0;
     const targetBand = policy.bands.get(edge.targetRef) || 0;
     const occupiedBand = sourceBand === targetBand
       ? sourceBand
-      : outgoingCount.get(edge.sourceRef) > 1
+      : (outgoingCount.get(edge.sourceRef) ?? 0) > 1
         ? targetBand
         : sourceBand;
 
     addBandInterval(
       intervals,
-      policy.components.get(edge.sourceRef),
+      getRequired(policy.components.get(edge.sourceRef)),
       occupiedBand,
       min,
       max
@@ -76,12 +135,12 @@ function collectBandIntervals(
 
   for (const edge of boundaryEdges) {
     const host = edge.sourceRef.attachedToRef;
-    const sourceRank = ranks.rank.get(host);
-    const targetRank = ranks.rank.get(edge.targetRef);
+    const sourceRank = getRequired(ranks.rank.get(host));
+    const targetRank = getRequired(ranks.rank.get(edge.targetRef));
 
     addBandInterval(
       intervals,
-      policy.components.get(host),
+      getRequired(policy.components.get(host)),
       policy.bands.get(edge.targetRef) || 0,
       Math.min(sourceRank, targetRank),
       Math.max(sourceRank, targetRank),
@@ -93,12 +152,13 @@ function collectBandIntervals(
 }
 
 function addBandInterval(
-    intervals,
-    component,
-    band,
-    min,
-    max,
-    boundary = false) {
+    intervals: BandIntervals,
+    component: number,
+    band: number,
+    min: number,
+    max: number,
+    boundary = false
+): void {
   if (!band) {
     return;
   }
@@ -119,8 +179,11 @@ function addBandInterval(
   }
 }
 
-function collectBoundaryHostBands(boundaryEdges, policy) {
-  const boundaryHosts = new Map();
+function collectBoundaryHostBands(
+    boundaryEdges: BoundaryEdge[],
+    policy: SemanticPolicy
+): BoundaryHostBands {
+  const boundaryHosts: BoundaryHostBands = new Map();
 
   for (const edge of boundaryEdges) {
     const host = edge.sourceRef.attachedToRef;
@@ -132,15 +195,18 @@ function collectBoundaryHostBands(boundaryEdges, policy) {
       boundaryHosts.set(key, []);
     }
 
-    boundaryHosts.get(key).push(policy.bands.get(host) || 0);
+    getRequired(boundaryHosts.get(key)).push(policy.bands.get(host) || 0);
   }
 
   return boundaryHosts;
 }
 
-function assignCompactedBands(intervals, boundaryHosts) {
-  const assigned = new Map();
-  const mapping = new Map();
+function assignCompactedBands(
+    intervals: BandIntervals,
+    boundaryHosts: BoundaryHostBands
+): BandMapping {
+  const assigned: AssignedIntervals = new Map();
+  const mapping: BandMapping = new Map();
   const ordered = [ ...intervals.values() ].sort((a, b) => {
     return a.component - b.component ||
       Math.sign(a.band) - Math.sign(b.band) ||
@@ -177,10 +243,11 @@ function assignCompactedBands(intervals, boundaryHosts) {
 }
 
 function minimumCompactedMagnitude(
-    interval,
-    boundaryHosts,
-    mapping,
-    direction) {
+    interval: BandInterval,
+    boundaryHosts: BoundaryHostBands,
+    mapping: BandMapping,
+    direction: number
+): number {
   const hostBands = boundaryHosts.get(
     `${interval.component}:${interval.band}`
   ) || [];
@@ -198,7 +265,11 @@ function minimumCompactedMagnitude(
   }, 1);
 }
 
-function bandOverlaps(interval, assigned, compacted) {
+function bandOverlaps(
+    interval: BandInterval,
+    assigned: AssignedIntervals,
+    compacted: number
+): boolean {
   const key = `${interval.component}:${compacted}`;
   const occupied = assigned.get(key) || [];
 
@@ -211,7 +282,11 @@ function bandOverlaps(interval, assigned, compacted) {
   });
 }
 
-function applyCompactedBands(records, policy, mapping) {
+function applyCompactedBands(
+    records: FlowRecord[],
+    policy: SemanticPolicy,
+    mapping: BandMapping
+): void {
   for (const record of records) {
     const element = record.element;
     const band = policy.bands.get(element) || 0;
@@ -219,7 +294,7 @@ function applyCompactedBands(records, policy, mapping) {
     if (band) {
       policy.bands.set(
         element,
-        mapping.get(`${policy.components.get(element)}:${band}`)
+        getRequired(mapping.get(`${getRequired(policy.components.get(element))}:${band}`))
       );
     }
   }
