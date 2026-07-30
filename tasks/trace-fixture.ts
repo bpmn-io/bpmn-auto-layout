@@ -1,10 +1,33 @@
 import { createServer } from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve, relative, extname, basename } from 'node:path';
-import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 
 import puppeteer from 'puppeteer';
+
+import type { Protocol } from 'devtools-protocol';
+import type { Browser, CDPSession } from 'puppeteer';
+
+type BpmnAutoLayoutPerformance = {
+  layout(xml: string): Promise<{
+    warnings: unknown[];
+  }>;
+};
+
+type TraceServer = {
+  port: number;
+  close(): Promise<void>;
+};
+
+type TracingCompleteWithStream = Protocol.Tracing.TracingCompleteEvent & {
+  stream: Protocol.IO.StreamHandle;
+};
+
+declare global {
+  interface Window {
+    __bpmnAutoLayoutPerformance: BpmnAutoLayoutPerformance;
+  }
+}
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const FIXTURES = resolve(ROOT, 'test', 'fixtures');
@@ -32,17 +55,17 @@ const TRACE_CATEGORIES = [
   'v8'
 ];
 
-const CONTENT_TYPES = {
-  '.css': 'text/css',
-  '.html': 'text/html',
-  '.js': 'text/javascript',
-  '.map': 'application/json'
-};
+const CONTENT_TYPES = new Map<string, string>([
+  [ '.css', 'text/css' ],
+  [ '.html', 'text/html' ],
+  [ '.js', 'text/javascript' ],
+  [ '.map', 'application/json' ]
+]);
 
 const fixturePath = resolveFixture(process.argv[2]);
 const fixtureXml = await readFile(fixturePath, 'utf8');
-let server;
-let browser;
+let server: TraceServer | undefined;
+let browser: Browser | undefined;
 
 try {
   server = await startServer();
@@ -60,8 +83,7 @@ try {
     `Trace-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
   );
   const client = await page.target().createCDPSession();
-  const tracingComplete = once(client, 'Tracing.tracingComplete')
-    .then(([ event ]) => event);
+  const tracingComplete = waitForTracingComplete(client);
 
   await client.send('Tracing.start', {
     transferMode: 'ReturnAsStream',
@@ -77,6 +99,11 @@ try {
   }
 
   const tracingResult = await tracingComplete;
+
+  if (!hasTraceStream(tracingResult)) {
+    throw new Error('Chrome did not return a trace stream; no trace was saved.');
+  }
+
   const trace = await readTrace(client, tracingResult.stream);
 
   if (tracingResult.dataLossOccurred) {
@@ -96,7 +123,7 @@ try {
   }
 }
 
-function resolveFixture(fixtureName) {
+function resolveFixture(fixtureName: string | undefined): string {
   if (!fixtureName || basename(fixtureName) !== fixtureName) {
     throw new Error('Usage: npm run trace:fixture -- <fixture-name>');
   }
@@ -113,12 +140,13 @@ function resolveFixture(fixtureName) {
   return fixturePath;
 }
 
-async function startServer() {
+async function startServer(): Promise<TraceServer> {
   const httpServer = createServer(async (request, response) => {
     try {
-      const path = request.url === '/'
+      const requestUrl = request.url || '/';
+      const path = requestUrl === '/'
         ? resolve(DIST, 'performance.html')
-        : resolve(DIST, `.${new URL(request.url, 'http://localhost').pathname}`);
+        : resolve(DIST, `.${new URL(requestUrl, 'http://localhost').pathname}`);
 
       if (relative(DIST, path).startsWith('..')) {
         response.writeHead(403);
@@ -128,32 +156,61 @@ async function startServer() {
 
       const content = await readFile(path);
       response.writeHead(200, {
-        'Content-Type': CONTENT_TYPES[extname(path)] || 'application/octet-stream'
+        'Content-Type': CONTENT_TYPES.get(extname(path)) || 'application/octet-stream'
       });
       response.end(content);
     } catch (error) {
-      if (error.code === 'ENOENT') {
+      if (hasCode(error, 'ENOENT')) {
         response.writeHead(404);
         response.end();
         return;
       }
 
-      response.destroy(error);
+      response.destroy(
+        error instanceof Error
+          ? error
+          : new Error('Unable to serve the trace page.', { cause: error })
+      );
     }
   });
 
   httpServer.listen(0, '127.0.0.1');
-  await once(httpServer, 'listening');
+  await new Promise<void>(resolveListening => {
+    httpServer.once('listening', resolveListening);
+  });
+
+  const address = httpServer.address();
+
+  if (!address || typeof address === 'string') {
+    throw new Error('Trace server did not bind to a TCP port.');
+  }
 
   return {
-    port: httpServer.address().port,
-    close: () => new Promise((resolveClose, rejectClose) => {
+    port: address.port,
+    close: () => new Promise<void>((resolveClose, rejectClose) => {
       httpServer.close(error => error ? rejectClose(error) : resolveClose());
     })
   };
 }
 
-async function readTrace(client, stream) {
+function waitForTracingComplete(
+    client: CDPSession
+): Promise<Protocol.Tracing.TracingCompleteEvent> {
+  return new Promise(resolveTracingComplete => {
+    client.once('Tracing.tracingComplete', resolveTracingComplete);
+  });
+}
+
+function hasTraceStream(
+    tracingComplete: Protocol.Tracing.TracingCompleteEvent
+): tracingComplete is TracingCompleteWithStream {
+  return tracingComplete.stream !== undefined;
+}
+
+async function readTrace(
+    client: CDPSession,
+    stream: Protocol.IO.StreamHandle
+): Promise<string> {
   const chunks = [];
   let eof = false;
 
@@ -167,4 +224,8 @@ async function readTrace(client, stream) {
   await client.send('IO.close', { handle: stream });
 
   return chunks.join('');
+}
+
+function hasCode(error: unknown, code: string): boolean {
+  return error instanceof Error && 'code' in error && error.code === code;
 }
