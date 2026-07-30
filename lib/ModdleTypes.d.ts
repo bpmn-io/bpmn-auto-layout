@@ -6,6 +6,9 @@ declare module 'moddle' {
   }
 
   type ModdleElement<T extends object = object> = T & {
+    $attrs?: {
+      processRef?: string;
+    };
     $instanceOf(type: string): boolean;
     $parent?: ModdleElement;
     $type: string;
