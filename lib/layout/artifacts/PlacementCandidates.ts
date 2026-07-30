@@ -16,7 +16,31 @@ import {
 } from '../Constants.js';
 import { bounds } from '../geometry/index.js';
 
-export function artifactSizeCandidates(element) {
+import type { ElementSize } from '../../di/DiUtil.js';
+import type {
+  BpmnElement,
+  Bounds
+} from '../Types.js';
+import type { Extents } from '../geometry/Geometry.js';
+
+type ArtifactPlacementCandidate = {
+  rect: Bounds;
+  sideRank: number;
+  offset: number;
+  gap: number;
+};
+
+type BoundaryContainer = {
+  rect: Bounds;
+  containsOwner: boolean;
+  participant: boolean;
+};
+
+type ArtifactSide = 'above' | 'below' | 'left' | 'right';
+
+export function artifactSizeCandidates(
+    element: BpmnElement
+): Array<ElementSize | null> {
   if (!is(element, 'bpmn:TextAnnotation')) {
     return [ getDefaultSize(element) ];
   }
@@ -45,7 +69,7 @@ export function artifactSizeCandidates(element) {
   });
 }
 
-function wrappedTextLineCount(text, width) {
+function wrappedTextLineCount(text: string, width: number): number {
   const capacity = Math.max(
     1,
     Math.floor((width - 2 * ANNOTATION_PADDING) / ANNOTATION_CHARACTER_WIDTH)
@@ -79,7 +103,7 @@ function wrappedTextLineCount(text, width) {
   }, 0);
 }
 
-export function annotationSizePenalty(size) {
+export function annotationSizePenalty(size: ElementSize): number {
   return Math.round(
     Math.abs(size.width / size.height - ANNOTATION_TARGET_ASPECT_RATIO) *
     ANNOTATION_ASPECT_RATIO_PENALTY_SCALE
@@ -87,13 +111,14 @@ export function annotationSizePenalty(size) {
 }
 
 export function createArtifactPlacementCandidates(
-    artifact,
-    ownerBounds,
-    referenceOwnerBounds,
-    sizes,
-    boundaryContainers,
-    annotationClearance,
-    extents) {
+    artifact: BpmnElement,
+    ownerBounds: Bounds | null,
+    referenceOwnerBounds: Bounds[],
+    sizes: ElementSize[],
+    boundaryContainers: BoundaryContainer[],
+    annotationClearance: number,
+    extents: Extents
+): ArtifactPlacementCandidate[] {
   const localCandidates = ownerBounds
     ? referenceOwnerBounds.flatMap(referenceBounds => {
       return ownedArtifactCandidates(artifact, referenceBounds, sizes);
@@ -114,9 +139,13 @@ export function createArtifactPlacementCandidates(
     : localCandidates;
 }
 
-function ownedArtifactCandidates(artifact, owner, sizes) {
-  const candidates = [];
-  const preferredSides = is(artifact, 'bpmn:DataObjectReference')
+function ownedArtifactCandidates(
+    artifact: BpmnElement,
+    owner: Bounds,
+    sizes: ElementSize[]
+): ArtifactPlacementCandidate[] {
+  const candidates: ArtifactPlacementCandidate[] = [];
+  const preferredSides: ArtifactSide[] = is(artifact, 'bpmn:DataObjectReference')
     ? [ 'below', 'right', 'left', 'above' ]
     : [ 'above', 'left', 'right', 'below' ];
   const offsets = [ 0 ];
@@ -153,7 +182,13 @@ function ownedArtifactCandidates(artifact, owner, sizes) {
   return candidates;
 }
 
-function artifactBoundsAt(owner, size, side, gap, offset) {
+function artifactBoundsAt(
+    owner: Bounds,
+    size: ElementSize,
+    side: ArtifactSide,
+    gap: number,
+    offset: number
+): Bounds {
   if (side === 'above') {
     return bounds(
       owner.x + (owner.width - size.width) / 2 + offset,
@@ -187,7 +222,11 @@ function artifactBoundsAt(owner, size, side, gap, offset) {
   );
 }
 
-export function artifactClearanceBounds(artifact, rect, clearance) {
+export function artifactClearanceBounds(
+    artifact: BpmnElement,
+    rect: Bounds,
+    clearance: number
+): Bounds {
   if (!clearance || !is(artifact, 'bpmn:TextAnnotation')) {
     return rect;
   }
@@ -200,8 +239,11 @@ export function artifactClearanceBounds(artifact, rect, clearance) {
   );
 }
 
-function unownedArtifactCandidates(sizes, extents) {
-  const candidates = [];
+function unownedArtifactCandidates(
+    sizes: ElementSize[],
+    extents: Extents
+): ArtifactPlacementCandidate[] {
+  const candidates: ArtifactPlacementCandidate[] = [];
 
   for (const size of sizes) {
     for (
@@ -227,10 +269,11 @@ function unownedArtifactCandidates(sizes, extents) {
 }
 
 function participantExteriorArtifactCandidates(
-    sizes,
-    ownerBounds,
-    boundaryContainers,
-    annotationClearance) {
+    sizes: ElementSize[],
+    ownerBounds: Bounds | null,
+    boundaryContainers: BoundaryContainer[],
+    annotationClearance: number
+): ArtifactPlacementCandidate[] {
   if (!ownerBounds) {
     return [];
   }
@@ -275,8 +318,11 @@ function participantExteriorArtifactCandidates(
   });
 }
 
-function outerScopeArtifactCandidates(sizes, extents) {
-  const candidates = [];
+function outerScopeArtifactCandidates(
+    sizes: ElementSize[],
+    extents: Extents
+): ArtifactPlacementCandidate[] {
+  const candidates: ArtifactPlacementCandidate[] = [];
 
   for (const size of sizes) {
     const horizontalPositions = axisPositions(
@@ -342,7 +388,7 @@ function outerScopeArtifactCandidates(sizes, extents) {
   return candidates;
 }
 
-function axisPositions(min, max) {
+function axisPositions(min: number, max: number): number[] {
   if (max <= min) {
     return [ Math.round((min + max) / 2) ];
   }
