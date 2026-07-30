@@ -1,20 +1,21 @@
 import {
   isExteriorArtifact
 } from '../../bpmn/Predicates.js';
+import { isBpmnType } from '../../bpmn/Types.js';
+
+import type { BpmnElementFor } from '../../bpmn/Types.js';
 import { placeArtifacts as layoutArtifacts } from '../../artifacts/index.js';
 import {
   getParticipantContainerBounds
 } from '../placement/ParticipantBounds.js';
 
-/**
- * @typedef {import('../../Types.js').ProcessLayoutContext} ProcessLayoutContext
- */
+import type { ProcessLayoutContext } from '../../Types.js';
 
-/**
- * @param {ProcessLayoutContext} context
- * @returns {ProcessLayoutContext}
- */
-export function placeArtifacts(context) {
+type ArtifactAssociation =
+  | BpmnElementFor<'bpmn:Association'>
+  | BpmnElementFor<'bpmn:DataAssociation'>;
+
+export function placeArtifacts(context: ProcessLayoutContext): ProcessLayoutContext {
   const { layout, scope } = context;
   const { associations } = context.elements;
   const { records } = context.placement;
@@ -23,14 +24,20 @@ export function placeArtifacts(context) {
     participantProcess
   } = context.options;
 
+  const artifactAssociations = associations.filter(isArtifactAssociation);
+
   if (!participantProcess) {
     layoutArtifacts({
       records,
-      associations,
+      associations: artifactAssociations,
       layout,
       reservedVerticalEndpointDirections: messageFlowEndpointDirections
     });
 
+    return context;
+  }
+
+  if (!isBpmnType(scope, 'bpmn:Process')) {
     return context;
   }
 
@@ -43,13 +50,13 @@ export function placeArtifacts(context) {
 
   layoutArtifacts({
     records: interiorArtifacts,
-    associations,
+    associations: artifactAssociations,
     layout,
     reservedVerticalEndpointDirections: messageFlowEndpointDirections
   });
   layoutArtifacts({
     records: exteriorArtifacts,
-    associations,
+    associations: artifactAssociations,
     layout,
     additionalBoundaryContainers: [ {
       rect: getParticipantContainerBounds(scope, layout),
@@ -60,4 +67,12 @@ export function placeArtifacts(context) {
   });
 
   return context;
+}
+
+
+function isArtifactAssociation(
+    element: ProcessLayoutContext['elements']['associations'][number]
+): element is ArtifactAssociation {
+  return isBpmnType(element, 'bpmn:Association') ||
+    isBpmnType(element, 'bpmn:DataAssociation');
 }
