@@ -5,9 +5,20 @@ import {
   getExpandedChildEdges,
   getExpandedChildShapes
 } from '../geometry/index.js';
+import { isBpmnElement } from '../bpmn/Types.js';
 
-export function layoutGroups(groups, layout) {
-  const warnings = [];
+import type { ModdleElement } from 'moddle';
+import type { BpmnCategoryValue, BpmnGroup } from '../../moddle-types/bpmn.js';
+import type {
+  BpmnElement,
+  LayoutState
+} from '../Types.js';
+
+export function layoutGroups(
+    groups: Array<ModdleElement<BpmnGroup>>,
+    layout: LayoutState
+): LayoutWarning[] {
+  const warnings: LayoutWarning[] = [];
   const shapes = [
     ...layout.shapes.entries(),
     ...getExpandedChildShapes(layout)
@@ -19,6 +30,7 @@ export function layoutGroups(groups, layout) {
 
   for (const group of groups) {
     const categoryValue = group.categoryValueRef;
+    const groupId = typeof group.id === 'string' ? group.id : undefined;
     const memberShapes = shapes.filter(([ element ]) => {
       return referencesCategoryValue(element, categoryValue);
     });
@@ -36,8 +48,8 @@ export function layoutGroups(groups, layout) {
     if (!points.length) {
       warnings.push(new LayoutWarning(
         'GROUP_MEMBERS_NOT_FOUND',
-        group.id,
-        `Group ${ group.id } has no visible explicitly referenced members and was omitted.`
+        groupId,
+        `Group ${ groupId } has no visible explicitly referenced members and was omitted.`
       ));
       continue;
     }
@@ -58,13 +70,17 @@ export function layoutGroups(groups, layout) {
   return warnings;
 }
 
-function referencesCategoryValue(element, categoryValue) {
+function referencesCategoryValue(
+    element: BpmnElement,
+    categoryValue: ModdleElement<BpmnCategoryValue> | undefined
+): boolean {
   if (!categoryValue) {
     return false;
   }
 
-  const references = Array.isArray(element.categoryValueRef)
-    ? element.categoryValueRef
+  const references = 'categoryValueRef' in element &&
+    Array.isArray(element.categoryValueRef)
+    ? element.categoryValueRef.filter(isBpmnElement)
     : [];
 
   return references.some(reference => {
