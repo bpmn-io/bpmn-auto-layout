@@ -12,7 +12,8 @@ Try it out in [the example project](https://bpmn-io.github.io/bpmn-auto-layout/)
 npm install bpmn-auto-layout
 ```
 
-The library works with [Node.js](https://nodejs.org/) and in the browser.
+The library works with [Node.js](https://nodejs.org/) 22 or newer and in the
+browser.
 
 ## Library usage
 
