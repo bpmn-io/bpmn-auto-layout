@@ -33,7 +33,170 @@ import {
   createArtifactPlacementCandidates
 } from './PlacementCandidates.js';
 
-export function placeArtifactRecords(context) {
+import type { ElementSize } from '../../di/DiUtil.js';
+import type { BpmnElementFor } from '../bpmn/Types.js';
+import type {
+  BpmnElement,
+  Bounds,
+  LayoutRecord,
+  Waypoint
+} from '../Types.js';
+import type { Extents, Segment } from '../geometry/Geometry.js';
+
+type ArtifactAssociation =
+  | BpmnElementFor<'bpmn:Association'>
+  | BpmnElementFor<'bpmn:DataAssociation'>;
+
+type ArtifactOwnerReference = {
+  association: ArtifactAssociation;
+  owner: BpmnElement;
+  ownerBounds: Bounds | undefined;
+  ownerConnectionIndex?: number;
+  ownerConnectionCount?: number;
+};
+
+type BoundaryContainer = {
+  rect: Bounds;
+  containsOwner: boolean;
+  participant: boolean;
+};
+
+type PreparedBoundaryContainer = BoundaryContainer & {
+  headerRect: Bounds | false;
+};
+
+type ArtifactObstacle = {
+  element: BpmnElement;
+  rect: Bounds;
+};
+
+type ArtifactRoute = {
+  element: BpmnElement;
+  points: Waypoint[];
+};
+
+type PlacedArtifact = {
+  element: BpmnElement;
+  rect: Bounds;
+  annotationClearance: number;
+};
+
+type ArtifactPlacementContext = {
+  artifactRecords: LayoutRecord[];
+  layout: {
+    shapes: Map<BpmnElement, Bounds>;
+  };
+  obstaclesByArtifact: Map<BpmnElement, ArtifactObstacle[]>;
+  owners: Map<BpmnElement, ArtifactOwnerReference[]>;
+  additionalBoundaryContainers: BoundaryContainer[];
+  avoidParticipantInterior: boolean;
+  graphExtents: Extents;
+  graphObstacles: ArtifactObstacle[];
+  graphRoutes: ArtifactRoute[];
+  graphShapes: Map<BpmnElement, Bounds>;
+  placedArtifacts: PlacedArtifact[];
+  placementExtents: Extents;
+  preferParticipantSides: boolean;
+  reservedVerticalEndpointDirections: Map<BpmnElement, Set<string>>;
+};
+
+type ArtifactPlacementCandidate = {
+  rect: Bounds;
+  sideRank: number;
+  offset: number;
+  gap: number;
+};
+
+type ArtifactPlacementProblem = {
+  artifact: BpmnElement;
+  ownerBounds: Bounds | null;
+  references: ArtifactOwnerReference[];
+  sizes: ElementSize[];
+  obstacles: ArtifactObstacle[];
+  routes: ArtifactRoute[];
+  occupied: PlacedArtifact[];
+  container: Bounds | undefined;
+  processContainer: Bounds | null | undefined;
+  extents: Extents;
+  annotationClearance: number;
+  boundaryContainers: BoundaryContainer[];
+  avoidParticipantInterior: boolean;
+  preferParticipantSides: boolean;
+  participantInteriorPreference: number;
+};
+
+type ArtifactPlacementSearch = ArtifactPlacementProblem & {
+  preparedBoundaryContainers: PreparedBoundaryContainer[];
+  referenceOwnerBounds: Bounds[];
+  hasMultipleOwners: boolean;
+  candidates: ArtifactPlacementCandidate[];
+  obstacleBounds: Bounds[];
+  occupiedBounds: Bounds[];
+  routeSegments: Segment[];
+  dataArtifact: boolean;
+  requiresContainment: boolean;
+};
+
+type RoutedReference = {
+  owner: BpmnElement;
+  points: Waypoint[];
+};
+
+type CandidateMeasures = {
+  alignedOwnerCount: number;
+  associationBendCount: number;
+  associationCrossingCount: number;
+  congestionPenalty: number;
+  congestionViolation: number;
+  directLength: number;
+  missesOwnerAlignment: number;
+  participantInteriorPenalty: number;
+  participantVerticalSidePenalty: number;
+};
+
+type CandidateValidity = {
+  fitsContainer: boolean;
+  fitsProcessContainer: boolean;
+};
+
+type RankedCandidate = CandidateMeasures & {
+  candidate: ArtifactPlacementCandidate;
+  lowerBound: number[];
+  routedReferences: RoutedReference[];
+};
+
+type ArtifactPlacementScore = {
+  participantInteriorViolation: number;
+  dataCrossings: number;
+  congestionViolation: number;
+  missesOwnerAlignment: number;
+  alignedOwnerReward: number;
+  associationBends: number;
+  weightedLength: number;
+  associationLength: number;
+  annotationSize: number;
+  annotationCrossings: number;
+  containmentViolation: number;
+  expansion: number;
+  sideRank: number;
+  offset: number;
+  gap: number;
+  y: number;
+  x: number;
+};
+
+type ArtifactPlacementResult = {
+  candidate: Bounds;
+  score: number[];
+};
+
+type ClearanceRouter = {
+  isClear(points: Waypoint[]): boolean;
+};
+
+export function placeArtifactRecords(
+    context: ArtifactPlacementContext
+): void {
   const {
     artifactRecords,
     layout,
@@ -58,12 +221,15 @@ export function placeArtifactRecords(context) {
   }
 }
 
-function orderArtifactRecords(records, owners) {
+function orderArtifactRecords(
+    records: LayoutRecord[],
+    owners: Map<BpmnElement, ArtifactOwnerReference[]>
+): LayoutRecord[] {
   return records.sort((a, b) => {
     const aReferences = owners.get(a.element)?.length || 0;
     const bReferences = owners.get(b.element)?.length || 0;
-    const aArea = artifactSizeCandidates(a.element)[0];
-    const bArea = artifactSizeCandidates(b.element)[0];
+    const aArea = primaryArtifactSize(a.element);
+    const bArea = primaryArtifactSize(b.element);
 
     return bReferences - aReferences ||
       bArea.width * bArea.height - aArea.width * aArea.height ||
@@ -71,7 +237,38 @@ function orderArtifactRecords(records, owners) {
   });
 }
 
-function createArtifactPlacementProblem(context, record) {
+function supportedArtifactSizes(element: BpmnElement): ElementSize[] {
+  const sizes = artifactSizeCandidates(element);
+
+  if (sizes.some(size => !size)) {
+    throw new LayoutError(
+      'UNSUPPORTED_ELEMENT',
+      element.id,
+      `Cannot place artifact "${element.$type}".`
+    );
+  }
+
+  return sizes.filter((size): size is ElementSize => !!size);
+}
+
+function primaryArtifactSize(element: BpmnElement): ElementSize {
+  const size = supportedArtifactSizes(element)[0];
+
+  if (!size) {
+    throw new LayoutError(
+      'UNSUPPORTED_ELEMENT',
+      element.id,
+      `Cannot place artifact "${element.$type}".`
+    );
+  }
+
+  return size;
+}
+
+function createArtifactPlacementProblem(
+    context: ArtifactPlacementContext,
+    record: LayoutRecord
+): ArtifactPlacementProblem {
   const {
     additionalBoundaryContainers,
     avoidParticipantInterior,
@@ -88,7 +285,7 @@ function createArtifactPlacementProblem(context, record) {
   const artifact = record.element;
   const references = owners.get(artifact) || [];
   const ownerBounds = references.length
-    ? graphShapes.get(references[0].owner)
+    ? graphShapes.get(references[0].owner) || null
     : null;
   const owner = references[0]?.owner;
   const enclosingSubProcesses = findEnclosingSubProcesses(
@@ -132,7 +329,7 @@ function createArtifactPlacementProblem(context, record) {
     artifact,
     ownerBounds,
     references,
-    sizes: artifactSizeCandidates(artifact),
+    sizes: supportedArtifactSizes(artifact),
     obstacles,
     routes: graphRoutes,
     occupied: placedArtifacts,
@@ -152,7 +349,11 @@ function createArtifactPlacementProblem(context, record) {
   };
 }
 
-function findEnclosingSubProcesses(owner, ownerBounds, graphShapes) {
+function findEnclosingSubProcesses(
+    owner: BpmnElement | undefined,
+    ownerBounds: Bounds | null | undefined,
+    graphShapes: Map<BpmnElement, Bounds>
+): Array<[ BpmnElement, Bounds ]> {
   if (!ownerBounds) {
     return [];
   }
@@ -171,9 +372,10 @@ function findEnclosingSubProcesses(owner, ownerBounds, graphShapes) {
 }
 
 function createBoundaryContainers(
-    additionalBoundaryContainers,
-    graphShapes,
-    containingContainers) {
+    additionalBoundaryContainers: BoundaryContainer[],
+    graphShapes: Map<BpmnElement, Bounds>,
+    containingContainers: Bounds[]
+): BoundaryContainer[] {
   return [
     ...additionalBoundaryContainers,
     ...[ ...graphShapes.entries() ]
@@ -190,7 +392,7 @@ function createBoundaryContainers(
   ];
 }
 
-function findArtifactPlacement(problem) {
+function findArtifactPlacement(problem: ArtifactPlacementProblem): Bounds {
   const search = prepareArtifactPlacementSearch(problem);
   const rankedCandidates = rankArtifactPlacementCandidates(search);
   const best = selectArtifactPlacementCandidate(search, rankedCandidates);
@@ -206,7 +408,9 @@ function findArtifactPlacement(problem) {
   );
 }
 
-function prepareArtifactPlacementSearch(problem) {
+function prepareArtifactPlacementSearch(
+    problem: ArtifactPlacementProblem
+): ArtifactPlacementSearch {
   const {
     artifact,
     ownerBounds,
@@ -236,7 +440,8 @@ function prepareArtifactPlacementSearch(problem) {
     };
   });
   const referenceOwnerBounds = [ ...new Set(
-    references.map(reference => reference.ownerBounds).filter(Boolean)
+    references.map(reference => reference.ownerBounds)
+      .filter((ownerBounds): ownerBounds is Bounds => !!ownerBounds)
   ) ];
   const candidates = createArtifactPlacementCandidates(
     artifact,
@@ -275,7 +480,9 @@ function prepareArtifactPlacementSearch(problem) {
   };
 }
 
-function rankArtifactPlacementCandidates(search) {
+function rankArtifactPlacementCandidates(
+    search: ArtifactPlacementSearch
+): RankedCandidate[] {
   return search.candidates.map(candidate => {
     return rankArtifactPlacementCandidate(search, candidate);
   }).sort((a, b) => {
@@ -283,7 +490,10 @@ function rankArtifactPlacementCandidates(search) {
   });
 }
 
-function rankArtifactPlacementCandidate(search, candidate) {
+function rankArtifactPlacementCandidate(
+    search: ArtifactPlacementSearch,
+    candidate: ArtifactPlacementCandidate
+): RankedCandidate {
   const routedReferences = routeCandidateReferences(search, candidate);
   const measures = measureArtifactPlacementCandidate(
     search,
@@ -310,7 +520,10 @@ function rankArtifactPlacementCandidate(search, candidate) {
   };
 }
 
-function routeCandidateReferences(search, candidate) {
+function routeCandidateReferences(
+    search: ArtifactPlacementSearch,
+    candidate: ArtifactPlacementCandidate
+): RoutedReference[] {
   const {
     artifact,
     obstacles,
@@ -325,26 +538,29 @@ function routeCandidateReferences(search, candidate) {
     ownerConnectionIndex,
     ownerConnectionCount
   }) => {
-    const points = ownerBounds && artifactAssociationConnection(
-      association,
-      owner,
-      ownerBounds,
-      artifact,
-      candidate.rect,
-      ownerConnectionIndex,
-      ownerConnectionCount,
-      obstacles,
-      routeSegments
-    );
+    const points: Waypoint[] | null = ownerBounds
+      ? artifactAssociationConnection(
+        association,
+        owner,
+        ownerBounds,
+        artifact,
+        candidate.rect,
+        ownerConnectionIndex,
+        ownerConnectionCount,
+        obstacles,
+        routeSegments
+      )
+      : null;
 
     return points && { owner, points };
-  }).filter(Boolean);
+  }).filter((reference): reference is RoutedReference => !!reference);
 }
 
 function measureArtifactPlacementCandidate(
-    search,
-    candidate,
-    routedReferences) {
+    search: ArtifactPlacementSearch,
+    candidate: ArtifactPlacementCandidate,
+    routedReferences: RoutedReference[]
+): CandidateMeasures {
   const {
     artifact,
     dataArtifact,
@@ -410,9 +626,10 @@ function measureArtifactPlacementCandidate(
 }
 
 function artifactParticipantInteriorPenalty(
-    artifact,
-    rect,
-    boundaryContainers) {
+    artifact: BpmnElement,
+    rect: Bounds,
+    boundaryContainers: PreparedBoundaryContainer[]
+): number {
   if (!is(artifact, 'bpmn:TextAnnotation')) {
     return 0;
   }
@@ -429,9 +646,10 @@ function artifactParticipantInteriorPenalty(
 }
 
 function artifactParticipantVerticalSidePenalty(
-    artifact,
-    rect,
-    boundaryContainers) {
+    artifact: BpmnElement,
+    rect: Bounds,
+    boundaryContainers: PreparedBoundaryContainer[]
+): number {
   if (!is(artifact, 'bpmn:TextAnnotation')) {
     return 0;
   }
@@ -450,9 +668,12 @@ function artifactParticipantVerticalSidePenalty(
   }) ? 1 : 0;
 }
 
-function selectArtifactPlacementCandidate(search, rankedCandidates) {
-  let best;
-  const clearanceRouters = new Map();
+function selectArtifactPlacementCandidate(
+    search: ArtifactPlacementSearch,
+    rankedCandidates: RankedCandidate[]
+): Bounds | undefined {
+  let best: ArtifactPlacementResult | undefined;
+  const clearanceRouters = new Map<BpmnElement, ClearanceRouter>();
 
   for (const rankedCandidate of rankedCandidates) {
     if (
@@ -510,9 +731,10 @@ function selectArtifactPlacementCandidate(search, rankedCandidates) {
 }
 
 function validateArtifactPlacementCandidate(
-    search,
-    rankedCandidate,
-    clearanceRouters) {
+    search: ArtifactPlacementSearch,
+    rankedCandidate: RankedCandidate,
+    clearanceRouters: Map<BpmnElement, ClearanceRouter>
+): CandidateValidity | null {
   const { candidate, routedReferences } = rankedCandidate;
   const candidateBounds = artifactClearanceBounds(
     search.artifact,
@@ -563,11 +785,12 @@ function validateArtifactPlacementCandidate(
 }
 
 function artifactCandidateViolatesGeometry(
-    search,
-    candidate,
-    candidateBounds,
-    fitsContainer,
-    fitsProcessContainer) {
+    search: ArtifactPlacementSearch,
+    candidate: ArtifactPlacementCandidate,
+    candidateBounds: Bounds,
+    fitsContainer: boolean,
+    fitsProcessContainer: boolean
+): boolean {
   const straddlesContainer = search.container &&
     rectanglesOverlap(candidateBounds, search.container) &&
     !fitsContainer;
@@ -577,10 +800,9 @@ function artifactCandidateViolatesGeometry(
   const violatesContainerBoundary = search.preparedBoundaryContainers.some(({
     rect,
     containsOwner,
-    participant,
     headerRect
   }) => {
-    if (participant && rectanglesOverlap(candidateBounds, headerRect)) {
+    if (headerRect && rectanglesOverlap(candidateBounds, headerRect)) {
       return true;
     }
 
@@ -612,12 +834,16 @@ function artifactCandidateViolatesGeometry(
 }
 
 function createCandidateScore(
-    search,
-    candidate,
-    measures,
-    associationLength,
-    nonStraightPenalty,
-    validity = {}) {
+    search: ArtifactPlacementSearch,
+    candidate: ArtifactPlacementCandidate,
+    measures: CandidateMeasures,
+    associationLength: number,
+    nonStraightPenalty: number,
+    validity: CandidateValidity = {
+      fitsContainer: false,
+      fitsProcessContainer: false
+    }
+): number[] {
   const {
     alignedOwnerCount,
     associationBendCount,
@@ -660,7 +886,11 @@ function createCandidateScore(
   });
 }
 
-function artifactFitsContainer(candidate, container, margin = ROUTING_MARGIN) {
+function artifactFitsContainer(
+    candidate: Bounds,
+    container: Bounds | null | undefined,
+    margin = ROUTING_MARGIN
+): boolean {
   return !container ||
     candidate.x >= container.x + margin &&
     candidate.y >= container.y + margin &&
@@ -670,7 +900,7 @@ function artifactFitsContainer(candidate, container, margin = ROUTING_MARGIN) {
       container.y + container.height - margin;
 }
 
-function artifactObstacleBounds(rect) {
+function artifactObstacleBounds(rect: Bounds): Bounds {
   return {
     x: rect.x - BOUNDARY_EVENT_ARTIFACT_CLEARANCE,
     y: rect.y - BOUNDARY_EVENT_ARTIFACT_CLEARANCE,
@@ -679,7 +909,10 @@ function artifactObstacleBounds(rect) {
   };
 }
 
-function artifactIntersectsRoutes(rect, routeSegments) {
+function artifactIntersectsRoutes(
+    rect: Bounds,
+    routeSegments: Segment[]
+): boolean {
   const clearance = {
     x: rect.x - ROUTING_MARGIN / 2,
     y: rect.y - ROUTING_MARGIN / 2,
@@ -692,7 +925,7 @@ function artifactIntersectsRoutes(rect, routeSegments) {
   });
 }
 
-function compareArtifactPlacementScores(a, b) {
+function compareArtifactPlacementScores(a: number[], b: number[]): number {
   return compareScores(a, b);
 }
 
@@ -714,7 +947,7 @@ function createArtifactPlacementScore({
   gap,
   y,
   x
-}) {
+}: ArtifactPlacementScore): number[] {
   return [
     participantInteriorViolation,
     dataCrossings,
@@ -736,13 +969,13 @@ function createArtifactPlacementScore({
   ];
 }
 
-function artifactIsAligned(artifact, owner) {
+function artifactIsAligned(artifact: Bounds, owner: Bounds): boolean {
   return artifact.x + artifact.width / 2 === owner.x + owner.width / 2 ||
     artifact.y + artifact.height / 2 === owner.y + owner.height / 2;
 }
 
-function ownerBalancedRouteLength(routedReferences) {
-  const ownerRoutes = new Map();
+function ownerBalancedRouteLength(routedReferences: RoutedReference[]): number {
+  const ownerRoutes = new Map<BpmnElement, number[]>();
 
   for (const { owner, points } of routedReferences) {
     const lengths = ownerRoutes.get(owner) || [];
@@ -757,7 +990,7 @@ function ownerBalancedRouteLength(routedReferences) {
   }, 0);
 }
 
-function artifactCongestionPenalty(rect, obstacles) {
+function artifactCongestionPenalty(rect: Bounds, obstacles: Bounds[]): number {
   const nearestDistance = obstacles.reduce((nearest, obstacle) => {
     return Math.min(nearest, rectangleDistance(rect, obstacle));
   }, Infinity);
@@ -765,7 +998,7 @@ function artifactCongestionPenalty(rect, obstacles) {
   return Math.max(0, 2 * ROUTING_MARGIN - nearestDistance);
 }
 
-function rectangleDistance(a, b) {
+function rectangleDistance(a: Bounds, b: Bounds): number {
   const horizontal = Math.max(
     a.x - b.x - b.width,
     b.x - a.x - a.width,
@@ -780,14 +1013,14 @@ function rectangleDistance(a, b) {
   return Math.hypot(horizontal, vertical);
 }
 
-function artifactExpansion(rect, extents) {
+function artifactExpansion(rect: Bounds, extents: Extents): number {
   return Math.max(0, extents.minX - rect.x) +
     Math.max(0, extents.minY - rect.y) +
     Math.max(0, rect.x + rect.width - extents.maxX) +
     Math.max(0, rect.y + rect.height - extents.maxY);
 }
 
-function isStraightOrthogonalRoute(points) {
+function isStraightOrthogonalRoute(points: Waypoint[]): boolean {
   return points.every(({ x }) => x === points[0].x) ||
     points.every(({ y }) => y === points[0].y);
 }
