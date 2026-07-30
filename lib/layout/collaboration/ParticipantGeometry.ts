@@ -19,10 +19,20 @@ import {
 import {
   assignMessageFlowChannelOffsets
 } from './routing/MessageFlowRouting.js';
+import { isBpmnType } from '../bpmn/Types.js';
 
-/**
- * @typedef {import('../Types.js').CollaborationLayoutContext} CollaborationLayoutContext
- */
+import type { BpmnElementFor } from '../bpmn/Types.js';
+
+import type {
+  BpmnElement,
+  Bounds,
+  CollaborationLayoutContext,
+  LayoutState
+} from '../Types.js';
+
+type Collaboration = BpmnElementFor<'bpmn:Collaboration'>;
+type ParticipantShapes = Map<BpmnElement, Bounds>;
+type ParticipantLayouts = Map<BpmnElement, LayoutState>;
 
 /**
  * Own participant ordering, sizing, and coordinate publication.
@@ -30,8 +40,11 @@ import {
  * @param {CollaborationLayoutContext} context
  * @returns {CollaborationLayoutContext}
  */
-export function layoutParticipantGeometry(context) {
-  const { collaboration, layout } = context;
+export function layoutParticipantGeometry(
+    context: CollaborationLayoutContext
+): CollaborationLayoutContext {
+  const { layout } = context;
+  const collaboration = getCollaboration(context.collaboration);
   const {
     anchorPositioned,
     expandable,
@@ -96,11 +109,15 @@ export function layoutParticipantGeometry(context) {
   return context;
 }
 
-function stackParticipantRows(participantShapes, layouts, order) {
+function stackParticipantRows(
+    participantShapes: ParticipantShapes,
+    layouts: ParticipantLayouts,
+    order: BpmnElement[]
+): void {
   let nextY = 0;
 
   for (const participant of order) {
-    const participantBounds = participantShapes.get(participant);
+    const participantBounds = getRequired(participantShapes.get(participant));
     const processLayout = layouts.get(participant);
 
     if (processLayout) {
@@ -122,9 +139,13 @@ function stackParticipantRows(participantShapes, layouts, order) {
   }
 }
 
-function applyParticipantPositions(participantShapes, layouts, positions) {
+function applyParticipantPositions(
+    participantShapes: ParticipantShapes,
+    layouts: ParticipantLayouts,
+    positions: Map<BpmnElement, number>
+): void {
   for (const [ participant, x ] of positions) {
-    const participantBounds = participantShapes.get(participant);
+    const participantBounds = getRequired(participantShapes.get(participant));
     const processLayout = layouts.get(participant);
     const dx = x - participantBounds.x;
 
@@ -137,14 +158,15 @@ function applyParticipantPositions(participantShapes, layouts, positions) {
 }
 
 function alignDisconnectedParticipantComponents(
-    collaboration,
-    participantShapes,
-    layouts) {
+    collaboration: Collaboration,
+    participantShapes: ParticipantShapes,
+    layouts: ParticipantLayouts
+): void {
   for (const [ participant, dx ] of alignParticipantComponentsLeft(
     collaboration,
     participantShapes
   )) {
-    const participantBounds = participantShapes.get(participant);
+    const participantBounds = getRequired(participantShapes.get(participant));
     const processLayout = layouts.get(participant);
 
     participantBounds.x += dx;
@@ -155,13 +177,17 @@ function alignDisconnectedParticipantComponents(
   }
 }
 
-function compactParticipantRows(participantShapes, layouts, order) {
+function compactParticipantRows(
+    participantShapes: ParticipantShapes,
+    layouts: ParticipantLayouts,
+    order: BpmnElement[]
+): void {
   let nextY = 0;
-  let collapsedRow = [];
+  let collapsedRow: Bounds[] = [];
   let collapsedRowY = 0;
 
   for (const participant of order) {
-    const participantBounds = participantShapes.get(participant);
+    const participantBounds = getRequired(participantShapes.get(participant));
     const processLayout = layouts.get(participant);
 
     if (processLayout) {
@@ -203,4 +229,21 @@ function compactParticipantRows(participantShapes, layouts, order) {
     collapsedRow = [ participantBounds ];
     nextY += participantBounds.height + VERTICAL_GAP;
   }
+}
+
+
+function getCollaboration(element: BpmnElement): Collaboration {
+  if (!isBpmnType(element, 'bpmn:Collaboration')) {
+    throw new Error('Expected collaboration layout scope');
+  }
+
+  return element;
+}
+
+function getRequired<Value>(value: Value | undefined): Value {
+  if (value === undefined) {
+    throw new Error('Expected participant geometry value');
+  }
+
+  return value;
 }
