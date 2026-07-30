@@ -2,15 +2,9 @@ import { is } from '../../../di/DiUtil.js';
 import { getExtents } from '../../geometry/index.js';
 import { sizeExpandedSubProcess } from '../placement/ExpandedSubProcess.js';
 
-/**
- * @typedef {import('../../Types.js').ProcessLayoutContext} ProcessLayoutContext
- */
+import type { ProcessLayoutContext } from '../../Types.js';
 
-/**
- * @param {ProcessLayoutContext} context
- * @returns {ProcessLayoutContext}
- */
-export function layoutChildScopes(context) {
+export function layoutChildScopes(context: ProcessLayoutContext): ProcessLayoutContext {
   const { layout, warnings } = context;
   const { records } = context.placement;
   const {
