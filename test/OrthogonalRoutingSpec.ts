@@ -1,5 +1,8 @@
 import assert from 'node:assert';
 
+import { BpmnModdle } from 'bpmn-moddle';
+import { describe, it } from 'mocha';
+
 import {
   MAX_VISIBILITY_GRAPH_POINTS,
   ROUTE_OBSTACLE_INSET
@@ -10,6 +13,13 @@ import {
 import {
   createOrthogonalRouter
 } from '../lib/layout/routing/OrthogonalRouting.js';
+
+import type {
+  BpmnElement,
+  BpmnElementFor
+} from '../lib/layout/bpmn/Types.js';
+
+const moddle = new BpmnModdle();
 
 describe('OrthogonalRouting', function() {
 
@@ -171,21 +181,13 @@ describe('BpmnOrthogonalRouting', function() {
   });
 });
 
-function element(id) {
-  return {
-    id,
-    $instanceOf() {
-      return false;
-    }
-  };
+function element(id: string): BpmnElementFor<'bpmn:Task'> {
+  return moddle.create('bpmn:Task', { id });
 }
 
-function sequenceFlow(sourceRef, targetRef) {
-  return {
-    sourceRef,
-    targetRef,
-    $instanceOf() {
-      return false;
-    }
-  };
+function sequenceFlow(
+    sourceRef: BpmnElement,
+    targetRef: BpmnElement
+): BpmnElementFor<'bpmn:SequenceFlow'> {
+  return moddle.create('bpmn:SequenceFlow', { sourceRef, targetRef });
 }

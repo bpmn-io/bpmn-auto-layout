@@ -35,6 +35,7 @@
     "test/ArtifactPlacementSpec.ts",
     "test/CollaborationPipelineSpec.ts",
     "test/ProcessPipelineSpec.ts",
+    "test/OrthogonalRoutingSpec.ts",
     "test/mocha.d.ts"
   ]
 }
