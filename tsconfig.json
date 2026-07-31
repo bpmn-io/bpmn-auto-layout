@@ -37,6 +37,7 @@
     "test/ProcessPipelineSpec.ts",
     "test/OrthogonalRoutingSpec.ts",
     "test/MessageFlowRoutingSpec.ts",
+    "test/SequenceFlowRoutingSpec.ts",
     "test/mocha.d.ts"
   ]
 }
