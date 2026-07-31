@@ -8,12 +8,6 @@ import puppeteer from 'puppeteer';
 import type { Protocol } from 'devtools-protocol';
 import type { Browser, CDPSession } from 'puppeteer';
 
-type BpmnAutoLayoutPerformance = {
-  layout(xml: string): Promise<{
-    warnings: unknown[];
-  }>;
-};
-
 type TraceServer = {
   port: number;
   close(): Promise<void>;
@@ -22,12 +16,6 @@ type TraceServer = {
 type TracingCompleteWithStream = Protocol.Tracing.TracingCompleteEvent & {
   stream: Protocol.IO.StreamHandle;
 };
-
-declare global {
-  interface Window {
-    __bpmnAutoLayoutPerformance: BpmnAutoLayoutPerformance;
-  }
-}
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const FIXTURES = resolve(ROOT, 'test', 'fixtures');

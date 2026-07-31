@@ -19,8 +19,9 @@
   "scripts": {
     "all": "run-s lint typecheck test",
     "lint": "eslint .",
-    "typecheck": "run-s typecheck:source typecheck:trace-fixture typecheck:public-api",
+    "typecheck": "run-s typecheck:source typecheck:example typecheck:trace-fixture typecheck:public-api",
     "typecheck:source": "tsc",
+    "typecheck:example": "tsc --project example/tsconfig.json",
     "typecheck:trace-fixture": "tsc --project tasks/tsconfig.trace-fixture.json",
     "typecheck:public-api": "tsc --project tsconfig.public-api.json",
     "test": "tsx node_modules/mocha/bin/mocha.js --extension js --extension ts --timeout 15000",
