@@ -1,48 +1,43 @@
-# Test suite
+# Testing layout
 
-This directory contains two complementary ways to evaluate layout output:
+Fixtures are executable layout contracts. The suite compares generated BPMN
+against approved snapshots, measures visual quality, and enforces targeted
+performance budgets.
 
 | Check | Command | Purpose | Gate |
 | --- | --- | --- | --- |
 | Snapshot regression suite | `npm test` | Detect every byte-level change to generated BPMN XML. | yes |
-| Layout-quality metrics | `npm test` or `npm run metrics` | Reject ambiguity defects and report narrative/polish deltas. | yes |
-| Performance budgets | `npm run test:performance` | Reject regressions in exact participant ordering and the critical collaboration fixture. | CI |
+| Layout-quality metrics | `npm test` or `npm run metrics` | Reject ambiguity defects; report narrative and polish deltas. | yes |
+| Performance budgets | `npm run test:performance` | Enforce critical participant-ordering and collaboration limits. | CI |
 
-Both use every `.bpmn` file in [`fixtures/`](fixtures). Snapshot tests protect
-against unintended changes; metrics indicate whether an intentional change
-improves or regresses layout quality. The visual inspector supports review of
-the snapshot suite. Each fixture header also shows its generated layout metrics
-and the delta from the recorded metrics baseline; green and orange metric cards
-indicate an improvement or regression for metrics with a preferred direction.
-When generated with `npm run test:inspect`, it also shows average, p50, and p90
-`layoutProcess` durations from five measured runs after one warm-up, and ranks
-fixtures by p50. `npm test` runs each fixture once and does not collect timing
-measurements. Timing is informational only: it has no persisted baseline and
-never affects the test result.
-Non-fatal layout warnings are shown below the metrics for the fixture that
-produced them.
+Snapshot tests and metrics cover every `.bpmn` file in [`fixtures/`](fixtures).
+Snapshots detect unintended output changes; metrics show whether an intentional
+change improves or degrades layout quality. The visual inspector presents each
+fixture's metrics, baseline delta, and non-fatal warnings. `npm run test:inspect`
+also measures five layouts after one warm-up, ranks fixtures by p50, and shows
+average, p50, and p90 durations. Timing is informational and never affects a
+test result.
 
-## Snapshot regression suite
+## Snapshot contract
 
-For every input diagram, [LayoutSpec.js](LayoutSpec.js) runs the layouter and
-compares the produced XML byte-for-byte against a previously recorded "known
-good" output. A difference fails the test, showing that the layout *changed* —
-not necessarily that it got worse.
+[LayoutSpec.ts](LayoutSpec.ts) lays out every input diagram and compares the
+result byte-for-byte with its approved snapshot. A mismatch proves that output
+changed; it does not by itself judge the change.
 
 ## The three directories
 
 | Directory | Role | Committed? |
 | --- | --- | --- |
-| [`fixtures/`](fixtures) | **Inputs.** Source `.bpmn` files, typically with no (or partial) DI. | yes |
-| [`snapshots/`](snapshots) | **Expected outputs.** The recorded "known good" layout for each fixture. | yes |
-| `output/` | **Actual outputs** from the last run, plus an `index.html` inspector. | no (wiped each run) |
+| [`fixtures/`](fixtures) | **Inputs.** Source `.bpmn` files, with no, partial, or authored DI. | yes |
+| [`snapshots/`](snapshots) | **Expected outputs.** Approved generated BPMN for each fixture. | yes |
+| `output/` | **Actual outputs.** Last-run BPMN and the `index.html` inspector. | no (wiped each run) |
 
 `output/` is deleted and rebuilt on every `npm test`, so never edit it by hand —
 it is a scratch area, not a source of truth.
 
 ## How a single test works
 
-For each `*.bpmn` file in `fixtures/`, the spec generates one `it(...)` case:
+The spec generates one `it(...)` case for each `*.bpmn` file in `fixtures/`:
 
 ```mermaid
 flowchart TD
@@ -89,15 +84,15 @@ comparison is on the serialized string, *any* change — coordinates, waypoints,
 attribute order — is a mismatch. That strictness is deliberate: it makes every
 geometry change visible and reviewable in the diff.
 
-A fixture with **no** matching snapshot file still runs (and writes `output/`),
-but skips the assertion. This is how you stage a new fixture before recording its
-baseline.
+A fixture with no snapshot still runs and writes `output/`, but skips the
+assertion. This lets a new fixture produce output for review before its baseline
+is recorded.
 
 ## Running the tests
 
 ```sh
-# run every test-directory program (builds first, then runs Mocha)
-# including snapshot assertions and the metrics harness
+# run the full suite (builds first, then runs Mocha)
+# including snapshot assertions and metrics
 npm test
 
 # run the suite, then open its visual inspector
@@ -125,10 +120,10 @@ The required iteration count produces average, p50, and p90 timings. The
 fixture may be given by name or as a path relative to `fixtures/`; failure
 fixtures are rejected because they do not produce benchmarkable layout output.
 
-`npm run test:performance` enforces generous p50 ceilings for the
-eight-participant exact-ordering threshold and
-`process.application-processing.bpmn`. CI runs these budgets on Node.js 24;
-normal correctness checks run on every supported Node.js release line.
+`npm run test:performance` enforces p50 ceilings for the eight-participant
+exact-ordering threshold and `process.application-processing.bpmn`. CI runs
+these budgets on Node.js 24; normal correctness checks run on every supported
+Node.js release line.
 
 ## Performance tracing
 
@@ -144,20 +139,20 @@ Perfetto-compatible JSON trace under `test/performance/traces/`. Generated
 traces are ignored by Git. The trace uses DevTools timeline and V8 CPU-profiler
 categories and fails instead of saving a trace when Chrome reports data loss.
 
-To render one normal fixture as paired human-authored input and current layout
+Render one normal fixture with authored DI as paired input and current-layout
 artifacts:
 
 ```sh
 npm run render:fixture -- gateway.multiple
 ```
 
-The command writes `<fixture>.input.{png,svg}` from the fixture's existing DI
-and `<fixture>.{png,svg}` from the current layouter output to
-`output/rendered/`. It rejects failure fixtures.
+The command writes `<fixture>.input.{png,svg}` from existing fixture DI and
+`<fixture>.{png,svg}` from current layouter output to `output/rendered/`. It
+rejects failure fixtures.
 
-`npm test` runs `pretest` (`rollup -c`) first, so the snapshot suite always
+`npm test` runs `pretest` (`npm run build`) first, so the snapshot suite always
 tests freshly built `dist/`, not stale output. Mocha discovers both
-[LayoutSpec.js](LayoutSpec.js) and [metrics.test.js](metrics.test.js): it enforces the
+[LayoutSpec.ts](LayoutSpec.ts) and [metrics.test.ts](metrics.test.ts): it enforces the
 snapshot assertions and runs the metrics harness. A metrics execution error or
 Band-A defect fails the command. Polish-metric changes remain review signals,
 not gates.
@@ -169,19 +164,21 @@ Set the `UPDATE_SNAPSHOTS=true` environment variable (the
 **wipes the entire `snapshots/` directory**, and each test **writes** its output
 as the new snapshot instead of asserting against it.
 
-Use it when a layout change is **intentional**. The workflow is:
+Use it only to re-record the complete, reviewed fixture corpus. For a single
+new fixture, copy its reviewed output from `output/` into `snapshots/` instead.
+
+The full-corpus workflow is:
 
 1. Make your change to `lib/`.
 2. Run `npm test` and watch which fixtures fail.
 3. Inspect the diffs visually (`npm run test:inspect`) and confirm the new
    layouts are actually what you want.
-4. Only then run `npm run test:update-snapshots` to bless the new output.
-5. **Review the snapshot diff in version control** — the committed `.bpmn` diff
-   under `snapshots/` *is* the record of how the layout changed.
+4. Run `npm run test:update-snapshots` only after that review.
+5. Review the snapshot diff in version control. The committed `.bpmn` diff in
+   `snapshots/` records the layout change.
 
-> Do not run `test:update-snapshots` reflexively to make a red suite green.
-> A snapshot you didn't look at is not a test — it just locks in whatever the
-> code happened to produce.
+> Never use snapshot updates to turn a failing suite green without reviewing the
+> generated layout.
 
 ## Reviewing snapshot changes in a pull request
 
@@ -215,8 +212,8 @@ After every run the `after` hook builds `output/index.html` from
 and flags whether output and snapshot match. `npm run test:inspect` runs the
 suite to generate a fresh report, then opens it even if a snapshot assertion
 fails. The command still exits with the test result.
-This is how you *read* a failure — the string diff tells you bytes changed; the
-inspector shows you what that looks like on the canvas.
+The string diff identifies changed bytes; the inspector shows the resulting
+geometry.
 
 The permanent issue badges for crossings, shape overlaps, label overlaps, shape
 intersections, and wrong-way dockings show the number of fixtures with that
@@ -233,7 +230,7 @@ metric filters.
 ## Focusing and skipping fixtures
 
 Prefix a fixture's **filename** to control which cases run, without touching the
-spec (see the `iit` helper in [LayoutSpec.js](LayoutSpec.js)):
+spec (see the `iit` helper in [LayoutSpec.ts](LayoutSpec.ts)):
 
 | Prefix | Effect | Mocha equivalent |
 | --- | --- | --- |
@@ -270,8 +267,8 @@ generated DI:
 | `branchSymmetry` | targets reflected within 1 px across their gateway axis in non-default gateway fans, as a percentage; diagrams without eligible fans score 100 | no |
 
 The pure computation lives in
-[metrics/computeMetrics.js](metrics/computeMetrics.js); the runner and table are
-in [metrics.mjs](metrics.mjs). The recorded baseline is
+[metrics/computeMetrics.ts](metrics/computeMetrics.ts); the runner and table are
+in [metrics.ts](metrics.ts). The recorded baseline is
 [metrics/baseline.json](metrics/baseline.json) — every later "this is better"
 claim is a diff against those numbers, shown in the `Δ` column.
 
@@ -283,11 +280,11 @@ snapshots guard exact output; metrics enforce validity and grade visual quality.
 
 ## Adding a new test case
 
-1. Add `your-case.bpmn` to [`fixtures/`](fixtures) (semantics required; DI
-   optional).
-2. Run `npm test`. The case runs and writes `output/your-case.bpmn`, but makes
-   no assertion yet (no snapshot to compare against).
-3. Inspect the result with `npm run test:inspect`.
-4. When it looks right, run `npm run test:update-snapshots` to record
-   `snapshots/your-case.bpmn`.
-5. Commit the fixture **and** the snapshot together.
+1. Add `your-case.bpmn` to [`fixtures/`](fixtures), including a concise
+   `bpmn:documentation` statement. Semantics are required; DI is optional.
+2. Run `npm test -- --grep "your-case"`. The case writes
+   `output/your-case.bpmn` without asserting because no snapshot exists.
+3. Review the output with `npm run test:inspect`.
+4. Copy the approved output to `snapshots/your-case.bpmn`, then rerun the
+   focused test to assert the snapshot.
+5. Commit the fixture and snapshot together.

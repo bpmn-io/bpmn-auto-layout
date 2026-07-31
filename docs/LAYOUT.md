@@ -1,13 +1,13 @@
-# How layout works
+# Layout contract
 
 `bpmn-auto-layout` turns semantic BPMN XML into complete BPMN DI. It recursively
 lays out process and sub-process scopes, arranges collaboration participants,
-routes connections, and emits shapes, edges, and labels. This document explains
+routes connections, and emits shapes, edges, and labels. This document defines
 the resulting geometry and the algorithm that produces it.
 
-## Layout contract
+## Core guarantees
 
-Generated process flow reads from left to right. The engine prioritizes:
+Generated process flow moves from left to right. The engine prioritizes:
 
 1. valid geometry: containment and docking are correct, unrelated shapes do not
    overlap, and edges do not pass through unrelated shapes;
@@ -15,12 +15,12 @@ Generated process flow reads from left to right. The engine prioritizes:
    and exception paths remain separate from normal flow;
 3. polish: fewer crossings, bends, long edges, and unused space.
 
-Layout is greenfield. Existing coordinates, dimensions, waypoints, and labels
-are discarded. Existing DI only determines whether an embedded sub-process is
-expanded.
+Layout regenerates geometry. It discards existing coordinates, dimensions,
+waypoints, and labels; existing DI determines only whether an embedded
+sub-process is expanded.
 
-Equal alternatives are resolved by BPMN declaration order. The same semantic
-input therefore produces byte-identical output.
+BPMN declaration order breaks ties. The same semantic input therefore produces
+byte-identical output.
 
 ## Algorithm overview
 
@@ -69,12 +69,12 @@ reads that complete geometry without changing it and creates all BPMN DI.
 
 ## Input and validation
 
-[`layoutProcess`](../lib/index.js) parses XML with `bpmn-moddle`, selects a
+[`layoutProcess`](../lib/index.ts) parses XML with `bpmn-moddle`, selects a
 collaboration when one exists or otherwise the first process, removes existing
 diagrams, generates new geometry, and resolves with `{ xml, warnings }`.
 
-The engine rejects input for which valid geometry would be misleading or
-undefined. [`LayoutError`](../lib/LayoutError.js) provides stable codes for:
+The engine rejects input when valid geometry would be misleading or undefined.
+[`LayoutError`](../lib/LayoutError.ts) provides stable codes for:
 
 - invalid or cross-scope sequence flows;
 - invalid message-flow endpoints;
@@ -87,12 +87,11 @@ undefined. [`LayoutError`](../lib/LayoutError.js) provides stable codes for:
 - routes that cannot avoid unrelated shapes;
 - artifact or external-label searches that cannot find collision-free geometry.
 
-Non-fatal omissions are reported as
-[`LayoutWarning`](../lib/LayoutWarning.js) instances. After DI emission, the
-engine checks every supported visual shape and connection across all generated
-planes. `DI_NOT_CREATED` reports a semantic element for which no corresponding
-shape or edge was emitted. A group whose category value has no visible
-explicitly referenced members is omitted with `GROUP_MEMBERS_NOT_FOUND`.
+Non-fatal omissions produce [`LayoutWarning`](../lib/LayoutWarning.ts)
+instances. After DI emission, the engine checks every supported visual shape and
+connection across generated planes. `DI_NOT_CREATED` reports a semantic element
+without an emitted shape or edge. `GROUP_MEMBERS_NOT_FOUND` reports a group
+whose category value has no visible explicitly referenced members.
 
 An empty definitions document remains valid and receives no invented process.
 
@@ -461,8 +460,8 @@ around uncovered docks and reroute until every dock fits.
 
 The layout is translated so its minimum shape extents begin at the outer shape
 margin. Edge waypoints move by the same offset and may occupy that routing
-space. [`FinalizeConnections`](../lib/layout/connections/FinalizeConnections.js)
-then finalizes connection geometry. [`DiagramGeneration`](../lib/layout/DiagramGeneration.js)
+space. [`FinalizeConnections`](../lib/layout/connections/FinalizeConnections.ts)
+then finalizes connection geometry. [`DiagramGeneration`](../lib/layout/DiagramGeneration.ts)
 computes external-label bounds for every independent plane before
 creating any BPMN DI.
 
@@ -507,11 +506,11 @@ elements never receive task-sized fallback geometry.
 
 ## Execution architecture
 
-The [`layout` entrypoint](../lib/layout/index.js) owns parsing and root
-selection, delegating process scopes to [`process`](../lib/layout/process/index.js)
-and collaborations to [`collaboration`](../lib/layout/collaboration/index.js).
+The [`layout` entrypoint](../lib/layout/index.ts) owns parsing and root
+selection, delegating process scopes to [`process`](../lib/layout/process/index.ts)
+and collaborations to [`collaboration`](../lib/layout/collaboration/index.ts).
 It passes the complete layout tree to the deep
-[`DiagramGeneration`](../lib/layout/DiagramGeneration.js) module,
+[`DiagramGeneration`](../lib/layout/DiagramGeneration.ts) module,
 which owns normalization, finalization, external labels, plane traversal, and
 DI output behind one interface. Process and collaboration entrypoints build
 their contexts and run private immutable phase lists. Nested process scopes
@@ -556,7 +555,7 @@ bounds until every participant-side dock fits.
 
 Reusable context contracts live in
 [`Types.ts`](../lib/layout/Types.ts). Runtime modules reference them through
-type-only JSDoc imports.
+type-only imports.
 
 Process, collaboration, artifact, and connection-finalization routing reuse the
 shared orthogonal search where their geometric contracts match. BPMN endpoint
@@ -581,35 +580,35 @@ complete generated geometry.
 
 | Concern | Main implementation |
 | --- | --- |
-| Layout engine entrypoint | [`layout/index.js`](../lib/layout/index.js) |
+| Layout engine entrypoint | [`layout/index.ts`](../lib/layout/index.ts) |
 | Process pipeline and stages | [`process/`](../lib/layout/process) |
 | Collaboration pipeline and geometry | [`collaboration/`](../lib/layout/collaboration) |
 | Spine, components, bands, cycles, and ranks | [`process/semantics/`](../lib/layout/process/semantics) |
-| Coordinates, component packing, and boundary events | [`process/placement/ShapePlacement.js`](../lib/layout/process/placement/ShapePlacement.js) |
-| Lane membership, measurement, and placement | [`process/placement/LanePlacement.js`](../lib/layout/process/placement/LanePlacement.js) |
-| Participant container bounds and expanded sub-processes | [`process/placement/ParticipantBounds.js`](../lib/layout/process/placement/ParticipantBounds.js), [`process/placement/ExpandedSubProcess.js`](../lib/layout/process/placement/ExpandedSubProcess.js) |
+| Coordinates, component packing, and boundary events | [`process/placement/ShapePlacement.ts`](../lib/layout/process/placement/ShapePlacement.ts) |
+| Lane membership, measurement, and placement | [`process/placement/LanePlacement.ts`](../lib/layout/process/placement/LanePlacement.ts) |
+| Participant container bounds and expanded sub-processes | [`process/placement/ParticipantBounds.ts`](../lib/layout/process/placement/ParticipantBounds.ts), [`process/placement/ExpandedSubProcess.ts`](../lib/layout/process/placement/ExpandedSubProcess.ts) |
 | Sequence-flow routing | [`process/routing/`](../lib/layout/process/routing) |
 | Shared orthogonal search and BPMN routing adapter | [`routing/`](../lib/layout/routing) |
-| Artifact context and ownership | [`artifacts/Context.js`](../lib/layout/artifacts/Context.js), [`artifacts/Ownership.js`](../lib/layout/artifacts/Ownership.js) |
-| Artifact placement and candidate generation | [`artifacts/Placement.js`](../lib/layout/artifacts/Placement.js), [`artifacts/PlacementCandidates.js`](../lib/layout/artifacts/PlacementCandidates.js) |
-| Artifact obstacle and association routing | [`artifacts/ObstacleRoutes.js`](../lib/layout/artifacts/ObstacleRoutes.js), [`artifacts/AssociationRouting.js`](../lib/layout/artifacts/AssociationRouting.js) |
-| Explicit group bounds | [`groups/LayoutGroups.js`](../lib/layout/groups/LayoutGroups.js) |
+| Artifact context and ownership | [`artifacts/Context.ts`](../lib/layout/artifacts/Context.ts), [`artifacts/Ownership.ts`](../lib/layout/artifacts/Ownership.ts) |
+| Artifact placement and candidate generation | [`artifacts/Placement.ts`](../lib/layout/artifacts/Placement.ts), [`artifacts/PlacementCandidates.ts`](../lib/layout/artifacts/PlacementCandidates.ts) |
+| Artifact obstacle and association routing | [`artifacts/ObstacleRoutes.ts`](../lib/layout/artifacts/ObstacleRoutes.ts), [`artifacts/AssociationRouting.ts`](../lib/layout/artifacts/AssociationRouting.ts) |
+| Explicit group bounds | [`groups/LayoutGroups.ts`](../lib/layout/groups/LayoutGroups.ts) |
 | External label placement | [`labels/`](../lib/layout/labels) |
 | Layout state and geometry | [`geometry/`](../lib/layout/geometry) |
 | BPMN predicates | [`bpmn/`](../lib/layout/bpmn) |
 | Final connection docking | [`connections/`](../lib/layout/connections) |
-| Diagram generation and DI output | [`DiagramGeneration.js`](../lib/layout/DiagramGeneration.js) |
+| Diagram generation and DI output | [`DiagramGeneration.ts`](../lib/layout/DiagramGeneration.ts) |
 
 ## Maintaining the contract
 
 For an intentional behavior change:
 
-1. update the focused spec or a minimal [`LayoutSpec.js`](../test/LayoutSpec.js)
+1. update the focused spec or a minimal [`LayoutSpec.ts`](../test/LayoutSpec.ts)
    [fixture](../test/fixtures);
 2. inspect snapshots and corpus metrics as described in
    [`test/README.md`](../test/README.md);
 3. update this document when the rule or mechanism changes.
 
 Snapshots record exact geometry; metrics expose quality trends. Wrong-way
-docking and non-orthogonal connection counts must remain zero across the fixture
-corpus. Neither replaces visual review.
+docking and non-orthogonal connections must remain zero across the fixture
+corpus. Review visual changes before accepting them.

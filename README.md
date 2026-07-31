@@ -2,7 +2,8 @@
 
 [![CI](https://github.com/bpmn-io/bpmn-auto-layout/actions/workflows/CI.yml/badge.svg)](https://github.com/bpmn-io/bpmn-auto-layout/actions/workflows/CI.yml)
 
-Generate BPMN Diagram Interchange (DI) for BPMN XML with our without existing DI. Supports processes and collaborations.
+Generate complete BPMN Diagram Interchange (DI) from BPMN XML, with or without
+existing DI. Supports processes and collaborations.
 
 Try it out in [the example project](https://bpmn-io.github.io/bpmn-auto-layout/).
 
@@ -12,8 +13,8 @@ Try it out in [the example project](https://bpmn-io.github.io/bpmn-auto-layout/)
 npm install bpmn-auto-layout
 ```
 
-The library works with [Node.js](https://nodejs.org/) 22 or newer and in the
-browser.
+Requires [Node.js](https://nodejs.org/) 22.12 or newer. Browser builds are also
+supported.
 
 ## Library usage
 
@@ -37,10 +38,10 @@ console.warn(warnings);
 
 ### Runtime and cancellation
 
-XML parsing and serialization are asynchronous, but layout computation is
-CPU-bound and runs synchronously. Run large or untrusted diagrams in a Web
-Worker or Node.js `worker_threads` worker so layout cannot block the application
-event loop or browser main thread.
+XML parsing and serialization are asynchronous; layout computation is synchronous
+and CPU-bound. Run large or untrusted diagrams in a Web Worker or Node.js
+`worker_threads` worker to keep it off the application event loop or browser main
+thread.
 
 An in-flight layout cannot be interrupted with an `AbortSignal`. To enforce a
 deadline, run one layout per worker and terminate that worker when the deadline
@@ -48,7 +49,7 @@ expires.
 
 ## Command line
 
-The package also provides a command-line interface:
+The package includes a command-line interface:
 
 ```sh
 # replace the file in place
@@ -68,7 +69,6 @@ the input. Layout warnings are emitted as JSON lines to standard error. Use
 ## Resources
 
 * [Layout engine](./docs/LAYOUT.md) — design, algorithm, and geometry rules
-* [Layout walkthrough](./docs/WALKTHROUGH.md) — end-to-end boundary error-event example
 * [Issues](https://github.com/bpmn-io/bpmn-auto-layout/issues)
 
 ## Development
@@ -79,8 +79,8 @@ npm run all
 npm run test:performance
 ```
 
-See [`test/README.md`](./test/README.md) for test, snapshot, inspection, and
-performance workflows.
+See [`test/README.md`](./test/README.md) for fixture, snapshot, visual-review,
+and performance workflows.
 
 ## License
 
