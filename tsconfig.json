@@ -42,6 +42,7 @@
     "test/SemanticPolicySpec.ts",
     "test/LayoutStateSpec.ts",
     "test/LanePlacementSpec.ts",
+    "test/LayoutGroupsSpec.ts",
     "test/mocha.d.ts"
   ]
 }

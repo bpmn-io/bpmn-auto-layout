@@ -1,25 +1,15 @@
 import assert from 'node:assert';
 
 import { BpmnModdle } from 'bpmn-moddle';
+import { describe, it } from 'mocha';
 
 import { createLayout } from '../lib/layout/geometry/index.js';
 import { layoutGroups } from '../lib/layout/groups/LayoutGroups.js';
 
 describe('LayoutGroups', function() {
 
-  let moddle;
-  let categoryValue;
-  let process;
-
-  beforeEach(function() {
-    moddle = new BpmnModdle();
-    categoryValue = moddle.create('bpmn:CategoryValue', {
-      id: 'CategoryValue'
-    });
-    process = moddle.create('bpmn:Process', { id: 'Process' });
-  });
-
   it('should include member shapes and connection waypoints', function() {
+    const { moddle, categoryValue, process } = createFixture();
     const group = moddle.create('bpmn:Group', {
       id: 'Group',
       categoryValueRef: categoryValue
@@ -51,6 +41,7 @@ describe('LayoutGroups', function() {
   });
 
   it('should omit groups without visible members', function() {
+    const { moddle, categoryValue, process } = createFixture();
     const group = moddle.create('bpmn:Group', {
       id: 'Group',
       categoryValueRef: categoryValue
@@ -64,3 +55,13 @@ describe('LayoutGroups', function() {
     assert.strictEqual(warnings[0].code, 'GROUP_MEMBERS_NOT_FOUND');
   });
 });
+
+function createFixture() {
+  const moddle = new BpmnModdle();
+  const categoryValue = moddle.create('bpmn:CategoryValue', {
+    id: 'CategoryValue'
+  });
+  const process = moddle.create('bpmn:Process', { id: 'Process' });
+
+  return { moddle, categoryValue, process };
+}
