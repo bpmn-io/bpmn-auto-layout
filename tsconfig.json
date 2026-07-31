@@ -25,6 +25,8 @@
     "tasks/render-fixture.ts",
     "tasks/layout-review.ts",
     "test/inspector/Timing.ts",
-    "test/inspector/Report.ts"
+    "test/inspector/Report.ts",
+    "test/metrics/computeMetrics.ts",
+    "test/metrics.ts"
   ]
 }

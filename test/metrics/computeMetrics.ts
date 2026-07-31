@@ -2,6 +2,37 @@ import { BpmnModdle } from 'bpmn-moddle';
 
 import { FLOW_LABEL_INDENT } from '../../lib/layout/Constants.js';
 import { externalLabelSize } from '../../lib/layout/labels/LayoutLabels.js';
+import {
+  isBpmndiType,
+  isBpmnType
+} from '../../lib/layout/bpmn/Types.js';
+
+import type {
+  BoundedBpmnShape,
+  BpmnDiagram,
+  BpmnEdge,
+  BpmnLabel,
+  BpmnPlane,
+  BpmnShape,
+  DockingFinding,
+  LayoutMetrics,
+  MetricAnalysis,
+  MetricBounds,
+  MetricDockingSide,
+  MetricDiBounds,
+  MetricDiWaypoint,
+  MetricEdge,
+  MetricElement,
+  MetricFindings,
+  MetricId,
+  MetricLabelBounds,
+  MetricPlane,
+  MetricSegment,
+  MetricShape,
+  MetricWaypoint,
+  NonOrthogonalConnectionFinding,
+  RoutedBpmnEdge
+} from './Types.js';
 
 const moddle = new BpmnModdle();
 
@@ -43,50 +74,38 @@ const moddle = new BpmnModdle();
  *                                   gateway fans that reflect across the
  *                                   gateway's horizontal axis.
  *
- * @param {string} xml laid-out BPMN 2.0 XML
- * @return {Promise<{
- *   shapeCount: number,
- *   edgeCount: number,
- *   crossings: number,
- *   overlaps: number,
- *   edgeShapeIntersections: number,
- *   detachedDockings: number,
- *   wrongWayDockings: number,
- *   nonOrthogonalConnections: number,
- *   backtrackingConnections: number,
- *   bendCount: number,
- *   averageEdgeLength: number,
- *   edgeSegmentLengthDeviation: number,
- *   labelShapeOverlaps: number,
- *   labelEdgeOverlaps: number,
- *   compactness: number,
- *   gridAlignment: number,
- *   branchSymmetry: number
- * }>}
  */
-export async function computeMetrics(xml) {
+export async function computeMetrics(xml: string): Promise<LayoutMetrics> {
   return (await analyzeMetrics(xml)).metrics;
 }
 
-export async function analyzeMetrics(xml) {
+export async function analyzeMetrics(xml: string): Promise<MetricAnalysis> {
   const { rootElement: definitions } = await moddle.fromXML(xml);
 
-  const planes = [];
+  const planes: MetricPlane[] = [];
 
-  for (const diagram of definitions.diagrams || []) {
-    const plane = diagram.plane;
+  const diagrams: readonly BpmnDiagram[] = definitions.diagrams || [];
+
+  for (const diagram of diagrams) {
+    const plane: BpmnPlane | undefined = diagram.plane;
 
     if (!plane) {
       continue;
     }
 
-    const shapes = [];
-    const edges = [];
+    const shapes: MetricShape[] = [];
+    const edges: MetricEdge[] = [];
 
     for (const di of plane.planeElement || []) {
-      if (di.$instanceOf('bpmndi:BPMNShape') && di.bounds) {
+      if (
+        isBpmndiType(di, 'bpmndi:BPMNShape') &&
+        hasMetricBounds(di)
+      ) {
         shapes.push(toShape(di));
-      } else if (di.$instanceOf('bpmndi:BPMNEdge') && di.waypoint) {
+      } else if (
+        isBpmndiType(di, 'bpmndi:BPMNEdge') &&
+        hasMetricWaypoints(di)
+      ) {
         edges.push(toEdge(di));
       }
     }
@@ -94,7 +113,7 @@ export async function analyzeMetrics(xml) {
     planes.push({ shapes, edges });
   }
 
-  const findings = {
+  const findings: MetricFindings = {
     crossings: planes.flatMap(plane => findCrossings(plane.edges)),
     overlaps: planes.flatMap(plane => findOverlaps(plane.shapes)),
     edgeShapeIntersections: planes.flatMap(plane => findEdgeShapeIntersections(plane.edges, plane.shapes)),
@@ -130,62 +149,60 @@ export async function analyzeMetrics(xml) {
   };
 }
 
-function sum(items, mapper) {
+function sum<Item>(
+    items: readonly Item[],
+    mapper: (item: Item) => number
+): number {
   return items.reduce((total, item) => total + mapper(item), 0);
 }
 
 
 // shape extraction ////////////////////////////////////////////////
 
-function toShape(di) {
+function toShape(di: BoundedBpmnShape): MetricShape {
   const element = di.bpmnElement;
   const { x, y, width, height } = di.bounds;
 
   return {
-    id: element && element.id,
+    id: element?.id,
     x, y, width, height,
-    isFlowNode: !!element && element.$instanceOf('bpmn:FlowNode'),
-    isEvent: !!element && element.$instanceOf('bpmn:Event'),
-    isGateway: !!element && element.$instanceOf('bpmn:Gateway'),
+    isFlowNode: isBpmnType(element, 'bpmn:FlowNode'),
+    isEvent: isBpmnType(element, 'bpmn:Event'),
+    isGateway: isBpmnType(element, 'bpmn:Gateway'),
     labelBounds: toLabelBounds(di.label),
-    isBoundary: !!element && element.$instanceOf('bpmn:BoundaryEvent'),
-    isArtifact: !!element && (
-      element.$instanceOf('bpmn:TextAnnotation') ||
-      element.$instanceOf('bpmn:DataObjectReference') ||
-      element.$instanceOf('bpmn:DataStoreReference') ||
-      element.$instanceOf('bpmn:Group')
-    ),
+    isBoundary: isBpmnType(element, 'bpmn:BoundaryEvent'),
+    isArtifact: isBpmnType(element, 'bpmn:TextAnnotation') ||
+      isBpmnType(element, 'bpmn:DataObjectReference') ||
+      isBpmnType(element, 'bpmn:DataStoreReference') ||
+      isBpmnType(element, 'bpmn:Group'),
     isContainer:
       di.isExpanded === true ||
-      (!!element && (
-        element.$instanceOf('bpmn:Participant') ||
-        element.$instanceOf('bpmn:Lane') ||
-        element.$instanceOf('bpmn:Group')
-      ))
+      isBpmnType(element, 'bpmn:Participant') ||
+      isBpmnType(element, 'bpmn:Lane') ||
+      isBpmnType(element, 'bpmn:Group')
   };
 }
 
-function toEdge(di) {
+function toEdge(di: RoutedBpmnEdge): MetricEdge {
   const element = di.bpmnElement;
-  const source = element && element.sourceRef;
-  const target = element && element.targetRef;
+  const name = elementName(element);
 
   return {
-    id: element && element.id,
-    sourceId: source && source.id,
-    targetId: target && target.id,
-    isSequenceFlow: !!element && element.$instanceOf('bpmn:SequenceFlow'),
-    isMessageFlow: !!element && element.$instanceOf('bpmn:MessageFlow'),
-    hasLabel: typeof element?.name === 'string' && element.name.trim().length > 0,
-    name: element && element.name,
-    isDefault: !!source && source.default === element,
+    id: element?.id,
+    sourceId: sourceId(element),
+    targetId: targetId(element),
+    isSequenceFlow: isBpmnType(element, 'bpmn:SequenceFlow'),
+    isMessageFlow: isBpmnType(element, 'bpmn:MessageFlow'),
+    hasLabel: typeof name === 'string' && name.trim().length > 0,
+    name,
+    isDefault: isDefaultSequenceFlow(element),
     labelBounds: toLabelBounds(di.label),
     waypoints: di.waypoint.map(({ x, y }) => ({ x, y }))
   };
 }
 
-function toLabelBounds(label) {
-  if (!label?.bounds) {
+function toLabelBounds(label: BpmnLabel | undefined): MetricBounds | null {
+  if (!label || !isMetricBounds(label.bounds)) {
     return null;
   }
 
@@ -194,63 +211,165 @@ function toLabelBounds(label) {
   return { x, y, width, height };
 }
 
+function hasMetricBounds(
+    shape: BpmnShape
+): shape is BoundedBpmnShape {
+  return isMetricBounds(shape.bounds);
+}
+
+function isMetricBounds(
+    bounds: BpmnShape['bounds'] | BpmnLabel['bounds']
+): bounds is MetricDiBounds {
+  return !!bounds &&
+    typeof bounds.x === 'number' &&
+    typeof bounds.y === 'number' &&
+    typeof bounds.width === 'number' &&
+    typeof bounds.height === 'number';
+}
+
+function hasMetricWaypoints(edge: BpmnEdge): edge is RoutedBpmnEdge {
+  return !!edge.waypoint && edge.waypoint.every(isMetricWaypoint);
+}
+
+function isMetricWaypoint(
+    waypoint: NonNullable<BpmnEdge['waypoint']>[number]
+): waypoint is MetricDiWaypoint {
+  return typeof waypoint.x === 'number' && typeof waypoint.y === 'number';
+}
+
+function sourceId(element: MetricElement | undefined): MetricId {
+  if (
+    isBpmnType(element, 'bpmn:SequenceFlow') ||
+    isBpmnType(element, 'bpmn:MessageFlow') ||
+    isBpmnType(element, 'bpmn:Association') ||
+    isBpmnType(element, 'bpmn:ConversationLink')
+  ) {
+    return elementId(element.sourceRef);
+  }
+
+  return undefined;
+}
+
+function targetId(element: MetricElement | undefined): MetricId {
+  if (
+    isBpmnType(element, 'bpmn:SequenceFlow') ||
+    isBpmnType(element, 'bpmn:MessageFlow') ||
+    isBpmnType(element, 'bpmn:Association') ||
+    isBpmnType(element, 'bpmn:ConversationLink') ||
+    isBpmnType(element, 'bpmn:DataAssociation')
+  ) {
+    return elementId(element.targetRef);
+  }
+
+  return undefined;
+}
+
+function elementId(element: MetricElement | undefined): MetricId {
+  return typeof element?.id === 'string'
+    ? element.id
+    : undefined;
+}
+
+function elementName(element: MetricElement | undefined): string | undefined {
+  if (!element || !('name' in element) || typeof element.name !== 'string') {
+    return undefined;
+  }
+
+  return element.name;
+}
+
+function isDefaultSequenceFlow(element: MetricElement | undefined): boolean {
+  if (!isBpmnType(element, 'bpmn:SequenceFlow') || !element.sourceRef) {
+    return false;
+  }
+
+  const source = element.sourceRef;
+
+  return (
+    isBpmnType(source, 'bpmn:Activity') ||
+    isBpmnType(source, 'bpmn:ComplexGateway') ||
+    isBpmnType(source, 'bpmn:ExclusiveGateway') ||
+    isBpmnType(source, 'bpmn:InclusiveGateway')
+  ) && source.default === element;
+}
+
 
 // connection orthogonality /////////////////////////////////////////
 
 const ORTHOGONAL_TOLERANCE = 1e-6;
 
-function findNonOrthogonalConnections(edges) {
-  return edges
-    .filter(edge => edge.isSequenceFlow || edge.isMessageFlow)
-    .map(edge => {
-      const segments = toSegments(edge.waypoints)
-        .filter(([ start, end ]) => {
-          return Math.abs(start.x - end.x) > ORTHOGONAL_TOLERANCE &&
-            Math.abs(start.y - end.y) > ORTHOGONAL_TOLERANCE;
-        });
+function findNonOrthogonalConnections(
+    edges: readonly MetricEdge[]
+): NonOrthogonalConnectionFinding[] {
+  const findings: NonOrthogonalConnectionFinding[] = [];
 
-      return segments.length ? { edgeId: edge.id, segments } : null;
-    })
-    .filter(Boolean);
+  for (const edge of edges) {
+    if (!edge.isSequenceFlow && !edge.isMessageFlow) {
+      continue;
+    }
+
+    const segments = toSegments(edge.waypoints)
+      .filter(([ start, end ]) => {
+        return Math.abs(start.x - end.x) > ORTHOGONAL_TOLERANCE &&
+          Math.abs(start.y - end.y) > ORTHOGONAL_TOLERANCE;
+      });
+
+    if (segments.length) {
+      findings.push({ edgeId: edge.id, segments });
+    }
+  }
+
+  return findings;
 }
 
-function findBacktrackingConnections(edges) {
-  return edges
-    .filter(edge => edge.isSequenceFlow || edge.isMessageFlow)
-    .map(edge => {
-      const turns = [];
-      const waypoints = removeConsecutiveDuplicates(edge.waypoints);
+function findBacktrackingConnections(
+    edges: readonly MetricEdge[]
+): MetricFindings['backtrackingConnections'] {
+  const findings: MetricFindings['backtrackingConnections'] = [];
 
-      for (let index = 1; index < waypoints.length - 1; index++) {
-        const previous = waypoints[index - 1];
-        const waypoint = waypoints[index];
-        const next = waypoints[index + 1];
-        const incoming = {
-          x: waypoint.x - previous.x,
-          y: waypoint.y - previous.y
-        };
-        const outgoing = {
-          x: next.x - waypoint.x,
-          y: next.y - waypoint.y
-        };
-        const cross = incoming.x * outgoing.y - incoming.y * outgoing.x;
-        const dot = incoming.x * outgoing.x + incoming.y * outgoing.y;
+  for (const edge of edges) {
+    if (!edge.isSequenceFlow && !edge.isMessageFlow) {
+      continue;
+    }
 
-        if (Math.abs(cross) <= ORTHOGONAL_TOLERANCE && dot < 0) {
-          turns.push({ previous, waypoint, next });
-        }
+    const turns: MetricFindings['backtrackingConnections'][number]['turns'] = [];
+    const waypoints = removeConsecutiveDuplicates(edge.waypoints);
+
+    for (let index = 1; index < waypoints.length - 1; index++) {
+      const previous = waypoints[index - 1];
+      const waypoint = waypoints[index];
+      const next = waypoints[index + 1];
+      const incoming = {
+        x: waypoint.x - previous.x,
+        y: waypoint.y - previous.y
+      };
+      const outgoing = {
+        x: next.x - waypoint.x,
+        y: next.y - waypoint.y
+      };
+      const cross = incoming.x * outgoing.y - incoming.y * outgoing.x;
+      const dot = incoming.x * outgoing.x + incoming.y * outgoing.y;
+
+      if (Math.abs(cross) <= ORTHOGONAL_TOLERANCE && dot < 0) {
+        turns.push({ previous, waypoint, next });
       }
+    }
 
-      return turns.length ? { edgeId: edge.id, turns } : null;
-    })
-    .filter(Boolean);
+    if (turns.length) {
+      findings.push({ edgeId: edge.id, turns });
+    }
+  }
+
+  return findings;
 }
 
 
 // node overlaps ///////////////////////////////////////////////////
 
-function findOverlaps(shapes) {
-  const findings = [];
+function findOverlaps(
+    shapes: readonly MetricShape[]
+): MetricFindings['overlaps'] {
+  const findings: MetricFindings['overlaps'] = [];
 
   for (let i = 0; i < shapes.length; i++) {
     for (let j = i + 1; j < shapes.length; j++) {
@@ -285,21 +404,21 @@ function findOverlaps(shapes) {
   return findings;
 }
 
-function rectanglesOverlap(a, b) {
+function rectanglesOverlap(a: MetricBounds, b: MetricBounds): boolean {
   return a.x < b.x + b.width &&
     b.x < a.x + a.width &&
     a.y < b.y + b.height &&
     b.y < a.y + a.height;
 }
 
-function contains(outer, inner) {
+function contains(outer: MetricBounds, inner: MetricBounds): boolean {
   return inner.x >= outer.x &&
     inner.y >= outer.y &&
     inner.x + inner.width <= outer.x + outer.width &&
     inner.y + inner.height <= outer.y + outer.height;
 }
 
-function intersectionBounds(a, b) {
+function intersectionBounds(a: MetricBounds, b: MetricBounds): MetricBounds {
   const x = Math.max(a.x, b.x);
   const y = Math.max(a.y, b.y);
 
@@ -314,10 +433,12 @@ function intersectionBounds(a, b) {
 
 // edge crossings //////////////////////////////////////////////////
 
-function findCrossings(edges) {
+function findCrossings(
+    edges: readonly MetricEdge[]
+): MetricFindings['crossings'] {
   const segments = edges.map(edge => toSegments(edge.waypoints));
 
-  const findings = [];
+  const findings: MetricFindings['crossings'] = [];
 
   for (let i = 0; i < segments.length; i++) {
     for (let j = i + 1; j < segments.length; j++) {
@@ -337,8 +458,8 @@ function findCrossings(edges) {
   return findings;
 }
 
-function toSegments(waypoints) {
-  const segments = [];
+function toSegments(waypoints: readonly MetricWaypoint[]): MetricSegment[] {
+  const segments: MetricSegment[] = [];
 
   for (let i = 0; i < waypoints.length - 1; i++) {
     segments.push([ waypoints[i], waypoints[i + 1] ]);
@@ -351,7 +472,12 @@ function toSegments(waypoints) {
  * Proper crossing: the segment interiors intersect. Shared endpoints (edges
  * meeting at a node), T-touches and collinear overlaps are NOT counted.
  */
-function segmentsProperlyCross(p1, p2, p3, p4) {
+function segmentsProperlyCross(
+    p1: MetricWaypoint,
+    p2: MetricWaypoint,
+    p3: MetricWaypoint,
+    p4: MetricWaypoint
+): boolean {
   const d1 = direction(p3, p4, p1);
   const d2 = direction(p3, p4, p2);
   const d3 = direction(p1, p2, p3);
@@ -361,11 +487,20 @@ function segmentsProperlyCross(p1, p2, p3, p4) {
     ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
 }
 
-function direction(a, b, c) {
+function direction(
+    a: MetricWaypoint,
+    b: MetricWaypoint,
+    c: MetricWaypoint
+): number {
   return Math.sign((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x));
 }
 
-function segmentIntersection(a, b, c, d) {
+function segmentIntersection(
+    a: MetricWaypoint,
+    b: MetricWaypoint,
+    c: MetricWaypoint,
+    d: MetricWaypoint
+): MetricWaypoint {
   const abX = b.x - a.x;
   const abY = b.y - a.y;
   const cdX = d.x - c.x;
@@ -391,8 +526,11 @@ const INTERSECTION_MARGIN = 2;
  * shape. The edge's own source and target are excluded, as are containers and
  * boundary events and text annotations.
  */
-function findEdgeShapeIntersections(edges, shapes) {
-  const findings = [];
+function findEdgeShapeIntersections(
+    edges: readonly MetricEdge[],
+    shapes: readonly MetricShape[]
+): MetricFindings['edgeShapeIntersections'] {
+  const findings: MetricFindings['edgeShapeIntersections'] = [];
 
   for (const edge of edges) {
     for (const shape of shapes) {
@@ -423,7 +561,7 @@ function findEdgeShapeIntersections(edges, shapes) {
   return findings;
 }
 
-function inset(shape, margin) {
+function inset(shape: MetricBounds, margin: number): MetricBounds {
   return {
     x: shape.x + margin,
     y: shape.y + margin,
@@ -432,7 +570,10 @@ function inset(shape, margin) {
   };
 }
 
-function edgeEntersRect(waypoints, rect) {
+function edgeEntersRect(
+    waypoints: readonly MetricWaypoint[],
+    rect: MetricBounds
+): boolean {
   for (let i = 0; i < waypoints.length - 1; i++) {
     if (segmentEntersRect(waypoints[i], waypoints[i + 1], rect)) {
       return true;
@@ -446,7 +587,11 @@ function edgeEntersRect(waypoints, rect) {
  * Liang–Barsky clip: true when the segment shares a positive-length interval
  * with the rectangle interior.
  */
-function segmentEntersRect(p1, p2, rect) {
+function segmentEntersRect(
+    p1: MetricWaypoint,
+    p2: MetricWaypoint,
+    rect: MetricBounds
+): boolean {
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;
 
@@ -495,14 +640,19 @@ function segmentEntersRect(p1, p2, rect) {
 
 const DOCKING_TOLERANCE = 1e-6;
 
-function findDetachedDockings(edges, shapes) {
-  const shapeById = new Map(shapes.map(shape => [ shape.id, shape ]));
-  const findings = [];
+function findDetachedDockings(
+    edges: readonly MetricEdge[],
+    shapes: readonly MetricShape[]
+): DockingFinding[] {
+  const shapeById = new Map<MetricId, MetricShape>(
+    shapes.map(shape => [ shape.id, shape ])
+  );
+  const findings: DockingFinding[] = [];
 
   for (const edge of edges) {
     const source = shapeById.get(edge.sourceId);
     const target = shapeById.get(edge.targetId);
-    const endpointPairs = [
+    const endpointPairs: [ MetricShape | undefined, MetricWaypoint | null ][] = [
       [ source, edge.waypoints[0] || null ],
       [ target, edge.waypoints.at(-1) || null ]
     ];
@@ -525,7 +675,7 @@ function findDetachedDockings(edges, shapes) {
   return findings;
 }
 
-function isAttached(endpoint, shape) {
+function isAttached(endpoint: MetricWaypoint, shape: MetricShape): boolean {
   const radiusX = shape.width / 2;
   const radiusY = shape.height / 2;
   const offsetX = Math.abs(endpoint.x - shape.x - radiusX);
@@ -545,9 +695,14 @@ function isAttached(endpoint, shape) {
   return dockingSides(endpoint, shape).length > 0;
 }
 
-function findWrongWayDockings(edges, shapes) {
-  const shapeById = new Map(shapes.map(shape => [ shape.id, shape ]));
-  const findings = [];
+function findWrongWayDockings(
+    edges: readonly MetricEdge[],
+    shapes: readonly MetricShape[]
+): DockingFinding[] {
+  const shapeById = new Map<MetricId, MetricShape>(
+    shapes.map(shape => [ shape.id, shape ])
+  );
+  const findings: DockingFinding[] = [];
 
   for (const edge of edges) {
     if (edge.waypoints.length < 2) {
@@ -571,14 +726,17 @@ function findWrongWayDockings(edges, shapes) {
       });
     }
 
+    const lastWaypoint = edge.waypoints[edge.waypoints.length - 1];
+    const previousWaypoint = edge.waypoints[edge.waypoints.length - 2];
+
     if (target && !target.isArtifact && dockingIsWrong(
-      edge.waypoints.at(-1),
-      edge.waypoints.at(-2),
+      lastWaypoint,
+      previousWaypoint,
       target
     )) {
       findings.push({
         edgeId: edge.id,
-        endpoint: edge.waypoints.at(-1),
+        endpoint: lastWaypoint,
         shapeId: target.id
       });
     }
@@ -587,7 +745,11 @@ function findWrongWayDockings(edges, shapes) {
   return findings;
 }
 
-function dockingIsWrong(endpoint, adjacent, shape) {
+function dockingIsWrong(
+    endpoint: MetricWaypoint,
+    adjacent: MetricWaypoint,
+    shape: MetricShape
+): boolean {
   const sides = dockingSides(endpoint, shape);
 
   return sides.length > 1 || (
@@ -607,8 +769,11 @@ function dockingIsWrong(endpoint, adjacent, shape) {
   );
 }
 
-function dockingSides(point, shape) {
-  const sides = [];
+function dockingSides(
+    point: MetricWaypoint,
+    shape: MetricShape
+): MetricDockingSide[] {
+  const sides: MetricDockingSide[] = [];
   const centerSides = shape.isEvent || shape.isGateway;
   const centerX = shape.x + shape.width / 2;
   const centerY = shape.y + shape.height / 2;
@@ -635,18 +800,18 @@ function dockingSides(point, shape) {
   return sides;
 }
 
-function between(value, min, max) {
+function between(value: number, min: number, max: number): boolean {
   return value >= min - DOCKING_TOLERANCE && value <= max + DOCKING_TOLERANCE;
 }
 
-function near(a, b) {
+function near(a: number, b: number): boolean {
   return Math.abs(a - b) <= DOCKING_TOLERANCE;
 }
 
 
 // average edge length /////////////////////////////////////////////
 
-function averageEdgeLength(edges) {
+function averageEdgeLength(edges: readonly MetricEdge[]): number {
   if (!edges.length) {
     return 0;
   }
@@ -668,13 +833,16 @@ function averageEdgeLength(edges) {
 
 // label/shape overlaps /////////////////////////////////////////////
 
-function findLabelShapeOverlaps(shapes, edges) {
+function findLabelShapeOverlaps(
+    shapes: readonly MetricShape[],
+    edges: readonly MetricEdge[]
+): MetricFindings['labelShapeOverlaps'] {
   const labels = collectLabelBounds(shapes, edges);
   const obstacles = shapes.filter(shape => {
     return shape.isFlowNode && !shape.isContainer && !shape.isBoundary && !shape.isArtifact;
   });
 
-  const findings = [];
+  const findings: MetricFindings['labelShapeOverlaps'] = [];
 
   for (const label of labels) {
     for (const shape of obstacles) {
@@ -690,9 +858,12 @@ function findLabelShapeOverlaps(shapes, edges) {
   return findings;
 }
 
-function findLabelEdgeOverlaps(shapes, edges) {
+function findLabelEdgeOverlaps(
+    shapes: readonly MetricShape[],
+    edges: readonly MetricEdge[]
+): MetricFindings['labelEdgeOverlaps'] {
   const labels = collectLabelBounds(shapes, edges);
-  const findings = [];
+  const findings: MetricFindings['labelEdgeOverlaps'] = [];
 
   for (const label of labels) {
     for (const edge of edges) {
@@ -708,7 +879,10 @@ function findLabelEdgeOverlaps(shapes, edges) {
   return findings;
 }
 
-function collectLabelBounds(shapes, edges) {
+function collectLabelBounds(
+    shapes: readonly MetricShape[],
+    edges: readonly MetricEdge[]
+): MetricLabelBounds[] {
   return [
     ...shapes.flatMap(shape => {
       return shape.labelBounds ? [ {
@@ -727,8 +901,8 @@ function collectLabelBounds(shapes, edges) {
   ];
 }
 
-function implicitFlowLabelBounds(edge) {
-  if (!edge.hasLabel || !edge.waypoints.length) {
+function implicitFlowLabelBounds(edge: MetricEdge): MetricBounds | null {
+  if (!edge.hasLabel || !edge.waypoints.length || !edge.name) {
     return null;
   }
 
@@ -743,7 +917,9 @@ function implicitFlowLabelBounds(edge) {
   };
 }
 
-function flowLabelPosition(waypoints) {
+function flowLabelPosition(
+    waypoints: readonly MetricWaypoint[]
+): MetricWaypoint {
   const mid = waypoints.length / 2 - 1;
   const first = waypoints[Math.floor(mid)];
   const second = waypoints[Math.ceil(mid + 0.01)];
@@ -762,7 +938,7 @@ const POSITION_TOLERANCE = 1;
 const SCORE_SCALE = 100;
 const SCORE_PRECISION = 1;
 
-function countBends(edges) {
+function countBends(edges: readonly MetricEdge[]): number {
   return sum(edges, edge => {
     const waypoints = removeConsecutiveDuplicates(edge.waypoints);
     let bends = 0;
@@ -777,7 +953,11 @@ function countBends(edges) {
   });
 }
 
-function changesDirection(a, b, c) {
+function changesDirection(
+    a: MetricWaypoint,
+    b: MetricWaypoint,
+    c: MetricWaypoint
+): boolean {
   const incoming = { x: b.x - a.x, y: b.y - a.y };
   const outgoing = { x: c.x - b.x, y: c.y - b.y };
   const cross = incoming.x * outgoing.y - incoming.y * outgoing.x;
@@ -786,7 +966,9 @@ function changesDirection(a, b, c) {
   return cross !== 0 || dot < 0;
 }
 
-function removeConsecutiveDuplicates(points) {
+function removeConsecutiveDuplicates(
+    points: readonly MetricWaypoint[]
+): MetricWaypoint[] {
   return points.filter((point, index) => {
     return index === 0 ||
       point.x !== points[index - 1].x ||
@@ -794,7 +976,7 @@ function removeConsecutiveDuplicates(points) {
   });
 }
 
-function segmentLengthDeviation(planes) {
+function segmentLengthDeviation(planes: readonly MetricPlane[]): number {
   const lengths = planes.flatMap(plane => {
     return plane.edges.flatMap(edge => {
       return toSegments(removeConsecutiveDuplicates(edge.waypoints))
@@ -813,7 +995,7 @@ function segmentLengthDeviation(planes) {
   return Math.sqrt(variance);
 }
 
-function compactness(planes) {
+function compactness(planes: readonly MetricPlane[]): number {
   let occupiedArea = 0;
   let boundingArea = 0;
 
@@ -847,7 +1029,7 @@ function compactness(planes) {
   return boundingArea ? occupiedArea / boundingArea * SCORE_SCALE : 0;
 }
 
-function gridAlignment(planes) {
+function gridAlignment(planes: readonly MetricPlane[]): number {
   let aligned = 0;
   let total = 0;
 
@@ -866,13 +1048,15 @@ function gridAlignment(planes) {
   return total ? aligned / total * SCORE_SCALE : 0;
 }
 
-function branchSymmetry(planes) {
+function branchSymmetry(planes: readonly MetricPlane[]): number {
   let symmetricTargets = 0;
   let totalTargets = 0;
 
   for (const plane of planes) {
-    const shapeById = new Map(plane.shapes.map(shape => [ shape.id, shape ]));
-    const outgoing = new Map();
+    const shapeById = new Map<MetricId, MetricShape>(
+      plane.shapes.map(shape => [ shape.id, shape ])
+    );
+    const outgoing = new Map<MetricId, MetricEdge[]>();
 
     for (const edge of plane.edges) {
       if (!edge.isSequenceFlow) {
@@ -891,9 +1075,15 @@ function branchSymmetry(planes) {
         continue;
       }
 
-      const targets = edges
-        .map(edge => shapeById.get(edge.targetId))
-        .filter(Boolean);
+      const targets: MetricShape[] = [];
+
+      for (const edge of edges) {
+        const target = shapeById.get(edge.targetId);
+
+        if (target) {
+          targets.push(target);
+        }
+      }
       const sourceCenter = center(source);
 
       totalTargets += targets.length;
@@ -914,26 +1104,32 @@ function branchSymmetry(planes) {
   return totalTargets ? symmetricTargets / totalTargets * SCORE_SCALE : SCORE_SCALE;
 }
 
-function qualityShapes(shapes) {
+function qualityShapes(
+    shapes: readonly MetricShape[]
+): MetricShape[] {
   return shapes.filter(shape => shape.isFlowNode && !shape.isBoundary);
 }
 
-function alignmentSize(items, coordinate, value) {
+function alignmentSize(
+    items: readonly MetricShape[],
+    coordinate: (item: MetricShape) => number,
+    value: number
+): number {
   return items.filter(item => closePosition(coordinate(item), value)).length;
 }
 
-function closePosition(a, b) {
+function closePosition(a: number, b: number): boolean {
   return Math.abs(a - b) <= POSITION_TOLERANCE;
 }
 
-function center(shape) {
+function center(shape: MetricShape): MetricWaypoint {
   return {
     x: shape.x + shape.width / 2,
     y: shape.y + shape.height / 2
   };
 }
 
-function roundScore(value) {
+function roundScore(value: number): number {
   const factor = 10 ** SCORE_PRECISION;
 
   return Math.round(value * factor) / factor;

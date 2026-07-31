@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 
-import { run } from './metrics.mjs';
+import { run } from './metrics.js';
 import { analyzeMetrics, computeMetrics } from './metrics/computeMetrics.js';
 
 describe('Layout metrics', function() {
