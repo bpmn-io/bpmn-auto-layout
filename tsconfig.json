@@ -38,6 +38,7 @@
     "test/OrthogonalRoutingSpec.ts",
     "test/MessageFlowRoutingSpec.ts",
     "test/SequenceFlowRoutingSpec.ts",
+    "test/CompactBandsSpec.ts",
     "test/mocha.d.ts"
   ]
 }
