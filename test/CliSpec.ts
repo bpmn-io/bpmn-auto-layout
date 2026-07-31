@@ -1,21 +1,34 @@
 import assert from 'node:assert';
 import { spawn } from 'node:child_process';
 import { promises as fs } from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { afterEach, beforeEach, describe, it } from 'mocha';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const cli = path.join(__dirname, '..', 'dist', 'bpmn-auto-layout.js');
 const fixtures = path.join(__dirname, 'fixtures');
+const testOutput = path.join(__dirname, 'output');
+
+type CliResult = {
+  code: number | null;
+  stdout: string;
+  stderr: string;
+};
+
+type LayoutWarning = {
+  code: string;
+};
 
 describe('CLI', function() {
 
-  let temporaryDirectory;
+  let temporaryDirectory: string;
 
   beforeEach(async function() {
+    await fs.mkdir(testOutput, { recursive: true });
     temporaryDirectory = await fs.mkdtemp(
-      path.join(os.tmpdir(), 'bpmn-auto-layout-cli-')
+      path.join(testOutput, 'bpmn-auto-layout-cli-')
     );
   });
 
@@ -77,7 +90,7 @@ describe('CLI', function() {
       path.join(fixtures, 'process.application-processing.bpmn'),
       '--stdout'
     ]);
-    const warnings = result.stderr.trim().split('\n').map(JSON.parse);
+    const warnings = result.stderr.trim().split('\n').map(parseWarning);
 
     assert.strictEqual(result.code, 0);
     assert.ok(warnings.some(warning => warning.code === 'DI_NOT_CREATED'));
@@ -116,7 +129,7 @@ describe('CLI', function() {
     assert.match(result.stderr, /ENOENT/);
   });
 
-  async function copyFixture(name) {
+  async function copyFixture(name: string): Promise<string> {
     const source = path.join(fixtures, name);
     const target = path.join(temporaryDirectory, path.basename(name));
 
@@ -126,8 +139,8 @@ describe('CLI', function() {
   }
 });
 
-function runCli(arguments_, input) {
-  return new Promise((resolve, reject) => {
+function runCli(arguments_: string[], input?: string): Promise<CliResult> {
+  return new Promise<CliResult>((resolve, reject) => {
     const child = spawn(process.execPath, [ cli, ...arguments_ ], {
       stdio: [ 'pipe', 'pipe', 'pipe' ]
     });
@@ -149,4 +162,19 @@ function runCli(arguments_, input) {
 
     child.stdin.end(input);
   });
+}
+
+function parseWarning(line: string): LayoutWarning {
+  const value: unknown = JSON.parse(line);
+
+  if (!isLayoutWarning(value)) {
+    throw new Error('Expected a structured layout warning.');
+  }
+
+  return value;
+}
+
+function isLayoutWarning(value: unknown): value is LayoutWarning {
+  return typeof value === 'object' && value !== null &&
+    'code' in value && typeof value.code === 'string';
 }
