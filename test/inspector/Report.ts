@@ -5,15 +5,26 @@ import url from 'node:url';
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const templateFile = path.resolve(__dirname, '..', 'template.html');
 
-export function createInspectorReport(results, options = {}) {
+type InspectorReportOptions = { mode?: string };
+
+export function createInspectorReport(
+    results: unknown,
+    options: InspectorReportOptions = {}
+): string {
   const reportConfig = {
     mode: 'test',
     ...options
   };
-  const payload = Buffer.from(JSON.stringify({
+  const serialized = JSON.stringify({
     reportConfig,
     results
-  })).toString('base64');
+  });
+
+  if (serialized === undefined) {
+    throw new Error('Inspector report payload could not be serialized.');
+  }
+
+  const payload = Buffer.from(serialized).toString('base64');
   const template = fs.readFileSync(templateFile, 'utf8');
   const report = template.replace(
     /\/\* results-start \*\/[\s\S]*\/\* results-end \*\//,
@@ -27,7 +38,11 @@ export function createInspectorReport(results, options = {}) {
   return report;
 }
 
-export function writeInspectorReport(results, outputFile, options = {}) {
+export function writeInspectorReport(
+    results: unknown,
+    outputFile: string,
+    options: InspectorReportOptions = {}
+): string {
   const report = createInspectorReport(results, options);
 
   fs.mkdirSync(path.dirname(outputFile), { recursive: true });
