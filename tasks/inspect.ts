@@ -24,14 +24,18 @@ if (!existsSync(inspectorPath)) {
   process.exitCode = testExitCode || openExitCode;
 }
 
-function run(command, args, environment = process.env) {
-  return new Promise(resolve => {
+function run(
+    command: string,
+    args: string[],
+    environment: NodeJS.ProcessEnv = process.env
+): Promise<number> {
+  return new Promise<number>(resolveExitCode => {
     const child = spawn(command, args, {
       env: environment,
       stdio: 'inherit'
     });
 
-    child.on('exit', code => resolve(code ?? 1));
-    child.on('error', () => resolve(1));
+    child.on('exit', code => resolveExitCode(code ?? 1));
+    child.on('error', () => resolveExitCode(1));
   });
 }
