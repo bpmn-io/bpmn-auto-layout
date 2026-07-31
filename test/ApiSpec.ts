@@ -1,10 +1,13 @@
 import assert from 'node:assert';
+import { createRequire } from 'node:module';
 import { describe, it } from 'mocha';
 
 import {
   layoutProcess,
   LayoutWarning
 } from 'bpmn-auto-layout';
+
+const require = createRequire(import.meta.url);
 
 describe('API', function() {
 
@@ -32,5 +35,12 @@ describe('API', function() {
     assert.strictEqual(warning.elementId, 'Element_1');
     assert.strictEqual(warning.message, 'Example warning.');
     assert.deepStrictEqual(warning.relatedElementIds, [ 'Element_2' ]);
+  });
+
+  it('should expose the CommonJS entry point', function() {
+    const commonJsApi: typeof import('bpmn-auto-layout') = require('bpmn-auto-layout');
+
+    assert.strictEqual(commonJsApi.layoutProcess, layoutProcess);
+    assert.strictEqual(commonJsApi.LayoutWarning, LayoutWarning);
   });
 });
