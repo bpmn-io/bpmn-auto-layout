@@ -23,6 +23,8 @@
     "tasks/inspect.ts",
     "tasks/bpmn-to-image.d.ts",
     "tasks/render-fixture.ts",
-    "tasks/layout-review.ts"
+    "tasks/layout-review.ts",
+    "test/inspector/Timing.ts",
+    "test/inspector/Report.ts"
   ]
 }
