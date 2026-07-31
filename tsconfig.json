@@ -47,6 +47,7 @@
     "test/ObstacleRoutesSpec.ts",
     "test/CliSpec.ts",
     "test/InspectorTimingSpec.ts",
+    "test/BenchmarkSpec.ts",
     "test/mocha.d.ts"
   ]
 }
