@@ -1,4 +1,4 @@
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -82,9 +82,15 @@ type LayoutReviewManifest = {
   changes: SnapshotChange[];
 };
 
-type GitCommandError = Error & {
-  code: number;
-  stderr: string;
+type GitFileRequest = {
+  ref: string;
+  path: string;
+};
+
+type ReviewFiles = {
+  previousSnapshot: string | null;
+  proposedSnapshot: string | null;
+  diagram: string | null;
 };
 
 const execFileAsync = promisify(execFile);
@@ -104,19 +110,20 @@ export async function createLayoutReview({
     resolveCommit(repositoryDirectory, headRef)
   ]);
 
-  await assertFixturesHaveSnapshots(repositoryDirectory, resolvedHead);
-
-  const changes = await findSnapshotChanges(
+  const [ , changes ] = await Promise.all([
+    assertFixturesHaveSnapshots(repositoryDirectory, resolvedHead),
+    findSnapshotChanges(repositoryDirectory, resolvedBase, resolvedHead)
+  ]);
+  const reviewFiles = await readReviewFiles(
     repositoryDirectory,
     resolvedBase,
-    resolvedHead
+    resolvedHead,
+    changes
   );
-  const results = await Promise.all(changes.map(change => {
+  const results = await Promise.all(changes.map((change, index) => {
     return createReviewResult(
-      repositoryDirectory,
-      resolvedBase,
-      resolvedHead,
-      change
+      change,
+      reviewFiles[index]
     );
   }));
   const manifest = {
@@ -142,29 +149,12 @@ export async function createLayoutReview({
 }
 
 async function createReviewResult(
-    repositoryDirectory: string,
-    baseRef: string,
-    headRef: string,
-    change: SnapshotChange
+    change: SnapshotChange,
+    { previousSnapshot, proposedSnapshot, diagram }: ReviewFiles
 ): Promise<LayoutReviewResult> {
-  const previousSnapshot = change.previousPath
-    ? await readGitFile(repositoryDirectory, baseRef, change.previousPath)
-    : null;
-  const proposedSnapshot = change.path
-    ? await readGitFile(repositoryDirectory, headRef, change.path)
-    : null;
   const fixtureName = path.posix.basename(change.path ?? change.previousPath);
   const previousFixtureName = path.posix.basename(
     change.previousPath ?? change.path
-  );
-  const diagram = await readOptionalGitFile(
-    repositoryDirectory,
-    headRef,
-    `test/fixtures/${ fixtureName }`
-  ) || await readOptionalGitFile(
-    repositoryDirectory,
-    baseRef,
-    `test/fixtures/${ previousFixtureName }`
   );
 
   if (!diagram) {
@@ -195,6 +185,68 @@ async function createReviewResult(
     previousName: previousFixtureName,
     warnings: []
   };
+}
+
+async function readReviewFiles(
+    repositoryDirectory: string,
+    baseRef: string,
+    headRef: string,
+    changes: readonly SnapshotChange[]
+): Promise<ReviewFiles[]> {
+  const requests: GitFileRequest[] = [];
+  const fileIndexes = changes.map(change => {
+    const fixtureName = path.posix.basename(change.path ?? change.previousPath);
+    const previousFixtureName = path.posix.basename(
+      change.previousPath ?? change.path
+    );
+
+    return {
+      previousSnapshot: change.previousPath
+        ? addGitFileRequest(requests, baseRef, change.previousPath)
+        : null,
+      proposedSnapshot: change.path
+        ? addGitFileRequest(requests, headRef, change.path)
+        : null,
+      headFixture: addGitFileRequest(
+        requests,
+        headRef,
+        `test/fixtures/${ fixtureName }`
+      ),
+      baseFixture: addGitFileRequest(
+        requests,
+        baseRef,
+        `test/fixtures/${ previousFixtureName }`
+      )
+    };
+  });
+  const files = await readGitFiles(repositoryDirectory, requests);
+
+  return fileIndexes.map(indexes => {
+    return {
+      previousSnapshot: getRequiredGitFile(
+        files,
+        requests,
+        indexes.previousSnapshot
+      ),
+      proposedSnapshot: getRequiredGitFile(
+        files,
+        requests,
+        indexes.proposedSnapshot
+      ),
+      diagram: getGitFile(files, indexes.headFixture) ||
+        getGitFile(files, indexes.baseFixture)
+    };
+  });
+}
+
+function addGitFileRequest(
+    requests: GitFileRequest[],
+    ref: string,
+    filePath: string
+): number {
+  requests.push({ ref, path: filePath });
+
+  return requests.length - 1;
 }
 
 async function findSnapshotChanges(
@@ -306,33 +358,6 @@ async function resolveCommit(repositoryDirectory: string, ref: string): Promise<
   ])).trim();
 }
 
-async function readGitFile(
-    repositoryDirectory: string,
-    ref: string,
-    filePath: string
-): Promise<string> {
-  return git(repositoryDirectory, [
-    'show',
-    `${ ref }:${ filePath }`
-  ]);
-}
-
-async function readOptionalGitFile(
-    repositoryDirectory: string,
-    ref: string,
-    filePath: string
-): Promise<string | null> {
-  try {
-    return await readGitFile(repositoryDirectory, ref, filePath);
-  } catch (error) {
-    if (isMissingGitPathError(error, filePath)) {
-      return null;
-    }
-
-    throw error;
-  }
-}
-
 async function git(repositoryDirectory: string, args: readonly string[]): Promise<string> {
   const { stdout } = await execFileAsync(
     'git',
@@ -348,6 +373,130 @@ async function git(repositoryDirectory: string, args: readonly string[]): Promis
   }
 
   return stdout;
+}
+
+async function readGitFiles(
+    repositoryDirectory: string,
+    requests: readonly GitFileRequest[]
+): Promise<(string | null)[]> {
+  if (!requests.length) {
+    return [];
+  }
+
+  const output = await gitCatFile(
+    repositoryDirectory,
+    requests.map(({ ref, path }) => `${ ref }:${ path }`).join('\n') + '\n'
+  );
+
+  return parseGitFiles(output, requests);
+}
+
+async function gitCatFile(
+    repositoryDirectory: string,
+    input: string
+): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const gitProcess = spawn(
+      'git',
+      [ '-C', repositoryDirectory, 'cat-file', '--batch' ],
+      { stdio: 'pipe' }
+    );
+    const stdout: Buffer[] = [];
+    const stderr: Buffer[] = [];
+
+    gitProcess.stdout.on('data', (chunk: Buffer) => stdout.push(chunk));
+    gitProcess.stderr.on('data', (chunk: Buffer) => stderr.push(chunk));
+    gitProcess.once('error', reject);
+    gitProcess.once('close', code => {
+      if (code !== 0) {
+        reject(new Error(
+          `Git cat-file failed: ${ Buffer.concat(stderr).toString('utf8') }`
+        ));
+
+        return;
+      }
+
+      resolve(Buffer.concat(stdout));
+    });
+    gitProcess.stdin.end(input);
+  });
+}
+
+function parseGitFiles(
+    output: Buffer,
+    requests: readonly GitFileRequest[]
+): (string | null)[] {
+  let offset = 0;
+
+  const files = requests.map(request => {
+    const lineEnd = output.indexOf(0x0a, offset);
+
+    if (lineEnd === -1) {
+      throw new Error(`Git did not return ${ request.ref }:${ request.path }.`);
+    }
+
+    const header = output.toString('utf8', offset, lineEnd);
+
+    offset = lineEnd + 1;
+
+    if (header.endsWith(' missing')) {
+      return null;
+    }
+
+    const match = /^[0-9a-f]+ blob (\d+)$/.exec(header);
+
+    if (!match) {
+      throw new Error(`Unexpected Git response for ${ request.ref }:${ request.path }.`);
+    }
+
+    const size = Number(match[1]);
+    const contentsEnd = offset + size;
+
+    if (output[contentsEnd] !== 0x0a) {
+      throw new Error(`Git returned incomplete data for ${ request.ref }:${ request.path }.`);
+    }
+
+    const contents = output.toString('utf8', offset, contentsEnd);
+
+    offset = contentsEnd + 1;
+
+    return contents;
+  });
+
+  if (offset !== output.length) {
+    throw new Error('Git returned unexpected data.');
+  }
+
+  return files;
+}
+
+function getRequiredGitFile(
+    files: readonly (string | null)[],
+    requests: readonly GitFileRequest[],
+    index: number | null
+): string | null {
+  if (index === null) {
+    return null;
+  }
+
+  const file = getGitFile(files, index);
+
+  if (file !== null) {
+    return file;
+  }
+
+  const request = requests[index];
+
+  throw new Error(`Git did not return ${ request.ref }:${ request.path }.`);
+}
+
+function getGitFile(
+    files: readonly (string | null)[],
+    index: number
+): string | null {
+  const file = files[index];
+
+  return file === undefined ? null : file;
 }
 
 async function evaluateLayoutMetrics(
@@ -446,24 +595,6 @@ function isMetricValues(value: unknown): value is MetricValues {
     hasNumberProperty(value, 'compactness') &&
     hasNumberProperty(value, 'gridAlignment') &&
     hasNumberProperty(value, 'branchSymmetry');
-}
-
-function isMissingGitPathError(error: unknown, filePath: string): boolean {
-  return isGitCommandError(error) &&
-    error.code === 128 &&
-    error.stderr.includes(`path '${ filePath }'`);
-}
-
-function isGitCommandError(error: unknown): error is GitCommandError {
-  if (
-    !(error instanceof Error) ||
-    !hasProperty(error, 'code') ||
-    !hasProperty(error, 'stderr')
-  ) {
-    return false;
-  }
-
-  return typeof error.code === 'number' && typeof error.stderr === 'string';
 }
 
 function isObject(value: unknown): value is object {
