@@ -2664,6 +2664,27 @@ describe('Layout', function(this: SuiteContext) {
       assert.strictEqual(sideCenter, true);
     });
 
+    it('should emit event-owned data association DI', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'event.data-association.bpmn'),
+        'utf8'
+      );
+      const result = await layoutProcessResult(xml);
+      const rootElement = await readLayoutDiagram(result.xml);
+      const associationIds = new Set([
+        'ThrowEventDataInputAssociation_1',
+        'CatchEventDataOutputAssociation_1'
+      ]);
+      const edges = rootElement.diagrams[0].plane.planeElement.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          associationIds.has(element.bpmnElement.id);
+      });
+
+      assert.strictEqual(edges.length, associationIds.size);
+      assert.ok(edges.every(edge => edge.waypoint.length >= 2));
+      assert.deepStrictEqual(result.warnings, []);
+    });
+
     it('should move tangent message-flow dockings away from task corners', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'camunda-consulting.order-to-cash.bpmn'),
