@@ -1,23 +1,28 @@
 import assert from 'node:assert';
 
+import { BpmnModdle } from 'bpmn-moddle';
+import { describe, it } from 'mocha';
+
 import {
   collectArtifactObstacleRoutes
 } from '../lib/layout/artifacts/ObstacleRoutes.js';
 
+import type { LayoutState } from '../lib/layout/Types.js';
+
 describe('ObstacleRoutes', function() {
 
   it('should collect each reserved artifact route once', function() {
-    const flow = {
-      $instanceOf(type) {
-        return type === 'bpmn:SequenceFlow';
-      }
-    };
-    const endpoint = {};
-    const layout = {
+    const moddle = new BpmnModdle();
+    const flow = moddle.create('bpmn:SequenceFlow', { id: 'Flow' });
+    const endpoint = moddle.create('bpmn:Task', { id: 'Endpoint' });
+    const layout: LayoutState = {
+      scope: moddle.create('bpmn:Process', { id: 'Process' }),
+      shapes: new Map(),
       edges: new Map([
         [ flow, [ { x: 0, y: 0 }, { x: 100, y: 0 } ] ]
       ]),
-      children: []
+      children: [],
+      emitInParent: false
     };
     const routes = collectArtifactObstacleRoutes(
       layout,

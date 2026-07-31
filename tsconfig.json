@@ -44,6 +44,7 @@
     "test/LanePlacementSpec.ts",
     "test/LayoutGroupsSpec.ts",
     "test/LayoutLabelsSpec.ts",
+    "test/ObstacleRoutesSpec.ts",
     "test/mocha.d.ts"
   ]
 }
