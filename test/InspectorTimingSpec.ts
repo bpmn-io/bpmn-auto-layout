@@ -1,5 +1,7 @@
 import assert from 'node:assert';
 
+import { describe, it } from 'mocha';
+
 import {
   INSPECTOR_LAYOUT_TIMING_RUNS,
   shouldMeasureLayoutTimings

@@ -46,6 +46,7 @@
     "test/LayoutLabelsSpec.ts",
     "test/ObstacleRoutesSpec.ts",
     "test/CliSpec.ts",
+    "test/InspectorTimingSpec.ts",
     "test/mocha.d.ts"
   ]
 }
