@@ -39,6 +39,7 @@
     "test/MessageFlowRoutingSpec.ts",
     "test/SequenceFlowRoutingSpec.ts",
     "test/CompactBandsSpec.ts",
+    "test/SemanticPolicySpec.ts",
     "test/mocha.d.ts"
   ]
 }
