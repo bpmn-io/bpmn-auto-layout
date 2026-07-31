@@ -24,7 +24,7 @@
     "typecheck:trace-fixture": "tsc --project tasks/tsconfig.trace-fixture.json",
     "typecheck:public-api": "tsc --project tsconfig.public-api.json",
     "test": "tsx node_modules/mocha/bin/mocha.js --extension js --extension ts --timeout 15000",
-    "test:inspect": "node tasks/inspect.mjs",
+    "test:inspect": "tsx tasks/inspect.ts",
     "test:update-snapshots": "cross-env UPDATE_SNAPSHOTS=true mocha --timeout 15000",
     "render:fixture": "npm run build && tsx tasks/render-fixture.ts",
     "review:layout": "node tasks/layout-review.mjs",
