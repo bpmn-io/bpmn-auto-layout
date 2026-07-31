@@ -18,7 +18,9 @@
   ],
   "scripts": {
     "all": "run-s lint typecheck test",
-    "lint": "eslint .",
+    "lint": "run-s lint:eslint lint:biome",
+    "lint:eslint": "eslint .",
+    "lint:biome": "biome lint",
     "typecheck": "run-s typecheck:source typecheck:example typecheck:trace-fixture typecheck:public-api",
     "typecheck:source": "tsc",
     "typecheck:example": "tsc --project example/tsconfig.json",
@@ -66,6 +68,7 @@
     "min-dash": "^5.0.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.6",
     "@bpmn-io/moddle-types-generator": "^0.2.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-typescript": "^12.3.0",
