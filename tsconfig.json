@@ -48,6 +48,7 @@
     "test/CliSpec.ts",
     "test/InspectorTimingSpec.ts",
     "test/BenchmarkSpec.ts",
+    "test/LayoutReviewSpec.ts",
     "test/mocha.d.ts"
   ]
 }

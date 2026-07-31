@@ -1,14 +1,31 @@
 import assert from 'node:assert';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import url from 'node:url';
+
+import { afterEach, beforeEach, describe, it } from 'mocha';
 
 import { createLayoutReview } from '../tasks/layout-review.js';
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const fixtureName = 'scenario.linear.bpmn';
+const testOutput = path.join(__dirname, 'output');
+
+type TimedTestContext = {
+  timeout(milliseconds: number): void;
+};
+
+type ReviewResult = {
+  diagramSnapshot: string | null;
+  diagramOutput: string | null;
+  changeType: string;
+};
+
+type ReviewPayload = {
+  reportConfig: { mode: string };
+  results: ReviewResult[];
+};
 const fixture = fs.readFileSync(
   path.join(__dirname, 'fixtures', fixtureName),
   'utf8'
@@ -18,15 +35,16 @@ const snapshot = fs.readFileSync(
   'utf8'
 );
 
-describe('Layout review', function() {
+describe('Layout review', function(this: TimedTestContext) {
 
   this.timeout(60000);
 
-  let repositoryDirectory;
+  let repositoryDirectory: string;
 
   beforeEach(function() {
+    fs.mkdirSync(testOutput, { recursive: true });
     repositoryDirectory = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'bpmn-layout-review-')
+      path.join(testOutput, 'bpmn-layout-review-')
     );
     git('init');
     write(`test/fixtures/${ fixtureName }`, fixture);
@@ -59,10 +77,8 @@ describe('Layout review', function() {
       path.join(outputDirectory, 'index.html'),
       'utf8'
     );
-    const payload = JSON.parse(Buffer.from(
-      /atob\('([^']+)'\)/.exec(report)[1],
-      'base64'
-    ).toString('utf8'));
+    const payload = parseReviewPayload(report);
+    const result = getRequired(payload.results[0]);
 
     assert.strictEqual(manifest.changeCount, 1);
     assert.deepStrictEqual(manifest.changes, [ {
@@ -71,9 +87,9 @@ describe('Layout review', function() {
       path: `test/snapshots/${ fixtureName }`
     } ]);
     assert.strictEqual(payload.reportConfig.mode, 'review');
-    assert.strictEqual(payload.results[0].diagramSnapshot, snapshot);
-    assert.strictEqual(payload.results[0].diagramOutput, proposedSnapshot);
-    assert.strictEqual(payload.results[0].changeType, 'modified');
+    assert.strictEqual(result.diagramSnapshot, snapshot);
+    assert.strictEqual(result.diagramOutput, proposedSnapshot);
+    assert.strictEqual(result.changeType, 'modified');
     assert.ok(report.includes('Snapshot changes'));
   });
 
@@ -126,22 +142,22 @@ describe('Layout review', function() {
     } ]);
   });
 
-  function write(relativePath, contents) {
+  function write(relativePath: string, contents: string): void {
     const filePath = path.join(repositoryDirectory, relativePath);
 
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, contents, 'utf8');
   }
 
-  function git(...args) {
+  function git(...args: string[]): string {
     return execFileSync('git', [ '-C', repositoryDirectory, ...args ], {
       encoding: 'utf8',
       stdio: [ 'ignore', 'pipe', 'pipe' ]
     });
   }
 
-  function commit(message) {
-    return git(
+  function commit(message: string): void {
+    git(
       '-c', 'user.email=layout-review@example.com',
       '-c', 'user.name=Layout Review',
       '-c', 'commit.gpgSign=false',
@@ -150,3 +166,42 @@ describe('Layout review', function() {
     );
   }
 });
+
+function parseReviewPayload(report: string): ReviewPayload {
+  const encodedPayload = getRequired(/atob\('([^']+)'\)/.exec(report)?.[1]);
+  const payload: unknown = JSON.parse(Buffer.from(
+    encodedPayload,
+    'base64'
+  ).toString('utf8'));
+
+  if (!isReviewPayload(payload)) {
+    throw new Error('Expected a layout review payload.');
+  }
+
+  return payload;
+}
+
+function isReviewPayload(value: unknown): value is ReviewPayload {
+  return isRecord(value) && isRecord(value.reportConfig) &&
+    typeof value.reportConfig.mode === 'string' &&
+    Array.isArray(value.results) && value.results.every(isReviewResult);
+}
+
+function isReviewResult(value: unknown): value is ReviewResult {
+  return isRecord(value) &&
+    (typeof value.diagramSnapshot === 'string' || value.diagramSnapshot === null) &&
+    (typeof value.diagramOutput === 'string' || value.diagramOutput === null) &&
+    typeof value.changeType === 'string';
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function getRequired<Value>(value: Value | undefined): Value {
+  if (value === undefined) {
+    throw new Error('Expected a layout review value.');
+  }
+
+  return value;
+}
