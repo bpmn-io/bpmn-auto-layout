@@ -30,6 +30,7 @@
     "test/metrics/evaluateMetrics.ts",
     "test/metrics.ts",
     "test/ApiSpec.ts",
+    "test/DiagramGenerationSpec.ts",
     "test/mocha.d.ts"
   ]
 }
