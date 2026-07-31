@@ -1,8 +1,13 @@
 import assert from 'node:assert';
 
+import { BpmnModdle } from 'bpmn-moddle';
+import { describe, it } from 'mocha';
+
 import {
   routeMessageFlow
 } from '../lib/layout/collaboration/routing/MessageFlowRouting.js';
+
+const moddle = new BpmnModdle();
 
 describe('MessageFlowRouting', function() {
 
@@ -21,10 +26,10 @@ describe('MessageFlowRouting', function() {
       target,
       sourceBounds,
       targetBounds,
-      {
+      moddle.create('bpmn:Collaboration', {
         participants: [ source, target ],
         messageFlows: []
-      },
+      }),
       participantShapes,
       [],
       [],
@@ -36,11 +41,6 @@ describe('MessageFlowRouting', function() {
   });
 });
 
-function participant(id) {
-  return {
-    id,
-    $instanceOf(type) {
-      return type === 'bpmn:Participant';
-    }
-  };
+function participant(id: string) {
+  return moddle.create('bpmn:Participant', { id });
 }
