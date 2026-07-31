@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 
 import { BpmnModdle } from 'bpmn-moddle';
+import { describe, it } from 'mocha';
 
 import {
   externalLabelSize,
@@ -8,13 +9,31 @@ import {
 } from '../lib/layout/labels/LayoutLabels.js';
 import { rectanglesOverlap } from '../lib/layout/geometry/index.js';
 
+import type {
+  BpmnElement,
+  Bounds,
+  LayoutState,
+  Waypoint
+} from '../lib/layout/Types.js';
+
+type ShapeElement = {
+  element: BpmnElement;
+  bounds: Bounds;
+  expanded?: boolean;
+  label?: { bounds: Bounds };
+};
+
+type EdgeElement = {
+  element: BpmnElement;
+  waypoints: Waypoint[];
+  label?: { bounds: Bounds };
+};
+
+type LayoutElement = ShapeElement | EdgeElement;
+
+const moddle = new BpmnModdle();
+
 describe('LayoutLabels', function() {
-
-  let moddle;
-
-  beforeEach(function() {
-    moddle = new BpmnModdle();
-  });
 
   it('should use below, above, left, and right shape fallbacks', function() {
     const below = eventShape('Below', 100, 100);
@@ -36,16 +55,16 @@ describe('LayoutLabels', function() {
 
     placeLabels(elements);
 
-    assert.deepStrictEqual(toBounds(below.label.bounds), {
+    assert.deepStrictEqual(toBounds(labelBounds(below)), {
       x: 96, y: 141, width: 44, height: 14
     });
-    assert.deepStrictEqual(toBounds(above.label.bounds), {
+    assert.deepStrictEqual(toBounds(labelBounds(above)), {
       x: 298, y: 81, width: 41, height: 14
     });
-    assert.deepStrictEqual(toBounds(left.label.bounds), {
+    assert.deepStrictEqual(toBounds(labelBounds(left)), {
       x: 461, y: 111, width: 34, height: 14
     });
-    assert.deepStrictEqual(toBounds(right.label.bounds), {
+    assert.deepStrictEqual(toBounds(labelBounds(right)), {
       x: 741, y: 111, width: 41, height: 14
     });
   });
@@ -62,10 +81,10 @@ describe('LayoutLabels', function() {
 
     placeLabels([ horizontal, vertical ]);
 
-    assert.deepStrictEqual(toBounds(horizontal.label.bounds), {
+    assert.deepStrictEqual(toBounds(labelBounds(horizontal)), {
       x: 162, y: 78, width: 76, height: 14
     });
-    assert.deepStrictEqual(toBounds(vertical.label.bounds), {
+    assert.deepStrictEqual(toBounds(labelBounds(vertical)), {
       x: 505, y: 193, width: 62, height: 14
     });
   });
@@ -94,10 +113,10 @@ describe('LayoutLabels', function() {
 
     placeLabels(elements);
 
-    assert.deepStrictEqual(toBounds(horizontal.label.bounds), {
+    assert.deepStrictEqual(toBounds(labelBounds(horizontal)), {
       x: 162, y: 108, width: 76, height: 14
     });
-    assert.deepStrictEqual(toBounds(vertical.label.bounds), {
+    assert.deepStrictEqual(toBounds(labelBounds(vertical)), {
       x: 433, y: 193, width: 62, height: 14
     });
   });
@@ -121,13 +140,13 @@ describe('LayoutLabels', function() {
 
     placeLabels([ sales, technical, legal ]);
 
-    assert.deepStrictEqual(toBounds(sales.label.bounds), {
+    assert.deepStrictEqual(toBounds(labelBounds(sales)), {
       x: 181, y: 178, width: 39, height: 14
     });
-    assert.deepStrictEqual(toBounds(technical.label.bounds), {
+    assert.deepStrictEqual(toBounds(labelBounds(technical)), {
       x: 167, y: 278, width: 67, height: 14
     });
-    assert.deepStrictEqual(toBounds(legal.label.bounds), {
+    assert.deepStrictEqual(toBounds(labelBounds(legal)), {
       x: 105, y: 343, width: 39, height: 14
     });
   });
@@ -144,7 +163,7 @@ describe('LayoutLabels', function() {
 
     placeLabels([ first, second ]);
 
-    assert.ok(!rectanglesOverlap(first.label.bounds, second.label.bounds));
+    assert.ok(!rectanglesOverlap(labelBounds(first), labelBounds(second)));
   });
 
   it('should freely move a shape label when owner-relative positions are blocked', function() {
@@ -159,7 +178,7 @@ describe('LayoutLabels', function() {
 
     placeLabels(elements);
 
-    const label = toBounds(event.label.bounds);
+    const label = toBounds(labelBounds(event));
 
     assert.notDeepStrictEqual(label, {
       x: 73, y: 141, width: 90, height: 14
@@ -186,7 +205,7 @@ describe('LayoutLabels', function() {
       handler
     ]);
 
-    const label = toBounds(event.label.bounds);
+    const label = toBounds(labelBounds(event));
 
     assert.ok(label.y + label.height < subprocess.bounds.y);
   });
@@ -205,7 +224,7 @@ describe('LayoutLabels', function() {
 
     placeLabels([ subprocess, event, below ]);
 
-    const label = toBounds(event.label.bounds);
+    const label = toBounds(labelBounds(event));
     const titleBand = { x: 0, y: 100, width: 400, height: 28 };
 
     assert.ok(!rectanglesOverlap(label, titleBand));
@@ -225,7 +244,7 @@ describe('LayoutLabels', function() {
 
     placeLabels([ subprocess, event, below ]);
 
-    assert.deepStrictEqual(toBounds(event.label.bounds), {
+    assert.deepStrictEqual(toBounds(labelBounds(event)), {
       x: 48, y: 121, width: 41, height: 14
     });
   });
@@ -244,7 +263,7 @@ describe('LayoutLabels', function() {
     });
   });
 
-  function eventShape(id, x, y) {
+  function eventShape(id: string, x: number, y: number): ShapeElement {
     const element = moddle.create('bpmn:IntermediateCatchEvent', {
       id,
       name: id
@@ -256,7 +275,13 @@ describe('LayoutLabels', function() {
     };
   }
 
-  function taskShape(id, x, y, width, height) {
+  function taskShape(
+      id: string,
+      x: number,
+      y: number,
+      width: number,
+      height: number
+  ): ShapeElement {
     const element = moddle.create('bpmn:Task', { id });
 
     return {
@@ -265,7 +290,14 @@ describe('LayoutLabels', function() {
     };
   }
 
-  function expandedSubProcess(id, x, y, width, height, name) {
+  function expandedSubProcess(
+      id: string,
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+      name?: string
+  ): ShapeElement {
     const element = moddle.create('bpmn:SubProcess', { id, name });
 
     return {
@@ -275,7 +307,11 @@ describe('LayoutLabels', function() {
     };
   }
 
-  function edge(id, waypoints, named = true) {
+  function edge(
+      id: string,
+      waypoints: Waypoint[],
+      named = true
+  ): EdgeElement {
     const element = moddle.create('bpmn:SequenceFlow', {
       id,
       name: named ? id : undefined
@@ -287,10 +323,11 @@ describe('LayoutLabels', function() {
     };
   }
 
-  function placeLabels(elements) {
-    const shapes = elements.filter(element => element.bounds);
-    const edges = elements.filter(element => element.waypoints);
-    const layout = {
+  function placeLabels(elements: LayoutElement[]): void {
+    const shapes = elements.filter(isShapeElement);
+    const edges = elements.filter(isEdgeElement);
+    const layout: LayoutState = {
+      scope: moddle.create('bpmn:Process'),
       shapes: new Map(shapes.map(shape => [ shape.element, shape.bounds ])),
       edges: new Map(edges.map(edge => [ edge.element, edge.waypoints ])),
       children: shapes.filter(shape => shape.expanded).map(shape => ({
@@ -299,7 +336,8 @@ describe('LayoutLabels', function() {
         edges: new Map(),
         children: [],
         emitInParent: true
-      }))
+      })),
+      emitInParent: false
     };
     const labels = layoutExternalLabels(layout);
 
@@ -313,6 +351,26 @@ describe('LayoutLabels', function() {
   }
 });
 
-function toBounds({ x, y, width, height }) {
+function isShapeElement(element: LayoutElement): element is ShapeElement {
+  return 'bounds' in element;
+}
+
+function isEdgeElement(element: LayoutElement): element is EdgeElement {
+  return 'waypoints' in element;
+}
+
+function labelBounds(element: LayoutElement): Bounds {
+  return getRequired(element.label).bounds;
+}
+
+function getRequired<Value>(value: Value | undefined): Value {
+  if (value === undefined) {
+    throw new Error('Expected label bounds.');
+  }
+
+  return value;
+}
+
+function toBounds({ x, y, width, height }: Bounds): Bounds {
   return { x, y, width, height };
 }
