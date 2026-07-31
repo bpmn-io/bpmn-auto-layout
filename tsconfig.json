@@ -49,6 +49,7 @@
     "test/InspectorTimingSpec.ts",
     "test/BenchmarkSpec.ts",
     "test/LayoutReviewSpec.ts",
+    "test/metrics.test.ts",
     "test/mocha.d.ts"
   ]
 }

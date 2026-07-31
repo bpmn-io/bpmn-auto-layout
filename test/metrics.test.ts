@@ -1,7 +1,11 @@
 import assert from 'node:assert';
 
+import { describe, it } from 'mocha';
+
 import { run } from './metrics.js';
 import { analyzeMetrics, computeMetrics } from './metrics/computeMetrics.js';
+
+type Waypoint = [ x: number, y: number ];
 
 describe('Layout metrics', function() {
 
@@ -296,7 +300,12 @@ describe('Layout metrics', function() {
 
 });
 
-function metricFixture(waypoints, extraSemantic = '', extraDi = '', flowAttributes = '') {
+function metricFixture(
+    waypoints: readonly Waypoint[],
+    extraSemantic = '',
+    extraDi = '',
+    flowAttributes = ''
+): string {
   const waypointXml = waypoints
     .map(([ x, y ]) => `<di:waypoint x="${x}" y="${y}" />`)
     .join('');
@@ -320,7 +329,7 @@ function metricFixture(waypoints, extraSemantic = '', extraDi = '', flowAttribut
 </bpmn:definitions>`;
 }
 
-function messageFlowMetricFixture(waypoints) {
+function messageFlowMetricFixture(waypoints: readonly Waypoint[]): string {
   const waypointXml = waypoints
     .map(([ x, y ]) => `<di:waypoint x="${x}" y="${y}" />`)
     .join('');
@@ -342,7 +351,7 @@ function messageFlowMetricFixture(waypoints) {
 </bpmn:definitions>`;
 }
 
-function layoutQualityFixture(topCenterY = 100) {
+function layoutQualityFixture(topCenterY = 100): string {
   const topY = topCenterY - 40;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -374,7 +383,7 @@ function layoutQualityFixture(topCenterY = 100) {
 </bpmn:definitions>`;
 }
 
-function crossingFixture() {
+function crossingFixture(): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions" targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="Process">
