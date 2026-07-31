@@ -56,4 +56,23 @@ jobs:
         GIT_USER_NAME: ${{secrets.BPMN_IO_USER_NAME}}
         GIT_USER_EMAIL: ${{secrets.BPMN_IO_EMAIL}}
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      run: tasks/update-example
+      run: |
+        PAGES_DIRECTORY="$RUNNER_TEMP/gh-pages"
+
+        git clone --depth=1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$PAGES_DIRECTORY"
+        cd "$PAGES_DIRECTORY"
+        git fetch --depth=1 origin gh-pages
+        git checkout -B gh-pages FETCH_HEAD
+        git rm -r -q --ignore-unmatch -- . ':(exclude)reviews' ':(exclude)reviews/**'
+
+        cp -r "$GITHUB_WORKSPACE/example/dist/"* "$PAGES_DIRECTORY"
+
+        git config --local user.email "$GIT_USER_EMAIL"
+        git config --local user.name "$GIT_USER_NAME"
+        git config push.default simple
+        git add -A
+
+        if ! git diff --cached --quiet; then
+          git commit -m "chore: update example"
+          git push -q -u origin gh-pages
+        fi
