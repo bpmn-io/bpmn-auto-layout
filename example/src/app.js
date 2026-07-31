@@ -1,7 +1,7 @@
 import Viewer from 'bpmn-js/lib/NavigatedViewer.js';
 import Modeler from 'bpmn-js/lib/Modeler.js';
 
-import { layoutProcess } from '../../lib/index.js';
+import { layoutProcess } from '../../dist/index.js';
 
 import fileDrop from 'file-drops';
 import fileOpen from 'file-open';
