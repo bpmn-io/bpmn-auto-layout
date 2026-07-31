@@ -1,23 +1,27 @@
 import assert from 'node:assert';
+import { BpmnModdle } from 'bpmn-moddle';
+import { describe, it } from 'mocha';
 
 import {
   finalizeLayoutConnections
 } from '../lib/layout/connections/FinalizeConnections.js';
 
+import type { LayoutState } from '../lib/layout/Types.js';
+
 describe('FinalizeConnections', function() {
 
   it('should center a clear orthogonal sequence-flow elbow', function() {
-    const source = element('Source', 'bpmn:Task');
-    const target = element('Target', 'bpmn:Task');
-    const flow = {
+    const moddle = new BpmnModdle();
+    const scope = moddle.create('bpmn:Process', { id: 'Process' });
+    const source = moddle.create('bpmn:Task', { id: 'Source' });
+    const target = moddle.create('bpmn:Task', { id: 'Target' });
+    const flow = moddle.create('bpmn:SequenceFlow', {
       id: 'Flow',
       sourceRef: source,
-      targetRef: target,
-      $instanceOf(type) {
-        return type === 'bpmn:SequenceFlow';
-      }
-    };
-    const layout = {
+      targetRef: target
+    });
+    const layout: LayoutState = {
+      scope,
       shapes: new Map([
         [ source, { x: 0, y: 0, width: 100, height: 80 } ],
         [ target, { x: 200, y: 160, width: 100, height: 80 } ]
@@ -29,7 +33,8 @@ describe('FinalizeConnections', function() {
           { x: 200, y: 200 }
         ] ]
       ]),
-      children: []
+      children: [],
+      emitInParent: false
     };
 
     finalizeLayoutConnections(layout);
@@ -41,12 +46,3 @@ describe('FinalizeConnections', function() {
     ]);
   });
 });
-
-function element(id, type) {
-  return {
-    id,
-    $instanceOf(candidate) {
-      return candidate === type;
-    }
-  };
-}
