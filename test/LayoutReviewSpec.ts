@@ -20,6 +20,15 @@ type ReviewResult = {
   diagramSnapshot: string | null;
   diagramOutput: string | null;
   changeType: string;
+  metrics: ReviewMetrics | null;
+};
+
+type ReviewMetrics = {
+  baseline: object | null;
+  current: object | null;
+  delta: object | null;
+  findings: object | null;
+  error: string | null;
 };
 
 type ReviewPayload = {
@@ -90,6 +99,10 @@ describe('Layout review', function(this: TimedTestContext) {
     assert.strictEqual(result.diagramSnapshot, snapshot);
     assert.strictEqual(result.diagramOutput, proposedSnapshot);
     assert.strictEqual(result.changeType, 'modified');
+    assert.ok(result.metrics);
+    assert.ok(result.metrics.baseline);
+    assert.ok(result.metrics.current);
+    assert.ok(result.metrics.delta);
     assert.ok(report.includes('Snapshot changes'));
   });
 
@@ -191,7 +204,19 @@ function isReviewResult(value: unknown): value is ReviewResult {
   return isRecord(value) &&
     (typeof value.diagramSnapshot === 'string' || value.diagramSnapshot === null) &&
     (typeof value.diagramOutput === 'string' || value.diagramOutput === null) &&
-    typeof value.changeType === 'string';
+    typeof value.changeType === 'string' &&
+    isReviewMetrics(value.metrics);
+}
+
+function isReviewMetrics(value: unknown): value is ReviewMetrics | null {
+  return value === null || (
+    isRecord(value) &&
+    (value.baseline === null || isRecord(value.baseline)) &&
+    (value.current === null || isRecord(value.current)) &&
+    (value.delta === null || isRecord(value.delta)) &&
+    (value.findings === null || isRecord(value.findings)) &&
+    (value.error === null || typeof value.error === 'string')
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
