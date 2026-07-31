@@ -28,6 +28,8 @@
     "test/inspector/Report.ts",
     "test/metrics/computeMetrics.ts",
     "test/metrics/evaluateMetrics.ts",
-    "test/metrics.ts"
+    "test/metrics.ts",
+    "test/ApiSpec.ts",
+    "test/mocha.d.ts"
   ]
 }
