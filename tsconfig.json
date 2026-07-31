@@ -41,6 +41,7 @@
     "test/CompactBandsSpec.ts",
     "test/SemanticPolicySpec.ts",
     "test/LayoutStateSpec.ts",
+    "test/LanePlacementSpec.ts",
     "test/mocha.d.ts"
   ]
 }
