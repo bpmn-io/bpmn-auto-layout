@@ -50,6 +50,7 @@
     "test/BenchmarkSpec.ts",
     "test/LayoutReviewSpec.ts",
     "test/metrics.test.ts",
+    "test/LayoutSpec.ts",
     "test/mocha.d.ts"
   ]
 }

@@ -5,6 +5,7 @@ import { performance } from 'node:perf_hooks';
 import url from 'node:url';
 
 import { BpmnModdle } from 'bpmn-moddle';
+import { describe, it } from 'mocha';
 
 import {
   layoutProcess as layoutProcessResult,
@@ -21,7 +22,13 @@ import {
   segmentsProperlyCross,
   toSegments
 } from '../lib/layout/geometry/index.js';
+import type {
+  BpmnElement,
+  Bounds,
+  Waypoint
+} from '../lib/layout/Types.js';
 import { calculateStatistics } from '../tasks/benchmark-util.js';
+import type { BenchmarkStatistics } from '../tasks/benchmark-util.js';
 import { writeInspectorReport } from './inspector/Report.js';
 import {
   INSPECTOR_LAYOUT_TIMING_RUNS,
@@ -40,6 +47,77 @@ import {
 } from '../lib/layout/Constants.js';
 import { evaluateMetrics } from './metrics/evaluateMetrics.js';
 
+type LayoutSemanticElement = BpmnElement & {
+  id: string;
+  artifacts: LayoutSemanticElement[];
+  categoryValueRef: LayoutSemanticElement | LayoutSemanticElement[];
+  flowElements: LayoutSemanticElement[];
+  incoming: LayoutSemanticElement[];
+  outgoing: LayoutSemanticElement[];
+  sourceRef: LayoutSemanticElement;
+  targetRef: LayoutSemanticElement;
+};
+
+type LayoutPlaneElement = {
+  $instanceOf(type: string): boolean;
+  bpmnElement: LayoutSemanticElement;
+  bounds: Bounds;
+  waypoint: Waypoint[];
+  label: {
+    bounds: Bounds;
+  };
+  isMarkerVisible: boolean;
+};
+
+type LayoutDiagram = {
+  rootElements: LayoutSemanticElement[];
+  diagrams: {
+    plane: {
+      planeElement: LayoutPlaneElement[];
+    };
+  }[];
+};
+
+type FixtureWarning = Pick<
+  LayoutWarning,
+  'code' | 'elementId' | 'message' | 'relatedElementIds'
+>;
+
+type LayoutTiming = BenchmarkStatistics & {
+  isSlow: boolean;
+  medianP50Ms: number;
+  rank: number;
+  runs: number;
+  total: number;
+};
+
+type SuiteContext = {
+  beforeAll(callback: () => void | Promise<void>): void;
+  afterAll(callback: () => void | Promise<void>): void;
+};
+
+type TestDefinition = typeof it;
+
+type TestDefinitionWithModes = TestDefinition & {
+  only: TestDefinition;
+  skip: TestDefinition;
+};
+
+type MetricsBaseline = NonNullable<Parameters<typeof evaluateMetrics>[1]>;
+
+class RequiredMap<Key, Value> extends Map<Key, Value> {
+
+  get(key: Key): Value {
+    const value = super.get(key);
+
+    if (value === undefined) {
+      throw new Error(`Expected fixture value for ${ String(key) }.`);
+    }
+
+    return value;
+  }
+}
+
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -48,27 +126,141 @@ const failuresDirectory = path.join(fixturesDirectory, 'failures');
 const outputDirectory = path.join(__dirname, 'output');
 const snapshotsDirectory = path.join(__dirname, 'snapshots');
 const metricsBaselineFile = path.join(__dirname, 'metrics', 'baseline.json');
+const metricsBaselineKeys = new Set([
+  'crossings',
+  'bendCount',
+  'overlaps',
+  'edgeShapeIntersections',
+  'detachedDockings',
+  'wrongWayDockings',
+  'nonOrthogonalConnections',
+  'backtrackingConnections',
+  'averageEdgeLength',
+  'edgeSegmentLengthDeviation',
+  'labelShapeOverlaps',
+  'labelEdgeOverlaps',
+  'compactness',
+  'gridAlignment',
+  'branchSymmetry'
+]);
 
 const UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === 'true';
-const layoutTimingsByFixture = new Map();
-const layoutWarningsByFixture = new Map();
+const layoutTimingsByFixture = new Map<string, number[]>();
+const layoutWarningsByFixture = new Map<string, FixtureWarning[]>();
 const MEASURE_INSPECTOR_TIMINGS = shouldMeasureLayoutTimings();
 
-async function layoutProcess(xml) {
+async function layoutProcess(xml: string): Promise<string> {
   return (await layoutProcessResult(xml)).xml;
 }
 
-function getCollaborationArtifacts(rootElement) {
+async function readLayoutDiagram(xml: string): Promise<LayoutDiagram> {
+  const { rootElement } = await new BpmnModdle().fromXML(xml);
+
+  if (!isLayoutDiagram(rootElement)) {
+    throw new Error('Expected layout output to contain BPMN definitions.');
+  }
+
+  return rootElement;
+}
+
+function isLayoutDiagram(value: unknown): value is LayoutDiagram {
+  return isObject(value) &&
+    hasProperty(value, '$instanceOf') &&
+    typeof value.$instanceOf === 'function' &&
+    value.$instanceOf('bpmn:Definitions');
+}
+
+function isObject(value: unknown): value is object {
+  return typeof value === 'object' && value !== null;
+}
+
+function hasProperty<Property extends PropertyKey>(
+    value: object,
+    property: Property
+): value is object & { [Key in Property]: unknown } {
+  return property in value;
+}
+
+function getRequired<Value>(value: Value | null | undefined): Value {
+  if (value === null || value === undefined) {
+    throw new Error('Expected fixture value.');
+  }
+
+  return value;
+}
+
+function last<Value>(values: readonly Value[]): Value {
+  return getRequired(values.at(-1));
+}
+
+function penultimate<Value>(values: readonly Value[]): Value {
+  return getRequired(values.at(-2));
+}
+
+function entry<Key, Value>(key: Key, value: Value): [ Key, Value ] {
+  return [ key, value ];
+}
+
+function hasTestDefinitionModes(
+    definition: TestDefinition
+): definition is TestDefinitionWithModes {
+  return 'only' in definition &&
+    typeof definition.only === 'function' &&
+    'skip' in definition &&
+    typeof definition.skip === 'function';
+}
+
+function readMetricsBaseline(): Map<string, MetricsBaseline> {
+  if (!fs.existsSync(metricsBaselineFile)) {
+    return new Map();
+  }
+
+  const value: unknown = JSON.parse(fs.readFileSync(metricsBaselineFile, 'utf8'));
+
+  if (!isObject(value)) {
+    throw new Error('Expected metrics baseline configuration.');
+  }
+
+  const baseline = new Map<string, MetricsBaseline>();
+
+  for (const [ fileName, metrics ] of Object.entries(value)) {
+    if (!isMetricsBaseline(metrics)) {
+      throw new Error(`Expected metrics baseline for ${ fileName }.`);
+    }
+
+    baseline.set(fileName, metrics);
+  }
+
+  return baseline;
+}
+
+function isMetricsBaseline(value: unknown): value is MetricsBaseline {
+  return isObject(value) &&
+    Object.entries(value).every(([ metricName, metric ]) => {
+      return metricsBaselineKeys.has(metricName) &&
+        typeof metric === 'number';
+    });
+}
+
+function hasErrorCode(value: unknown): value is { code: string } {
+  return isObject(value) &&
+    hasProperty(value, 'code') &&
+    typeof value.code === 'string';
+}
+
+function getCollaborationArtifacts(
+    rootElement: LayoutDiagram
+): LayoutSemanticElement[] {
   const collaboration = rootElement.rootElements.find(element => {
     return element.$instanceOf('bpmn:Collaboration');
   });
 
- return collaboration?.artifacts || [];
+  return collaboration?.artifacts || [];
 }
 
-describe('Layout', function() {
+describe('Layout', function(this: SuiteContext) {
 
-  before(function() {
+  this.beforeAll(function() {
     fs.rmSync(outputDirectory, { recursive: true, force: true });
     fs.mkdirSync(outputDirectory, { recursive: true });
 
@@ -99,7 +291,10 @@ describe('Layout', function() {
       it(`should reject ${ fileName } with ${ code }`, async function() {
         const xml = fs.readFileSync(path.join(failuresDirectory, fileName), 'utf8');
 
-        await assert.rejects(layoutProcess(xml), error => error.code === code);
+        await assert.rejects(
+          layoutProcess(xml),
+          error => hasErrorCode(error) && error.code === code
+        );
       });
 
     });
@@ -110,15 +305,15 @@ describe('Layout', function() {
     it('should route self-loops into the left side', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'scenario.self-loop.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
-      const cases = [
+      const cases: [ string, string ][] = [
         [ 'Flow_18uyowd', 'Activity_1qgvwe1' ],
         [ 'Flow_0xvgcqj', 'Gateway_1jhh68n' ],
         [ 'Flow_1rpu3xy', 'Event_1w3l8gz' ]
@@ -128,7 +323,7 @@ describe('Layout', function() {
         const shape = shapes.get(shapeId);
         const waypoints = edges.get(flowId);
         const start = waypoints[0];
-        const end = waypoints.at(-1);
+        const end = last(waypoints);
 
         assert.strictEqual(start.x, shape.x + shape.width / 2);
         assert.strictEqual(start.y, shape.y + shape.height);
@@ -140,19 +335,19 @@ describe('Layout', function() {
     it('should route boundary-to-host loops into the left side', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'sub-process.expanded-self-loop.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Flow_0y61mnc';
-      });
+      }));
       const source = shapes.get('Event_10irqhg');
       const target = shapes.get('Activity_1u53pwc');
       const start = edge.waypoint[0];
-      const end = edge.waypoint.at(-1);
+      const end = last(edge.waypoint);
 
       assert.strictEqual(start.x, source.x + source.width / 2);
       assert.strictEqual(start.y, source.y + source.height);
@@ -163,15 +358,15 @@ describe('Layout', function() {
     it('should preserve nested split and merge bands', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'scenario.issue-131.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
-      const centerY = id => {
+      const centerY = (id: string): number => {
         const shape = shapes.get(id);
 
         return shape.y + shape.height / 2;
@@ -196,7 +391,7 @@ describe('Layout', function() {
       const source = shapes.get('inclusiveGateway_2');
       const target = shapes.get('exclusiveGateway_2');
       const start = mergeFlow[0];
-      const end = mergeFlow.at(-1);
+      const end = last(mergeFlow);
 
       assert.ok(source.x < target.x);
       assert.strictEqual(start.x, source.x + source.width);
@@ -211,20 +406,20 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
-      const centerY = id => {
+      const centerY = (id: string): number => {
         const shape = shapes.get(id);
 
         return shape.y + shape.height / 2;
       };
-      const centerX = shape => shape.x + shape.width / 2;
+      const centerX = (shape: Bounds): number => shape.x + shape.width / 2;
       const spineY = centerY('Activity_1ltiek0');
       const alternatives = [
         centerY('activity_sales_team'),
@@ -246,19 +441,19 @@ describe('Layout', function() {
       }
 
       for (const flowId of [ 'Flow_07h5nkp', 'Flow_088ove7', 'Flow_07c5po9' ]) {
-        assert.strictEqual(edges.get(flowId).at(-2).x, mergeChannelX);
+        assert.strictEqual(penultimate(edges.get(flowId)).x, mergeChannelX);
       }
     });
 
     it('should route an implicit task split like a gateway split', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'task.default-flow.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const source = shapes.get('Activity_0ip7259');
@@ -266,7 +461,7 @@ describe('Layout', function() {
       const alternative = shapes.get('Activity_1dc6hvm');
       const branch = edges.get('Flow_1g8zv0u');
       const start = branch[0];
-      const end = branch.at(-1);
+      const end = last(branch);
 
       assert.strictEqual(source.y, primary.y);
       assert.ok(alternative.y > source.y);
@@ -279,12 +474,12 @@ describe('Layout', function() {
     it('should route a boundary event split vertically', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'boundary-event.multiple.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const source = shapes.get('Event_1nxutwo');
@@ -302,7 +497,7 @@ describe('Layout', function() {
     });
 
     it('should reuse branch bands with disjoint rank intervals', async function() {
-      const cases = [
+      const cases: [ string, string, string ][] = [
         [ 'gateway.multiple-with-tasks.bpmn', 'Activity_0011ct6', 'Activity_16ahi4e' ],
         [ 'gateway.multiple.bpmn', 'Activity_0qdwjpf', 'Activity_1387cfu' ]
       ];
@@ -310,8 +505,8 @@ describe('Layout', function() {
       for (const [ fixture, firstId, secondId ] of cases) {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
         const output = await layoutProcess(xml);
-        const { rootElement } = await new BpmnModdle().fromXML(output);
-        const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+        const rootElement = await readLayoutDiagram(output);
+        const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
           .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
           .map(element => [ element.bpmnElement.id, element.bounds ]));
         const first = shapes.get(firstId);
@@ -325,7 +520,7 @@ describe('Layout', function() {
     });
 
     it('should keep boundary handler paths on coherent bands', async function() {
-      const cases = [
+      const cases: [ string, [ string, string ][] ][] = [
         [
           'boundary-event.multiple-errors.bpmn',
           [
@@ -345,8 +540,8 @@ describe('Layout', function() {
       for (const [ fixture, paths ] of cases) {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
         const output = await layoutProcess(xml);
-        const { rootElement } = await new BpmnModdle().fromXML(output);
-        const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+        const rootElement = await readLayoutDiagram(output);
+        const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
           .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
           .map(element => [ element.bpmnElement.id, element.bounds ]));
 
@@ -368,13 +563,13 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Flow_0c4pgkw';
-      });
-      const shapes = new Map(elements
+      }));
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const source = shapes.get('Event_1clxdkb');
@@ -382,8 +577,8 @@ describe('Layout', function() {
 
       const start = edge.waypoint[0];
       const afterStart = edge.waypoint[1];
-      const beforeEnd = edge.waypoint.at(-2);
-      const end = edge.waypoint.at(-1);
+      const beforeEnd = penultimate(edge.waypoint);
+      const end = last(edge.waypoint);
 
       assert.deepStrictEqual(
         [ start.x, start.y ],
@@ -405,12 +600,12 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const boundaries = [
@@ -439,16 +634,16 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Flow_0rs9uw9';
-      });
-      const source = elements.find(element => {
+      }));
+      const source = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.id === 'Event_00rqlj4';
-      }).bounds;
+      })).bounds;
 
       assert.deepStrictEqual(
         [ edge.waypoint[0].x, edge.waypoint[0].y ],
@@ -467,13 +662,13 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Flow_1b8h5fq';
-      });
-      const shapes = new Map(elements
+      }));
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const source = shapes.get('Event_004398z');
@@ -497,13 +692,13 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Flow_0yaksw4';
-      });
-      const shapes = new Map(elements
+      }));
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const source = shapes.get('Event_0jpjmuu');
@@ -514,11 +709,11 @@ describe('Layout', function() {
         [ source.x + source.width, source.y + source.height / 2 ]
       );
       assert.deepStrictEqual(
-        [ edge.waypoint.at(-1).x, edge.waypoint.at(-1).y ],
+        [ last(edge.waypoint).x, last(edge.waypoint).y ],
         [ target.x, target.y + target.height / 2 ]
       );
       assert.strictEqual(edge.waypoint[1].y, edge.waypoint[0].y);
-      assert.strictEqual(edge.waypoint.at(-2).y, edge.waypoint.at(-1).y);
+      assert.strictEqual(penultimate(edge.waypoint).y, last(edge.waypoint).y);
     });
 
     it('should keep adjusted sequence flow dockings orthogonal', async function() {
@@ -527,16 +722,16 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'dc1';
-      });
-      const source = elements.find(element => {
+      }));
+      const source = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.id === 'Decline';
-      }).bounds;
+      })).bounds;
 
       assert.deepStrictEqual(
         [ edge.waypoint[0].x, edge.waypoint[0].y ],
@@ -557,13 +752,13 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'er1';
-      });
-      const shapes = new Map(elements
+      }));
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const boundary = shapes.get('B_Err');
@@ -595,24 +790,24 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Flow_0ixfrp0';
-      });
-      const event = elements.find(element => {
+      }));
+      const event = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.id === 'Event_1e3tdvb';
-      }).bounds;
-      const channel = edge.waypoint.find((waypoint, index) => {
+      })).bounds;
+      const channel = getRequired(edge.waypoint.find((waypoint, index) => {
         const next = edge.waypoint[index + 1];
 
         return next &&
           waypoint.y === next.y &&
           Math.min(waypoint.x, next.x) <= event.x &&
           Math.max(waypoint.x, next.x) >= event.x + event.width;
-      });
+      }));
 
       assert.ok(channel.y >= event.y + event.height + LOCAL_U_OBSTACLE_CLEARANCE);
     });
@@ -623,13 +818,13 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'k2';
-      });
-      const shapes = new Map(elements
+      }));
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const source = shapes.get('Extract');
@@ -651,13 +846,13 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Flow_12m4nt5';
-      });
-      const shapes = new Map(elements
+      }));
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const source = shapes.get('Event_18g7fuq');
@@ -680,8 +875,8 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const continuation = [
@@ -701,12 +896,12 @@ describe('Layout', function() {
     it('should keep boundary handler endings in their exception bands', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'boundary-event.mixed.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapeById = new Map(elements
+      const shapeById = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element ]));
-      const edgeById = new Map(elements
+      const edgeById = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element ]));
 
@@ -723,8 +918,8 @@ describe('Layout', function() {
 
       const escalationHandler = shapeById.get('Activity_1rfy4sx').bounds;
       const errorHandler = shapeById.get('Activity_1axkrtx').bounds;
-      const escalationFlow = edgeById.get('Flow_0g36zvl').waypoint.at(-1);
-      const errorFlow = edgeById.get('Flow_008axep').waypoint.at(-1);
+      const escalationFlow = last(edgeById.get('Flow_0g36zvl').waypoint);
+      const errorFlow = last(edgeById.get('Flow_008axep').waypoint);
 
       for (const id of [ 'Flow_1ea03uj', 'Flow_1xpqfyn', 'Flow_03c633m', 'Flow_1pe80xw' ]) {
         const waypoints = edgeById.get(id).waypoint;
@@ -743,12 +938,12 @@ describe('Layout', function() {
     it('should place lower boundary paths below the normal-flow spine', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'boundary-event.simple.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
 
@@ -762,12 +957,12 @@ describe('Layout', function() {
     it('should keep the spine straight when boundary handlers rejoin it directly', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'boundary-event.handler-rejoin.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element ]));
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
 
@@ -787,22 +982,22 @@ describe('Layout', function() {
 
       const errorRejoin = edges.get('Flow_06l6g9v').waypoint;
       const errorTarget = shapes.get('Activity_10e766t');
-      assert.strictEqual(errorRejoin.at(-1).x, errorTarget.x + errorTarget.width / 2);
-      assert.strictEqual(errorRejoin.at(-1).y, errorTarget.y + errorTarget.height);
-      assert.strictEqual(errorRejoin.at(-2).x, errorRejoin.at(-1).x);
+      assert.strictEqual(last(errorRejoin).x, errorTarget.x + errorTarget.width / 2);
+      assert.strictEqual(last(errorRejoin).y, errorTarget.y + errorTarget.height);
+      assert.strictEqual(penultimate(errorRejoin).x, last(errorRejoin).x);
 
       const escalationRejoin = edges.get('Flow_1lokt4o').waypoint;
       const escalationTarget = shapes.get('Activity_17ref4v');
-      assert.strictEqual(escalationRejoin.at(-1).x, escalationTarget.x + escalationTarget.width / 2);
-      assert.strictEqual(escalationRejoin.at(-1).y, escalationTarget.y);
-      assert.strictEqual(escalationRejoin.at(-2).x, escalationRejoin.at(-1).x);
+      assert.strictEqual(last(escalationRejoin).x, escalationTarget.x + escalationTarget.width / 2);
+      assert.strictEqual(last(escalationRejoin).y, escalationTarget.y);
+      assert.strictEqual(penultimate(escalationRejoin).x, last(escalationRejoin).x);
     });
 
     it('should keep the primary gateway path straight', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'gateway.multiple.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const edges = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const edges = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element ]));
 
@@ -831,7 +1026,7 @@ describe('Layout', function() {
 
       const feedback = edges.get('Flow_137be2r').waypoint;
       assert.strictEqual(feedback.length, 4);
-      assert.ok(feedback[1].y > routedBranch.at(-1).y);
+      assert.ok(feedback[1].y > last(routedBranch).y);
       assert.strictEqual(feedback[0].x, feedback[1].x);
       assert.strictEqual(feedback[1].y, feedback[2].y);
       assert.strictEqual(feedback[2].x, feedback[3].x);
@@ -841,12 +1036,12 @@ describe('Layout', function() {
       for (const fixture of [ 'process.joining-flows.bpmn', 'scenario.declaration-order-ties.bpmn' ]) {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
         const output = await layoutProcess(xml);
-        const { rootElement } = await new BpmnModdle().fromXML(output);
+        const rootElement = await readLayoutDiagram(output);
         const elements = rootElement.diagrams[0].plane.planeElement;
-        const shapes = new Map(elements
+        const shapes = new RequiredMap(elements
           .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
           .map(element => [ element.bpmnElement.id, element.bounds ]));
-        const edges = new Map(elements
+        const edges = new RequiredMap(elements
           .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
           .map(element => [ element.bpmnElement.id, element.waypoint ]));
         const cases = fixture === 'process.joining-flows.bpmn'
@@ -859,18 +1054,18 @@ describe('Layout', function() {
         for (const [ flowId, gatewayId ] of cases) {
           const waypoints = edges.get(flowId);
           const gateway = shapes.get(gatewayId);
-          const end = waypoints.at(-1);
+          const end = last(waypoints);
 
           assert.strictEqual(waypoints.length, 3);
           assert.strictEqual(end.x, gateway.x + gateway.width / 2);
           assert.ok(end.y === gateway.y || end.y === gateway.y + gateway.height);
-          assert.strictEqual(waypoints.at(-2).x, end.x);
+          assert.strictEqual(penultimate(waypoints).x, end.x);
         }
       }
     });
 
     it('should keep primary paths straight across all components', async function() {
-      const cases = [
+      const cases: [ string, string ][] = [
         [ 'link-event.throw-catch.bpmn', 'Flow_1pi9i8e' ],
         [ 'gateway.loop-back.bpmn', 'Flow_l65bcwkx0' ],
         [ 'scenario.multiple-starts.bpmn', 'Flow_0giy03q' ]
@@ -879,10 +1074,10 @@ describe('Layout', function() {
       for (const [ fixture, flowId ] of cases) {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
         const output = await layoutProcess(xml);
-        const { rootElement } = await new BpmnModdle().fromXML(output);
-        const edge = rootElement.diagrams[0].plane.planeElement.find(element => {
+        const rootElement = await readLayoutDiagram(output);
+        const edge = getRequired(rootElement.diagrams[0].plane.planeElement.find(element => {
           return element.$instanceOf('bpmndi:BPMNEdge') && element.bpmnElement.id === flowId;
-        });
+        }));
 
         assert.strictEqual(edge.waypoint.length, 2);
         assert.strictEqual(edge.waypoint[0].y, edge.waypoint[1].y);
@@ -890,7 +1085,7 @@ describe('Layout', function() {
     });
 
     it('should orient forward cross-band target dockings outward', async function() {
-      const cases = [
+      const cases: [ string, string ][] = [
         [ 'link-event.loop.bpmn', 'Flow_1u3074k' ],
         [ 'lane.nested.bpmn', 'Flow_1l04nek' ]
       ];
@@ -898,17 +1093,17 @@ describe('Layout', function() {
       for (const [ fixture, flowId ] of cases) {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
         const output = await layoutProcess(xml);
-        const { rootElement } = await new BpmnModdle().fromXML(output);
+        const rootElement = await readLayoutDiagram(output);
         const elements = rootElement.diagrams[0].plane.planeElement;
-        const edge = elements.find(element => {
+        const edge = getRequired(elements.find(element => {
           return element.$instanceOf('bpmndi:BPMNEdge') && element.bpmnElement.id === flowId;
-        });
-        const target = elements.find(element => {
+        }));
+        const target = getRequired(elements.find(element => {
           return element.$instanceOf('bpmndi:BPMNShape') &&
             element.bpmnElement === edge.bpmnElement.targetRef;
-        }).bounds;
-        const end = edge.waypoint.at(-1);
-        const adjacent = edge.waypoint.at(-2);
+        })).bounds;
+        const end = last(edge.waypoint);
+        const adjacent = penultimate(edge.waypoint);
         const outward =
           (end.y === target.y && adjacent.y < end.y) ||
           (end.y === target.y + target.height && adjacent.y > end.y) ||
@@ -930,23 +1125,23 @@ describe('Layout', function() {
       for (const [ fixture, flowId ] of cases) {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
         const output = await layoutProcess(xml);
-        const { rootElement } = await new BpmnModdle().fromXML(output);
+        const rootElement = await readLayoutDiagram(output);
         const elements = rootElement.diagrams[0].plane.planeElement;
-        const edge = elements.find(element => {
+        const edge = getRequired(elements.find(element => {
           return element.$instanceOf('bpmndi:BPMNEdge') && element.bpmnElement.id === flowId;
-        });
-        const source = elements.find(element => {
+        }));
+        const source = getRequired(elements.find(element => {
           return element.$instanceOf('bpmndi:BPMNShape') &&
             element.bpmnElement === edge.bpmnElement.sourceRef;
-        }).bounds;
-        const target = elements.find(element => {
+        })).bounds;
+        const target = getRequired(elements.find(element => {
           return element.$instanceOf('bpmndi:BPMNShape') &&
             element.bpmnElement === edge.bpmnElement.targetRef;
-        }).bounds;
+        })).bounds;
 
         assert.strictEqual(edge.waypoint.length, 3);
         assert.strictEqual(edge.waypoint[0].x, source.x + source.width / 2);
-        assert.strictEqual(edge.waypoint.at(-1).x, target.x);
+        assert.strictEqual(last(edge.waypoint).x, target.x);
         assert.ok(target.x - source.x < 250);
       }
     });
@@ -954,15 +1149,15 @@ describe('Layout', function() {
     it('should align nested gateway joins in their enclosing branch', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'gateway.nested.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Flow_0k5axi6';
-      });
+      }));
       const nestedSplit = shapes.get('Gateway_1jo93d2');
       const nestedJoin = shapes.get('Gateway_1f6wfdt');
       const outerJoin = shapes.get('Gateway_1f1stuw');
@@ -977,7 +1172,7 @@ describe('Layout', function() {
     });
 
     it('should preserve straight spines for implicit starts and long branch edges', async function() {
-      const cases = [
+      const cases: [ string, string[] ][] = [
         [ 'scenario.happy-path.bpmn', [ 'Flow_0yql2id', 'Flow_1jqd6cn', 'Flow_04fevuo', 'Flow_0lzabzl' ] ],
         [ 'scenario.long-branch-edge.bpmn', [ 'Flow_1cus582', 'Flow_0rc84bw', 'Flow_1ivp9an', 'Flow_0evcr55' ] ]
       ];
@@ -985,8 +1180,8 @@ describe('Layout', function() {
       for (const [ fixture, flowIds ] of cases) {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
         const output = await layoutProcess(xml);
-        const { rootElement } = await new BpmnModdle().fromXML(output);
-        const edges = new Map(rootElement.diagrams[0].plane.planeElement
+        const rootElement = await readLayoutDiagram(output);
+        const edges = new RequiredMap(rootElement.diagrams[0].plane.planeElement
           .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
           .map(element => [ element.bpmnElement.id, element.waypoint ]));
 
@@ -1005,12 +1200,12 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const spine = [
@@ -1033,7 +1228,7 @@ describe('Layout', function() {
       const feedback = edges.get('Flow_1yea5o1');
 
       assert.strictEqual(feedback.length, 4);
-      assert.ok(feedback[0].x > feedback.at(-1).x);
+      assert.ok(feedback[0].x > last(feedback).x);
       assert.strictEqual(feedback[0].x, feedback[1].x);
       assert.strictEqual(feedback[1].y, feedback[2].y);
       assert.strictEqual(feedback[2].x, feedback[3].x);
@@ -1045,17 +1240,17 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapeDi = new Map(elements
+      const shapeDi = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element ]));
-      const shapes = new Map([ ...shapeDi ]
+      const shapes = new RequiredMap([ ...shapeDi ]
         .map(([ id, element ]) => [ id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
-      const centerY = shape => shape.y + shape.height / 2;
+      const centerY = (shape: Bounds): number => shape.y + shape.height / 2;
       const restart = shapes.get('Event_0rzd7z1');
       const availability = shapes.get('Activity_0oprw8j');
       const restartFeedback = edges.get('Flow_040xkfg');
@@ -1066,7 +1261,7 @@ describe('Layout', function() {
       assert.strictEqual(restartFeedback[1].y, restartFeedback[2].y);
       assert.strictEqual(restartFeedback[0].y, restart.y);
       assert.strictEqual(
-        restartFeedback.at(-1).y,
+        last(restartFeedback).y,
         shapes.get('Gateway_15i2i2v').y
       );
 
@@ -1111,12 +1306,12 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const spineIds = [
@@ -1130,7 +1325,7 @@ describe('Layout', function() {
         'EndEvent_safeGuardResult'
       ];
       const spine = spineIds.map(id => shapes.get(id));
-      const centerY = bounds => bounds.y + bounds.height / 2;
+      const centerY = (bounds: Bounds): number => bounds.y + bounds.height / 2;
 
       for (let index = 1; index < spine.length; index++) {
         assert.ok(spine[index - 1].x < spine[index].x);
@@ -1159,8 +1354,8 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const alternatives = [
@@ -1168,7 +1363,7 @@ describe('Layout', function() {
         [ 'Activity_1t4newl', 'Event_task-agent-failed', 'Gateway_0clysfw' ],
         [ 'Gateway_0clysfw', 'Event_bad-agent-output', 'Gateway_0d4d9o9' ]
       ].map(ids => ids.map(id => shapes.get(id)));
-      const centerY = bounds => bounds.y + bounds.height / 2;
+      const centerY = (bounds: Bounds): number => bounds.y + bounds.height / 2;
 
       for (const [ source, alternative, continuation ] of alternatives) {
         assert.ok(source.x + source.width < alternative.x);
@@ -1185,8 +1380,8 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const expedited = shapes.get('Expedited');
@@ -1194,7 +1389,7 @@ describe('Layout', function() {
       const manualEnd = shapes.get('End_Manual');
       const periodic = shapes.get('Periodic');
       const mainJoin = shapes.get('Gw_End');
-      const centerY = bounds => bounds.y + bounds.height / 2;
+      const centerY = (bounds: Bounds): number => bounds.y + bounds.height / 2;
 
       assert.ok(expedited.x + expedited.width < retry.x);
       assert.ok(retry.x + retry.width < manualEnd.x);
@@ -1210,8 +1405,8 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
 
@@ -1220,7 +1415,7 @@ describe('Layout', function() {
     });
 
     it('should route shape-spanning forward edges like feedback edges', async function() {
-      const cases = [
+      const cases: [ string, string[] ][] = [
         [ 'scenario.happy-path.bpmn', [ 'Flow_1cp2keh' ] ],
         [ 'scenario.long-branch-edge.bpmn', [ 'Flow_0aas87b', 'Flow_0o3atp0' ] ]
       ];
@@ -1228,12 +1423,12 @@ describe('Layout', function() {
       for (const [ fixture, flowIds ] of cases) {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
         const output = await layoutProcess(xml);
-        const { rootElement } = await new BpmnModdle().fromXML(output);
+        const rootElement = await readLayoutDiagram(output);
         const elements = rootElement.diagrams[0].plane.planeElement;
-        const shapes = new Map(elements
+        const shapes = new RequiredMap(elements
           .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
           .map(element => [ element.bpmnElement.id, element.bounds ]));
-        const edges = new Map(elements
+        const edges = new RequiredMap(elements
           .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
           .map(element => [ element.bpmnElement.id, element ]));
 
@@ -1246,8 +1441,8 @@ describe('Layout', function() {
           assert.strictEqual(waypoints.length, 4);
           assert.strictEqual(waypoints[0].x, source.x + source.width / 2);
           assert.strictEqual(waypoints[0].y, source.y + source.height);
-          assert.strictEqual(waypoints.at(-1).x, target.x + target.width / 2);
-          assert.strictEqual(waypoints.at(-1).y, target.y + target.height);
+          assert.strictEqual(last(waypoints).x, target.x + target.width / 2);
+          assert.strictEqual(last(waypoints).y, target.y + target.height);
           assert.strictEqual(waypoints[1].y, waypoints[2].y);
         }
       }
@@ -1259,12 +1454,12 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const source = shapes.get('Gateway_1wrjn3x');
@@ -1274,8 +1469,8 @@ describe('Layout', function() {
       assert.strictEqual(waypoints.length, 4);
       assert.strictEqual(waypoints[0].x, source.x + source.width / 2);
       assert.strictEqual(waypoints[0].y, source.y);
-      assert.strictEqual(waypoints.at(-1).x, target.x + target.width / 2);
-      assert.strictEqual(waypoints.at(-1).y, target.y);
+      assert.strictEqual(last(waypoints).x, target.x + target.width / 2);
+      assert.strictEqual(last(waypoints).y, target.y);
       assert.ok(waypoints[1].y < source.y);
       assert.strictEqual(waypoints[1].y, waypoints[2].y);
 
@@ -1313,17 +1508,17 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const target = shapes.get('Gateway_09tcbh1');
-      const upperIncoming = edges.get('Flow_0hj0rzi').at(-1);
-      const lowerIncoming = edges.get('Flow_0zvhqhx').at(-1);
+      const upperIncoming = last(edges.get('Flow_0hj0rzi'));
+      const lowerIncoming = last(edges.get('Flow_0zvhqhx'));
 
       assert.strictEqual(upperIncoming.x, target.x + target.width / 2);
       assert.strictEqual(upperIncoming.y, target.y);
@@ -1334,8 +1529,8 @@ describe('Layout', function() {
     it('should assign nested U-routes by span depth', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'scenario.determinism.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const edges = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const edges = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const outerChannelY = edges.get('Flow_15iulmx')[1].y;
@@ -1347,8 +1542,8 @@ describe('Layout', function() {
     it('should route overlapping U-spans below later-starting spans', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'gateway.multiple-complex.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const edges = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const edges = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const channels = [
@@ -1367,23 +1562,23 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Flow_0y9bbj6';
-      });
+      }));
       const source = shapes.get(edge.bpmnElement.sourceRef.id);
       const target = shapes.get(edge.bpmnElement.targetRef.id);
 
       assert.strictEqual(edge.waypoint.length, 2);
       assert.strictEqual(edge.waypoint[0].x, source.x + source.width / 2);
       assert.strictEqual(edge.waypoint[0].y, source.y + source.height);
-      assert.strictEqual(edge.waypoint.at(-1).x, target.x + target.width / 2);
-      assert.strictEqual(edge.waypoint.at(-1).y, target.y);
+      assert.strictEqual(last(edge.waypoint).x, target.x + target.width / 2);
+      assert.strictEqual(last(edge.waypoint).y, target.y);
       assert.strictEqual(edge.waypoint[0].x, edge.waypoint[1].x);
     });
 
@@ -1394,9 +1589,9 @@ describe('Layout', function() {
       );
       const output = await layoutProcess(xml);
       const metrics = await evaluateMetrics(output);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const messageEdges = elements.filter(element => {
@@ -1419,7 +1614,7 @@ describe('Layout', function() {
         return total + Math.max(0, edge.waypoint.length - 2);
       }, 0);
 
-      assert.strictEqual(metrics.current.nonOrthogonalConnections, 0);
+      assert.strictEqual(getRequired(metrics.current).nonOrthogonalConnections, 0);
       assert.ok(upper.y < main.y);
       assert.ok(main.y < lower.y);
       assert.ok(upper.x > main.x + main.width / 2);
@@ -1433,9 +1628,9 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const participant = shapes.get('Participant_EventRegistration');
@@ -1453,27 +1648,27 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const annotation = elements.find(element => {
+      const annotation = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.id === 'TextAnnotation_event_reg_intro';
-      });
-      const messageFlow = elements.find(element => {
+      }));
+      const messageFlow = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Flow_1p4u8s4';
-      });
-      const association = elements.find(element => {
+      }));
+      const association = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Association_event_reg_intro';
-      });
-      const segments = points => points.slice(1).map((end, index) => {
+      }));
+      const segments = (points: Waypoint[]): [ Waypoint, Waypoint ][] => points.slice(1).map((end, index) => {
         return [ points[index], end ];
       });
-      const participant = elements.find(element => {
+      const participant = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.id === 'Participant_EventRegistration';
-      });
+      }));
 
       assert.strictEqual(messageFlow.waypoint.length, 2);
       assert.strictEqual(messageFlow.waypoint[0].x, messageFlow.waypoint[1].x);
@@ -1525,15 +1720,15 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Flow_193bw3h';
-      });
+      }));
       const source = shapes.get('Participant_1qdn8qg');
       const targetParticipant = shapes.get('Participant_0dwrwgx');
       const target = shapes.get('Activity_0qw608m');
@@ -1541,8 +1736,8 @@ describe('Layout', function() {
       assert.ok(!shapes.has('Event_0m9ntx1'));
       assert.strictEqual(edge.waypoint[0].x, target.x + target.width / 2);
       assert.strictEqual(edge.waypoint[0].y, source.y);
-      assert.strictEqual(edge.waypoint.at(-1).x, target.x + target.width / 2);
-      assert.strictEqual(edge.waypoint.at(-1).y, target.y + target.height);
+      assert.strictEqual(last(edge.waypoint).x, target.x + target.width / 2);
+      assert.strictEqual(last(edge.waypoint).y, target.y + target.height);
       assert.strictEqual(
         source.y - targetParticipant.y - targetParticipant.height,
         VERTICAL_GAP
@@ -1555,12 +1750,12 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const bank = shapes.get('Participant_06rogqo');
@@ -1593,8 +1788,8 @@ describe('Layout', function() {
           assert.ok(edge.waypoint[0].x <= sourceBounds.x + sourceBounds.width);
         }
         if (edge.bpmnElement.targetRef.$instanceOf('bpmn:Participant')) {
-          assert.ok(edge.waypoint.at(-1).x >= targetBounds.x);
-          assert.ok(edge.waypoint.at(-1).x <= targetBounds.x + targetBounds.width);
+          assert.ok(last(edge.waypoint).x >= targetBounds.x);
+          assert.ok(last(edge.waypoint).x <= targetBounds.x + targetBounds.width);
         }
       }
 
@@ -1652,7 +1847,7 @@ describe('Layout', function() {
         const node = shapes.get(nodeId);
         const centerX = node.x + node.width / 2;
         const outgoingX = edges.get(outgoingId)[0].x;
-        const incomingX = edges.get(incomingId).at(-1).x;
+        const incomingX = last(edges.get(incomingId)).x;
 
         assert.strictEqual(outgoingX, centerX - 10);
         assert.strictEqual(incomingX, centerX + 10);
@@ -1665,12 +1860,12 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const straightMessageFlows = elements.filter(element => {
@@ -1749,9 +1944,9 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const booking = shapes.get('Participant_0gpkl5f');
@@ -1781,8 +1976,8 @@ describe('Layout', function() {
           assert.ok(edge.waypoint[0].x <= sourceBounds.x + sourceBounds.width);
         }
         if (edge.bpmnElement.targetRef.$instanceOf('bpmn:Participant')) {
-          assert.ok(edge.waypoint.at(-1).x >= targetBounds.x);
-          assert.ok(edge.waypoint.at(-1).x <= targetBounds.x + targetBounds.width);
+          assert.ok(last(edge.waypoint).x >= targetBounds.x);
+          assert.ok(last(edge.waypoint).x <= targetBounds.x + targetBounds.width);
         }
       }
     });
@@ -1796,9 +1991,9 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const messageFlows = elements.filter(element => {
@@ -1807,10 +2002,12 @@ describe('Layout', function() {
       });
 
       for (const edge of messageFlows) {
-        for (const [ endpoint, waypoint ] of [
+        const endpoints: [ LayoutSemanticElement, Waypoint ][] = [
           [ edge.bpmnElement.sourceRef, edge.waypoint[0] ],
-          [ edge.bpmnElement.targetRef, edge.waypoint.at(-1) ]
-        ]) {
+          [ edge.bpmnElement.targetRef, last(edge.waypoint) ]
+        ];
+
+        for (const [ endpoint, waypoint ] of endpoints) {
           if (!endpoint.$instanceOf('bpmn:Participant')) {
             continue;
           }
@@ -1823,9 +2020,9 @@ describe('Layout', function() {
       }
 
       const hardware = shapes.get('Participant_14yof8d');
-      const avoidedDock = messageFlows.find(edge => {
+      const avoidedDock = getRequired(messageFlows.find(edge => {
         return edge.bpmnElement.id === 'Flow_1kciunv';
-      }).waypoint[0];
+      })).waypoint[0];
 
       assert.ok(avoidedDock.x < hardware.x + hardware.width);
     });
@@ -1839,9 +2036,9 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const participantShapes = new Map(elements.filter(element => {
+      const participantShapes = new RequiredMap(elements.filter(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.$instanceOf('bpmn:Participant');
       }).map(element => [ element.bpmnElement.id, element.bounds ]));
@@ -1859,7 +2056,7 @@ describe('Layout', function() {
       for (const edge of messageFlows) {
         const participantDock = edge.bpmnElement.sourceRef.id === 'Participant_01ttr04'
           ? edge.waypoint[0]
-          : edge.waypoint.at(-1);
+          : last(edge.waypoint);
 
         assert.ok(participantDock.x >= participant.x);
         assert.ok(participantDock.x <= participant.x + participant.width);
@@ -1874,16 +2071,16 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Flow_1p4u8s4';
-      });
-      const annotation = elements.find(element => {
+      }));
+      const annotation = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.id === 'TextAnnotation_event_reg_intro';
-      }).bounds;
+      })).bounds;
 
       assert.strictEqual(edge.waypoint.length, 2);
       assert.strictEqual(edge.waypoint[0].x, edge.waypoint[1].x);
@@ -1899,14 +2096,14 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
       const shapes = elements.filter(element => {
         return element.$instanceOf('bpmndi:BPMNShape');
       });
-      const annotationShape = shapes.find(element => {
+      const annotationShape = getRequired(shapes.find(element => {
         return element.bpmnElement.id === 'TextAnnotation_openai_routing_intro';
-      });
+      }));
       const annotation = annotationShape.bounds;
       const processShapes = shapes.filter(element => {
         return element !== annotationShape &&
@@ -1934,8 +2131,8 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const annotation = shapes.get('TextAnnotation_telco_intro');
@@ -1955,8 +2152,8 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const dataObject = shapes.get('sid-8D8BD39F-1B08-433F-8F93-A1FF7520BA8B');
@@ -1984,7 +2181,7 @@ describe('Layout', function() {
           ]
         }
       ];
-      const rectangleDistance = (a, b) => {
+      const rectangleDistance = (a: Bounds, b: Bounds): number => {
         const horizontal = Math.max(
           a.x - b.x - b.width,
           b.x - a.x - a.width,
@@ -2002,8 +2199,8 @@ describe('Layout', function() {
       for (const { fixture, artifact, owners } of cases) {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
         const output = await layoutProcess(xml);
-        const { rootElement } = await new BpmnModdle().fromXML(output);
-        const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+        const rootElement = await readLayoutDiagram(output);
+        const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
           .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
           .map(element => [ element.bpmnElement.id, element.bounds ]));
 
@@ -2022,24 +2219,24 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const edges = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const edges = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const input = edges.get('sid-A1B5F8D2-3FF2-4FAE-A885-819174BB01BD');
       const outputAssociation = edges.get('sid-1D74E5C9-7875-42C7-B069-7EF805115BFB');
       const produced = edges.get('sid-9391DBA5-9C7B-4B14-B502-AB985711AD02');
-      const task = rootElement.diagrams[0].plane.planeElement.find(element => {
+      const task = getRequired(rootElement.diagrams[0].plane.planeElement.find(element => {
         return element.bpmnElement?.id ===
           'sid-A9859F1C-A85B-4F2F-B2DF-E3F4F7FA67FA';
-      }).bounds;
+      })).bounds;
 
       assert.notDeepStrictEqual(
         [ input[0].x, input[0].y ],
-        [ outputAssociation.at(-1).x, outputAssociation.at(-1).y ]
+        [ last(outputAssociation).x, last(outputAssociation).y ]
       );
       assert.notDeepStrictEqual(
-        [ input.at(-1).x, input.at(-1).y ],
+        [ last(input).x, last(input).y ],
         [ outputAssociation[0].x, outputAssociation[0].y ]
       );
       assert.deepStrictEqual(
@@ -2086,8 +2283,8 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const firstTask = shapes.get('sid-A9859F1C-A85B-4F2F-B2DF-E3F4F7FA67FA');
@@ -2109,15 +2306,15 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const firstTask = shapes.get('Activity_0o6pkm5');
       const secondTask = shapes.get('Activity_1g6x9ev');
       const dataObject = shapes.get('DataObjectReference_1r641a6');
       const dataStore = shapes.get('DataStoreReference_1s8fkcv');
-      const aligned = (artifact, owner) => {
+      const aligned = (artifact: Bounds, owner: Bounds): boolean => {
         return artifact.x + artifact.width / 2 === owner.x + owner.width / 2 ||
           artifact.y + artifact.height / 2 === owner.y + owner.height / 2;
       };
@@ -2132,14 +2329,14 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const firstTask = elements.find(element => {
+      const firstTask = getRequired(elements.find(element => {
         return element.bpmnElement?.id === 'Activity_0o6pkm5';
-      }).bounds;
-      const association = elements.find(element => {
+      })).bounds;
+      const association = getRequired(elements.find(element => {
         return element.bpmnElement?.id === 'DataInputAssociation_1jjpwt9';
-      }).waypoint;
+      })).waypoint;
       const firstTaskClearance = {
         x: firstTask.x - 1,
         y: firstTask.y - 1,
@@ -2162,7 +2359,7 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
       const associationIds = new Set([
         'sid-9391DBA5-9C7B-4B14-B502-AB985711AD02',
@@ -2200,8 +2397,8 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const stockExchange = shapes.get('Participant_15apx5k');
@@ -2220,15 +2417,15 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Association_1kb9jbi';
-      });
+      }));
       const owner = shapes.get('Activity_0guwzdt');
       const annotation = shapes.get('TextAnnotation_0efhpjt');
 
@@ -2236,8 +2433,8 @@ describe('Layout', function() {
       assert.ok(edge);
       assert.strictEqual(edge.waypoint[0].x, owner.x + owner.width / 2);
       assert.strictEqual(edge.waypoint[0].y, owner.y);
-      assert.strictEqual(edge.waypoint.at(-1).x, annotation.x + annotation.width / 2);
-      assert.strictEqual(edge.waypoint.at(-1).y, annotation.y + annotation.height);
+      assert.strictEqual(last(edge.waypoint).x, annotation.x + annotation.width / 2);
+      assert.strictEqual(last(edge.waypoint).y, annotation.y + annotation.height);
     });
 
     it('should keep data artifacts clear of sequence flows', async function() {
@@ -2246,7 +2443,7 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
       const artifacts = elements.filter(element => {
         return element.$instanceOf('bpmndi:BPMNShape') && (
@@ -2286,7 +2483,7 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const artifactShapes = rootElement.diagrams[0].plane.planeElement.filter(element => {
         return element.$instanceOf('bpmndi:BPMNShape') && (
           element.bpmnElement.$instanceOf('bpmn:TextAnnotation') ||
@@ -2327,7 +2524,7 @@ describe('Layout', function() {
       ]) {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
         const output = await layoutProcess(xml);
-        const { rootElement } = await new BpmnModdle().fromXML(output);
+        const rootElement = await readLayoutDiagram(output);
         const associations = rootElement.diagrams[0].plane.planeElement.filter(element => {
           return element.$instanceOf('bpmndi:BPMNEdge') &&
             element.bpmnElement.$instanceOf('bpmn:Association');
@@ -2344,15 +2541,15 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Association_1bz0b4g';
-      });
+      }));
       const task = shapes.get('Jokes_API');
       const annotation = shapes.get('TextAnnotation_01jo4ud');
 
@@ -2366,19 +2563,19 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edge = elements.find(element => {
+      const edge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Association_002a1rl';
-      });
+      }));
 
       const task = shapes.get('Activity_1mn3r19');
       const annotation = shapes.get('TextAnnotation_0422590');
-      const isOnBoundary = (point, bounds) => {
+      const isOnBoundary = (point: Waypoint, bounds: Bounds): boolean => {
         const withinHorizontalBounds = point.x >= bounds.x && point.x <= bounds.x + bounds.width;
         const withinVerticalBounds = point.y >= bounds.y && point.y <= bounds.y + bounds.height;
 
@@ -2393,7 +2590,7 @@ describe('Layout', function() {
       assert.ok(edge);
       assert.ok(edge.waypoint.length >= 2);
       assert.ok(isOnBoundary(edge.waypoint[0], task));
-      assert.ok(isOnBoundary(edge.waypoint.at(-1), annotation));
+      assert.ok(isOnBoundary(last(edge.waypoint), annotation));
     });
 
     it('should emit labels for named external-label owners in every plane', async function() {
@@ -2405,7 +2602,7 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const diagrams = rootElement.diagrams;
 
       assert.ok(diagrams.length > 1);
@@ -2430,7 +2627,7 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
       const associationIds = new Set([
         'DataInputAssociation_0mj2l3x',
@@ -2445,14 +2642,14 @@ describe('Layout', function() {
       assert.strictEqual(edges.length, associationIds.size);
       assert.ok(edges.every(edge => edge.waypoint.length >= 2));
 
-      const secondTask = elements.find(element => {
+      const secondTask = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.id === 'Activity_1g6x9ev';
-      });
-      const secondInput = edges.find(edge => {
+      }));
+      const secondInput = getRequired(edges.find(edge => {
         return edge.bpmnElement.id === 'DataInputAssociation_1jjpwt9';
-      });
-      const target = secondInput.waypoint.at(-1);
+      }));
+      const target = last(secondInput.waypoint);
       const bounds = secondTask.bounds;
       const sideCenter =
         (
@@ -2473,16 +2670,16 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const ship = elements.find(element => {
+      const ship = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.id === 'Ship';
-      }).bounds;
-      const messageFlow = elements.find(element => {
+      })).bounds;
+      const messageFlow = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'm_ship';
-      }).waypoint;
+      })).waypoint;
       const start = messageFlow[0];
       const afterStart = messageFlow[1];
 
@@ -2494,26 +2691,26 @@ describe('Layout', function() {
       assert.strictEqual(messageFlow.length, 4);
       assert.strictEqual(messageFlow[1].y, messageFlow[2].y);
       assert.ok(messageFlow.every(point => {
-        return point.x >= Math.min(start.x, messageFlow.at(-1).x) &&
-          point.x <= Math.max(start.x, messageFlow.at(-1).x);
+        return point.x >= Math.min(start.x, last(messageFlow).x) &&
+          point.x <= Math.max(start.x, last(messageFlow).x);
       }));
     });
 
     it('should route sequence flows across intervening lanes', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'lane.skipping-lanes.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element ]));
       const flowIds = [ 'Flow_1lf50qy', 'Flow_04isu9o', 'Flow_1h8ne59', 'Flow_0z6vw5i' ];
       const skippingFlowIds = [ 'Flow_1lf50qy', 'Flow_0z6vw5i' ];
       const laneIds = [ 'Lane_1aqmqfw', 'Lane_1lthzsc', 'Lane_0ejty5h' ];
-      const laneMembership = new Map([
+      const laneMembership = new RequiredMap([
         [ 'StartEvent_1', 'Lane_1aqmqfw' ],
         [ 'Event_09mzq9k', 'Lane_1aqmqfw' ],
         [ 'Activity_0a9f0ti', 'Lane_1lthzsc' ],
@@ -2541,8 +2738,8 @@ describe('Layout', function() {
         const target = shapes.get(edge.bpmnElement.targetRef.id);
         const start = edge.waypoint[0];
         const afterStart = edge.waypoint[1];
-        const beforeEnd = edge.waypoint.at(-2);
-        const end = edge.waypoint.at(-1);
+        const beforeEnd = penultimate(edge.waypoint);
+        const end = last(edge.waypoint);
         const startsOutward =
           (start.y === source.y && afterStart.y < start.y) ||
           (start.y === source.y + source.height && afterStart.y > start.y) ||
@@ -2581,18 +2778,18 @@ describe('Layout', function() {
 
       const metrics = await evaluateMetrics(output);
 
-      assert.strictEqual(metrics.current.edgeShapeIntersections, 0);
-      assert.strictEqual(metrics.current.wrongWayDockings, 0);
+      assert.strictEqual(getRequired(metrics.current).edgeShapeIntersections, 0);
+      assert.strictEqual(getRequired(metrics.current).wrongWayDockings, 0);
     });
 
     it('should preserve semantic rows inside lanes', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'lane.error-handler.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const centerY = id => {
+      const centerY = (id: string): number => {
         const shape = shapes.get(id);
 
         return shape.y + shape.height / 2;
@@ -2613,28 +2810,28 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const process = rootElement.rootElements.find(element => {
+      const rootElement = await readLayoutDiagram(output);
+      const process = getRequired(rootElement.rootElements.find(element => {
         return element.$instanceOf('bpmn:Process');
-      });
-      const adHoc = process.flowElements.find(element => {
+      }));
+      const adHoc = getRequired(process.flowElements.find(element => {
         return element.$instanceOf('bpmn:AdHocSubProcess');
-      });
+      }));
       const sourceTasks = adHoc.flowElements.filter(element => {
         return element.$instanceOf('bpmn:Task') &&
           !(element.incoming || []).some(flow => flow.$instanceOf('bpmn:SequenceFlow')) &&
           (element.outgoing || []).some(flow => flow.$instanceOf('bpmn:SequenceFlow'));
       });
-      const edges = new Map(rootElement.diagrams[0].plane.planeElement
+      const edges = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement, element ]));
 
       assert.ok(sourceTasks.length > 1);
 
       for (const source of sourceTasks) {
-        const outgoing = (source.outgoing || []).find(flow => {
+        const outgoing = getRequired((source.outgoing || []).find(flow => {
           return flow.$instanceOf('bpmn:SequenceFlow');
-        });
+        }));
         const edge = edges.get(outgoing);
 
         assert.strictEqual(edge.waypoint.length, 2);
@@ -2648,15 +2845,15 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const planeElements = rootElement.diagrams[0].plane.planeElement;
-      const edges = new Map(planeElements
+      const edges = new RequiredMap(planeElements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
-      const centerY = id => {
+      const centerY = (id: string): number => {
         const shape = shapes.get(id);
 
         return shape.y + shape.height / 2;
@@ -2665,12 +2862,12 @@ describe('Layout', function() {
       assert.strictEqual(centerY('Gateway_1whb5u5'), centerY('Activity_062h34x'));
       assert.strictEqual(centerY('Activity_062h34x'), centerY('Gateway_join_specialist'));
 
-      const subprocess = planeElements.find(element => {
+      const subprocess = getRequired(planeElements.find(element => {
         return element.bpmnElement.id === 'Activity_04glkkx';
-      });
-      const gateway = planeElements.find(element => {
+      }));
+      const gateway = getRequired(planeElements.find(element => {
         return element.bpmnElement.id === 'Gateway_1whb5u5';
-      });
+      }));
       const childShapes = planeElements.filter(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.$parent === subprocess.bpmnElement &&
@@ -2703,12 +2900,12 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const adHoc = shapes.get('AI_Agent');
@@ -2720,7 +2917,7 @@ describe('Layout', function() {
       const confirmation = shapes.get('Activity_0mdux6v');
       const execution = shapes.get('Gateway_0fgu5ui');
       const join = shapes.get('Gateway_join_FS');
-      const centerY = shape => shape.y + shape.height / 2;
+      const centerY = (shape: Bounds): number => shape.y + shape.height / 2;
       const annotation = shapes.get('TextAnnotation_1rkjf45');
 
       assert.ok(aspectRatio < 2);
@@ -2742,7 +2939,7 @@ describe('Layout', function() {
 
       const metrics = await evaluateMetrics(output);
 
-      assert.strictEqual(metrics.current.crossings, 0);
+      assert.strictEqual(getRequired(metrics.current).crossings, 0);
     });
 
     it('should leave text annotations clear of expanded subprocess borders', async function() {
@@ -2751,8 +2948,8 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const subProcess = shapes.get('Activity_CommunicationAgent');
@@ -2771,11 +2968,11 @@ describe('Layout', function() {
       );
       const result = await layoutProcessResult(xml);
       const output = result.xml;
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const group = elements.find(element => {
+      const group = getRequired(elements.find(element => {
         return element.bpmnElement.$instanceOf('bpmn:Group');
-      });
+      }));
       const categoryValue = group.bpmnElement.categoryValueRef;
       const members = elements.filter(element => {
         const references = element.bpmnElement.categoryValueRef;
@@ -2830,7 +3027,7 @@ describe('Layout', function() {
         'utf8'
       );
       const result = await layoutProcessResult(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(result.xml);
+      const rootElement = await readLayoutDiagram(result.xml);
       const group = rootElement.diagrams[0].plane.planeElement.find(element => {
         return element.bpmnElement.$instanceOf('bpmn:Group');
       });
@@ -2858,35 +3055,35 @@ describe('Layout', function() {
         path.join(fixturesDirectory, 'artifact.collaboration-association.bpmn'),
         'utf8'
       );
-      const { rootElement } = await new BpmnModdle().fromXML(xml);
+      const rootElement = await readLayoutDiagram(xml);
       const result = await layoutProcessResult(xml);
-      const { rootElement: outputRoot } = await new BpmnModdle().fromXML(result.xml);
+      const outputRoot = await readLayoutDiagram(result.xml);
       const artifacts = getCollaborationArtifacts(rootElement);
-      const annotation = artifacts.find(element => {
+      const annotation = getRequired(artifacts.find(element => {
         return element.$instanceOf('bpmn:TextAnnotation');
-      });
-      const association = artifacts.find(element => {
+      }));
+      const association = getRequired(artifacts.find(element => {
         return element.$instanceOf('bpmn:Association');
-      });
+      }));
       const elements = outputRoot.diagrams[0].plane.planeElement;
-      const annotationShape = elements.find(element => {
+      const annotationShape = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.id === annotation.id;
-      });
-      const associationEdge = elements.find(element => {
+      }));
+      const associationEdge = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === association.id;
-      });
-      const participantShape = elements.find(element => {
+      }));
+      const participantShape = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.$instanceOf('bpmn:Participant');
-      });
+      }));
       const annotationBounds = annotationShape.bounds;
       const participantBounds = participantShape.bounds;
-      const ownerShape = elements.find(element => {
+      const ownerShape = getRequired(elements.find(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.id === 'Activity_0djri8w';
-      });
+      }));
       const ownerBounds = ownerShape.bounds;
 
       assert.deepStrictEqual(
@@ -2915,12 +3112,12 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const planeElements = rootElement.diagrams[0].plane.planeElement;
       const shapeElements = planeElements.filter(element => {
         return element.$instanceOf('bpmndi:BPMNShape');
       });
-      const shapes = new Map(shapeElements
+      const shapes = new RequiredMap(shapeElements
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const participants = shapeElements.filter(element => {
         return element.bpmnElement.$instanceOf('bpmn:Participant');
@@ -2934,13 +3131,13 @@ describe('Layout', function() {
           element.bpmnElement.$instanceOf('bpmn:MessageFlow')
         );
       });
-      const overlaps = (a, b) => {
+      const overlaps = (a: Bounds, b: Bounds): boolean => {
         return a.x < b.x + b.width &&
           b.x < a.x + a.width &&
           a.y < b.y + b.height &&
           b.y < a.y + a.height;
       };
-      const isInside = (inner, outer) => {
+      const isInside = (inner: Bounds, outer: Bounds): boolean => {
         return inner.x >= outer.x &&
           inner.y >= outer.y &&
           inner.x + inner.width <= outer.x + outer.width &&
@@ -2998,8 +3195,8 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const annotation = shapes.get('TextAnnotation_car_rental_intro');
@@ -3022,11 +3219,11 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const association = rootElement.diagrams[0].plane.planeElement.find(element => {
+      const rootElement = await readLayoutDiagram(output);
+      const association = getRequired(rootElement.diagrams[0].plane.planeElement.find(element => {
         return element.$instanceOf('bpmndi:BPMNEdge') &&
           element.bpmnElement.id === 'Association_absence_intro';
-      });
+      }));
       const waypoints = association.waypoint;
 
       assert.ok(
@@ -3041,8 +3238,8 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
-      const shapes = new Map(rootElement.diagrams[0].plane.planeElement
+      const rootElement = await readLayoutDiagram(output);
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
       const adHoc = shapes.get('AI_Agent');
@@ -3067,7 +3264,7 @@ describe('Layout', function() {
       const output = await layoutProcess(xml);
       const metrics = await evaluateMetrics(output);
 
-      assert.strictEqual(metrics.current.crossings, 0);
+      assert.strictEqual(getRequired(metrics.current).crossings, 0);
     });
 
     it('should route expanded subprocess entries and boundary handlers cleanly', async function() {
@@ -3076,12 +3273,12 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const outer = shapes.get('Activity_1rwf2np');
@@ -3104,8 +3301,8 @@ describe('Layout', function() {
       );
       assert.strictEqual(boundaryFlow[1].x, boundaryFlow[0].x);
       assert.strictEqual(boundaryFlow[1].y, boundaryFlow[0].y + 20);
-      assert.strictEqual(boundaryFlow.at(-1).x, handler.x);
-      assert.strictEqual(boundaryFlow.at(-1).y, handler.y + handler.height / 2);
+      assert.strictEqual(last(boundaryFlow).x, handler.x);
+      assert.strictEqual(last(boundaryFlow).y, handler.y + handler.height / 2);
 
       for (const flow of [ rejoin, alternate ]) {
         assert.strictEqual(flow[0].x, handler.x + handler.width / 2);
@@ -3124,12 +3321,12 @@ describe('Layout', function() {
         'utf8'
       );
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const elements = rootElement.diagrams[0].plane.planeElement;
-      const shapes = new Map(elements
+      const shapes = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
         .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const edges = new Map(elements
+      const edges = new RequiredMap(elements
         .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const gateway = shapes.get('Gateway_0l858kt');
@@ -3157,7 +3354,7 @@ describe('Layout', function() {
     });
 
     it('should use task dimensions for collapsed activity containers', async function() {
-      const cases = [
+      const cases: [ string, string, ((xml: string) => string) | null ][] = [
         [ 'sub-process.collapsed.bpmn', 'Activity_10ce7yr', null ],
         [ 'sub-process.transaction.bpmn', 'Transaction_1', null ],
         [
@@ -3180,13 +3377,13 @@ describe('Layout', function() {
         }
 
         const output = await layoutProcess(xml);
-        const { rootElement } = await new BpmnModdle().fromXML(output);
-        const shape = rootElement.diagrams
+        const rootElement = await readLayoutDiagram(output);
+        const shape = getRequired(rootElement.diagrams
           .flatMap(diagram => diagram.plane.planeElement)
           .find(element => {
             return element.$instanceOf('bpmndi:BPMNShape') &&
               element.bpmnElement.id === elementId;
-          });
+          }));
 
         assert.deepStrictEqual(
           { width: shape.bounds.width, height: shape.bounds.height },
@@ -3198,7 +3395,7 @@ describe('Layout', function() {
     it('should emit visible gateway markers', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'scenario.declaration-order-ties.bpmn'), 'utf8');
       const output = await layoutProcess(xml);
-      const { rootElement } = await new BpmnModdle().fromXML(output);
+      const rootElement = await readLayoutDiagram(output);
       const gateways = rootElement.diagrams[0].plane.planeElement.filter(element => {
         return element.$instanceOf('bpmndi:BPMNShape') &&
           element.bpmnElement.$instanceOf('bpmn:Gateway');
@@ -3213,13 +3410,13 @@ describe('Layout', function() {
       for (const fixture of [ 'lane.single.bpmn', 'lane.multiple.bpmn', 'lane.empty.bpmn' ]) {
         const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
         const output = await layoutProcess(xml);
-        const { rootElement } = await new BpmnModdle().fromXML(output);
+        const rootElement = await readLayoutDiagram(output);
         const shapes = rootElement.diagrams[0].plane.planeElement.filter(element => {
           return element.$instanceOf('bpmndi:BPMNShape');
         });
-        const participant = shapes.find(shape => {
+        const participant = getRequired(shapes.find(shape => {
           return shape.bpmnElement.$instanceOf('bpmn:Participant');
-        }).bounds;
+        })).bounds;
         const lanes = shapes.filter(shape => shape.bpmnElement.$instanceOf('bpmn:Lane'))
           .map(shape => shape.bounds)
           .sort((a, b) => a.y - b.y);
@@ -3230,7 +3427,7 @@ describe('Layout', function() {
         assert.strictEqual(lanes[0].x, participant.x + 30);
         assert.strictEqual(lanes[0].y, participant.y);
         assert.strictEqual(lanes[0].x + lanes[0].width, participant.x + participant.width);
-        assert.strictEqual(lanes.at(-1).y + lanes.at(-1).height, participant.y + participant.height);
+        assert.strictEqual(last(lanes).y + last(lanes).height, participant.y + participant.height);
         assert.ok(flowNodes.every(node => node.x >= lanes[0].x + 40));
         assert.ok(flowNodes.every(node => node.x + node.width <= lanes[0].x + lanes[0].width - 40));
 
@@ -3280,10 +3477,8 @@ describe('Layout', function() {
     });
 
 
-  after(async function() {
-    const metricsBaseline = fs.existsSync(metricsBaselineFile)
-      ? JSON.parse(fs.readFileSync(metricsBaselineFile, 'utf8'))
-      : {};
+  this.afterAll(async function() {
+    const metricsBaseline = readMetricsBaseline();
     const layoutTimingSummary = summarizeLayoutTimings(layoutTimingsByFixture);
     const results = await Promise.all(fs.readdirSync(outputDirectory).filter(f => f.endsWith('.bpmn')).map(async fileName => {
 
@@ -3316,7 +3511,7 @@ describe('Layout', function() {
         diagramSnapshot,
         diagramSnapshotMatching,
         layoutTiming: layoutTimingSummary.get(fileName) || null,
-        metrics: await evaluateMetrics(diagramOutput, metricsBaseline[fileName]),
+        metrics: await evaluateMetrics(diagramOutput, metricsBaseline.get(fileName)),
         name: fileName,
         warnings: layoutWarningsByFixture.get(fileName) || []
       };
@@ -3332,17 +3527,19 @@ describe('Layout', function() {
     assert.ok(index.includes('createWarningsPanel'));
     if (MEASURE_INSPECTOR_TIMINGS) {
       assert.ok(results.every(result => {
-        return Number.isFinite(result.layoutTiming?.averageMs) &&
-          result.layoutTiming.averageMs >= 0 &&
-          Number.isFinite(result.layoutTiming.p50Ms) &&
-          result.layoutTiming.p50Ms >= 0 &&
-          Number.isFinite(result.layoutTiming.p90Ms) &&
-          result.layoutTiming.p90Ms >= 0 &&
-          result.layoutTiming.runs === INSPECTOR_LAYOUT_TIMING_RUNS;
+        const layoutTiming = getRequired(result.layoutTiming);
+
+        return Number.isFinite(layoutTiming.averageMs) &&
+          layoutTiming.averageMs >= 0 &&
+          Number.isFinite(layoutTiming.p50Ms) &&
+          layoutTiming.p50Ms >= 0 &&
+          Number.isFinite(layoutTiming.p90Ms) &&
+          layoutTiming.p90Ms >= 0 &&
+          layoutTiming.runs === INSPECTOR_LAYOUT_TIMING_RUNS;
       }));
       assert.deepStrictEqual(
         results
-          .map(result => result.layoutTiming.rank)
+          .map(result => getRequired(result.layoutTiming).rank)
           .sort((first, second) => first - second),
         results.map((result, index) => index + 1)
       );
@@ -3407,25 +3604,27 @@ describe('Layout', function() {
 });
 
 
-/**
- * Return the matcher for the spec of the given name.
- *
- * @param {string} fileName
- * @return {any} mochaFN
- */
-function iit(fileName) {
+function iit(fileName: string): TestDefinition {
   if (fileName.startsWith('ONLY')) {
+    if (!hasTestDefinitionModes(it)) {
+      throw new Error('Mocha does not support exclusive tests.');
+    }
+
     return it.only;
   }
 
   if (fileName.startsWith('SKIP')) {
+    if (!hasTestDefinitionModes(it)) {
+      throw new Error('Mocha does not support skipped tests.');
+    }
+
     return it.skip;
   }
 
   return it;
 }
 
-async function measureLayoutTimings(xml) {
+async function measureLayoutTimings(xml: string): Promise<number[]> {
   await layoutProcessResult(xml);
 
   const timings = [];
@@ -3440,9 +3639,11 @@ async function measureLayoutTimings(xml) {
   return timings;
 }
 
-function summarizeLayoutTimings(timingsByFixture) {
-  const timings = [ ...timingsByFixture.entries() ].map(([ fileName, durations ]) => {
-    return [ fileName, calculateStatistics(durations) ];
+function summarizeLayoutTimings(
+    timingsByFixture: ReadonlyMap<string, readonly number[]>
+): Map<string, LayoutTiming> {
+  const timings: [ string, BenchmarkStatistics ][] = [ ...timingsByFixture.entries() ].map(([ fileName, durations ]) => {
+    return entry(fileName, calculateStatistics(durations));
   }).sort(([ firstName, firstStatistics ], [ secondName, secondStatistics ]) => {
     return secondStatistics.p50Ms - firstStatistics.p50Ms ||
       firstName.localeCompare(secondName);
@@ -3456,14 +3657,14 @@ function summarizeLayoutTimings(timingsByFixture) {
     : (p50s[midpoint - 1] + p50s[midpoint]) / 2;
   const slowCount = Math.max(1, Math.ceil(timings.length * 0.1));
 
-  return new Map(timings.map(([ fileName, statistics ], index) => {
-    return [ fileName, {
+  return new Map<string, LayoutTiming>(timings.map(([ fileName, statistics ], index) => {
+    return entry(fileName, {
       ...statistics,
       isSlow: index < slowCount,
       medianP50Ms,
       rank: index + 1,
       runs: INSPECTOR_LAYOUT_TIMING_RUNS,
       total: timings.length
-    } ];
+    });
   }));
 }
