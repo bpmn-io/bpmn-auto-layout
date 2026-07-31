@@ -18,13 +18,18 @@ export function extractElements(context: ProcessLayoutContext): ProcessLayoutCon
     return is(element, 'bpmn:SequenceFlow');
   });
   const dataAssociations = flowElements.flatMap(element => {
-    if (!is(element, 'bpmn:Activity')) {
-      return [];
-    }
+    const dataInputAssociations = 'dataInputAssociations' in element &&
+      Array.isArray(element.dataInputAssociations)
+      ? element.dataInputAssociations
+      : [];
+    const dataOutputAssociations = 'dataOutputAssociations' in element &&
+      Array.isArray(element.dataOutputAssociations)
+      ? element.dataOutputAssociations
+      : [];
 
     return [
-      ...(element.dataInputAssociations || []),
-      ...(element.dataOutputAssociations || [])
+      ...dataInputAssociations,
+      ...dataOutputAssociations
     ];
   });
   const associations: BpmnElement[] = [ ...flowElements, ...artifacts ]
