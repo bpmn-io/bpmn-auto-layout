@@ -1,7 +1,17 @@
 import assert from 'node:assert';
+import { BpmnModdle } from 'bpmn-moddle';
+import { describe, it } from 'mocha';
 
 import { placeArtifacts } from '../lib/layout/artifacts/index.js';
 import { createLayout } from '../lib/layout/geometry/LayoutState.js';
+
+import type {
+  BpmnElement,
+  Bounds,
+  LayoutRecord
+} from '../lib/layout/Types.js';
+
+const moddle = new BpmnModdle();
 
 describe('ArtifactPlacement', function() {
 
@@ -43,16 +53,16 @@ describe('ArtifactPlacement', function() {
 
 
   it('should prefer participant exterior over a crossing-free interior', function() {
-    const participant = element('Participant', 'bpmn:Participant');
-    const task = element('Task', 'bpmn:Task', 'bpmn:Activity');
-    const annotation = element('Annotation', 'bpmn:TextAnnotation');
-    const association = {
-      ...element('Association', 'bpmn:Association'),
+    const participant = moddle.create('bpmn:Participant', { id: 'Participant' });
+    const task = moddle.create('bpmn:Task', { id: 'Task' });
+    const annotation = moddle.create('bpmn:TextAnnotation', { id: 'Annotation' });
+    const association = moddle.create('bpmn:Association', {
+      id: 'Association',
       sourceRef: task,
       targetRef: annotation
-    };
-    const crossingFlow = element('Flow', 'bpmn:SequenceFlow');
-    const layout = createLayout({});
+    });
+    const crossingFlow = moddle.create('bpmn:SequenceFlow', { id: 'Flow' });
+    const layout = createLayout(moddle.create('bpmn:Process', { id: 'Process' }));
 
     layout.shapes.set(participant, {
       x: 0,
@@ -74,11 +84,7 @@ describe('ArtifactPlacement', function() {
     ]);
 
     placeArtifacts({
-      records: [ {
-        element: annotation,
-        index: 0,
-        isArtifact: true
-      } ],
+      records: [ artifactRecord(annotation) ],
       associations: [ association ],
       layout,
       avoidParticipantInterior: true,
@@ -94,31 +100,27 @@ describe('ArtifactPlacement', function() {
   });
 });
 
-function layoutAnnotation(blockerBounds) {
-  const task = element('Task', 'bpmn:Task', 'bpmn:Activity');
-  const annotation = element('Annotation', 'bpmn:TextAnnotation');
-  const association = {
-    ...element('Association', 'bpmn:Association'),
+function layoutAnnotation(blockerBounds?: Bounds) {
+  const task = moddle.create('bpmn:Task', { id: 'Task' });
+  const annotation = moddle.create('bpmn:TextAnnotation', { id: 'Annotation' });
+  const association = moddle.create('bpmn:Association', {
+    id: 'Association',
     sourceRef: task,
     targetRef: annotation
-  };
-  const layout = createLayout({});
+  });
+  const layout = createLayout(moddle.create('bpmn:Process', { id: 'Process' }));
 
   layout.shapes.set(task, { x: 0, y: 0, width: 100, height: 80 });
 
   if (blockerBounds) {
     layout.shapes.set(
-      element('Blocker', 'bpmn:Task', 'bpmn:Activity'),
+      moddle.create('bpmn:Task', { id: 'Blocker' }),
       blockerBounds
     );
   }
 
   placeArtifacts({
-    records: [ {
-      element: annotation,
-      index: 0,
-      isArtifact: true
-    } ],
+    records: [ artifactRecord(annotation) ],
     associations: [ association ],
     layout
   });
@@ -130,11 +132,14 @@ function layoutAnnotation(blockerBounds) {
   };
 }
 
-function element(id, ...types) {
+function artifactRecord(element: BpmnElement): LayoutRecord {
   return {
-    id,
-    $instanceOf(candidate) {
-      return types.includes(candidate);
-    }
+    element,
+    index: 0,
+    size: { width: 100, height: 40 },
+    isBoundary: false,
+    isArtifact: true,
+    expanded: false,
+    child: null
   };
 }

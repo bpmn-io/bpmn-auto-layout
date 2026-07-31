@@ -32,6 +32,7 @@
     "test/ApiSpec.ts",
     "test/DiagramGenerationSpec.ts",
     "test/FinalizeConnectionsSpec.ts",
+    "test/ArtifactPlacementSpec.ts",
     "test/mocha.d.ts"
   ]
 }
