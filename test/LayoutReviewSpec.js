@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import url from 'node:url';
 
-import { createLayoutReview } from '../tasks/layout-review.mjs';
+import { createLayoutReview } from '../tasks/layout-review.js';
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const fixtureName = 'scenario.linear.bpmn';
