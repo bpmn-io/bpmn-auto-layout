@@ -1,0 +1,1755 @@
+<html lang="en">
+  <head>
+    <title>bpmn-auto-layout - Visual Test</title>
+    <style>
+      :root {
+        --issue-stroke: #c2410c;
+        --issue-background: #fff7ed;
+      }
+
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: monospace;
+        font-weight: bold;
+        font-size: 12px;
+      }
+
+      .parent {
+        margin-top: 20px;
+      }
+
+      .parent:first-of-type {
+        margin-top: 10px;
+      }
+
+      .title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 8px;
+        margin-bottom: 10px;
+        padding: 8px 10px;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        background: #fafafa;
+      }
+
+      .fixture-status {
+        flex: none;
+      }
+
+      .fixture-name {
+        min-width: 0;
+      }
+
+      .layout-timing {
+        display: inline-flex;
+        align-items: center;
+        flex: none;
+        gap: 4px;
+        margin-left: auto;
+        padding: 4px 6px;
+        border: 1px solid #e5e5e5;
+        border-radius: 999px;
+        background: #fff;
+        color: #555;
+        font-size: 12px;
+        font-weight: normal;
+      }
+
+      .layout-timing svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .layout-timing-part {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+      }
+
+      .layout-timing-slow {
+        border-color: #fed7aa;
+        background: #fff7ed;
+        color: #9a3412;
+      }
+
+      .metrics-panel {
+        flex-basis: 100%;
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        background: #fff;
+        color: #444;
+        font-weight: normal;
+      }
+
+      .warnings-panel {
+        flex-basis: 100%;
+        padding: 8px;
+        border: 1px solid #fed7aa;
+        border-radius: 6px;
+        background: #fff7ed;
+        color: #9a3412;
+        font-weight: normal;
+      }
+
+      .warnings-title {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: bold;
+      }
+
+      .warnings-title svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .warnings-list {
+        margin: 6px 0 0;
+        padding-left: 18px;
+      }
+
+      .warning-code {
+        font-weight: bold;
+      }
+
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 6px;
+        padding: 8px;
+      }
+
+      .metric {
+        min-width: 0;
+        padding: 6px 8px;
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        background: #fafafa;
+      }
+
+      button.metric {
+        width: 100%;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+      }
+
+      button.metric:disabled {
+        cursor: not-allowed;
+      }
+
+      button.metric.metric-filter-active {
+        border-color: var(--issue-stroke);
+      }
+
+      .metric.metric-good {
+        border-color: #bbf7d0;
+        background: #f0fdf4;
+        color: #166534;
+      }
+
+      .metric.metric-warning {
+        border-color: #fed7aa;
+        background: var(--issue-background);
+        color: var(--issue-stroke);
+      }
+
+      .metric.metric-defect {
+        border-color: #fecaca;
+        background: #fef2f2;
+        color: #dc2626;
+      }
+
+      .metrics-error {
+        margin: 0;
+        padding: 0 8px 8px;
+        color: #dc2626;
+      }
+
+      .metric-name,
+      .metric-delta {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .metric-name {
+        color: #555;
+        font-size: 11px;
+      }
+
+      .metric-value {
+        display: block;
+        margin: 2px 0;
+        color: #171717;
+        font-size: 14px;
+        font-weight: bold;
+      }
+
+      .metric-delta {
+        color: #666;
+        font-size: 11px;
+      }
+
+      .metric-filter-badges {
+        display: contents;
+      }
+
+      .copy-path-button {
+        box-sizing: border-box;
+        flex: none;
+        height: 24px;
+        padding: 0;
+      }
+
+      .copy-path-button svg {
+        width: 14px;
+        height: 14px;
+        margin-right: 0;
+      }
+
+      .copy-path-button.copied {
+        border-color: #bbf7d0 !important;
+        background: #f0fdf4 !important;
+        color: #166534 !important;
+      }
+
+      .description {
+        flex-basis: 100%;
+        color: #555;
+        font-weight: normal;
+      }
+
+      .container-parent {
+        display: flex;
+        flex-direction: row;
+        flex-basis: auto;
+      }
+
+      .container {
+        position: relative;
+        flex-grow: 1;
+        height: 400px;
+        border: solid 1px #CCC;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .container + .container {
+        margin-left: 10px;
+      }
+
+      .container.after {
+        z-index: 0;
+      }
+
+      .sub-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+
+      .maximize-button {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 100;
+      }
+
+      body:not(.no-overlay) .snapshot-mismatch .output .djs-shape {
+        opacity: 75%;
+      }
+
+      .output {
+        z-index: 1;
+      }
+
+      .sub-container.snapshot .bjs-powered-by {
+        display: none;
+      }
+
+      .sub-container.message {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .sub-container.error {
+        background-color: rgba(255, 0, 0, 0.25);
+        color: #F00;
+      }
+
+      .snapshot {
+        display: none;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .snapshot-match:not(:has(.error)) .snapshot {
+        background: transparent;
+      }
+
+      .snapshot-match:not(:has(.error)) .container.after {
+        border-color: #86efac;
+        background: linear-gradient(135deg, #fff 0%, #f0fdf4 100%);
+      }
+
+      .snapshot-mismatch:not(:has(.error)) .snapshot {
+        display: block;
+        background: transparent;
+      }
+
+      .snapshot-mismatch:not(:has(.error)) .container.after {
+        border-color: #fca5a5;
+        background: linear-gradient(135deg, #fff 0%, #fef2f2 100%);
+      }
+
+      body.layout-review .snapshot-mismatch:not(:has(.error)) .container.after {
+        border-color: #93c5fd;
+        background: linear-gradient(135deg, #fff 0%, #eff6ff 100%);
+      }
+
+      #scroll-container {
+        height: 100vh;
+        overflow-y: auto;
+      }
+
+      .inspect-content {
+        padding: 0 16px;
+      }
+
+      .statistic {
+        position: sticky;
+        top: 0;
+        z-index: 101;
+        box-sizing: border-box;
+        min-height: 40px;
+        padding: 8px 16px;
+        border-bottom: 1px solid #e5e5e5;
+        background: white;
+        font-size: large;
+        display: flex;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 8px 10px;
+      }
+
+      .statistic-summary {
+        display: flex;
+        align-items: center;
+        flex: 1 1 700px;
+        flex-wrap: wrap;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .statistic-actions {
+        display: flex;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-left: auto;
+      }
+
+      .sort-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .sort-label {
+        font-size: 12px;
+        font-weight: normal;
+      }
+
+      .sort-select {
+        box-sizing: border-box;
+        height: 32px;
+        max-width: 190px;
+        padding: 0 8px;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        background: #fff;
+        color: #171717;
+        font: inherit;
+        font-size: 12px;
+        font-weight: normal;
+      }
+
+      .sort-select:focus {
+        border-color: #2563eb;
+        outline: 3px solid #bfdbfe;
+      }
+
+      .path-filter-wrapper {
+        position: relative;
+      }
+
+      .path-filter {
+        box-sizing: border-box;
+        width: 240px;
+        height: 32px;
+        padding: 0 46px 0 10px;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        background: #fff;
+        color: #171717;
+        font: inherit;
+        font-size: 12px;
+        font-weight: normal;
+      }
+
+      .path-filter:focus {
+        border-color: #2563eb;
+        outline: 3px solid #bfdbfe;
+      }
+
+      .clear-path-filter {
+        position: absolute;
+        right: 4px !important;
+        top: 4px !important;
+        height: 24px !important;
+        background: transparent !important;
+        border-radius: 5px !important;
+
+        &:hover {
+          background: #f5f5f5 !important;
+        }
+      }
+
+      .clear-path-filter svg {
+        width: 14px;
+        height: 14px;
+        margin-right: 0 !important;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 32px;
+        padding: 0 12px;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        background: #fff;
+        color: #171717;
+        font: inherit;
+        font-size: 12px;
+        font-weight: bold;
+        line-height: 1;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .button[hidden] {
+        display: none;
+      }
+
+      .button svg {
+        width: 14px;
+        height: 14px;
+        margin-right: 6px;
+      }
+
+      .button.icon-button {
+        width: 32px;
+        padding: 0;
+      }
+
+      .button.icon-button svg {
+        margin-right: 0;
+      }
+
+      .button:hover {
+        background: #f5f5f5;
+      }
+
+      .button[aria-pressed="true"] {
+        border-color: #e5e5e5;
+        background: #f5f5f5;
+        color: #171717;
+      }
+
+      .overlay-toggle[aria-pressed="true"] {
+        border-color: #fecaca;
+        background: #fef2f2;
+        color: #dc2626;
+      }
+
+      .djs-element[class*="metric-highlight-"] .djs-visual > :first-child,
+      .djs-connection[class*="metric-highlight-"] .djs-visual > path {
+        stroke: var(--issue-stroke) !important;
+        stroke-width: 3px !important;
+      }
+
+      .metric-highlight-geometry {
+        pointer-events: none;
+        stroke: var(--issue-stroke);
+        stroke-width: 2px;
+      }
+
+      .metric-highlight-area {
+        fill: var(--issue-background);
+        fill-opacity: 0.7;
+      }
+
+      .metric-highlight-point {
+        fill: var(--issue-background);
+      }
+
+      .metric-highlight-crossing {
+        fill: none;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        box-sizing: border-box;
+        height: 22px;
+        padding: 1px 8px 0;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: bold;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      .filter-toggle {
+        cursor: pointer;
+      }
+
+      .filter-toggle[aria-pressed="false"] {
+        opacity: 0.45;
+      }
+
+      .badge svg {
+        width: 14px;
+        height: 14px;
+        margin-right: 4px;
+      }
+
+      .badge-success {
+        border-color: #bbf7d0;
+        background: #f0fdf4;
+        color: #166534;
+      }
+
+      .badge-destructive {
+        border-color: #fecaca;
+        background: #fef2f2;
+        color: #dc2626;
+      }
+
+      .badge-secondary {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+
+      .issue-filter-badge:not(:disabled) {
+        border-color: var(--issue-stroke);
+        background: var(--issue-background);
+        color: var(--issue-stroke);
+      }
+
+      button.badge:disabled {
+        cursor: not-allowed;
+        border-color: #e5e5e5;
+        background: #f5f5f5;
+        color: #737373;
+        opacity: 1;
+      }
+
+      @media (max-width: 720px) {
+        .statistic {
+          padding: 8px 10px;
+        }
+
+        .statistic-summary,
+        .statistic-actions {
+          flex-basis: 100%;
+        }
+
+        .statistic-actions {
+          margin-left: 0;
+        }
+
+        .path-filter-wrapper {
+          flex: 1 1 200px;
+          min-width: 0;
+        }
+
+        .path-filter {
+          width: 100%;
+        }
+
+        .overlay-toggle {
+          flex: 1 1 100%;
+        }
+      }
+
+      body.no-overlay .sub-container.snapshot {
+        display: none;
+      }
+
+      #maximize-dialog {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: white;
+      }
+
+      #maximize-dialog[hidden] {
+        display: none;
+      }
+
+      #maximize-container {
+        position: absolute;
+        inset: 0;
+      }
+
+      .maximize-viewer {
+        position: absolute;
+        inset: 0;
+      }
+
+      .maximize-snapshot {
+        pointer-events: none;
+      }
+
+      #maximize-dialog.snapshot-match {
+        background: linear-gradient(135deg, #fff 0%, #f0fdf4 100%);
+        box-shadow: inset 0 0 0 2px #86efac;
+      }
+
+      #maximize-dialog.snapshot-mismatch {
+        background: linear-gradient(135deg, #fff 0%, #fef2f2 100%);
+        box-shadow: inset 0 0 0 2px #fca5a5;
+      }
+
+      #maximize-dialog.snapshot-mismatch .maximize-output .djs-shape {
+        opacity: 75%;
+      }
+
+      #minimize-button {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 1;
+      }
+
+      #maximize-overlay-toggle {
+        position: absolute;
+        top: 8px;
+        right: 48px;
+        z-index: 1;
+      }
+
+      #maximize-dialog.no-overlay .maximize-snapshot {
+        display: none;
+      }
+
+      #maximize-dialog.no-overlay {
+        background: #fff;
+      }
+
+      #maximize-dialog.no-overlay .maximize-output .djs-shape {
+        opacity: 100%;
+      }
+
+      .djs-container svg:focus {
+        outline: none !important;
+      }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js/dist/assets/diagram-js.css">
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js/dist/assets/bpmn-js.css">
+  </head>
+  <body>
+    <div id="scroll-container">
+      <div class="statistic">
+        <div class="statistic-summary">
+          <button id="pass" class="badge badge-success filter-toggle" type="button" aria-pressed="true"></button>
+          <button id="fail" class="badge badge-destructive filter-toggle" type="button" aria-pressed="true"></button>
+          <button id="new" class="badge badge-secondary filter-toggle" type="button" aria-pressed="true"></button>
+          <button id="warning-filter-badge" class="badge badge-secondary filter-toggle issue-filter-badge" type="button" aria-pressed="false"></button>
+          <div id="metric-filter-badges" class="metric-filter-badges" aria-label="Issue filters"></div>
+        </div>
+        <div class="statistic-actions">
+          <div class="sort-controls">
+            <label class="sort-label" for="sort-by">Sort by</label>
+            <select id="sort-by" class="sort-select" aria-label="Sort fixtures by"></select>
+            <button id="sort-direction" class="button" type="button" aria-label="Sort ascending">Ascending</button>
+          </div>
+          <div class="path-filter-wrapper">
+            <input id="path-filter" class="path-filter" type="text" placeholder="Filter fixtures" aria-label="Filter fixtures by path">
+            <button id="clear-path-filter" class="button clear-path-filter" type="button" title="Clear fixture filter" aria-label="Clear fixture filter" hidden><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+          </div>
+          <button id="overlay-toggle" class="button overlay-toggle" type="button" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7"/><circle cx="15" cy="15" r="7"/></svg>Show snapshot failure overlay</button>
+        </div>
+      </div>
+      <div id="inspect-content" class="inspect-content"></div>
+    </div>
+    <div id="maximize-dialog" hidden>
+      <div id="maximize-container"></div>
+      <button id="maximize-overlay-toggle" class="button overlay-toggle" type="button" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7"/><circle cx="15" cy="15" r="7"/></svg>Show snapshot failure overlay</button>
+      <button id="minimize-button" class="button icon-button" type="button" title="Minimize diagram" aria-label="Minimize diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 10 7-7"/><path d="M20 10h-6V4"/><path d="m3 21 7-7"/><path d="M4 14h6v6"/></svg></button>
+    </div>
+    <script src="https://unpkg.com/bpmn-js/dist/bpmn-navigated-viewer.development.js"></script>
+    <script>
+      const { reportConfig, results } = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob('eyJyZXBvcnRDb25maWciOnsibW9kZSI6InJldmlldyJ9LCJyZXN1bHRzIjpbeyJjaGFuZ2VUeXBlIjoiYWRkZWQiLCJkaWFncmFtIjoiPD94bWwgdmVyc2lvbj1cIjEuMFwiIGVuY29kaW5nPVwiVVRGLThcIj8+XG48YnBtbjpkZWZpbml0aW9ucyB4bWxuczpicG1uPVwiaHR0cDovL3d3dy5vbWcub3JnL3NwZWMvQlBNTi8yMDEwMDUyNC9NT0RFTFwiIHhtbG5zOmJwbW5kaT1cImh0dHA6Ly93d3cub21nLm9yZy9zcGVjL0JQTU4vMjAxMDA1MjQvRElcIiB4bWxuczpkYz1cImh0dHA6Ly93d3cub21nLm9yZy9zcGVjL0RELzIwMTAwNTI0L0RDXCIgeG1sbnM6ZGk9XCJodHRwOi8vd3d3Lm9tZy5vcmcvc3BlYy9ERC8yMDEwMDUyNC9ESVwiIGlkPVwiRGVmaW5pdGlvbnNfMVwiIHRhcmdldE5hbWVzcGFjZT1cImh0dHA6Ly9icG1uLmlvL3NjaGVtYS9icG1uXCI+XG4gIDxicG1uOnByb2Nlc3MgaWQ9XCJQcm9jZXNzXzFcIj5cbiAgICA8YnBtbjpkb2N1bWVudGF0aW9uPlRocm93LWV2ZW50IGlucHV0cyBhbmQgY2F0Y2gtZXZlbnQgb3V0cHV0cyByZWNlaXZlIGRhdGEtYXNzb2NpYXRpb24gREkuPC9icG1uOmRvY3VtZW50YXRpb24+XG4gICAgPGJwbW46c3RhcnRFdmVudCBpZD1cIlN0YXJ0RXZlbnRfMVwiPlxuICAgICAgPGJwbW46b3V0Z29pbmc+Rmxvd18xPC9icG1uOm91dGdvaW5nPlxuICAgIDwvYnBtbjpzdGFydEV2ZW50PlxuICAgIDxicG1uOmludGVybWVkaWF0ZVRocm93RXZlbnQgaWQ9XCJUaHJvd0V2ZW50XzFcIj5cbiAgICAgIDxicG1uOmluY29taW5nPkZsb3dfMTwvYnBtbjppbmNvbWluZz5cbiAgICAgIDxicG1uOm91dGdvaW5nPkZsb3dfMjwvYnBtbjpvdXRnb2luZz5cbiAgICAgIDxicG1uOnByb3BlcnR5IGlkPVwiVGhyb3dFdmVudFByb3BlcnR5XzFcIiAvPlxuICAgICAgPGJwbW46ZGF0YUlucHV0QXNzb2NpYXRpb24gaWQ9XCJUaHJvd0V2ZW50RGF0YUlucHV0QXNzb2NpYXRpb25fMVwiPlxuICAgICAgICA8YnBtbjpzb3VyY2VSZWY+RGF0YU9iamVjdFJlZmVyZW5jZV8xPC9icG1uOnNvdXJjZVJlZj5cbiAgICAgICAgPGJwbW46dGFyZ2V0UmVmPlRocm93RXZlbnRQcm9wZXJ0eV8xPC9icG1uOnRhcmdldFJlZj5cbiAgICAgIDwvYnBtbjpkYXRhSW5wdXRBc3NvY2lhdGlvbj5cbiAgICA8L2JwbW46aW50ZXJtZWRpYXRlVGhyb3dFdmVudD5cbiAgICA8YnBtbjppbnRlcm1lZGlhdGVDYXRjaEV2ZW50IGlkPVwiQ2F0Y2hFdmVudF8xXCI+XG4gICAgICA8YnBtbjppbmNvbWluZz5GbG93XzI8L2JwbW46aW5jb21pbmc+XG4gICAgICA8YnBtbjpvdXRnb2luZz5GbG93XzM8L2JwbW46b3V0Z29pbmc+XG4gICAgICA8YnBtbjpkYXRhT3V0cHV0QXNzb2NpYXRpb24gaWQ9XCJDYXRjaEV2ZW50RGF0YU91dHB1dEFzc29jaWF0aW9uXzFcIj5cbiAgICAgICAgPGJwbW46dGFyZ2V0UmVmPkRhdGFPYmplY3RSZWZlcmVuY2VfMTwvYnBtbjp0YXJnZXRSZWY+XG4gICAgICA8L2JwbW46ZGF0YU91dHB1dEFzc29jaWF0aW9uPlxuICAgIDwvYnBtbjppbnRlcm1lZGlhdGVDYXRjaEV2ZW50PlxuICAgIDxicG1uOmVuZEV2ZW50IGlkPVwiRW5kRXZlbnRfMVwiPlxuICAgICAgPGJwbW46aW5jb21pbmc+Rmxvd18zPC9icG1uOmluY29taW5nPlxuICAgIDwvYnBtbjplbmRFdmVudD5cbiAgICA8YnBtbjpzZXF1ZW5jZUZsb3cgaWQ9XCJGbG93XzFcIiBzb3VyY2VSZWY9XCJTdGFydEV2ZW50XzFcIiB0YXJnZXRSZWY9XCJUaHJvd0V2ZW50XzFcIiAvPlxuICAgIDxicG1uOnNlcXVlbmNlRmxvdyBpZD1cIkZsb3dfMlwiIHNvdXJjZVJlZj1cIlRocm93RXZlbnRfMVwiIHRhcmdldFJlZj1cIkNhdGNoRXZlbnRfMVwiIC8+XG4gICAgPGJwbW46c2VxdWVuY2VGbG93IGlkPVwiRmxvd18zXCIgc291cmNlUmVmPVwiQ2F0Y2hFdmVudF8xXCIgdGFyZ2V0UmVmPVwiRW5kRXZlbnRfMVwiIC8+XG4gICAgPGJwbW46ZGF0YU9iamVjdCBpZD1cIkRhdGFPYmplY3RfMVwiIC8+XG4gICAgPGJwbW46ZGF0YU9iamVjdFJlZmVyZW5jZSBpZD1cIkRhdGFPYmplY3RSZWZlcmVuY2VfMVwiIGRhdGFPYmplY3RSZWY9XCJEYXRhT2JqZWN0XzFcIiAvPlxuICA8L2JwbW46cHJvY2Vzcz5cbiAgPGJwbW5kaTpCUE1ORGlhZ3JhbSBpZD1cIkJQTU5EaWFncmFtX1Byb2Nlc3NfMVwiPlxuICAgIDxicG1uZGk6QlBNTlBsYW5lIGlkPVwiQlBNTlBsYW5lX1Byb2Nlc3NfMVwiIGJwbW5FbGVtZW50PVwiUHJvY2Vzc18xXCI+XG4gICAgICA8YnBtbmRpOkJQTU5TaGFwZSBpZD1cIkJQTU5TaGFwZV9TdGFydEV2ZW50XzFcIiBicG1uRWxlbWVudD1cIlN0YXJ0RXZlbnRfMVwiPlxuICAgICAgICA8ZGM6Qm91bmRzIHg9XCI4MFwiIHk9XCI4MFwiIHdpZHRoPVwiMzZcIiBoZWlnaHQ9XCIzNlwiIC8+XG4gICAgICA8L2JwbW5kaTpCUE1OU2hhcGU+XG4gICAgICA8YnBtbmRpOkJQTU5TaGFwZSBpZD1cIkJQTU5TaGFwZV9UaHJvd0V2ZW50XzFcIiBicG1uRWxlbWVudD1cIlRocm93RXZlbnRfMVwiPlxuICAgICAgICA8ZGM6Qm91bmRzIHg9XCIyMTZcIiB5PVwiODBcIiB3aWR0aD1cIjM2XCIgaGVpZ2h0PVwiMzZcIiAvPlxuICAgICAgPC9icG1uZGk6QlBNTlNoYXBlPlxuICAgICAgPGJwbW5kaTpCUE1OU2hhcGUgaWQ9XCJCUE1OU2hhcGVfQ2F0Y2hFdmVudF8xXCIgYnBtbkVsZW1lbnQ9XCJDYXRjaEV2ZW50XzFcIj5cbiAgICAgICAgPGRjOkJvdW5kcyB4PVwiMzUyXCIgeT1cIjgwXCIgd2lkdGg9XCIzNlwiIGhlaWdodD1cIjM2XCIgLz5cbiAgICAgIDwvYnBtbmRpOkJQTU5TaGFwZT5cbiAgICAgIDxicG1uZGk6QlBNTlNoYXBlIGlkPVwiQlBNTlNoYXBlX0VuZEV2ZW50XzFcIiBicG1uRWxlbWVudD1cIkVuZEV2ZW50XzFcIj5cbiAgICAgICAgPGRjOkJvdW5kcyB4PVwiNDg4XCIgeT1cIjgwXCIgd2lkdGg9XCIzNlwiIGhlaWdodD1cIjM2XCIgLz5cbiAgICAgIDwvYnBtbmRpOkJQTU5TaGFwZT5cbiAgICAgIDxicG1uZGk6QlBNTlNoYXBlIGlkPVwiQlBNTlNoYXBlX0RhdGFPYmplY3RSZWZlcmVuY2VfMVwiIGJwbW5FbGVtZW50PVwiRGF0YU9iamVjdFJlZmVyZW5jZV8xXCI+XG4gICAgICAgIDxkYzpCb3VuZHMgeD1cIjIxNlwiIHk9XCIxNTZcIiB3aWR0aD1cIjM2XCIgaGVpZ2h0PVwiNTBcIiAvPlxuICAgICAgPC9icG1uZGk6QlBNTlNoYXBlPlxuICAgICAgPGJwbW5kaTpCUE1ORWRnZSBpZD1cIkJQTU5FZGdlX0Zsb3dfMVwiIGJwbW5FbGVtZW50PVwiRmxvd18xXCI+XG4gICAgICAgIDxkaTp3YXlwb2ludCB4PVwiMTE2XCIgeT1cIjk4XCIgLz5cbiAgICAgICAgPGRpOndheXBvaW50IHg9XCIyMTZcIiB5PVwiOThcIiAvPlxuICAgICAgPC9icG1uZGk6QlBNTkVkZ2U+XG4gICAgICA8YnBtbmRpOkJQTU5FZGdlIGlkPVwiQlBNTkVkZ2VfRmxvd18yXCIgYnBtbkVsZW1lbnQ9XCJGbG93XzJcIj5cbiAgICAgICAgPGRpOndheXBvaW50IHg9XCIyNTJcIiB5PVwiOThcIiAvPlxuICAgICAgICA8ZGk6d2F5cG9pbnQgeD1cIjM1MlwiIHk9XCI5OFwiIC8+XG4gICAgICA8L2JwbW5kaTpCUE1ORWRnZT5cbiAgICAgIDxicG1uZGk6QlBNTkVkZ2UgaWQ9XCJCUE1ORWRnZV9GbG93XzNcIiBicG1uRWxlbWVudD1cIkZsb3dfM1wiPlxuICAgICAgICA8ZGk6d2F5cG9pbnQgeD1cIjM4OFwiIHk9XCI5OFwiIC8+XG4gICAgICAgIDxkaTp3YXlwb2ludCB4PVwiNDg4XCIgeT1cIjk4XCIgLz5cbiAgICAgIDwvYnBtbmRpOkJQTU5FZGdlPlxuICAgICAgPGJwbW5kaTpCUE1ORWRnZSBpZD1cIkJQTU5FZGdlX1Rocm93RXZlbnREYXRhSW5wdXRBc3NvY2lhdGlvbl8xXCIgYnBtbkVsZW1lbnQ9XCJUaHJvd0V2ZW50RGF0YUlucHV0QXNzb2NpYXRpb25fMVwiPlxuICAgICAgICA8ZGk6d2F5cG9pbnQgeD1cIjIzNFwiIHk9XCIxNTZcIiAvPlxuICAgICAgICA8ZGk6d2F5cG9pbnQgeD1cIjIzNFwiIHk9XCIxMTZcIiAvPlxuICAgICAgPC9icG1uZGk6QlBNTkVkZ2U+XG4gICAgICA8YnBtbmRpOkJQTU5FZGdlIGlkPVwiQlBNTkVkZ2VfQ2F0Y2hFdmVudERhdGFPdXRwdXRBc3NvY2lhdGlvbl8xXCIgYnBtbkVsZW1lbnQ9XCJDYXRjaEV2ZW50RGF0YU91dHB1dEFzc29jaWF0aW9uXzFcIj5cbiAgICAgICAgPGRpOndheXBvaW50IHg9XCIzNzBcIiB5PVwiMTE2XCIgLz5cbiAgICAgICAgPGRpOndheXBvaW50IHg9XCIzNzBcIiB5PVwiMTgxXCIgLz5cbiAgICAgICAgPGRpOndheXBvaW50IHg9XCIyNTJcIiB5PVwiMTgxXCIgLz5cbiAgICAgIDwvYnBtbmRpOkJQTU5FZGdlPlxuICAgIDwvYnBtbmRpOkJQTU5QbGFuZT5cbiAgPC9icG1uZGk6QlBNTkRpYWdyYW0+XG48L2JwbW46ZGVmaW5pdGlvbnM+IiwiZGlhZ3JhbU91dHB1dCI6Ijw/eG1sIHZlcnNpb249XCIxLjBcIiBlbmNvZGluZz1cIlVURi04XCI/PlxuPGJwbW46ZGVmaW5pdGlvbnMgeG1sbnM6YnBtbj1cImh0dHA6Ly93d3cub21nLm9yZy9zcGVjL0JQTU4vMjAxMDA1MjQvTU9ERUxcIiB4bWxuczpicG1uZGk9XCJodHRwOi8vd3d3Lm9tZy5vcmcvc3BlYy9CUE1OLzIwMTAwNTI0L0RJXCIgeG1sbnM6ZGM9XCJodHRwOi8vd3d3Lm9tZy5vcmcvc3BlYy9ERC8yMDEwMDUyNC9EQ1wiIHhtbG5zOmRpPVwiaHR0cDovL3d3dy5vbWcub3JnL3NwZWMvREQvMjAxMDA1MjQvRElcIiBpZD1cIkRlZmluaXRpb25zXzFcIiB0YXJnZXROYW1lc3BhY2U9XCJodHRwOi8vYnBtbi5pby9zY2hlbWEvYnBtblwiPlxuICA8YnBtbjpwcm9jZXNzIGlkPVwiUHJvY2Vzc18xXCI+XG4gICAgPGJwbW46ZG9jdW1lbnRhdGlvbj5UaHJvdy1ldmVudCBpbnB1dHMgYW5kIGNhdGNoLWV2ZW50IG91dHB1dHMgcmVjZWl2ZSBkYXRhLWFzc29jaWF0aW9uIERJLjwvYnBtbjpkb2N1bWVudGF0aW9uPlxuICAgIDxicG1uOnN0YXJ0RXZlbnQgaWQ9XCJTdGFydEV2ZW50XzFcIj5cbiAgICAgIDxicG1uOm91dGdvaW5nPkZsb3dfMTwvYnBtbjpvdXRnb2luZz5cbiAgICA8L2JwbW46c3RhcnRFdmVudD5cbiAgICA8YnBtbjppbnRlcm1lZGlhdGVUaHJvd0V2ZW50IGlkPVwiVGhyb3dFdmVudF8xXCI+XG4gICAgICA8YnBtbjppbmNvbWluZz5GbG93XzE8L2JwbW46aW5jb21pbmc+XG4gICAgICA8YnBtbjpvdXRnb2luZz5GbG93XzI8L2JwbW46b3V0Z29pbmc+XG4gICAgICA8YnBtbjpwcm9wZXJ0eSBpZD1cIlRocm93RXZlbnRQcm9wZXJ0eV8xXCIgLz5cbiAgICAgIDxicG1uOmRhdGFJbnB1dEFzc29jaWF0aW9uIGlkPVwiVGhyb3dFdmVudERhdGFJbnB1dEFzc29jaWF0aW9uXzFcIj5cbiAgICAgICAgPGJwbW46c291cmNlUmVmPkRhdGFPYmplY3RSZWZlcmVuY2VfMTwvYnBtbjpzb3VyY2VSZWY+XG4gICAgICAgIDxicG1uOnRhcmdldFJlZj5UaHJvd0V2ZW50UHJvcGVydHlfMTwvYnBtbjp0YXJnZXRSZWY+XG4gICAgICA8L2JwbW46ZGF0YUlucHV0QXNzb2NpYXRpb24+XG4gICAgPC9icG1uOmludGVybWVkaWF0ZVRocm93RXZlbnQ+XG4gICAgPGJwbW46aW50ZXJtZWRpYXRlQ2F0Y2hFdmVudCBpZD1cIkNhdGNoRXZlbnRfMVwiPlxuICAgICAgPGJwbW46aW5jb21pbmc+Rmxvd18yPC9icG1uOmluY29taW5nPlxuICAgICAgPGJwbW46b3V0Z29pbmc+Rmxvd18zPC9icG1uOm91dGdvaW5nPlxuICAgICAgPGJwbW46ZGF0YU91dHB1dEFzc29jaWF0aW9uIGlkPVwiQ2F0Y2hFdmVudERhdGFPdXRwdXRBc3NvY2lhdGlvbl8xXCI+XG4gICAgICAgIDxicG1uOnRhcmdldFJlZj5EYXRhT2JqZWN0UmVmZXJlbmNlXzE8L2JwbW46dGFyZ2V0UmVmPlxuICAgICAgPC9icG1uOmRhdGFPdXRwdXRBc3NvY2lhdGlvbj5cbiAgICA8L2JwbW46aW50ZXJtZWRpYXRlQ2F0Y2hFdmVudD5cbiAgICA8YnBtbjplbmRFdmVudCBpZD1cIkVuZEV2ZW50XzFcIj5cbiAgICAgIDxicG1uOmluY29taW5nPkZsb3dfMzwvYnBtbjppbmNvbWluZz5cbiAgICA8L2JwbW46ZW5kRXZlbnQ+XG4gICAgPGJwbW46c2VxdWVuY2VGbG93IGlkPVwiRmxvd18xXCIgc291cmNlUmVmPVwiU3RhcnRFdmVudF8xXCIgdGFyZ2V0UmVmPVwiVGhyb3dFdmVudF8xXCIgLz5cbiAgICA8YnBtbjpzZXF1ZW5jZUZsb3cgaWQ9XCJGbG93XzJcIiBzb3VyY2VSZWY9XCJUaHJvd0V2ZW50XzFcIiB0YXJnZXRSZWY9XCJDYXRjaEV2ZW50XzFcIiAvPlxuICAgIDxicG1uOnNlcXVlbmNlRmxvdyBpZD1cIkZsb3dfM1wiIHNvdXJjZVJlZj1cIkNhdGNoRXZlbnRfMVwiIHRhcmdldFJlZj1cIkVuZEV2ZW50XzFcIiAvPlxuICAgIDxicG1uOmRhdGFPYmplY3QgaWQ9XCJEYXRhT2JqZWN0XzFcIiAvPlxuICAgIDxicG1uOmRhdGFPYmplY3RSZWZlcmVuY2UgaWQ9XCJEYXRhT2JqZWN0UmVmZXJlbmNlXzFcIiBkYXRhT2JqZWN0UmVmPVwiRGF0YU9iamVjdF8xXCIgLz5cbiAgPC9icG1uOnByb2Nlc3M+XG4gIDxicG1uZGk6QlBNTkRpYWdyYW0gaWQ9XCJCUE1ORGlhZ3JhbV9Qcm9jZXNzXzFcIj5cbiAgICA8YnBtbmRpOkJQTU5QbGFuZSBpZD1cIkJQTU5QbGFuZV9Qcm9jZXNzXzFcIiBicG1uRWxlbWVudD1cIlByb2Nlc3NfMVwiPlxuICAgICAgPGJwbW5kaTpCUE1OU2hhcGUgaWQ9XCJCUE1OU2hhcGVfU3RhcnRFdmVudF8xXCIgYnBtbkVsZW1lbnQ9XCJTdGFydEV2ZW50XzFcIj5cbiAgICAgICAgPGRjOkJvdW5kcyB4PVwiODBcIiB5PVwiODBcIiB3aWR0aD1cIjM2XCIgaGVpZ2h0PVwiMzZcIiAvPlxuICAgICAgPC9icG1uZGk6QlBNTlNoYXBlPlxuICAgICAgPGJwbW5kaTpCUE1OU2hhcGUgaWQ9XCJCUE1OU2hhcGVfVGhyb3dFdmVudF8xXCIgYnBtbkVsZW1lbnQ9XCJUaHJvd0V2ZW50XzFcIj5cbiAgICAgICAgPGRjOkJvdW5kcyB4PVwiMjE2XCIgeT1cIjgwXCIgd2lkdGg9XCIzNlwiIGhlaWdodD1cIjM2XCIgLz5cbiAgICAgIDwvYnBtbmRpOkJQTU5TaGFwZT5cbiAgICAgIDxicG1uZGk6QlBNTlNoYXBlIGlkPVwiQlBNTlNoYXBlX0NhdGNoRXZlbnRfMVwiIGJwbW5FbGVtZW50PVwiQ2F0Y2hFdmVudF8xXCI+XG4gICAgICAgIDxkYzpCb3VuZHMgeD1cIjM1MlwiIHk9XCI4MFwiIHdpZHRoPVwiMzZcIiBoZWlnaHQ9XCIzNlwiIC8+XG4gICAgICA8L2JwbW5kaTpCUE1OU2hhcGU+XG4gICAgICA8YnBtbmRpOkJQTU5TaGFwZSBpZD1cIkJQTU5TaGFwZV9FbmRFdmVudF8xXCIgYnBtbkVsZW1lbnQ9XCJFbmRFdmVudF8xXCI+XG4gICAgICAgIDxkYzpCb3VuZHMgeD1cIjQ4OFwiIHk9XCI4MFwiIHdpZHRoPVwiMzZcIiBoZWlnaHQ9XCIzNlwiIC8+XG4gICAgICA8L2JwbW5kaTpCUE1OU2hhcGU+XG4gICAgICA8YnBtbmRpOkJQTU5TaGFwZSBpZD1cIkJQTU5TaGFwZV9EYXRhT2JqZWN0UmVmZXJlbmNlXzFcIiBicG1uRWxlbWVudD1cIkRhdGFPYmplY3RSZWZlcmVuY2VfMVwiPlxuICAgICAgICA8ZGM6Qm91bmRzIHg9XCIyMTZcIiB5PVwiMTU2XCIgd2lkdGg9XCIzNlwiIGhlaWdodD1cIjUwXCIgLz5cbiAgICAgIDwvYnBtbmRpOkJQTU5TaGFwZT5cbiAgICAgIDxicG1uZGk6QlBNTkVkZ2UgaWQ9XCJCUE1ORWRnZV9GbG93XzFcIiBicG1uRWxlbWVudD1cIkZsb3dfMVwiPlxuICAgICAgICA8ZGk6d2F5cG9pbnQgeD1cIjExNlwiIHk9XCI5OFwiIC8+XG4gICAgICAgIDxkaTp3YXlwb2ludCB4PVwiMjE2XCIgeT1cIjk4XCIgLz5cbiAgICAgIDwvYnBtbmRpOkJQTU5FZGdlPlxuICAgICAgPGJwbW5kaTpCUE1ORWRnZSBpZD1cIkJQTU5FZGdlX0Zsb3dfMlwiIGJwbW5FbGVtZW50PVwiRmxvd18yXCI+XG4gICAgICAgIDxkaTp3YXlwb2ludCB4PVwiMjUyXCIgeT1cIjk4XCIgLz5cbiAgICAgICAgPGRpOndheXBvaW50IHg9XCIzNTJcIiB5PVwiOThcIiAvPlxuICAgICAgPC9icG1uZGk6QlBNTkVkZ2U+XG4gICAgICA8YnBtbmRpOkJQTU5FZGdlIGlkPVwiQlBNTkVkZ2VfRmxvd18zXCIgYnBtbkVsZW1lbnQ9XCJGbG93XzNcIj5cbiAgICAgICAgPGRpOndheXBvaW50IHg9XCIzODhcIiB5PVwiOThcIiAvPlxuICAgICAgICA8ZGk6d2F5cG9pbnQgeD1cIjQ4OFwiIHk9XCI5OFwiIC8+XG4gICAgICA8L2JwbW5kaTpCUE1ORWRnZT5cbiAgICAgIDxicG1uZGk6QlBNTkVkZ2UgaWQ9XCJCUE1ORWRnZV9UaHJvd0V2ZW50RGF0YUlucHV0QXNzb2NpYXRpb25fMVwiIGJwbW5FbGVtZW50PVwiVGhyb3dFdmVudERhdGFJbnB1dEFzc29jaWF0aW9uXzFcIj5cbiAgICAgICAgPGRpOndheXBvaW50IHg9XCIyMzRcIiB5PVwiMTU2XCIgLz5cbiAgICAgICAgPGRpOndheXBvaW50IHg9XCIyMzRcIiB5PVwiMTE2XCIgLz5cbiAgICAgIDwvYnBtbmRpOkJQTU5FZGdlPlxuICAgICAgPGJwbW5kaTpCUE1ORWRnZSBpZD1cIkJQTU5FZGdlX0NhdGNoRXZlbnREYXRhT3V0cHV0QXNzb2NpYXRpb25fMVwiIGJwbW5FbGVtZW50PVwiQ2F0Y2hFdmVudERhdGFPdXRwdXRBc3NvY2lhdGlvbl8xXCI+XG4gICAgICAgIDxkaTp3YXlwb2ludCB4PVwiMzcwXCIgeT1cIjExNlwiIC8+XG4gICAgICAgIDxkaTp3YXlwb2ludCB4PVwiMzcwXCIgeT1cIjE4MVwiIC8+XG4gICAgICAgIDxkaTp3YXlwb2ludCB4PVwiMjUyXCIgeT1cIjE4MVwiIC8+XG4gICAgICA8L2JwbW5kaTpCUE1ORWRnZT5cbiAgICA8L2JwbW5kaTpCUE1OUGxhbmU+XG4gIDwvYnBtbmRpOkJQTU5EaWFncmFtPlxuPC9icG1uOmRlZmluaXRpb25zPlxuIiwiZGlhZ3JhbVNuYXBzaG90IjpudWxsLCJkaWFncmFtU25hcHNob3RNYXRjaGluZyI6bnVsbCwibGF5b3V0VGltaW5nIjpudWxsLCJtZXRyaWNzIjp7ImJhc2VsaW5lIjpudWxsLCJjdXJyZW50Ijp7ImNyb3NzaW5ncyI6MCwiYmVuZENvdW50IjoxLCJvdmVybGFwcyI6MCwiZWRnZVNoYXBlSW50ZXJzZWN0aW9ucyI6MCwiZGV0YWNoZWREb2NraW5ncyI6MCwid3JvbmdXYXlEb2NraW5ncyI6MCwibm9uT3J0aG9nb25hbENvbm5lY3Rpb25zIjowLCJiYWNrdHJhY2tpbmdDb25uZWN0aW9ucyI6MCwiYXZlcmFnZUVkZ2VMZW5ndGgiOjEwNC42LCJlZGdlU2VnbWVudExlbmd0aERldmlhdGlvbiI6MjYuMywibGFiZWxTaGFwZU92ZXJsYXBzIjowLCJsYWJlbEVkZ2VPdmVybGFwcyI6MCwiY29tcGFjdG5lc3MiOjMyLjQsImdyaWRBbGlnbm1lbnQiOjEwMCwiYnJhbmNoU3ltbWV0cnkiOjEwMH0sImRlbHRhIjpudWxsLCJmaW5kaW5ncyI6eyJjcm9zc2luZ3MiOltdLCJvdmVybGFwcyI6W10sImVkZ2VTaGFwZUludGVyc2VjdGlvbnMiOltdLCJkZXRhY2hlZERvY2tpbmdzIjpbXSwid3JvbmdXYXlEb2NraW5ncyI6W10sIm5vbk9ydGhvZ29uYWxDb25uZWN0aW9ucyI6W10sImJhY2t0cmFja2luZ0Nvbm5lY3Rpb25zIjpbXSwibGFiZWxTaGFwZU92ZXJsYXBzIjpbXSwibGFiZWxFZGdlT3ZlcmxhcHMiOltdfSwiZXJyb3IiOm51bGx9LCJuYW1lIjoiZXZlbnQuZGF0YS1hc3NvY2lhdGlvbi5icG1uIiwicHJldmlvdXNOYW1lIjoiZXZlbnQuZGF0YS1hc3NvY2lhdGlvbi5icG1uIiwid2FybmluZ3MiOltdfV19'), character => character.charCodeAt(0))));
+      const reviewMode = reportConfig.mode === 'review';
+
+      if (reviewMode) {
+        document.title = 'bpmn-auto-layout - Layout Review';
+        document.body.classList.add('layout-review');
+
+        for (const id of [ 'overlay-toggle', 'maximize-overlay-toggle' ]) {
+          const toggle = document.getElementById(id);
+
+          toggle.lastChild.textContent = 'Show previous snapshot overlay';
+        }
+      }
+
+      const scrollContainer = document.getElementById('scroll-container')
+      const inspectContent = document.getElementById('inspect-content');
+      const maximizeDialog = document.getElementById('maximize-dialog');
+      const maximizeContainer = document.getElementById('maximize-container');
+      const minimizeButton = document.getElementById('minimize-button');
+      const maximizeOverlayToggle = document.getElementById('maximize-overlay-toggle');
+      let maximizedViewers = [];
+      let maximizeSyncFrame = null;
+
+      function applyMaximizeOverlay() {
+        maximizeDialog.classList.toggle('no-overlay', maximizeOverlayToggle.getAttribute('aria-pressed') === 'false');
+      }
+
+      function minimizeDiagram() {
+        if (maximizeSyncFrame !== null) {
+          cancelAnimationFrame(maximizeSyncFrame);
+          maximizeSyncFrame = null;
+        }
+
+        maximizedHighlighter?.destroy();
+        maximizedHighlighter = null;
+        maximizedViewers.forEach(viewer => viewer.destroy());
+        maximizedViewers = [];
+        maximizeContainer.replaceChildren();
+        maximizeDialog.classList.remove('snapshot-match', 'snapshot-mismatch');
+        maximizeOverlayToggle.hidden = true;
+        maximizeOverlayToggle.setAttribute('aria-pressed', 'true');
+        applyMaximizeOverlay();
+        maximizeDialog.hidden = true;
+      }
+
+      async function maximizeDiagram(xml, options = {}) {
+        minimizeDiagram();
+        maximizeOverlayToggle.hidden = true;
+        maximizeDialog.hidden = false;
+        const { findings, ...viewerOptions } = options;
+        const maximizedViewer = new BpmnJS({
+          container: maximizeContainer,
+          ...viewerOptions
+        });
+        maximizedViewers = [ maximizedViewer ];
+
+        try {
+          const { warnings } = await maximizedViewer.importXML(xml);
+
+          if (warnings.length) {
+            console.warn(warnings);
+          }
+
+          maximizedViewer.get('canvas').zoom('fit-viewport');
+
+          if (findings) {
+            maximizedHighlighter = createMetricHighlighter(maximizedViewer, findings);
+            maximizedHighlighter.update();
+          }
+        } catch (error) {
+          console.error('Maximized viewer render error', error);
+          minimizeDiagram();
+        }
+      }
+
+      async function maximizeComparison(outputXml, snapshotXml, snapshotMatches, findings) {
+        minimizeDiagram();
+        maximizeDialog.hidden = false;
+        maximizeOverlayToggle.hidden = snapshotMatches;
+        maximizeDialog.classList.add(snapshotMatches ? 'snapshot-match' : 'snapshot-mismatch');
+
+        const outputContainer = document.createElement('div');
+        outputContainer.className = 'maximize-viewer maximize-output';
+
+        let snapshotViewer;
+
+        if (!snapshotMatches) {
+          const snapshotContainer = document.createElement('div');
+          snapshotContainer.className = 'maximize-viewer maximize-snapshot';
+          maximizeContainer.appendChild(snapshotContainer);
+          snapshotViewer = new BpmnJS({
+            container: snapshotContainer,
+            bpmnRenderer: {
+              defaultStrokeColor: 'red'
+            }
+          });
+        }
+
+        maximizeContainer.appendChild(outputContainer);
+
+        const outputViewer = new BpmnJS({
+          container: outputContainer
+        });
+        maximizedViewers = snapshotViewer ? [ snapshotViewer, outputViewer ] : [ outputViewer ];
+
+        try {
+          const results = await Promise.all([
+            outputViewer.importXML(outputXml),
+            ...(snapshotViewer ? [ snapshotViewer.importXML(snapshotXml) ] : [])
+          ]);
+
+          results.forEach(({ warnings }) => {
+            if (warnings.length) {
+              console.warn(warnings);
+            }
+          });
+
+          const outputCanvas = outputViewer.get('canvas');
+          outputCanvas.zoom('fit-viewport');
+
+          if (snapshotViewer) {
+            const outputViewport = outputContainer.querySelector('svg .viewport');
+            const snapshotViewport = snapshotViewer
+              .get('canvas')
+              .getContainer()
+              .querySelector('svg .viewport');
+            const syncSnapshotViewport = () => {
+              if (maximizeSyncFrame !== null) {
+                cancelAnimationFrame(maximizeSyncFrame);
+              }
+
+              maximizeSyncFrame = requestAnimationFrame(() => {
+                maximizeSyncFrame = null;
+
+                if (!outputViewport.isConnected || !snapshotViewport.isConnected) {
+                  return;
+                }
+
+                snapshotViewport.setAttribute(
+                  'transform',
+                  outputViewport.getAttribute('transform') || ''
+                );
+              });
+            };
+
+            syncSnapshotViewport();
+            outputViewer.on('canvas.viewbox.changing', syncSnapshotViewport);
+            outputViewer.on('canvas.viewbox.changed', syncSnapshotViewport);
+          }
+
+          if (findings) {
+            maximizedHighlighter = createMetricHighlighter(outputViewer, findings);
+            maximizedHighlighter.update();
+          }
+        } catch (error) {
+          console.error('Maximized comparison render error', error);
+          minimizeDiagram();
+        }
+      }
+
+      minimizeButton.addEventListener('click', minimizeDiagram);
+      maximizeOverlayToggle.addEventListener('click', () => {
+        maximizeOverlayToggle.setAttribute('aria-pressed', String(maximizeOverlayToggle.getAttribute('aria-pressed') !== 'true'));
+        applyMaximizeOverlay();
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !maximizeDialog.hidden) {
+          minimizeDiagram();
+        }
+      });
+
+      maximizeDialog.addEventListener('wheel', event => {
+        if (!event.ctrlKey) {
+          event.stopImmediatePropagation();
+        }
+      }, { capture: true });
+
+      // toggle the ghosted overlay (red snapshot/grid behind the output)
+      const overlayToggle = document.getElementById('overlay-toggle');
+      const applyOverlay = () => document.body.classList.toggle('no-overlay', overlayToggle.getAttribute('aria-pressed') === 'false');
+      overlayToggle.addEventListener('click', () => {
+        overlayToggle.setAttribute('aria-pressed', String(overlayToggle.getAttribute('aria-pressed') !== 'true'));
+        applyOverlay();
+      });
+      applyOverlay();
+
+      // save scroll position before unload
+      window.addEventListener('beforeunload', () => {
+        localStorage.setItem('scrollPosition', scrollContainer.scrollTop);
+      });
+
+      // save scroll position
+      let scrollTimeout;
+      scrollContainer.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          localStorage.setItem('scrollPosition', scrollContainer.scrollTop);
+        }, 100);
+      });
+
+      // set scroll position
+      window.addEventListener('load', () => {
+        const savedScrollPosition = localStorage.getItem('scrollPosition');
+        if (savedScrollPosition) {
+          scrollContainer.scrollTo(0, parseInt(savedScrollPosition));
+        }
+      });
+
+      /* show stat */
+      const failStat = document.getElementById('fail')
+      const passStat = document.getElementById('pass')
+      const newStat = document.getElementById('new')
+      let resultFilters;
+
+      if (reviewMode) {
+        failStat.className = 'badge badge-secondary filter-toggle';
+        failStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12h8"/><path d="M12 8v8"/></svg>Snapshot changes ' + results.length;
+        failStat.setAttribute('aria-label', `Show snapshot changes (${results.length})`);
+        passStat.hidden = true;
+        newStat.hidden = true;
+        resultFilters = [ [ 'changed', failStat ] ];
+      } else {
+        const passCount = results.filter(element => element.diagramSnapshotMatching).length
+        const failCount = results.filter(element => element.diagramSnapshotMatching === false).length
+        const newCount = results.filter(element => element.diagramSnapshotMatching === null).length
+
+        failStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Failed ' + failCount
+        failStat.setAttribute('aria-label', `Show failed fixtures (${failCount})`)
+        passStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Passed ' + passCount
+        passStat.setAttribute('aria-label', `Show passed fixtures (${passCount})`)
+        newStat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>New ' + newCount
+        newStat.setAttribute('aria-label', `Show new fixtures (${newCount})`)
+        resultFilters = [
+          [ 'passed', passStat ],
+          [ 'failed', failStat ],
+          [ 'new', newStat ]
+        ];
+      }
+      const pathFilter = document.getElementById('path-filter');
+      const clearPathFilter = document.getElementById('clear-path-filter');
+      const sortBy = document.getElementById('sort-by');
+      const sortDirectionButton = document.getElementById('sort-direction');
+      const activeMetricFilters = new Set();
+      const metricFilterBadges = document.getElementById('metric-filter-badges');
+      const warningFilterBadge = document.getElementById('warning-filter-badge');
+      const warningFilterCount = results.filter(result => result.warnings.length > 0).length;
+
+      function applyResultFilters() {
+        const query = pathFilter.value.trim().toLowerCase();
+
+        clearPathFilter.hidden = !query;
+
+        document.querySelectorAll('.parent').forEach(parent => {
+          const filter = resultFilters.find(([ status ]) => status === parent.dataset.status);
+          const isStatusVisible = filter[1].getAttribute('aria-pressed') === 'true';
+          const isPathVisible = !query || parent.dataset.path.toLowerCase().includes(query);
+          const issueMetrics = new Set((parent.dataset.issueMetrics || '').split(' ').filter(Boolean));
+          const isMetricVisible = [ ...activeMetricFilters ].every(key => issueMetrics.has(key));
+          const isWarningVisible = warningFilterBadge.getAttribute('aria-pressed') === 'false' ||
+            parent.dataset.hasWarnings === 'true';
+          parent.hidden = !isStatusVisible || !isPathVisible || !isMetricVisible || !isWarningVisible;
+        });
+      }
+
+      function updateWarningFilterUI() {
+        const active = warningFilterBadge.getAttribute('aria-pressed') === 'true';
+
+        warningFilterBadge.disabled = warningFilterCount === 0;
+        warningFilterBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>Warnings ' + warningFilterCount;
+
+        if (warningFilterBadge.disabled) {
+          warningFilterBadge.title = 'No fixtures with layout warnings';
+          warningFilterBadge.setAttribute('aria-label', warningFilterBadge.title);
+          return;
+        }
+
+        warningFilterBadge.title = active
+          ? 'Show all fixtures'
+          : 'Show only fixtures with layout warnings';
+        warningFilterBadge.setAttribute('aria-label', `${warningFilterBadge.title} (${warningFilterCount})`);
+      }
+
+      function updateMetricFilterUI() {
+        document.querySelectorAll('[data-metric-filter]').forEach(metric => {
+          const active = activeMetricFilters.has(metric.dataset.metricFilter);
+
+          metric.classList.toggle('metric-filter-active', active);
+          metric.setAttribute('aria-pressed', String(active));
+
+          if (metric.disabled) {
+            metric.title = `No fixtures with ${metric.dataset.metricLabel.toLowerCase()}`;
+            metric.setAttribute('aria-label', metric.title);
+            return;
+          }
+
+          metric.title = active
+            ? `Remove ${metric.dataset.metricLabel} filter`
+            : `Show only fixtures with ${metric.dataset.metricLabel.toLowerCase()}`;
+        });
+
+        updateMetricHighlights();
+      }
+
+      function toggleMetricFilter(key) {
+        if (!hasMetricFilterResults(key)) {
+          return;
+        }
+
+        if (activeMetricFilters.has(key)) {
+          activeMetricFilters.delete(key);
+        } else {
+          activeMetricFilters.add(key);
+        }
+
+        updateMetricFilterUI();
+        applyResultFilters();
+      }
+
+      resultFilters.forEach(([ status, filter ]) => {
+        filter.addEventListener('click', () => {
+          filter.setAttribute('aria-pressed', String(filter.getAttribute('aria-pressed') !== 'true'));
+          filter.setAttribute('aria-label', `${filter.getAttribute('aria-pressed') === 'true' ? 'Hide' : 'Show'} ${status} fixtures`);
+          applyResultFilters();
+        });
+      });
+
+      warningFilterBadge.addEventListener('click', () => {
+        if (warningFilterBadge.disabled) {
+          return;
+        }
+
+        warningFilterBadge.setAttribute(
+          'aria-pressed',
+          String(warningFilterBadge.getAttribute('aria-pressed') !== 'true')
+        );
+        updateWarningFilterUI();
+        applyResultFilters();
+      });
+
+      pathFilter.addEventListener('input', applyResultFilters);
+      clearPathFilter.addEventListener('click', () => {
+        pathFilter.value = '';
+        applyResultFilters();
+        pathFilter.focus();
+      });
+
+      function getProcessDocumentation(xml) {
+        const document = new DOMParser().parseFromString(xml, 'application/xml');
+        const process = Array.from(document.getElementsByTagName('*')).find(element => element.localName === 'process');
+
+        if (!process) {
+          return null;
+        }
+
+        const documentation = Array.from(process.children).find(element => element.localName === 'documentation');
+
+        return documentation?.textContent.trim() || null;
+      }
+
+      const metricDefinitions = [
+        { key: 'crossings', label: 'Crossings', lowerIsBetter: true, zeroIsGood: true, filterable: true },
+        { key: 'overlaps', label: 'Shape-shape overlaps', lowerIsBetter: true, zeroIsGood: true, isDefect: true, filterable: true },
+        { key: 'labelShapeOverlaps', label: 'Label-shape overlaps', lowerIsBetter: true, zeroIsGood: true, filterable: true },
+        { key: 'labelEdgeOverlaps', label: 'Label-edge overlaps', lowerIsBetter: true, zeroIsGood: true, filterable: true },
+        { key: 'edgeShapeIntersections', label: 'Shape intersections', lowerIsBetter: true, zeroIsGood: true, isDefect: true, filterable: true },
+        { key: 'wrongWayDockings', label: 'Wrong-way dockings', lowerIsBetter: true, zeroIsGood: true, isDefect: true, filterable: true },
+        { key: 'bendCount', label: 'Bends', directional: false },
+        { key: 'averageEdgeLength', label: 'Average edge length', lowerIsBetter: true, unit: ' px' },
+        { key: 'edgeSegmentLengthDeviation', label: 'Segment deviation', lowerIsBetter: true, unit: ' px' },
+        { key: 'compactness', label: 'Compactness', lowerIsBetter: false, unit: '%' },
+        { key: 'gridAlignment', label: 'Grid alignment', lowerIsBetter: false, unit: '%' },
+        { key: 'branchSymmetry', label: 'Branch symmetry', lowerIsBetter: false, unit: '%' }
+      ];
+      const sortableMetricDefinitions = metricDefinitions.filter(definition => {
+        return definition.directional !== false;
+      });
+      const sortDefinitions = [
+        { key: 'name', label: 'Fixture name', getValue: result => result.name },
+        { key: 'layoutTiming', label: 'Layout p50', getValue: result => result.layoutTiming?.p50Ms },
+        ...sortableMetricDefinitions.map(definition => ({
+          key: definition.key,
+          label: definition.label,
+          getValue: result => result.metrics?.current?.[definition.key]
+        }))
+      ];
+      const sortDefinitionsByKey = new Map(
+        sortDefinitions.map(definition => [ definition.key, definition ])
+      );
+      const fixtureParents = new Map();
+      let sortDirection = 'ascending';
+
+      const outputHighlighters = new Set();
+      let maximizedHighlighter = null;
+      const metricFilterCounts = new Map(metricDefinitions
+        .filter(definition => definition.filterable)
+        .map(definition => [ definition.key, results.filter(result => {
+          return result.metrics?.current?.[definition.key] > 0;
+        }).length ]));
+      const hasMetricFilterResults = key => metricFilterCounts.get(key) > 0;
+
+      metricFilterBadges.replaceChildren(...metricDefinitions
+        .filter(definition => definition.filterable)
+        .map(definition => {
+          const badge = document.createElement('button');
+          const count = metricFilterCounts.get(definition.key);
+
+          badge.className = 'badge badge-secondary filter-toggle issue-filter-badge';
+          badge.type = 'button';
+          badge.dataset.metricFilter = definition.key;
+          badge.dataset.metricLabel = definition.label;
+          badge.disabled = !hasMetricFilterResults(definition.key);
+          badge.setAttribute('aria-pressed', 'false');
+          badge.textContent = `${ definition.label } ${ count }`;
+          if (!badge.disabled) {
+            badge.addEventListener('click', () => toggleMetricFilter(definition.key));
+          }
+
+          return badge;
+        }));
+
+      sortBy.replaceChildren(...sortDefinitions.map(definition => {
+        const option = document.createElement('option');
+        option.value = definition.key;
+        option.textContent = definition.label;
+
+        return option;
+      }));
+
+      function compareFixtureResults(first, second) {
+        const definition = sortDefinitionsByKey.get(sortBy.value);
+        const firstValue = definition.getValue(first);
+        const secondValue = definition.getValue(second);
+        const firstMissing = firstValue === null ||
+          firstValue === undefined ||
+          (typeof firstValue === 'number' && !Number.isFinite(firstValue));
+        const secondMissing = secondValue === null ||
+          secondValue === undefined ||
+          (typeof secondValue === 'number' && !Number.isFinite(secondValue));
+
+        if (firstMissing || secondMissing) {
+          if (firstMissing !== secondMissing) {
+            return firstMissing ? 1 : -1;
+          }
+
+          return first.name.localeCompare(second.name);
+        }
+
+        const order = typeof firstValue === 'string'
+          ? firstValue.localeCompare(secondValue)
+          : firstValue - secondValue;
+
+        return order === 0
+          ? first.name.localeCompare(second.name)
+          : sortDirection === 'ascending' ? order : -order;
+      }
+
+      function sortResults() {
+        return [ ...results ].sort(compareFixtureResults);
+      }
+
+      function updateSortDirectionUI() {
+        const ascending = sortDirection === 'ascending';
+
+        sortDirectionButton.textContent = ascending ? 'Ascending' : 'Descending';
+        sortDirectionButton.setAttribute(
+          'aria-label',
+          `Sort ${ascending ? 'ascending' : 'descending'}`
+        );
+      }
+
+      function sortFixturePanels() {
+        for (const result of sortResults()) {
+          inspectContent.appendChild(fixtureParents.get(result));
+        }
+      }
+
+      sortBy.addEventListener('change', sortFixturePanels);
+      sortDirectionButton.addEventListener('click', () => {
+        sortDirection = sortDirection === 'ascending' ? 'descending' : 'ascending';
+        updateSortDirectionUI();
+        sortFixturePanels();
+      });
+      updateSortDirectionUI();
+
+      function updateMetricHighlights() {
+        outputHighlighters.forEach(highlighter => highlighter.update());
+        maximizedHighlighter?.update();
+      }
+
+      function createMetricHighlighter(viewer, findings) {
+        const canvas = viewer.get('canvas');
+        const elementRegistry = viewer.get('elementRegistry');
+        const layer = canvas.getLayer('metric-highlights');
+        const markers = [];
+
+        function mark(elementId, metric) {
+          if (!elementId || !elementRegistry.get(elementId)) {
+            return;
+          }
+
+          const marker = `metric-highlight-${ metric }`;
+          canvas.addMarker(elementId, marker);
+          markers.push([ elementId, marker ]);
+        }
+
+        function appendOverlay(name, attributes, className) {
+          const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+          element.setAttribute('class', `metric-highlight-geometry ${ className }`);
+
+          Object.entries(attributes).forEach(([ key, value ]) => {
+            element.setAttribute(key, value);
+          });
+
+          layer.appendChild(element);
+        }
+
+        function addArea(bounds) {
+          appendOverlay('rect', bounds, 'metric-highlight-area');
+        }
+
+        function addPoint(point, className = 'metric-highlight-point') {
+          if (!point) {
+            return;
+          }
+
+          appendOverlay('circle', {
+            cx: point.x,
+            cy: point.y,
+            r: 8
+          }, className);
+        }
+
+        function clear() {
+          markers.splice(0).forEach(([ elementId, marker ]) => {
+            canvas.removeMarker(elementId, marker);
+          });
+          layer.replaceChildren();
+        }
+
+        return {
+          update() {
+            clear();
+
+            for (const metric of activeMetricFilters) {
+              for (const finding of findings?.[metric] || []) {
+                if (metric === 'crossings') {
+                  finding.edgeIds.forEach(id => mark(id, metric));
+                  addPoint(finding.point, 'metric-highlight-crossing');
+                } else if (metric === 'overlaps') {
+                  finding.shapeIds.forEach(id => mark(id, metric));
+                  addArea(finding.bounds);
+                } else if (metric === 'labelShapeOverlaps') {
+                  mark(finding.label.ownerId, metric);
+                  mark(finding.shapeId, metric);
+                  addArea(finding.label);
+                } else if (metric === 'labelEdgeOverlaps') {
+                  mark(finding.label.ownerId, metric);
+                  mark(finding.edgeId, metric);
+                  addArea(finding.label);
+                } else if (metric === 'edgeShapeIntersections') {
+                  mark(finding.edgeId, metric);
+                  mark(finding.shapeId, metric);
+                  addArea(finding.bounds);
+                } else if (metric === 'wrongWayDockings') {
+                  mark(finding.edgeId, metric);
+                  mark(finding.shapeId, metric);
+                  addPoint(finding.endpoint);
+                }
+              }
+            }
+          },
+          destroy() {
+            clear();
+          }
+        };
+      }
+
+      function metricState(definition, value, delta) {
+        if (definition.directional === false) {
+          return '';
+        }
+
+        if (definition.zeroIsGood) {
+          if (value === 0) {
+            return 'metric-good';
+          }
+
+          return definition.isDefect ? 'metric-defect' : 'metric-warning';
+        }
+
+        if (delta === null || delta === undefined || delta === 0) {
+          return '';
+        }
+
+        const improved = definition.lowerIsBetter ? delta < 0 : delta > 0;
+
+        return improved ? 'metric-good' : 'metric-warning';
+      }
+
+      function formatMetricDelta(delta) {
+        if (delta === null || delta === undefined) {
+          return 'No baseline';
+        }
+
+        if (delta === 0) {
+          return 'No change';
+        }
+
+        return `Baseline ${delta > 0 ? '+' : ''}${delta}`;
+      }
+
+      function createMetricsPanel(metrics) {
+        const panel = document.createElement('section');
+        panel.className = 'metrics-panel';
+
+        if (metrics.error) {
+          const error = document.createElement('p');
+          error.className = 'metrics-error';
+          error.textContent = `Metrics unavailable: ${metrics.error}`;
+          panel.appendChild(error);
+
+          return panel;
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'metrics-grid';
+
+        for (const definition of metricDefinitions) {
+          const value = metrics.current[definition.key];
+          const delta = metrics.delta?.[definition.key];
+          const metric = document.createElement(definition.filterable ? 'button' : 'div');
+          metric.className = `metric ${metricState(definition, value, delta)}`;
+          metric.title = definition.directional === false
+            ? 'Informational metric'
+            : definition.lowerIsBetter
+              ? 'Lower is better'
+              : 'Higher is better';
+
+          if (definition.filterable) {
+            metric.type = 'button';
+            metric.dataset.metricFilter = definition.key;
+            metric.dataset.metricLabel = definition.label;
+            metric.disabled = !hasMetricFilterResults(definition.key);
+            metric.setAttribute('aria-pressed', 'false');
+            if (!metric.disabled) {
+              metric.addEventListener('click', () => toggleMetricFilter(definition.key));
+            }
+          }
+
+          const name = document.createElement('span');
+          name.className = 'metric-name';
+          name.textContent = definition.label;
+
+          const metricValue = document.createElement('span');
+          metricValue.className = 'metric-value';
+          metricValue.textContent = `${value}${definition.unit || ''}`;
+
+          const metricDelta = document.createElement('span');
+          metricDelta.className = 'metric-delta';
+          metricDelta.textContent = formatMetricDelta(delta);
+
+          metric.appendChild(name);
+          metric.appendChild(metricValue);
+          metric.appendChild(metricDelta);
+          grid.appendChild(metric);
+        }
+
+        panel.appendChild(grid);
+
+        return panel;
+      }
+
+      function createLayoutTiming(timing) {
+        const element = document.createElement('span');
+        const ratio = timing.medianP50Ms > 0
+          ? timing.p50Ms / timing.medianP50Ms
+          : 0;
+        const timerIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>';
+        const descendingIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 17h6v-6"/><path d="m22 17-8.5-8.5-5 5L2 7"/></svg>';
+        const gaugeIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>';
+
+        element.className = `layout-timing${timing.isSlow ? ' layout-timing-slow' : ''}`;
+        element.title = `Informational timing from ${timing.runs} measured layouts after one warm-up; it is not a performance baseline or test gate.`;
+        element.innerHTML = `
+          <span class="layout-timing-part">${timerIcon}Avg ${timing.averageMs.toFixed(1)} ms</span>
+          <span class="layout-timing-part">p50 ${timing.p50Ms.toFixed(1)} ms</span>
+          <span class="layout-timing-part">p90 ${timing.p90Ms.toFixed(1)} ms</span>
+          <span class="layout-timing-part">${descendingIcon}#${timing.rank} / ${timing.total} slowest</span>
+          ${ratio ? `<span class="layout-timing-part">${gaugeIcon}${ratio.toFixed(1)}x median p50</span>` : ''}
+        `;
+
+        return element;
+      }
+
+      function createWarningsPanel(warnings) {
+        const panel = document.createElement('section');
+        panel.className = 'warnings-panel';
+
+        const title = document.createElement('div');
+        title.className = 'warnings-title';
+        title.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>';
+        title.append(`Layout warnings (${warnings.length})`);
+        panel.appendChild(title);
+
+        const list = document.createElement('ul');
+        list.className = 'warnings-list';
+
+        for (const warning of warnings) {
+          const item = document.createElement('li');
+          const code = document.createElement('span');
+          code.className = 'warning-code';
+          code.textContent = warning.code;
+          item.appendChild(code);
+          item.append(` (${warning.elementId}): ${warning.message}`);
+          list.appendChild(item);
+        }
+
+        panel.appendChild(list);
+
+        return panel;
+      }
+
+      async function copyPath(path) {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(path);
+          return;
+        }
+
+        const textarea = document.createElement('textarea');
+        textarea.value = path;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+      }
+
+      for (const result of sortResults()) {
+        const {
+          diagram,
+          diagramOutput,
+          diagramSnapshot,
+          diagramSnapshotMatching,
+          layoutTiming,
+          metrics,
+          name,
+          warnings
+        } = result;
+        const parent = document.createElement('div');
+
+        parent.className = 'parent';
+        parent.dataset.issueMetrics = metricDefinitions
+          .filter(definition => definition.filterable && metrics?.current?.[definition.key] > 0)
+          .map(definition => definition.key)
+          .join(' ');
+        parent.dataset.hasWarnings = String(warnings.length > 0);
+
+        if (reviewMode) {
+          parent.dataset.status = 'changed';
+
+          if (diagramSnapshot) {
+            parent.classList.add('snapshot-mismatch');
+          }
+        } else if (diagramSnapshotMatching === true) {
+          parent.dataset.status = 'passed';
+          parent.classList.add('snapshot-match');
+        } else if (diagramSnapshotMatching === false) {
+          parent.dataset.status = 'failed';
+          parent.classList.add('snapshot-mismatch');
+        } else {
+          parent.dataset.status = 'new';
+        }
+
+        const title = document.createElement('div');
+        title.className = 'title';
+
+        const status = document.createElement('span');
+        status.className = 'badge fixture-status';
+
+        if (reviewMode) {
+          const label = {
+            added: 'Added',
+            modified: 'Modified',
+            removed: 'Removed',
+            renamed: 'Renamed'
+          }[result.changeType] || 'Changed';
+
+          status.classList.add('badge-secondary');
+          status.title = label;
+          status.setAttribute('aria-label', label);
+          status.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12h8"/><path d="M12 8v8"/></svg>' + label;
+        } else if (diagramSnapshotMatching === true) {
+          status.classList.add('badge-success');
+          status.title = 'Passed';
+          status.setAttribute('aria-label', 'Passed');
+          status.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Passed';
+        } else if (diagramSnapshotMatching === false) {
+          status.classList.add('badge-destructive');
+          status.title = 'Failed';
+          status.setAttribute('aria-label', 'Failed');
+          status.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Failed';
+        } else {
+          status.classList.add('badge-secondary');
+          status.title = 'New';
+          status.setAttribute('aria-label', 'New');
+          status.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>New';
+        }
+
+        const fixtureName = document.createElement('span');
+        fixtureName.className = 'fixture-name';
+        const fixturePath = 'test/fixtures/' + name;
+        parent.dataset.path = fixturePath;
+        fixtureName.textContent = fixturePath;
+
+        const copyPathButton = document.createElement('button');
+        copyPathButton.className = 'button copy-path-button';
+        copyPathButton.type = 'button';
+        copyPathButton.title = 'Copy fixture path';
+        copyPathButton.setAttribute('aria-label', 'Copy fixture path');
+        copyPathButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>Copy';
+        let copiedTimeout;
+        copyPathButton.addEventListener('click', async () => {
+          try {
+            await copyPath(fixturePath);
+            clearTimeout(copiedTimeout);
+            copyPathButton.classList.add('copied');
+            copyPathButton.title = 'Copied';
+            copyPathButton.setAttribute('aria-label', 'Fixture path copied');
+            copiedTimeout = setTimeout(() => {
+              copyPathButton.classList.remove('copied');
+              copyPathButton.title = 'Copy fixture path';
+              copyPathButton.setAttribute('aria-label', 'Copy fixture path');
+            }, 600);
+          } catch (error) {
+            console.error('Could not copy fixture path', error);
+          }
+        });
+
+        title.appendChild(status);
+        title.appendChild(fixtureName);
+        title.appendChild(copyPathButton);
+        if (layoutTiming) {
+          title.appendChild(createLayoutTiming(layoutTiming));
+        }
+
+        const description = getProcessDocumentation(diagram);
+
+        if (description) {
+          const descriptionElement = document.createElement('div');
+          descriptionElement.className = 'description';
+          descriptionElement.textContent = description;
+          title.appendChild(descriptionElement);
+        }
+
+        if (metrics) {
+          title.appendChild(createMetricsPanel(metrics));
+        }
+
+        if (warnings.length) {
+          title.appendChild(createWarningsPanel(warnings));
+        }
+
+        const containerParent = document.createElement('div');
+        containerParent.className = 'container-parent';
+
+        const containerBefore = document.createElement('div');
+        containerBefore.className = 'container before';
+
+        const containerAfter = document.createElement('div');
+        containerAfter.className = 'container after';
+
+        parent.appendChild(title);
+        parent.appendChild(containerParent);
+        fixtureParents.set(result, parent);
+
+        containerParent.appendChild(containerBefore);
+        containerParent.appendChild(containerAfter);
+
+        inspectContent.appendChild(parent);
+
+        const subContainerDiagram = document.createElement('div');
+        subContainerDiagram.className = 'sub-container diagram';
+
+        const subContainerOutput = document.createElement('div');
+        subContainerOutput.className = 'sub-container output';
+
+        const subContainerSnapshot = document.createElement('div');
+        subContainerSnapshot.className = 'sub-container snapshot';
+
+        containerBefore.appendChild(subContainerDiagram);
+        containerAfter.appendChild(subContainerOutput);
+        containerAfter.appendChild(subContainerSnapshot);
+
+        const viewerContainers = diagramSnapshot
+          ? [ subContainerDiagram, subContainerOutput, subContainerSnapshot ]
+          : [ subContainerDiagram, subContainerOutput ];
+
+        viewerContainers.forEach(container => {
+          const maximizeButton = document.createElement('button');
+          maximizeButton.className = 'maximize-button button icon-button';
+          maximizeButton.type = 'button';
+          maximizeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="m21 3-7 7"/><path d="m3 21 7-7"/><path d="M9 21H3v-6"/></svg>';
+          maximizeButton.title = 'Maximize diagram';
+          maximizeButton.setAttribute('aria-label', 'Maximize diagram');
+
+          if (container === subContainerSnapshot) {
+            containerAfter.appendChild(maximizeButton);
+          } else {
+            container.appendChild(maximizeButton);
+          }
+
+          const xml = container === subContainerDiagram ? diagram : container === subContainerOutput ? diagramOutput : diagramSnapshot;
+
+          maximizeButton.addEventListener('click', () => {
+            if (container === subContainerSnapshot) {
+              maximizeComparison(
+                diagramOutput,
+                diagramSnapshot,
+                diagramSnapshotMatching === true,
+                metrics?.findings
+              );
+            } else {
+              maximizeDiagram(xml, container === subContainerOutput ? {
+                findings: metrics?.findings
+              } : {});
+            }
+          });
+        });
+
+        [ containerBefore, containerAfter ].forEach(container => {
+          container.addEventListener('wheel', event => {
+            if (!event.ctrlKey) {
+              event.stopImmediatePropagation();
+            }
+          }, { capture: true });
+        });
+
+        const diagramViewer = new BpmnJS({
+          container: subContainerDiagram
+        });
+
+        const diagramSnapshotViewer = new BpmnJS({
+          container: subContainerSnapshot,
+          bpmnRenderer: {
+            defaultStrokeColor: 'red'
+          }
+        });
+
+        const diagramOutputViewer = new BpmnJS({
+          container: subContainerOutput
+        });
+
+        const errors = Promise.all([
+          diagramViewer.importXML(diagram).then(({ warnings }) => {
+            if (warnings.length) {
+              console.warn(warnings);
+            }
+
+            diagramViewer.get('canvas').zoom('fit-viewport');
+          }).catch(err => {
+            console.error('Viewer render error', err);
+
+            subContainerDiagram.textContent = `Error: ${err.message}`;
+            subContainerDiagram.classList.add('message');
+
+            return err;
+          }),
+
+          diagramOutputViewer.importXML(diagramOutput).then(({ warnings }) => {
+            if (warnings.length) {
+              console.warn(warnings);
+            }
+
+            diagramOutputViewer.get('canvas').zoom('fit-viewport');
+
+            const highlighter = createMetricHighlighter(diagramOutputViewer, metrics?.findings);
+            outputHighlighters.add(highlighter);
+            highlighter.update();
+
+            if (diagramSnapshot) {
+              diagramSnapshotViewer.get('canvas').viewbox(diagramOutputViewer.get('canvas').viewbox());
+            }
+          }).catch(err => {
+            console.error('Output render error', err);
+
+            subContainerOutput.textContent = `Error: ${err.message}`;
+            subContainerOutput.classList.add('message');
+          })
+        ]);
+
+        if (diagramSnapshot && diagramSnapshotMatching === false) {
+          diagramSnapshotViewer.importXML(diagramSnapshot).then(({ warnings }) => {
+            if (warnings.length) {
+              console.warn(warnings);
+            }
+
+            diagramSnapshotViewer.get('canvas').viewbox(diagramOutputViewer.get('canvas').viewbox());
+          }).catch(err => {
+            console.error('Snapshot render error', err);
+          });
+        }
+
+        errors.then(([ a, b ]) => {
+          if (a && b && a.message !== b.message) {
+            subContainerOutput.classList.add('error');
+          }
+        });
+
+        let isSyncing = false;
+
+        diagramViewer.on('canvas.viewbox.changed', () => {
+          if (isSyncing) {
+            return;
+          }
+
+          isSyncing = true;
+
+          diagramOutputViewer.get('canvas').viewbox(diagramViewer.get('canvas').viewbox());
+          
+          if (diagramSnapshot) {
+            diagramSnapshotViewer.get('canvas').viewbox(diagramViewer.get('canvas').viewbox());
+          }
+
+          isSyncing = false;
+        });
+
+        diagramOutputViewer.on('canvas.viewbox.changed', () => {
+          if (isSyncing) {
+            return;
+          }
+
+          isSyncing = true;
+
+          diagramViewer.get('canvas').viewbox(diagramOutputViewer.get('canvas').viewbox());
+
+          if (diagramSnapshot) {
+            diagramSnapshotViewer.get('canvas').viewbox(diagramOutputViewer.get('canvas').viewbox());
+          }
+
+          isSyncing = false;
+        });
+      }
+
+      updateWarningFilterUI();
+      updateMetricFilterUI();
+    </script>
+  </body>
+</html>

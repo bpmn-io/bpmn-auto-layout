@@ -1,0 +1,12 @@
+{
+  "base": "cd5592d742cfe41cec4c62dc5dfd940e1f1cd4d8",
+  "head": "0ef5aa12eb07fc076d665321c0fb76f83a2f80da",
+  "changeCount": 1,
+  "changes": [
+    {
+      "type": "added",
+      "previousPath": null,
+      "path": "test/snapshots/event.data-association.bpmn"
+    }
+  ]
+}
