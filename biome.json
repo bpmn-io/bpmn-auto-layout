@@ -1,0 +1,23 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.6/schema.json",
+  "files": {
+    "includes": [
+      "bin/**/*.ts",
+      "lib/**/*.ts",
+      "tasks/**/*.ts",
+      "test/**/*.ts",
+      "example/src/**/*.ts",
+      "!lib/moddle-types/**"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "none",
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noTsIgnore": "error"
+      }
+    }
+  }
+}

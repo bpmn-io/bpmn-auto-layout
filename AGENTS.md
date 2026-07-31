@@ -58,6 +58,17 @@ and p90 layout times.
 Run `npm run metrics` when reviewing visual-quality impact beyond byte-level
 snapshot changes.
 
+## TypeScript policy
+
+- Keep TypeScript strict. `tsc` rejects implicit `any`; Biome rejects explicit
+  `any` and `@ts-ignore`. Model uncertainty with explicit types, `unknown`, and
+  type guards instead. `@ts-expect-error` follows TypeScript's standard policy:
+  it is valid only while it suppresses a real error.
+- `lib/moddle-types/` is generated from `bpmn-moddle` descriptors. Do not edit
+  it manually. Run `npm run generate:moddle-types` after descriptor updates and
+  commit the generated files; `npm run check:moddle-types` verifies freshness.
+  CI runs that freshness check only on Node 24.
+
 ## Layout documentation
 
 [`docs/LAYOUT.md`](docs/LAYOUT.md) is the human-readable description of the
