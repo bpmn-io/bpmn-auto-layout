@@ -39,7 +39,7 @@
     "build:types": "tsc --project tsconfig.declarations.json",
     "generate:moddle-types": "moddle-generate-types --augment --index lib/moddle-types/index.d.ts node_modules/bpmn-moddle/resources/bpmn/json/bpmn.json lib/moddle-types/bpmn.d.ts node_modules/bpmn-moddle/resources/bpmn/json/bpmndi.json lib/moddle-types/bpmndi.d.ts node_modules/bpmn-moddle/resources/bpmn/json/dc.json lib/moddle-types/dc.d.ts node_modules/bpmn-moddle/resources/bpmn/json/di.json lib/moddle-types/di.d.ts",
     "check:moddle-types": "npm run generate:moddle-types && git diff --exit-code -- lib/moddle-types",
-    "build:example": "npm run build -w example",
+    "build:example": "npm run build && npm run build -w example",
     "prepare": "run-s build",
     "start": "npm run start -w example"
   },

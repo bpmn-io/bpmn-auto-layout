@@ -1,6 +1,6 @@
 import Viewer from 'bpmn-js/lib/NavigatedViewer.js';
 
-import { layoutProcess } from '../../lib/index.js';
+import { layoutProcess } from '../../dist/index.js';
 
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-js.css';
