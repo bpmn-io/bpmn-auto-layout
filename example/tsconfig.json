@@ -4,10 +4,11 @@
     "lib": [
       "ES2022",
       "DOM"
-    ]
+    ],
+    "types": []
   },
   "include": [
-    "trace-fixture.ts",
-    "../example/src/browser-globals.d.ts"
+    "src/**/*.ts",
+    "src/**/*.d.ts"
   ]
 }

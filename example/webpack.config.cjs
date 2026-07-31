@@ -6,8 +6,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: {
-    app: path.resolve(__dirname, './src/app.js'),
-    performance: path.resolve(__dirname, './src/performance.js'),
+    app: path.resolve(__dirname, './src/app.ts'),
+    performance: path.resolve(__dirname, './src/performance.ts'),
   },
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -21,9 +21,14 @@ module.exports = {
         use: 'raw-loader',
       },
       {
-        test: /\.js$/,
+        test: /\.[jt]s$/,
         exclude: /node_modules/,
-        use: [ 'babel-loader' ],
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [ '@babel/preset-typescript' ]
+          }
+        },
       },
       {
         test: /\.css$/i,
