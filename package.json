@@ -28,7 +28,7 @@
     "typecheck:public-api": "tsc --project tsconfig.public-api.json",
     "test": "tsx node_modules/mocha/bin/mocha.js --extension js --extension ts --timeout 15000",
     "test:inspect": "tsx tasks/inspect.ts",
-    "test:update-snapshots": "cross-env UPDATE_SNAPSHOTS=true mocha --timeout 15000",
+    "test:update-snapshots": "cross-env UPDATE_SNAPSHOTS=true tsx node_modules/mocha/bin/mocha.js --extension js --extension ts --timeout 15000",
     "render:fixture": "npm run build && tsx tasks/render-fixture.ts",
     "review:layout": "tsx tasks/layout-review.ts",
     "benchmark:fixture": "npm run build && tsx tasks/benchmark-fixture.ts",
