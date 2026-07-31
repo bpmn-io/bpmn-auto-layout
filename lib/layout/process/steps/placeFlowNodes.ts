@@ -10,8 +10,14 @@ import { is } from '../../../di/DiUtil.js';
 import type { LayoutRecord, ProcessLayoutContext } from '../../Types.js';
 
 type GraphRecord = Parameters<typeof placeRecords>[0][number];
+type ShapeRecord = Parameters<typeof placeBoundaryEvents>[0][number];
 type GraphEdge = Parameters<typeof packComponents>[2][number];
 type BoundaryEdge = Parameters<typeof packComponents>[3][number];
+
+function isShapeRecord(record: LayoutRecord): record is ShapeRecord {
+  return !record.isArtifact &&
+    is(record.element, 'bpmn:FlowNode');
+}
 
 function isGraphRecord(record: LayoutRecord): record is GraphRecord {
   return !record.isBoundary && !record.isArtifact &&
@@ -45,7 +51,7 @@ export function placeFlowNodes(context: ProcessLayoutContext): ProcessLayoutCont
     nodes: graphNodes
   } = context.graph;
   const { policy, ranks } = context.semantics;
-  const allShapeRecords = records.filter(isGraphRecord);
+  const allShapeRecords = records.filter(isShapeRecord);
   const typedRecordsByElement = new Map(
     allShapeRecords.map(record => [ record.element, record ])
   );
