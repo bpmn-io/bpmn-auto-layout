@@ -7,7 +7,7 @@ import {
   MESSAGE_FLOW_CHANNEL_SPACING,
   MESSAGE_FLOW_CHANNEL_WIDTH_DIVISOR,
   MAX_EXHAUSTIVE_PARTICIPANT_COUNT,
-  MESSAGE_FLOW_OBSTACLE_INSET
+  MESSAGE_FLOW_COLLISION_TOLERANCE
 } from '../../Constants.js';
 import {
   point,
@@ -51,7 +51,7 @@ type RoutedConnection = {
   points: Waypoint[];
 };
 type MessageFlowRouterOptions = {
-  obstacleInset?: number;
+  collisionTolerance?: number;
   allowPerpendicularCrossings?: boolean;
 };
 type MessageFlowRoutingContext = {
@@ -267,7 +267,7 @@ function routeUnscopedMessageFlow({
     target,
     routedConnections,
     {
-      obstacleInset: MESSAGE_FLOW_OBSTACLE_INSET,
+      collisionTolerance: MESSAGE_FLOW_COLLISION_TOLERANCE,
       allowPerpendicularCrossings: true
     }
   ).findRoute(start, end) || directConnection(sourceBounds, targetBounds);
@@ -655,7 +655,7 @@ function findMessageFlowDockX(
     targetElement,
     routedConnections,
     {
-      obstacleInset: MESSAGE_FLOW_OBSTACLE_INSET,
+      collisionTolerance: MESSAGE_FLOW_COLLISION_TOLERANCE,
       allowPerpendicularCrossings: true
     }
   );
@@ -747,7 +747,7 @@ function routeMessageLeg(
     target,
     routedConnections,
     {
-      obstacleInset: MESSAGE_FLOW_OBSTACLE_INSET,
+      collisionTolerance: MESSAGE_FLOW_COLLISION_TOLERANCE,
       allowPerpendicularCrossings: true
     }
   );
@@ -763,7 +763,7 @@ function routeMessageLeg(
       target,
       [],
       {
-        obstacleInset: MESSAGE_FLOW_OBSTACLE_INSET,
+        collisionTolerance: MESSAGE_FLOW_COLLISION_TOLERANCE,
         allowPerpendicularCrossings: true
       }
     ).findRoute(start, end) ||

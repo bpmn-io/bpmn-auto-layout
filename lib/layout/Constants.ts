@@ -60,15 +60,15 @@ export const MESSAGE_FLOW_SIDE_OFFSET = 10;
 export const MESSAGE_FLOW_CHANNEL_SPACING = 10;
 export const MESSAGE_FLOW_CHANNEL_WIDTH_DIVISOR = 4;
 export const MAX_EXHAUSTIVE_PARTICIPANT_COUNT = 8;
-export const MESSAGE_FLOW_OBSTACLE_INSET = 1;
+export const MESSAGE_FLOW_COLLISION_TOLERANCE = 1;
 
 // Sequence flow routing search policy.
 export const MAX_ROUTE_SEARCH_ATTEMPTS = 100;
 export const MAX_LOCAL_U_CHANNEL_ATTEMPTS = 20;
 
-// Distinct from MESSAGE_FLOW_OBSTACLE_INSET despite the equal current value:
-// this inset applies to sequence flow obstacle checks, not message flows.
-export const ROUTE_OBSTACLE_INSET = 1;
+// Distinct from MESSAGE_FLOW_COLLISION_TOLERANCE despite the equal current
+// value: this tolerance applies to sequence-flow obstacle checks.
+export const ROUTE_COLLISION_TOLERANCE = 1;
 export const LOCAL_U_OBSTACLE_CLEARANCE = 3;
 export const VISIBILITY_GRAPH_TURN_PENALTY = 1;
 export const MAX_VISIBILITY_GRAPH_POINTS = 4096;

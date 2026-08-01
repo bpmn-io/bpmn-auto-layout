@@ -1,6 +1,7 @@
 import type { Point, Rect } from 'diagram-js/lib/util/Types.js';
 
 import type { BpmnElement } from '../../Types.js';
+import type { BpmnPath } from '../../routing/BpmnOrthogonalRouting.js';
 import type { BpmnFlowNode, BpmnSequenceFlow } from '../../../moddle-types/bpmn.js';
 import type { ModdleElement } from 'moddle';
 
@@ -46,7 +47,7 @@ import {
   ROUTING_MARGIN,
   MAX_ROUTE_SEARCH_ATTEMPTS,
   MAX_LOCAL_U_CHANNEL_ATTEMPTS,
-  ROUTE_OBSTACLE_INSET,
+  ROUTE_COLLISION_TOLERANCE,
   LOCAL_U_OBSTACLE_CLEARANCE,
   MAX_VISIBILITY_GRAPH_POINTS
 } from '../../Constants.js';
@@ -59,7 +60,8 @@ import {
   routeLength
 } from '../../geometry/index.js';
 import {
-  createBpmnOrthogonalRouter
+  createBpmnOrthogonalRouter,
+  flattenBpmnPath
 } from '../../routing/BpmnOrthogonalRouting.js';
 
 // Preferred fractional x-offsets (in that order) when searching for a clear
@@ -474,13 +476,6 @@ function tryInnerFeedbackChannel(
     routedConnectionsWithoutSharedTarget,
     { maxVisibilityPoints: MAX_VISIBILITY_GRAPH_POINTS }
   );
-  const channelClearanceRouter = createSequenceFlowRouter(
-    shapes,
-    flow.sourceRef,
-    flow.targetRef,
-    routedConnectionsWithoutSharedTarget,
-    { obstacleInset: -ROUTING_MARGIN }
-  );
   const sourceNorth = point(
     source.x + source.width / 2,
     source.y
@@ -496,39 +491,57 @@ function tryInnerFeedbackChannel(
 
   for (let attempt = 1; attempt <= MAX_ROUTE_SEARCH_ATTEMPTS; attempt++) {
     const channelY = target.y - attempt * ROUTING_MARGIN;
-    const candidates = [
+    const northChannelStart = point(sourceNorth.x, channelY);
+    const eastExit = point(
+      sourceEast.x + ROUTING_MARGIN,
+      sourceEast.y
+    );
+    const eastChannelStart = point(eastExit.x, channelY);
+    const targetChannelEnd = point(targetNorth.x, channelY);
+    const candidates: BpmnPath[] = [
       {
-        channelStartX: sourceNorth.x,
-        route: cleanPoints([
-        sourceNorth,
-        point(sourceNorth.x, channelY),
-        point(targetNorth.x, channelY),
-        targetNorth
-        ])
+        sections: [
+          {
+            role: 'source-dock',
+            points: [ sourceNorth, northChannelStart ]
+          },
+          {
+            role: 'channel',
+            points: [ northChannelStart, targetChannelEnd ]
+          },
+          {
+            role: 'target-dock',
+            points: [ targetChannelEnd, targetNorth ]
+          }
+        ]
       },
       {
-        channelStartX: sourceEast.x + ROUTING_MARGIN,
-        route: cleanPoints([
-        sourceEast,
-        point(sourceEast.x + ROUTING_MARGIN, sourceEast.y),
-        point(sourceEast.x + ROUTING_MARGIN, channelY),
-        point(targetNorth.x, channelY),
-        targetNorth
-        ])
+        sections: [
+          {
+            role: 'source-dock',
+            points: [ sourceEast, eastExit ]
+          },
+          {
+            role: 'connector',
+            points: [ eastExit, eastChannelStart ]
+          },
+          {
+            role: 'channel',
+            points: [ eastChannelStart, targetChannelEnd ]
+          },
+          {
+            role: 'target-dock',
+            points: [ targetChannelEnd, targetNorth ]
+          }
+        ]
       }
     ];
 
     for (const candidate of candidates) {
-      const channel = [
-        point(candidate.channelStartX, channelY),
-        point(targetNorth.x, channelY)
-      ];
-
-      if (
-        channelClearanceRouter.isClear(channel) &&
-        sharedTargetRouter.isClear(candidate.route)
-      ) {
-        return candidate.route;
+      if (sharedTargetRouter.isBpmnPathClear(candidate, {
+        channelClearance: ROUTING_MARGIN
+      })) {
+        return cleanPoints(flattenBpmnPath(candidate));
       }
     }
   }
@@ -962,7 +975,11 @@ function findLocalUBypass(flow: FlowEdge, start: Point, end: Point, shapes: Rout
   const blockers = shapes.filter(({ element, rect }) => {
     return element !== sourceElement &&
       element !== targetElement &&
-      segmentEntersRect(directStart, directEnd, inset(rect, ROUTE_OBSTACLE_INSET));
+      segmentEntersRect(
+        directStart,
+        directEnd,
+        inset(rect, ROUTE_COLLISION_TOLERANCE)
+      );
   });
   const nearestBottom = Math.max(
     source.y + source.height,
@@ -984,19 +1001,17 @@ function findLocalUBypass(flow: FlowEdge, start: Point, end: Point, shapes: Rout
   );
   const topStart = point(source.x + source.width / 2, source.y);
   const topEnd = point(target.x + target.width / 2, target.y);
-  const expandedRouter = createSequenceFlowRouter(
+  const localURouter = createSequenceFlowRouter(
     shapes,
     sourceElement,
     targetElement,
-    routedConnections,
-    { obstacleInset: -LOCAL_U_OBSTACLE_CLEARANCE }
+    routedConnections
   );
-  const expandedClearRouter = createSequenceFlowRouter(
+  const localUClearRouter = createSequenceFlowRouter(
     shapes,
     sourceElement,
     targetElement,
-    [],
-    { obstacleInset: -LOCAL_U_OBSTACLE_CLEARANCE }
+    []
   );
 
   if (!balancedDefault) {
@@ -1006,32 +1021,32 @@ function findLocalUBypass(flow: FlowEdge, start: Point, end: Point, shapes: Rout
       nearestBottom,
       1,
       depth,
-      expandedRouter
+      localURouter
     ) || findClearLocalUChannel(
       start,
       end,
       nearestBottom,
       1,
       depth,
-      expandedClearRouter
+      localUClearRouter
     ) || findClearLocalUChannel(
       topStart,
       topEnd,
       nearestTop,
       -1,
       depth,
-      expandedRouter
+      localURouter
     ) || findClearLocalUChannel(
       topStart,
       topEnd,
       nearestTop,
       -1,
       depth,
-      expandedClearRouter
+      localUClearRouter
     );
   }
 
-  for (const candidateRouter of [ expandedRouter, expandedClearRouter ]) {
+  for (const candidateRouter of [ localURouter, localUClearRouter ]) {
     const bottom = findClearLocalUChannel(
       start,
       end,
@@ -1061,15 +1076,31 @@ function findLocalUBypass(flow: FlowEdge, start: Point, end: Point, shapes: Rout
 function findClearLocalUChannel(start: Point, end: Point, nearest: number, direction: number, depth: number, router: Router): MaybeRoute {
   for (let attempt = 0; attempt < MAX_LOCAL_U_CHANNEL_ATTEMPTS; attempt++) {
     const channelY = nearest + direction * (depth + attempt) * ROUTING_MARGIN;
-    const candidate = cleanPoints([
-      start,
-      point(start.x, channelY),
-      point(end.x, channelY),
-      end
-    ]);
+    const channelStart = point(start.x, channelY);
+    const channelEnd = point(end.x, channelY);
+    const candidate: BpmnPath = {
+      sections: [
+        {
+          role: 'source-dock',
+          points: [ start, channelStart ]
+        },
+        {
+          role: 'channel',
+          points: [ channelStart, channelEnd ]
+        },
+        {
+          role: 'target-dock',
+          points: [ channelEnd, end ]
+        }
+      ]
+    };
 
-    if (router.isClear(candidate)) {
-      return candidate;
+    if (router.isBpmnPathClear(candidate, {
+      channelClearance: LOCAL_U_OBSTACLE_CLEARANCE,
+      dockingClearance: LOCAL_U_OBSTACLE_CLEARANCE,
+      dockingCollisionTolerance: 0
+    })) {
+      return cleanPoints(flattenBpmnPath(candidate));
     }
   }
 
@@ -1228,20 +1259,20 @@ function outerLegs(rect: Rect, corner: Point): Point[][] {
   ];
 }
 
-function segmentIsClear(a: Point, b: Point, shapes: RouterShape[], sourceElement: BpmnElement, targetElement: BpmnElement, routedConnections: RoutedConnection[], obstacleInset = ROUTE_OBSTACLE_INSET, allowPerpendicularCrossings = false): boolean {
+function segmentIsClear(a: Point, b: Point, shapes: RouterShape[], sourceElement: BpmnElement, targetElement: BpmnElement, routedConnections: RoutedConnection[], collisionTolerance = ROUTE_COLLISION_TOLERANCE, allowPerpendicularCrossings = false): boolean {
   return createSequenceFlowRouter(
     shapes,
     sourceElement,
     targetElement,
     routedConnections,
     {
-      obstacleInset,
+      collisionTolerance,
       allowPerpendicularCrossings
     }
   ).isClear([ a, b ]);
 }
 
-function createSequenceFlowRouter(shapes: RouterShape[], sourceElement: BpmnElement, targetElement: BpmnElement, routedConnections: RoutedConnection[], options: { obstacleInset?: number; allowPerpendicularCrossings?: boolean; maxVisibilityPoints?: number } = {}): Router {
+function createSequenceFlowRouter(shapes: RouterShape[], sourceElement: BpmnElement, targetElement: BpmnElement, routedConnections: RoutedConnection[], options: { collisionTolerance?: number; obstacleClearance?: number; allowPerpendicularCrossings?: boolean; maxVisibilityPoints?: number } = {}): Router {
   return createBpmnOrthogonalRouter({
     shapes,
     sourceElement,

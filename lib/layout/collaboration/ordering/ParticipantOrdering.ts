@@ -3,7 +3,7 @@ import {
   VERTICAL_GAP,
   MESSAGE_FLOW_BEND_PENALTY,
   MAX_EXHAUSTIVE_PARTICIPANT_COUNT,
-  MESSAGE_FLOW_OBSTACLE_INSET
+  MESSAGE_FLOW_COLLISION_TOLERANCE
 } from '../../Constants.js';
 import {
   point,
@@ -230,9 +230,9 @@ function createMessageFlowOrderContext(
       element,
       rect,
       participant: findEndpointParticipant(element, participantsByProcess),
-      insetX: rect.x + MESSAGE_FLOW_OBSTACLE_INSET,
-      insetWidth: rect.width - 2 * MESSAGE_FLOW_OBSTACLE_INSET,
-      insetHeight: rect.height - 2 * MESSAGE_FLOW_OBSTACLE_INSET
+      insetX: rect.x + MESSAGE_FLOW_COLLISION_TOLERANCE,
+      insetWidth: rect.width - 2 * MESSAGE_FLOW_COLLISION_TOLERANCE,
+      insetHeight: rect.height - 2 * MESSAGE_FLOW_COLLISION_TOLERANCE
     }));
 
   return {
@@ -447,7 +447,8 @@ function orderedMessageFlowNeedsBend(
 
     const obstacle = bounds(
       insetX,
-      rect.y + getRequired(positions.get(participant)) + MESSAGE_FLOW_OBSTACLE_INSET,
+      rect.y + getRequired(positions.get(participant)) +
+        MESSAGE_FLOW_COLLISION_TOLERANCE,
       insetWidth,
       insetHeight
     );

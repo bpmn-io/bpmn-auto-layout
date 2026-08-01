@@ -289,7 +289,8 @@ function orthogonalAssociationRoute(
     shapes: obstacles,
     sourceElement: owner,
     targetElement: artifact,
-    obstacleInset: -ASSOCIATION_OBSTACLE_CLEARANCE
+    collisionTolerance: 0,
+    obstacleClearance: ASSOCIATION_OBSTACLE_CLEARANCE
   });
 
   const scoredCandidates: ScoredAssociationRoute[] = candidates.map(({

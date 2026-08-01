@@ -5,10 +5,11 @@ import { describe, it } from 'mocha';
 
 import {
   MAX_VISIBILITY_GRAPH_POINTS,
-  ROUTE_OBSTACLE_INSET
+  ROUTE_COLLISION_TOLERANCE
 } from '../lib/layout/Constants.js';
 import {
-  createBpmnOrthogonalRouter
+  createBpmnOrthogonalRouter,
+  flattenBpmnPath
 } from '../lib/layout/routing/BpmnOrthogonalRouting.js';
 import {
   createOrthogonalRouter
@@ -35,7 +36,7 @@ describe('OrthogonalRouting', function() {
     const router = createOrthogonalRouter({
       obstacles,
       maxVisibilityPoints: MAX_VISIBILITY_GRAPH_POINTS,
-      obstacleInset: ROUTE_OBSTACLE_INSET
+      collisionTolerance: ROUTE_COLLISION_TOLERANCE
     });
 
     const route = router.findRoute(
@@ -101,6 +102,147 @@ describe('OrthogonalRouting', function() {
     ), true);
   });
 
+  it('should apply clearance per constrained path section', function() {
+    const router = createOrthogonalRouter({
+      obstacles: [ {
+        rect: { x: 40, y: 40, width: 20, height: 20 }
+      } ]
+    });
+    const sourceDock = {
+      obstacleClearance: 0,
+      points: [
+        { x: 0, y: 30 },
+        { x: 20, y: 30 }
+      ]
+    };
+
+    assert.strictEqual(router.isPathClear({
+      sections: [
+        sourceDock,
+        {
+          obstacleClearance: 0,
+          points: [
+            { x: 20, y: 30 },
+            { x: 80, y: 30 }
+          ]
+        }
+      ]
+    }), true);
+    assert.strictEqual(router.isPathClear({
+      sections: [
+        sourceDock,
+        {
+          obstacleClearance: 11,
+          points: [
+            { x: 20, y: 30 },
+            { x: 80, y: 30 }
+          ]
+        }
+      ]
+    }), false);
+  });
+
+  it('should apply obstacle exemptions per constrained path section', function() {
+    const obstacle = Symbol('obstacle');
+    const router = createOrthogonalRouter({
+      obstacles: [ {
+        id: obstacle,
+        rect: { x: 40, y: 40, width: 20, height: 20 }
+      } ]
+    });
+    const points = [
+      { x: 0, y: 50 },
+      { x: 100, y: 50 }
+    ];
+
+    assert.strictEqual(router.isPathClear({
+      sections: [ {
+        obstacleClearance: 0,
+        points
+      } ]
+    }), false);
+    assert.strictEqual(router.isPathClear({
+      sections: [ {
+        exemptObstacleIds: [ obstacle ],
+        obstacleClearance: 0,
+        points
+      } ]
+    }), true);
+  });
+
+  it('should override clearance for one obstacle without exempting it', function() {
+    const obstacle = Symbol('obstacle');
+    const router = createOrthogonalRouter({
+      obstacles: [ {
+        id: obstacle,
+        rect: { x: 40, y: 40, width: 20, height: 20 }
+      } ]
+    });
+
+    assert.strictEqual(router.isPathClear({
+      sections: [ {
+        obstacleClearance: 11,
+        obstacleOverrides: [ {
+          collisionTolerance: ROUTE_COLLISION_TOLERANCE,
+          id: obstacle
+        } ],
+        points: [
+          { x: 0, y: 30 },
+          { x: 100, y: 30 }
+        ]
+      } ]
+    }), true);
+    assert.strictEqual(router.isPathClear({
+      sections: [ {
+        obstacleClearance: 11,
+        obstacleOverrides: [ {
+          collisionTolerance: ROUTE_COLLISION_TOLERANCE,
+          id: obstacle
+        } ],
+        points: [
+          { x: 0, y: 50 },
+          { x: 100, y: 50 }
+        ]
+      } ]
+    }), false);
+  });
+
+  it('should reject invalid constrained paths', function() {
+    const router = createOrthogonalRouter();
+
+    assert.throws(() => {
+      router.isPathClear({
+        sections: [ {
+          obstacleClearance: -1,
+          points: [
+            { x: 0, y: 0 },
+            { x: 20, y: 0 }
+          ]
+        } ]
+      });
+    }, TypeError);
+    assert.throws(() => {
+      router.isPathClear({
+        sections: [
+          {
+            obstacleClearance: 0,
+            points: [
+              { x: 0, y: 0 },
+              { x: 20, y: 0 }
+            ]
+          },
+          {
+            obstacleClearance: 0,
+            points: [
+              { x: 40, y: 0 },
+              { x: 60, y: 0 }
+            ]
+          }
+        ]
+      });
+    }, TypeError);
+  });
+
 
   it('should reject invalid geometry descriptors', function() {
     assert.throws(() => {
@@ -120,12 +262,26 @@ describe('OrthogonalRouting', function() {
         } ]
       });
     }, TypeError);
+    assert.throws(() => {
+      createOrthogonalRouter({
+        obstacles: [
+          {
+            id: 'duplicate',
+            rect: { x: 0, y: 0, width: 20, height: 20 }
+          },
+          {
+            id: 'duplicate',
+            rect: { x: 40, y: 0, width: 20, height: 20 }
+          }
+        ]
+      });
+    }, TypeError);
   });
 });
 
 describe('BpmnOrthogonalRouting', function() {
 
-  it('should exclude endpoint obstacles', function() {
+  it('should only exempt endpoint obstacles on docking sections', function() {
     const source = element('Source');
     const target = element('Target');
     const router = createBpmnOrthogonalRouter({
@@ -143,10 +299,33 @@ describe('BpmnOrthogonalRouting', function() {
       targetElement: target
     });
 
-    assert.strictEqual(router.isSegmentClear(
-      { x: 0, y: 40 },
-      { x: 300, y: 40 }
-    ), true);
+    assert.strictEqual(router.isBpmnPathClear({
+      sections: [
+        {
+          role: 'source-dock',
+          points: [
+            { x: 50, y: 40 },
+            { x: 100, y: 40 }
+          ]
+        },
+        {
+          role: 'connector',
+          points: [
+            { x: 100, y: 40 },
+            { x: 0, y: 40 }
+          ]
+        },
+        {
+          role: 'target-dock',
+          points: [
+            { x: 0, y: 40 },
+            { x: 200, y: 40 }
+          ]
+        }
+      ]
+    }, {
+      channelClearance: 0
+    }), false);
   });
 
 
@@ -178,6 +357,122 @@ describe('BpmnOrthogonalRouting', function() {
 
     assert.strictEqual(sharedRouter.isSegmentClear(points[0], points[1]), true);
     assert.strictEqual(separateRouter.isSegmentClear(points[0], points[1]), false);
+  });
+
+  it('should map BPMN channel roles to configured clearance', function() {
+    const source = element('Source');
+    const target = element('Target');
+    const nearby = element('Nearby');
+    const router = createBpmnOrthogonalRouter({
+      shapes: [ {
+        element: nearby,
+        rect: { x: 40, y: 40, width: 20, height: 20 }
+      } ],
+      sourceElement: source,
+      targetElement: target
+    });
+    const path = {
+      sections: [
+        {
+          role: 'source-dock' as const,
+          points: [
+            { x: 0, y: 30 },
+            { x: 20, y: 30 }
+          ]
+        },
+        {
+          role: 'channel' as const,
+          points: [
+            { x: 20, y: 30 },
+            { x: 80, y: 30 }
+          ]
+        },
+        {
+          role: 'target-dock' as const,
+          points: [
+            { x: 80, y: 30 },
+            { x: 100, y: 30 }
+          ]
+        }
+      ]
+    };
+
+    assert.strictEqual(router.isBpmnPathClear(path, {
+      channelClearance: 0
+    }), true);
+    assert.strictEqual(router.isBpmnPathClear(path, {
+      channelClearance: 11
+    }), false);
+    assert.deepStrictEqual(flattenBpmnPath(path), [
+      { x: 0, y: 30 },
+      { x: 20, y: 30 },
+      { x: 80, y: 30 },
+      { x: 100, y: 30 }
+    ]);
+  });
+
+  it('should deduplicate endpoint overrides for constrained self-loops', function() {
+    const endpoint = element('Endpoint');
+    const router = createBpmnOrthogonalRouter({
+      shapes: [ {
+        element: endpoint,
+        rect: { x: 40, y: 40, width: 20, height: 20 }
+      } ],
+      sourceElement: endpoint,
+      targetElement: endpoint
+    });
+
+    assert.strictEqual(router.isBpmnPathClear({
+      sections: [
+        {
+          role: 'source-dock',
+          points: [
+            { x: 40, y: 50 },
+            { x: 20, y: 50 }
+          ]
+        },
+        {
+          role: 'channel',
+          points: [
+            { x: 20, y: 50 },
+            { x: 20, y: 20 },
+            { x: 50, y: 20 }
+          ]
+        },
+        {
+          role: 'target-dock',
+          points: [
+            { x: 50, y: 20 },
+            { x: 50, y: 40 }
+          ]
+        }
+      ]
+    }, {
+      channelClearance: 20
+    }), true);
+  });
+
+  it('should reject invalid BPMN path role order', function() {
+    assert.throws(() => {
+      flattenBpmnPath({
+        sections: [
+          {
+            role: 'connector',
+            points: [
+              { x: 0, y: 0 },
+              { x: 20, y: 0 }
+            ]
+          },
+          {
+            role: 'source-dock',
+            points: [
+              { x: 20, y: 0 },
+              { x: 40, y: 0 }
+            ]
+          }
+        ]
+      });
+    }, TypeError);
   });
 });
 

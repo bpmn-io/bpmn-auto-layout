@@ -1,5 +1,5 @@
 import {
-  ROUTE_OBSTACLE_INSET,
+  ROUTE_COLLISION_TOLERANCE,
   ROUTING_MARGIN,
   VISIBILITY_GRAPH_TURN_PENALTY
 } from '../Constants.js';
@@ -24,8 +24,11 @@ import type { Segment } from '../geometry/Geometry.js';
 
 export type { Point, Rect };
 
+export type RouterObstacleId = string | number | symbol | object;
+
 export type RouterObstacle = {
   excluded?: boolean;
+  id?: RouterObstacleId;
   rect: Rect;
 };
 
@@ -34,10 +37,29 @@ export type RouterRoute = {
   points: Point[];
 };
 
+export type ConstrainedPathSection = {
+  collisionTolerance?: number;
+  exemptObstacleIds?: readonly RouterObstacleId[];
+  obstacleOverrides?: readonly RouterObstacleOverride[];
+  obstacleClearance: number;
+  points: Point[];
+};
+
+export type RouterObstacleOverride = {
+  collisionTolerance?: number;
+  id: RouterObstacleId;
+  obstacleClearance?: number;
+};
+
+export type ConstrainedPath = {
+  sections: ConstrainedPathSection[];
+};
+
 export type OrthogonalRouterOptions = {
   obstacles?: RouterObstacle[];
   routes?: RouterRoute[];
-  obstacleInset?: number;
+  collisionTolerance?: number;
+  obstacleClearance?: number;
   allowPerpendicularCrossings?: boolean;
   maxVisibilityPoints?: number;
 };
@@ -45,11 +67,13 @@ export type OrthogonalRouterOptions = {
 export type OrthogonalRouter = {
   findRoute(start: Point, end: Point): Point[] | null;
   isClear(points: Point[]): boolean;
+  isPathClear(path: ConstrainedPath): boolean;
   isSegmentClear(a: Point, b: Point): boolean;
 };
 
 type RouterObstacleSnapshot = {
   excluded: boolean;
+  id: RouterObstacleId;
   rect: Rect;
 };
 
@@ -84,23 +108,33 @@ const RECT_COORDINATE_KEYS: readonly (keyof Rect)[] = [
 export function createOrthogonalRouter({
   obstacles = [],
   routes = [],
-  obstacleInset = ROUTE_OBSTACLE_INSET,
+  collisionTolerance = ROUTE_COLLISION_TOLERANCE,
+  obstacleClearance = 0,
   allowPerpendicularCrossings = false,
   maxVisibilityPoints = Infinity
 }: OrthogonalRouterOptions = {}): OrthogonalRouter {
   validateRouterOptions(
     obstacles,
     routes,
-    obstacleInset,
+    collisionTolerance,
+    obstacleClearance,
     allowPerpendicularCrossings,
     maxVisibilityPoints
   );
 
   const obstacleSnapshots = obstacles.map(snapshotObstacle);
   const routeSnapshots = routes.map(snapshotRoute);
-  const collisionObstacles: Rect[] = obstacleSnapshots
-    .filter(({ excluded }) => !excluded)
-    .map(({ rect }) => inset(rect, obstacleInset));
+  const obstacleIds = new Set(obstacleSnapshots.map(({ id }) => id));
+
+  if (obstacleIds.size !== obstacleSnapshots.length) {
+    throw new TypeError('obstacle ids must be unique');
+  }
+
+  const defaultCollisionInset = collisionTolerance - obstacleClearance;
+  const collisionObstaclesByInset = new Map<
+    number,
+    Map<RouterObstacleId, RouterObstacleSnapshot>
+  >();
   const allocatedSegments: AllocatedSegment[] = routeSnapshots.flatMap(route => {
     return toSegments(route.points).map(([ start, end ]) => ({
       allowCollinearOverlap: route.allowCollinearOverlap,
@@ -116,13 +150,32 @@ export function createOrthogonalRouter({
     return segmentIsClear(a, b);
   }
 
-  function segmentIsClear(a: Point, b: Point): boolean {
+  function segmentIsClear(
+      a: Point,
+      b: Point,
+      collisionInset = defaultCollisionInset,
+      exemptObstacleIds: ReadonlySet<RouterObstacleId> = new Set(),
+      obstacleOverrides: ReadonlyMap<RouterObstacleId, number> = new Map()
+  ): boolean {
     if (a.x === b.x && a.y === b.y) {
       return false;
     }
 
-    if (collisionObstacles.some(rect => segmentEntersRect(a, b, rect))) {
-      return false;
+    const collisionObstacles = getCollisionObstacles(collisionInset);
+
+    for (const { id, rect } of collisionObstacles.values()) {
+      if (exemptObstacleIds.has(id)) {
+        continue;
+      }
+
+      const overrideInset = obstacleOverrides.get(id);
+      const collisionRect = overrideInset === undefined
+        ? rect
+        : getCollisionObstacles(overrideInset).get(id)?.rect;
+
+      if (collisionRect && segmentEntersRect(a, b, collisionRect)) {
+        return false;
+      }
     }
 
     return !allocatedSegments.some(segment => {
@@ -142,6 +195,57 @@ export function createOrthogonalRouter({
     return toSegments(points).every(([ start, end ]) => {
       return segmentIsClear(start, end);
     });
+  }
+
+  function isPathClear(path: ConstrainedPath): boolean {
+    validateConstrainedPath(path);
+    validatePathObstacleIds(path, obstacleIds);
+
+    return path.sections.every(section => {
+      const exemptions = new Set(section.exemptObstacleIds);
+      const overrides = new Map(
+        section.obstacleOverrides?.map(({
+          collisionTolerance = 0,
+          id,
+          obstacleClearance = 0
+        }) => [ id, collisionTolerance - obstacleClearance ])
+      );
+
+      return toSegments(section.points).every(([ start, end ]) => {
+        return segmentIsClear(
+          start,
+          end,
+          (section.collisionTolerance ?? 0) - section.obstacleClearance,
+          exemptions,
+          overrides
+        );
+      });
+    });
+  }
+
+  function getCollisionObstacles(
+      collisionInset: number
+  ): Map<RouterObstacleId, RouterObstacleSnapshot> {
+    const cached = collisionObstaclesByInset.get(collisionInset);
+
+    if (cached) {
+      return cached;
+    }
+
+    const collisionObstacles = new Map(obstacleSnapshots
+      .filter(({ excluded }) => !excluded)
+      .map(({ excluded, id, rect }) => [
+        id,
+        {
+          excluded,
+          id,
+          rect: inset(rect, collisionInset)
+        }
+      ]));
+
+    collisionObstaclesByInset.set(collisionInset, collisionObstacles);
+
+    return collisionObstacles;
   }
 
   function findRoute(start: Point, end: Point): Point[] | null {
@@ -266,6 +370,7 @@ export function createOrthogonalRouter({
   return Object.freeze({
     findRoute,
     isClear,
+    isPathClear,
     isSegmentClear
   });
 }
@@ -278,7 +383,7 @@ function snapshotObstacle(
     throw new TypeError(`obstacles[${ index }] must be an object`);
   }
 
-  const { excluded = false, rect } = obstacle;
+  const { excluded = false, id = index, rect } = obstacle;
 
   if (typeof excluded !== 'boolean') {
     throw new TypeError(`obstacles[${ index }].excluded must be a boolean`);
@@ -288,6 +393,7 @@ function snapshotObstacle(
 
   return {
     excluded,
+    id,
     rect: { ...rect }
   };
 }
@@ -319,7 +425,8 @@ function snapshotRoute(route: RouterRoute, index: number): RouterRouteSnapshot {
 function validateRouterOptions(
     obstacles: RouterObstacle[],
     routes: RouterRoute[],
-    obstacleInset: number,
+    collisionTolerance: number,
+    obstacleClearance: number,
     allowPerpendicularCrossings: boolean,
     maxVisibilityPoints: number
 ): void {
@@ -331,8 +438,16 @@ function validateRouterOptions(
     throw new TypeError('routes must be an array');
   }
 
-  if (!Number.isFinite(obstacleInset)) {
-    throw new TypeError('obstacleInset must be finite');
+  if (!Number.isFinite(collisionTolerance) || collisionTolerance < 0) {
+    throw new TypeError(
+      'collisionTolerance must be a non-negative finite number'
+    );
+  }
+
+  if (!Number.isFinite(obstacleClearance) || obstacleClearance < 0) {
+    throw new TypeError(
+      'obstacleClearance must be a non-negative finite number'
+    );
   }
 
   if (typeof allowPerpendicularCrossings !== 'boolean') {
@@ -368,6 +483,124 @@ function validatePoints(points: Point[], name: string): void {
 
   points.forEach((candidate, index) => {
     validatePoint(candidate, `${ name }[${ index }]`);
+  });
+}
+
+function validateConstrainedPath(path: ConstrainedPath): void {
+  if (!path || typeof path !== 'object') {
+    throw new TypeError('path must be an object');
+  }
+
+  if (!Array.isArray(path.sections) || !path.sections.length) {
+    throw new TypeError('path.sections must be a non-empty array');
+  }
+
+  let previousEnd: Point | undefined;
+
+  path.sections.forEach((section, sectionIndex) => {
+    const name = `path.sections[${ sectionIndex }]`;
+
+    if (!section || typeof section !== 'object') {
+      throw new TypeError(`${ name } must be an object`);
+    }
+
+    if (
+      !Number.isFinite(section.obstacleClearance) ||
+      section.obstacleClearance < 0
+    ) {
+      throw new TypeError(
+        `${ name }.obstacleClearance must be a non-negative finite number`
+      );
+    }
+
+    if (
+      section.collisionTolerance !== undefined &&
+      (
+        !Number.isFinite(section.collisionTolerance) ||
+        section.collisionTolerance < 0
+      )
+    ) {
+      throw new TypeError(
+        `${ name }.collisionTolerance must be a non-negative finite number`
+      );
+    }
+
+    if (
+      section.exemptObstacleIds !== undefined &&
+      !Array.isArray(section.exemptObstacleIds)
+    ) {
+      throw new TypeError(`${ name }.exemptObstacleIds must be an array`);
+    }
+
+    if (
+      section.obstacleOverrides !== undefined &&
+      !Array.isArray(section.obstacleOverrides)
+    ) {
+      throw new TypeError(`${ name }.obstacleOverrides must be an array`);
+    }
+
+    section.obstacleOverrides?.forEach((override, overrideIndex) => {
+      const overrideName = `${ name }.obstacleOverrides[${ overrideIndex }]`;
+
+      if (!override || typeof override !== 'object') {
+        throw new TypeError(`${ overrideName } must be an object`);
+      }
+
+      for (const [ property, value ] of [
+        [ 'collisionTolerance', override.collisionTolerance ?? 0 ],
+        [ 'obstacleClearance', override.obstacleClearance ?? 0 ]
+      ] as const) {
+        if (!Number.isFinite(value) || value < 0) {
+          throw new TypeError(
+            `${ overrideName }.${ property } must be a non-negative finite number`
+          );
+        }
+      }
+    });
+
+    validatePoints(section.points, `${ name }.points`);
+
+    if (section.points.length < 2) {
+      throw new TypeError(`${ name }.points must contain at least two points`);
+    }
+
+    const start = section.points[0];
+
+    if (
+      previousEnd &&
+      (start.x !== previousEnd.x || start.y !== previousEnd.y)
+    ) {
+      throw new TypeError('path sections must be connected');
+    }
+
+    previousEnd = section.points[section.points.length - 1];
+  });
+}
+
+function validatePathObstacleIds(
+    path: ConstrainedPath,
+    obstacleIds: ReadonlySet<RouterObstacleId>
+): void {
+  path.sections.forEach((section, sectionIndex) => {
+    const referencedIds = [
+      ...(section.exemptObstacleIds || []),
+      ...(section.obstacleOverrides || []).map(({ id }) => id)
+    ];
+    const uniqueIds = new Set(referencedIds);
+
+    if (uniqueIds.size !== referencedIds.length) {
+      throw new TypeError(
+        `path.sections[${ sectionIndex }] obstacle ids must be unique`
+      );
+    }
+
+    for (const id of referencedIds) {
+      if (!obstacleIds.has(id)) {
+        throw new TypeError(
+          `path.sections[${ sectionIndex }] references an unknown obstacle id`
+        );
+      }
+    }
   });
 }
 

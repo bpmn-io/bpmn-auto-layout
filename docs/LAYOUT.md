@@ -367,7 +367,7 @@ Ports follow semantics:
   the bottom-side channel order. For an isolated gateway default flow, both
   local sides are compared at the same constraint level; the shorter route wins
   and equal routes use the top channel as the deterministic tie-break. Local
-  Local and inner-feedback U-channels include a normal routing margin around
+  and inner-feedback U-channels include their configured clearance around
   unrelated shapes.
 
 The boundary-event placement order described above creates nested vertical exits
@@ -395,6 +395,22 @@ A segment is legal when it:
 - does not enter an unrelated shape;
 - does not properly cross an allocated edge;
 - does not create a forbidden positive-length overlap.
+
+Hand-built U-route candidates declare contiguous source-dock, connector,
+channel, and target-dock sections. The BPMN routing policy translates those
+roles into numerical constraints: channels receive their configured positive
+shape clearance, connectors and docks retain normal collision tolerance, and
+endpoint exemptions apply only to the corresponding dock. A channel approaching
+an endpoint uses normal collision treatment for that endpoint while retaining
+full clearance from every unrelated shape. This lets one router validate the
+whole candidate without clearance-specific router instances or manual
+subsegment checks.
+
+Rectilinear visibility routing retains its established whole-route endpoint
+exclusions and relies on connection finalization to produce legal endpoint
+docks. Migrating that fallback to endpoint-local constraints also requires
+explicit dock selection and scoring and is intentionally separate from channel
+clearance policy.
 
 Shared endpoints, endpoint touches, and intentional shared endpoint channels
 are not proper crossings. Channels may be shared regardless of whether
