@@ -2068,7 +2068,7 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
       <bpmndi:BPMNShape id="BPMNShape_sid-8910ED9B-DADC-4E11-9AD5-E12448B57ADF" bpmnElement="sid-8910ED9B-DADC-4E11-9AD5-E12448B57ADF">
         <omgdc:Bounds x="1528" y="696" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds x="1503" y="621" width="86" height="70" />
+          <omgdc:Bounds x="1603" y="737" width="86" height="70" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_sid-545B3227-D12A-43A8-B746-55E8C75F3A8A" bpmnElement="sid-545B3227-D12A-43A8-B746-55E8C75F3A8A" isMarkerVisible="true">
@@ -2173,7 +2173,7 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
         <omgdi:waypoint x="1371" y="934" />
         <omgdi:waypoint x="1371" y="739" />
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds x="1630" y="912" width="32" height="14" />
+          <omgdc:Bounds x="1630" y="942" width="32" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-F86867DE-BA70-47C1-8340-A6A5A3B645AA" bpmnElement="sid-F86867DE-BA70-47C1-8340-A6A5A3B645AA">
@@ -2185,10 +2185,11 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-F9A96365-936B-4461-8D51-C38EBA362A68" bpmnElement="sid-F9A96365-936B-4461-8D51-C38EBA362A68">
-        <omgdi:waypoint x="1396" y="714" />
-        <omgdi:waypoint x="1508" y="714" />
-        <omgdi:waypoint x="1508" y="874" />
-        <omgdi:waypoint x="1528" y="874" />
+        <omgdi:waypoint x="1371" y="689" />
+        <omgdi:waypoint x="1371" y="669" />
+        <omgdi:waypoint x="1584" y="669" />
+        <omgdi:waypoint x="1584" y="874" />
+        <omgdi:waypoint x="1564" y="874" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-E54CB8B4-BED9-43AF-B03B-DBE60483A68A" bpmnElement="sid-E54CB8B4-BED9-43AF-B03B-DBE60483A68A">
         <omgdi:waypoint x="1921" y="849" />
@@ -2211,7 +2212,10 @@ ID13: Vorgabe wie das Filtern von statten gehen soll?! --&gt; Business Rules</te
         <omgdi:waypoint x="1346" y="714" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-9DE1A24F-5ED5-4095-B9C8-B7213895C7B7" bpmnElement="sid-9DE1A24F-5ED5-4095-B9C8-B7213895C7B7">
-        <omgdi:waypoint x="1564" y="874" />
+        <omgdi:waypoint x="1546" y="892" />
+        <omgdi:waypoint x="1546" y="912" />
+        <omgdi:waypoint x="1676" y="912" />
+        <omgdi:waypoint x="1676" y="874" />
         <omgdi:waypoint x="1696" y="874" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_sid-950B6B3A-BEDA-49E3-A901-6733165E80C3" bpmnElement="sid-950B6B3A-BEDA-49E3-A901-6733165E80C3">

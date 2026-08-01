@@ -683,7 +683,7 @@ describe('Layout', function(this: SuiteContext) {
       );
     });
 
-    it('should preserve side-center dockings when an edge crossing is unavoidable', async function() {
+    it('should route spine rejoin through facing side-center dockings', async function() {
       const xml = fs.readFileSync(
         path.join(
           fixturesDirectory,
@@ -710,10 +710,13 @@ describe('Layout', function(this: SuiteContext) {
       );
       assert.deepStrictEqual(
         [ last(edge.waypoint).x, last(edge.waypoint).y ],
-        [ target.x, target.y + target.height / 2 ]
+        [ target.x + target.width / 2, target.y ]
       );
       assert.strictEqual(edge.waypoint[1].y, edge.waypoint[0].y);
-      assert.strictEqual(penultimate(edge.waypoint).y, last(edge.waypoint).y);
+      assert.strictEqual(
+        penultimate(edge.waypoint).x,
+        last(edge.waypoint).x
+      );
     });
 
     it('should keep adjusted sequence flow dockings orthogonal', async function() {
@@ -1428,6 +1431,35 @@ describe('Layout', function(this: SuiteContext) {
       assert.deepStrictEqual(
         feedback[0].points.slice(2),
         feedback[1].points.slice(2)
+      );
+    });
+
+    it('should route aligned visibility fallback through facing docks', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'scenario.multiple-start-events.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const rootElement = await readLayoutDiagram(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const edges = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
+        .map(element => [ element.bpmnElement.id, element.waypoint ]));
+      const source = shapes.get('Task_1kpk6lm');
+      const target = shapes.get('ExclusiveGateway_06yt6tv');
+
+      assert.deepStrictEqual(
+        edges.get('SequenceFlow_1vaxhtr').map(({ x, y }) => ({ x, y })),
+        [
+          {
+            x: source.x + source.width,
+            y: source.y + source.height / 2
+          },
+          { x: target.x, y: target.y + target.height / 2 }
+        ]
       );
     });
 
@@ -3627,7 +3659,7 @@ describe('Layout', function(this: SuiteContext) {
       }
     });
 
-    it('should fan default alternatives outward from off-spine gateways', async function() {
+    it('should keep a spine-rejoining branch straight before a terminal default', async function() {
       const xml = fs.readFileSync(
         path.join(
           fixturesDirectory,
@@ -3646,26 +3678,54 @@ describe('Layout', function(this: SuiteContext) {
         .map(element => [ element.bpmnElement.id, element.waypoint ]));
       const gateway = shapes.get('Gateway_0l858kt');
       const approved = shapes.get('Event_0jpjmuu');
+      const declinedEvent = shapes.get('Event_0tsl7de');
+      const join = shapes.get('Gateway_01i08li');
       const declined = edges.get('Flow_0klg33h');
       const declineContinuation = edges.get('Flow_19ex45h');
       const approval = edges.get('Flow_1mww6xa');
       const approvalContinuation = edges.get('Flow_0yaksw4');
+      const verticalCenter = (bounds: {
+        y: number;
+        height: number;
+      }) => bounds.y + bounds.height / 2;
 
-      assert.ok(approved.y < gateway.y);
-      assert.strictEqual(approval[0].x, gateway.x + gateway.width / 2);
-      assert.strictEqual(approval[0].y, gateway.y);
-      assert.strictEqual(approval.length, 3);
+      assert.strictEqual(verticalCenter(approved), verticalCenter(gateway));
+      assert.ok(declinedEvent.y < approved.y);
+      assert.deepStrictEqual(
+        approval.map(({ x, y }) => ({ x, y })),
+        [
+          { x: gateway.x + gateway.width, y: verticalCenter(gateway) },
+          { x: approved.x, y: verticalCenter(approved) }
+        ]
+      );
 
-      for (const flow of [ declined, declineContinuation ]) {
-        assert.strictEqual(flow.length, 2);
-        assert.strictEqual(flow[0].y, flow[1].y);
-      }
+      assert.strictEqual(declined.length, 3);
+      assert.deepStrictEqual(
+        [ declined[0].x, declined[0].y ],
+        [ gateway.x + gateway.width / 2, gateway.y ]
+      );
+      assert.deepStrictEqual(
+        [ last(declined).x, last(declined).y ],
+        [ declinedEvent.x, verticalCenter(declinedEvent) ]
+      );
+      assert.strictEqual(declineContinuation.length, 2);
+      assert.strictEqual(
+        declineContinuation[0].y,
+        declineContinuation[1].y
+      );
 
-      assert.strictEqual(approvalContinuation.length, 4);
+      assert.strictEqual(approvalContinuation.length, 3);
       assert.strictEqual(approvalContinuation[0].y, approvalContinuation[1].y);
       assert.ok(approvalContinuation[1].x > approvalContinuation[0].x);
       assert.strictEqual(approvalContinuation[1].x, approvalContinuation[2].x);
       assert.ok(approvalContinuation[2].y > approvalContinuation[1].y);
+      assert.deepStrictEqual(
+        [
+          last(approvalContinuation).x,
+          last(approvalContinuation).y
+        ],
+        [ join.x + join.width / 2, join.y ]
+      );
     });
 
     it('should use task dimensions for collapsed activity containers', async function() {

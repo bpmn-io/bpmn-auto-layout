@@ -50,11 +50,11 @@
         <di:waypoint x="305" y="476" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_18uu265" bpmnElement="Flow_18uu265">
-        <di:waypoint x="355" y="476" />
-        <di:waypoint x="400" y="476" />
-        <di:waypoint x="400" y="60" />
-        <di:waypoint x="130" y="60" />
-        <di:waypoint x="130" y="276" />
+        <di:waypoint x="330" y="501" />
+        <di:waypoint x="330" y="521" />
+        <di:waypoint x="60" y="521" />
+        <di:waypoint x="60" y="316" />
+        <di:waypoint x="80" y="316" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

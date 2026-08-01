@@ -49,6 +49,84 @@ describe('SemanticPolicy', function() {
       [ 0, 1, 2 ]
     );
   });
+
+  it('should prefer a completing branch that reaches a convergence', function() {
+    const automatic = flowNode('bpmn:StartEvent', 'Automatic', {
+      outgoing: []
+    });
+    const start = flowNode('bpmn:StartEvent', 'Start', { outgoing: [] });
+    const split = flowNode('bpmn:ExclusiveGateway', 'Split', {
+      incoming: [],
+      outgoing: []
+    });
+    const declined = flowNode('bpmn:Task', 'Declined', {
+      incoming: [],
+      outgoing: []
+    });
+    const declinedEnd = flowNode('bpmn:EndEvent', 'DeclinedEnd', {
+      incoming: []
+    });
+    const approved = flowNode('bpmn:Task', 'Approved', {
+      incoming: [],
+      outgoing: []
+    });
+    const join = flowNode('bpmn:ExclusiveGateway', 'Join', {
+      incoming: [],
+      outgoing: []
+    });
+    const approvedEnd = flowNode('bpmn:EndEvent', 'ApprovedEnd', {
+      incoming: []
+    });
+    const automaticJoin = connect(automatic, join, 'AutomaticJoin');
+    const incoming = connect(start, split, 'Incoming');
+    const approvedBranch = connect(split, approved, 'ApprovedBranch');
+    const declinedBranch = connect(split, declined, 'DeclinedBranch');
+    const declinedCompletion = connect(
+      declined,
+      declinedEnd,
+      'DeclinedCompletion'
+    );
+    const approvedJoin = connect(approved, join, 'ApprovedJoin');
+    const approvedCompletion = connect(
+      join,
+      approvedEnd,
+      'ApprovedCompletion'
+    );
+
+    split.default = declinedBranch;
+
+    const nodes = [
+      automatic,
+      start,
+      split,
+      declined,
+      declinedEnd,
+      approved,
+      join,
+      approvedEnd
+    ];
+    const records = nodes.map(flowRecord);
+    const policy = createSemanticPolicy(
+      moddle.create('bpmn:Process', { id: 'Process' }),
+      records,
+      [
+        automaticJoin,
+        incoming,
+        approvedBranch,
+        declinedBranch,
+        declinedCompletion,
+        approvedJoin,
+        approvedCompletion
+      ],
+      [],
+      records
+    );
+
+    assert.strictEqual(policy.straightEdges.has(approvedBranch), true);
+    assert.strictEqual(policy.straightEdges.has(declinedBranch), false);
+    assert.strictEqual(policy.bands.get(approved), policy.bands.get(split));
+    assert.notStrictEqual(policy.bands.get(declined), policy.bands.get(split));
+  });
 });
 
 function connect(sourceRef: FlowNode, targetRef: FlowNode, id: string): FlowEdge {
@@ -84,7 +162,11 @@ function flowRecord(element: FlowNode, index: number): FlowRecord {
 }
 
 function flowNode(
-    type: 'bpmn:StartEvent' | 'bpmn:Task' | 'bpmn:EndEvent',
+    type:
+      'bpmn:StartEvent' |
+      'bpmn:Task' |
+      'bpmn:EndEvent' |
+      'bpmn:ExclusiveGateway',
     id: string,
     attributes: { incoming?: BpmnElementFor<'bpmn:SequenceFlow'>[]; outgoing?: BpmnElementFor<'bpmn:SequenceFlow'>[] }
 ): FlowNode {
@@ -98,7 +180,17 @@ function flowNode(
 }
 
 function isFlowNode(
-    element: BpmnElementFor<'bpmn:StartEvent' | 'bpmn:Task' | 'bpmn:EndEvent'>
-): element is BpmnElementFor<'bpmn:StartEvent' | 'bpmn:Task' | 'bpmn:EndEvent'> & FlowNode {
+    element: BpmnElementFor<
+      'bpmn:StartEvent' |
+      'bpmn:Task' |
+      'bpmn:EndEvent' |
+      'bpmn:ExclusiveGateway'
+    >
+): element is BpmnElementFor<
+  'bpmn:StartEvent' |
+  'bpmn:Task' |
+  'bpmn:EndEvent' |
+  'bpmn:ExclusiveGateway'
+> & FlowNode {
   return element.$instanceOf('bpmn:FlowNode');
 }

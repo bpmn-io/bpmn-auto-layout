@@ -57,12 +57,24 @@ import {
   inset,
   segmentEntersRect,
   getShapeExtents,
-  routeLength
+  routeLength,
+  segmentsProperlyCross,
+  toSegments
 } from '../../geometry/index.js';
 import {
+  bpmnPathFromPoints,
   createBpmnOrthogonalRouter,
   flattenBpmnPath
 } from '../../routing/BpmnOrthogonalRouting.js';
+import {
+  createDockCandidates,
+  createDockPairs,
+  getDockSide
+} from '../../routing/BpmnDockRouting.js';
+
+import type {
+  DockPair
+} from '../../routing/BpmnDockRouting.js';
 
 // Preferred fractional x-offsets (in that order) when searching for a clear
 // vertical rejoin dock along a target's width.
@@ -158,7 +170,7 @@ function classifyConnection(flow: FlowEdge, source: Rect, target: Rect, clearRou
   const forwardEnd = point(target.x, targetDockY);
   const longForward = !isBack &&
     sourceCenterY === targetCenterY &&
-    !clearRouter.isClear([ forwardStart, forwardEnd ]);
+    !isRouteClear(clearRouter, [ forwardStart, forwardEnd ]);
   const sourceBoundary = is(flow.sourceRef, 'bpmn:BoundaryEvent');
   const sourceDefinition = flow.sourceRef.eventDefinitions || [];
   const sourceTop = sourceBoundary && sourceDefinition.some(definition => is(definition, 'bpmn:EscalationEventDefinition'));
@@ -281,7 +293,7 @@ function tryDirectRoute({
   if (
     !isBack &&
     start.y === end.y &&
-    router.isClear([ start, end ])
+    isRouteClear(router, [ start, end ])
   ) {
     return [ start, end ];
   }
@@ -302,7 +314,7 @@ function tryBranchRoute(routing: Routing): MaybeRoute {
   if (gatewayBranch || boundaryBranch) {
     const branchRoute = cleanPoints([ start, point(start.x, end.y), end ]);
 
-    if (router.isClear(branchRoute)) {
+    if (isRouteClear(router, branchRoute)) {
       return branchRoute;
     }
   }
@@ -316,7 +328,7 @@ function tryBranchRoute(routing: Routing): MaybeRoute {
       end
     ]);
 
-    if (router.isClear(branchRoute)) {
+    if (isRouteClear(router, branchRoute)) {
       return branchRoute;
     }
   }
@@ -345,7 +357,7 @@ function tryCrossBandRoute(routing: Routing): MaybeRoute {
 
   const joinRoute = cleanPoints([ start, point(end.x, start.y), end ]);
 
-  if (router.isClear(joinRoute)) {
+  if (isRouteClear(router, joinRoute)) {
     return joinRoute;
   }
 
@@ -382,7 +394,7 @@ function tryCrossBandRoute(routing: Routing): MaybeRoute {
         facingEnd
       ]);
 
-      if (router.isClear(facingRoute)) {
+      if (isRouteClear(router, facingRoute)) {
         return facingRoute;
       }
     }
@@ -402,7 +414,7 @@ function tryCrossBandRoute(routing: Routing): MaybeRoute {
     transposedEnd
   ]);
 
-  if (router.isClear(transposedRoute)) {
+  if (isRouteClear(router, transposedRoute)) {
     return transposedRoute;
   }
 
@@ -586,7 +598,7 @@ function tryNestedFeedbackChannel(
       targetSouth
     ]);
 
-    if (router.isClear(candidate)) {
+    if (isRouteClear(router, candidate)) {
       return candidate;
     }
   }
@@ -617,7 +629,7 @@ function tryBoundaryRejoinChannels({
       end
     ]);
 
-    if (router.isClear(rejoinRoute)) {
+    if (isRouteClear(router, rejoinRoute)) {
       return rejoinRoute;
     }
   }
@@ -741,7 +753,7 @@ function tryFeedbackDockCandidates(
     ];
 
     for (const candidate of routeCandidates) {
-      if (!feedbackRouter.isClear(candidate.points)) {
+      if (!isRouteClear(feedbackRouter, candidate.points)) {
         continue;
       }
 
@@ -808,7 +820,7 @@ function tryFeedbackChannels(
       end
     ]);
 
-    if (router.isClear(backRoute)) {
+    if (isRouteClear(router, backRoute)) {
       return backRoute;
     }
   }
@@ -843,16 +855,102 @@ function tryPreferredChannel(routing: Routing, extents: { minY: number; maxY: nu
     end
   ]);
 
-  return router.isClear(preferred) ? preferred : null;
+  return isRouteClear(router, preferred) ? preferred : null;
 }
 
 function tryVisibilityRoutes({
   clearRouter,
   end,
+  shapes,
+  source,
+  sourceBoundary,
+  routedConnections,
   router,
-  start
+  start,
+  target
 }: Routing) {
-  return router.findRoute(start, end) || clearRouter.findRoute(start, end);
+  const sourceCandidates = createDockCandidates({
+    allowedSides: sourceBoundary
+      ? [ getDockSide(start, source) ]
+      : undefined,
+    preferredDock: start,
+    rect: source
+  });
+  const targetCandidates = createDockCandidates({
+    preferredDock: end,
+    rect: target
+  });
+  const pairs = createDockPairs(sourceCandidates, targetCandidates);
+  const extents = getShapeExtents(shapes);
+
+  return findBestDockPairRoute(router, pairs, extents, routedConnections) ||
+    findBestDockPairRoute(clearRouter, pairs, extents, routedConnections);
+}
+
+function findBestDockPairRoute(
+    router: Router,
+    pairs: DockPair[],
+    extents: { minX: number; minY: number; maxX: number; maxY: number },
+    routedConnections: RoutedConnection[]
+): MaybeRoute {
+  const candidates = router.findBpmnRoutes(pairs)
+    .map((route, index) => {
+      if (!route) {
+        return null;
+      }
+
+      const pair = pairs[index];
+      const perimeterExpansion = route.reduce((total, candidate) => {
+        return total +
+          Math.max(0, extents.minX - candidate.x) +
+          Math.max(0, candidate.x - extents.maxX) +
+          Math.max(0, extents.minY - candidate.y) +
+          Math.max(0, candidate.y - extents.maxY);
+      }, 0);
+      const bends = Math.max(0, cleanPoints(route).length - 2);
+      const crossings = countRouteCrossings(route, routedConnections);
+      const score = [
+        crossings,
+        pair.semanticPenalty,
+        perimeterExpansion,
+        bends,
+        routeLength(route),
+        pair.order
+      ];
+
+      return { route, score };
+    })
+    .filter((candidate): candidate is {
+      route: Point[];
+      score: number[];
+    } => !!candidate);
+
+  candidates.sort((a, b) => {
+    for (let index = 0; index < a.score.length; index++) {
+      const difference = a.score[index] - b.score[index];
+
+      if (difference) {
+        return difference;
+      }
+    }
+
+    return 0;
+  });
+
+  return candidates[0]?.route || null;
+}
+
+function countRouteCrossings(
+    route: Point[],
+    routedConnections: RoutedConnection[]
+): number {
+  return toSegments(route).reduce((total, [ a, b ]) => {
+    return total + routedConnections.reduce((crossings, connection) => {
+      return crossings + toSegments(connection.points).filter(([ c, d ]) => {
+        return segmentsProperlyCross(a, b, c, d);
+      }).length;
+    }, 0);
+  }, 0);
 }
 
 function tryOuterRoutes({
@@ -934,7 +1032,7 @@ function routeSelfLoop(flow: FlowEdge, source: Rect, target: Rect, clearRouter: 
       end
     ];
 
-    if (clearRouter.isClear(candidate)) {
+    if (isRouteClear(clearRouter, candidate)) {
       return candidate;
     }
   }
@@ -955,7 +1053,7 @@ function findClearVerticalDock(target: Rect, onTop: boolean, clearRouter: Router
   return candidates.find(candidate => {
     const outside = point(candidate.x, candidate.y + (onTop ? -ROUTING_MARGIN : ROUTING_MARGIN));
 
-    return clearRouter.isClear([ outside, candidate ]);
+    return isRouteClear(clearRouter, [ outside, candidate ]);
   }) || candidates[0];
 }
 
@@ -1205,7 +1303,7 @@ function findOuterRoute(start: Point, end: Point, shapes: RouterShape[], router:
       point(entryX, end.y),
       end
     ]);
-    if (router.isClear(candidate)) {
+    if (isRouteClear(router, candidate)) {
       return candidate;
     }
   }
@@ -1233,7 +1331,7 @@ function findPerimeterRoute(source: Rect, target: Rect, shapes: RouterShape[], r
           ...targetLeg.slice().reverse().slice(1)
         ]);
 
-        if (router.isClear(route)) {
+        if (isRouteClear(router, route)) {
           return route;
         }
       }
@@ -1260,7 +1358,7 @@ function outerLegs(rect: Rect, corner: Point): Point[][] {
 }
 
 function segmentIsClear(a: Point, b: Point, shapes: RouterShape[], sourceElement: BpmnElement, targetElement: BpmnElement, routedConnections: RoutedConnection[], collisionTolerance = ROUTE_COLLISION_TOLERANCE, allowPerpendicularCrossings = false): boolean {
-  return createSequenceFlowRouter(
+  const router = createSequenceFlowRouter(
     shapes,
     sourceElement,
     targetElement,
@@ -1269,7 +1367,9 @@ function segmentIsClear(a: Point, b: Point, shapes: RouterShape[], sourceElement
       collisionTolerance,
       allowPerpendicularCrossings
     }
-  ).isClear([ a, b ]);
+  );
+
+  return isRouteClear(router, [ a, b ]);
 }
 
 function createSequenceFlowRouter(shapes: RouterShape[], sourceElement: BpmnElement, targetElement: BpmnElement, routedConnections: RoutedConnection[], options: { collisionTolerance?: number; obstacleClearance?: number; allowPerpendicularCrossings?: boolean; maxVisibilityPoints?: number } = {}): Router {
@@ -1280,4 +1380,8 @@ function createSequenceFlowRouter(shapes: RouterShape[], sourceElement: BpmnElem
     routedConnections,
     ...options
   });
+}
+
+function isRouteClear(router: Router, points: Point[]): boolean {
+  return router.isBpmnPathClear(bpmnPathFromPoints(points));
 }

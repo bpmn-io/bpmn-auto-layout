@@ -445,8 +445,8 @@ Sys ID</bpmn:text>
         <di:waypoint x="2280" y="730" />
         <di:waypoint x="2300" y="730" />
         <di:waypoint x="2300" y="748" />
-        <di:waypoint x="2300" y="1008" />
-        <di:waypoint x="2262" y="1008" />
+        <di:waypoint x="2300" y="1030" />
+        <di:waypoint x="2262" y="1030" />
         <di:waypoint x="2262" y="1090" />
         <di:waypoint x="1790" y="1090" />
         <di:waypoint x="1790" y="1192" />
@@ -455,8 +455,8 @@ Sys ID</bpmn:text>
         <di:waypoint x="1622" y="1170" />
         <di:waypoint x="1622" y="1090" />
         <di:waypoint x="1894" y="1090" />
-        <di:waypoint x="1894" y="1030" />
-        <di:waypoint x="1856" y="1030" />
+        <di:waypoint x="1894" y="1008" />
+        <di:waypoint x="1856" y="1008" />
         <di:waypoint x="1856" y="748" />
         <di:waypoint x="1856" y="730" />
         <di:waypoint x="1876" y="730" />
@@ -622,7 +622,7 @@ Sys ID</bpmn:text>
       <bpmndi:BPMNShape id="BPMNShape_start-flow" bpmnElement="start-flow">
         <dc:Bounds x="1876" y="952" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1875" y="993" width="78" height="14" />
+          <dc:Bounds x="1915" y="993" width="78" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_DataStoreReference_172xaf3" bpmnElement="DataStoreReference_172xaf3">

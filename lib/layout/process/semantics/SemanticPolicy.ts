@@ -404,18 +404,31 @@ function selectStraightEdges(
     spine: Set<FlowEdge>
 ): Set<FlowEdge> {
   const straightEdges = new Set<FlowEdge>(spine);
+  const spineNodes = new Set<FlowNode>(
+    [ ...spine ].flatMap(edge => [ edge.sourceRef, edge.targetRef ])
+  );
 
   for (const record of records) {
     const candidates = outgoing.get(record.element) || [];
 
     if (is(record.element, 'bpmn:Gateway') && candidates.length > 1) {
-      const primaryEdge = selectPrimaryEdge(
-        record.element,
-        candidates,
-        edgeOrder,
-        new Set<FlowNode>(),
-        outgoing
-      );
+      const spineRejoining = candidates.filter(edge => {
+        return canReachAnyNode(
+          edge.targetRef,
+          outgoing,
+          spineNodes,
+          new Set([ record.element ])
+        );
+      });
+      const primaryEdge = spineRejoining.length === 1
+        ? spineRejoining[0]
+        : selectPrimaryEdge(
+          record.element,
+          candidates,
+          edgeOrder,
+          new Set<FlowNode>(),
+          outgoing
+        );
 
       if (primaryEdge) {
         straightEdges.add(primaryEdge);
@@ -438,6 +451,33 @@ function selectStraightEdges(
   }
 
   return straightEdges;
+}
+
+function canReachAnyNode(
+    node: FlowNode,
+    outgoing: OutgoingEdges,
+    targets: Set<FlowNode>,
+    path: Set<FlowNode>
+): boolean {
+  if (targets.has(node)) {
+    return true;
+  }
+
+  if (path.has(node)) {
+    return false;
+  }
+
+  path.add(node);
+
+  for (const edge of outgoing.get(node) || []) {
+    if (canReachAnyNode(edge.targetRef, outgoing, targets, path)) {
+      path.delete(node);
+      return true;
+    }
+  }
+
+  path.delete(node);
+  return false;
 }
 
 function adjustJoinRankWeights(

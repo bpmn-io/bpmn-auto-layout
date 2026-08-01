@@ -1079,8 +1079,8 @@
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_07567g3" bpmnElement="Flow_07567g3">
         <di:waypoint x="616" y="178" />
         <di:waypoint x="616" y="198" />
-        <di:waypoint x="654" y="198" />
-        <di:waypoint x="654" y="440" />
+        <di:waypoint x="746" y="198" />
+        <di:waypoint x="746" y="440" />
         <di:waypoint x="798" y="440" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>

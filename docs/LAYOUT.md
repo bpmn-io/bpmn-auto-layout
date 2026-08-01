@@ -141,6 +141,10 @@ The primary path, or spine, is selected one edge at a time:
 This prevents a dead-end alternative from becoming the main narrative merely
 because it was declared first. The selected edge and deterministic
 single-outgoing continuations are marked straight and routed before alternatives.
+At later gateway splits, a unique branch that reconnects to the established
+spine is also marked straight before applying the ordinary default-flow
+tie-breaker. Independently originating paths therefore merge into the main
+narrative without forcing their rejoining branch into an outer band.
 
 When unobstructed, a spine edge is one horizontal segment from the source's
 right center to the target's left center.
@@ -384,11 +388,19 @@ flowchart LR
     E -->|none legal| F["ROUTING_FAILED"]
 ```
 
-The rectilinear visibility graph uses x- and y-coordinates derived from endpoint
-ports, shape margins, and outer bounds. Dijkstra-style shortest-path search
-chooses a legal orthogonal path. Grid construction is capped at 4,096 candidate
-points. Above that bound the router skips directly to its bounded outer and
-perimeter fallbacks instead of materializing a potentially quadratic grid.
+The rectilinear visibility fallback generates deterministic north, east, south,
+and west dock candidates for both endpoints. Candidate pairs retain preferred,
+adjacent, and opposite-side penalties and are searched on one shared graph.
+Endpoint shapes remain active obstacles; only each pair's outward dock sections
+receive their corresponding endpoint exemption.
+
+The graph uses x- and y-coordinates derived from endpoint ports, shape margins,
+and outer bounds. It includes obstacle projection lines and only the endpoint
+intersections required by legal dock pairs. Adjacent visible points form a
+sparse rectilinear graph. Direction-aware Dijkstra searches are grouped by
+source dock, so one traversal serves every target dock and turn penalties count
+actual bends. Grid construction is capped at 4,096 candidate points. Above that
+bound the router skips directly to its bounded outer and perimeter fallbacks.
 
 A segment is legal when it:
 
@@ -406,11 +418,12 @@ full clearance from every unrelated shape. This lets one router validate the
 whole candidate without clearance-specific router instances or manual
 subsegment checks.
 
-Rectilinear visibility routing retains its established whole-route endpoint
-exclusions and relies on connection finalization to produce legal endpoint
-docks. Migrating that fallback to endpoint-local constraints also requires
-explicit dock selection and scoring and is intentionally separate from channel
-clearance policy.
+Visibility candidates are scored deterministically by allocation crossings,
+semantic dock penalty, perimeter expansion, bends, route length, and stable
+pair order. Routing first searches against already allocated sequence flows,
+then relaxes only that allocation constraint if no candidate exists. The
+selected geometry is already endpoint-legal and does not depend on finalization
+to replace its dock or route topology.
 
 Shared endpoints, endpoint touches, and intentional shared endpoint channels
 are not proper crossings. Channels may be shared regardless of whether

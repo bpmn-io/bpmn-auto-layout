@@ -8,9 +8,14 @@ import {
   ROUTE_COLLISION_TOLERANCE
 } from '../lib/layout/Constants.js';
 import {
+  bpmnPathFromPoints,
   createBpmnOrthogonalRouter,
   flattenBpmnPath
 } from '../lib/layout/routing/BpmnOrthogonalRouting.js';
+import {
+  createDockCandidates,
+  createDockPairs
+} from '../lib/layout/routing/BpmnDockRouting.js';
 import {
   createOrthogonalRouter
 } from '../lib/layout/routing/OrthogonalRouting.js';
@@ -45,6 +50,32 @@ describe('OrthogonalRouting', function() {
     );
 
     assert.strictEqual(route, null);
+  });
+
+  it('should reuse one visibility graph for multiple route requests', function() {
+    const router = createOrthogonalRouter({
+      obstacles: [ {
+        rect: { x: 40, y: 40, width: 20, height: 20 }
+      } ]
+    });
+    const requests = [
+      {
+        start: { x: 0, y: 30 },
+        end: { x: 100, y: 30 }
+      },
+      {
+        start: { x: 0, y: 70 },
+        end: { x: 100, y: 70 }
+      }
+    ];
+    const routes = router.findRoutes(requests);
+
+    assert.strictEqual(routes.length, 2);
+    assert.deepStrictEqual(
+      router.findRoutes([ requests[0] ])[0],
+      router.findRoute(requests[0].start, requests[0].end)
+    );
+    assert.ok(routes.every(route => route && route.length >= 2));
   });
 
 
@@ -281,6 +312,30 @@ describe('OrthogonalRouting', function() {
 
 describe('BpmnOrthogonalRouting', function() {
 
+  it('should characterize legacy whole-route endpoint exclusions', function() {
+    const source = element('Source');
+    const target = element('Target');
+    const router = createBpmnOrthogonalRouter({
+      shapes: [
+        {
+          element: source,
+          rect: { x: 0, y: 0, width: 100, height: 80 }
+        },
+        {
+          element: target,
+          rect: { x: 200, y: 0, width: 100, height: 80 }
+        }
+      ],
+      sourceElement: source,
+      targetElement: target
+    });
+
+    assert.strictEqual(router.isClear([
+      { x: 0, y: 40 },
+      { x: 300, y: 40 }
+    ]), true);
+  });
+
   it('should only exempt endpoint obstacles on docking sections', function() {
     const source = element('Source');
     const target = element('Target');
@@ -371,6 +426,7 @@ describe('BpmnOrthogonalRouting', function() {
       sourceElement: source,
       targetElement: target
     });
+
     const path = {
       sections: [
         {
@@ -408,6 +464,98 @@ describe('BpmnOrthogonalRouting', function() {
       { x: 20, y: 30 },
       { x: 80, y: 30 },
       { x: 100, y: 30 }
+    ]);
+  });
+
+  it('should route dock pairs with endpoint obstacles active', function() {
+    const source = element('Source');
+    const target = element('Target');
+    const sourceBounds = { x: 0, y: 0, width: 100, height: 80 };
+    const targetBounds = { x: 200, y: 0, width: 100, height: 80 };
+    const router = createBpmnOrthogonalRouter({
+      shapes: [
+        { element: source, rect: sourceBounds },
+        { element: target, rect: targetBounds }
+      ],
+      sourceElement: source,
+      targetElement: target
+    });
+    const pairs = createDockPairs(
+      createDockCandidates({
+        allowedSides: [ 'east' ],
+        preferredDock: { x: 100, y: 40 },
+        rect: sourceBounds
+      }),
+      createDockCandidates({
+        allowedSides: [ 'west' ],
+        preferredDock: { x: 200, y: 40 },
+        rect: targetBounds
+      })
+    );
+
+    assert.deepStrictEqual(router.findBpmnRoutes(pairs), [ [
+      { x: 100, y: 40 },
+      { x: 120, y: 40 },
+      { x: 180, y: 40 },
+      { x: 200, y: 40 }
+    ] ]);
+  });
+
+  it('should route dock pairs with coincident stubs', function() {
+    const source = element('Source');
+    const target = element('Target');
+    const sourceBounds = { x: 0, y: 0, width: 100, height: 80 };
+    const targetBounds = { x: 140, y: 0, width: 100, height: 80 };
+    const router = createBpmnOrthogonalRouter({
+      shapes: [
+        { element: source, rect: sourceBounds },
+        { element: target, rect: targetBounds }
+      ],
+      sourceElement: source,
+      targetElement: target
+    });
+    const pairs = createDockPairs(
+      createDockCandidates({
+        allowedSides: [ 'east' ],
+        preferredDock: { x: 100, y: 40 },
+        rect: sourceBounds
+      }),
+      createDockCandidates({
+        allowedSides: [ 'west' ],
+        preferredDock: { x: 140, y: 40 },
+        rect: targetBounds
+      })
+    );
+
+    assert.deepStrictEqual(router.findBpmnRoutes(pairs), [ [
+      { x: 100, y: 40 },
+      { x: 120, y: 40 },
+      { x: 140, y: 40 }
+    ] ]);
+  });
+
+  it('should derive endpoint roles from ordinary point routes', function() {
+    assert.deepStrictEqual(bpmnPathFromPoints([
+      { x: 0, y: 0 },
+      { x: 20, y: 0 }
+    ]), {
+      sections: [ {
+        role: 'direct',
+        points: [
+          { x: 0, y: 0 },
+          { x: 20, y: 0 }
+        ]
+      } ]
+    });
+    assert.deepStrictEqual(bpmnPathFromPoints([
+      { x: 0, y: 0 },
+      { x: 20, y: 0 },
+      { x: 20, y: 20 },
+      { x: 40, y: 20 }
+    ]).sections.map(({ role }) => role), [
+      'source-dock',
+      'connector',
+      'target-dock'
     ]);
   });
 

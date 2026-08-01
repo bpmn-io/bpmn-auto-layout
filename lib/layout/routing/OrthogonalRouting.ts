@@ -64,8 +64,14 @@ export type OrthogonalRouterOptions = {
   maxVisibilityPoints?: number;
 };
 
+export type RouteRequest = {
+  end: Point;
+  start: Point;
+};
+
 export type OrthogonalRouter = {
   findRoute(start: Point, end: Point): Point[] | null;
+  findRoutes(requests: RouteRequest[]): (Point[] | null)[];
   isClear(points: Point[]): boolean;
   isPathClear(path: ConstrainedPath): boolean;
   isSegmentClear(a: Point, b: Point): boolean;
@@ -95,6 +101,11 @@ type VisibilityPointIndexes = {
 
 type VisibilityNode = {
   distance: number;
+  index: number;
+};
+
+type VisibilityEdge = {
+  direction: 0 | 1;
   index: number;
 };
 
@@ -249,38 +260,62 @@ export function createOrthogonalRouter({
   }
 
   function findRoute(start: Point, end: Point): Point[] | null {
-    validatePoint(start, 'route start');
-    validatePoint(end, 'route end');
+    return findRoutes([ { start, end } ])[0];
+  }
+
+  function findRoutes(requests: RouteRequest[]): (Point[] | null)[] {
+    if (!Array.isArray(requests) || !requests.length) {
+      throw new TypeError('route requests must be a non-empty array');
+    }
+
+    requests.forEach(({ start, end }, index) => {
+      validatePoint(start, `route requests[${ index }].start`);
+      validatePoint(end, `route requests[${ index }].end`);
+    });
 
     const extents = getShapeExtents(obstacleSnapshots);
-    const xs = new Set([
-      start.x,
-      end.x,
+    const baseXs = new Set([
       extents.minX - ROUTING_MARGIN,
       extents.maxX + ROUTING_MARGIN
     ]);
-    const ys = new Set([
-      start.y,
-      end.y,
+    const baseYs = new Set([
       extents.minY - ROUTING_MARGIN,
       extents.maxY + ROUTING_MARGIN
     ]);
 
     for (const { rect } of obstacleSnapshots) {
-      xs.add(rect.x - ROUTING_MARGIN);
-      xs.add(rect.x + rect.width + ROUTING_MARGIN);
-      ys.add(rect.y - ROUTING_MARGIN);
-      ys.add(rect.y + rect.height + ROUTING_MARGIN);
+      baseXs.add(rect.x - ROUTING_MARGIN);
+      baseXs.add(rect.x + rect.width + ROUTING_MARGIN);
+      baseYs.add(rect.y - ROUTING_MARGIN);
+      baseYs.add(rect.y + rect.height + ROUTING_MARGIN);
     }
 
-    if (xs.size * ys.size > maxVisibilityPoints) {
-      return null;
-    }
-
+    const xs = new Set([
+      ...requests.flatMap(({ start, end }) => [ start.x, end.x ]),
+      ...baseXs
+    ]);
+    const ys = new Set([
+      ...requests.flatMap(({ start, end }) => [ start.y, end.y ]),
+      ...baseYs
+    ]);
+    const requestIntersections = new Set(requests.flatMap(({ start, end }) => [
+      `${ start.x },${ start.y }`,
+      `${ start.x },${ end.y }`,
+      `${ end.x },${ start.y }`,
+      `${ end.x },${ end.y }`
+    ]));
     const points: Point[] = [];
 
     for (const x of xs) {
       for (const y of ys) {
+        if (
+          !baseXs.has(x) &&
+          !baseYs.has(y) &&
+          !requestIntersections.has(`${ x },${ y }`)
+        ) {
+          continue;
+        }
+
         const candidate = point(x, y);
 
         if (!isInsideAny(candidate, obstacleSnapshots)) {
@@ -289,86 +324,211 @@ export function createOrthogonalRouter({
       }
     }
 
-    const startIndex = points.push(start) - 1;
-    const endIndex = points.push(end) - 1;
+    const endpointIndexesByPoint = new Map(points.map((candidate, index) => [
+      `${ candidate.x },${ candidate.y }`,
+      index
+    ]));
+    const appendEndpoint = (candidate: Point): number => {
+      const key = `${ candidate.x },${ candidate.y }`;
+      const existing = endpointIndexesByPoint.get(key);
+
+      if (existing !== undefined) {
+        return existing;
+      }
+
+      const index = points.push(candidate) - 1;
+
+      endpointIndexesByPoint.set(key, index);
+      return index;
+    };
+    const endpointIndexes = requests.map(({ start, end }) => ({
+      startIndex: appendEndpoint(start),
+      endIndex: appendEndpoint(end)
+    }));
+
+    if (points.length > maxVisibilityPoints) {
+      return requests.map(() => null);
+    }
+
     const { pointsByX, pointsByY } = indexVisibilityPoints(points);
-    const distance = Array<number>(points.length).fill(Infinity);
-    const previous = Array<number>(points.length).fill(-1);
-    const pending = new Set<number>(points.map((_, index) => index));
+    const visibilityGraph = buildVisibilityGraph(
+      points,
+      pointsByX,
+      pointsByY
+    );
+    const requestsByStart = new Map<number, {
+      endIndex: number;
+      requestIndex: number;
+    }[]>();
+
+    endpointIndexes.forEach(({ startIndex, endIndex }, requestIndex) => {
+      const grouped = requestsByStart.get(startIndex) || [];
+
+      grouped.push({ endIndex, requestIndex });
+      requestsByStart.set(startIndex, grouped);
+    });
+
+    const results: (Point[] | null)[] = requests.map(() => null);
+
+    for (const [ startIndex, grouped ] of requestsByStart) {
+      const routes = searchVisibilityRoutes(
+        points,
+        visibilityGraph,
+        startIndex,
+        grouped.map(({ endIndex }) => endIndex)
+      );
+
+      grouped.forEach(({ endIndex, requestIndex }) => {
+        results[requestIndex] = routes.get(endIndex) || null;
+      });
+    }
+
+    return results;
+  }
+
+  function searchVisibilityRoutes(
+      points: Point[],
+      visibilityGraph: VisibilityEdge[][],
+      startIndex: number,
+      endIndexes: number[]
+  ): Map<number, Point[]> {
+    const startState = points.length * 2;
+    const distance = Array<number>(startState + 1).fill(Infinity);
+    const previous = Array<number>(startState + 1).fill(-1);
+    const pending = new Set<number>(distance.map((_, index) => index));
+    const pendingEnds = new Set(endIndexes);
+    const endStates = new Map<number, number>();
     const queue: VisibilityNode[] = [];
-    distance[startIndex] = 0;
-    pushVisibilityNode(queue, { index: startIndex, distance: 0 });
+    distance[startState] = 0;
+    pushVisibilityNode(queue, { index: startState, distance: 0 });
 
     while (queue.length) {
       const entry = popVisibilityNode(queue);
-      const current = entry.index;
+      const currentState = entry.index;
 
-      if (!pending.has(current) || entry.distance !== distance[current]) {
+      if (
+        !pending.has(currentState) ||
+        entry.distance !== distance[currentState]
+      ) {
         continue;
       }
 
-      pending.delete(current);
+      pending.delete(currentState);
 
-      if (current === endIndex) {
-        break;
+      const current = currentState === startState
+        ? startIndex
+        : Math.floor(currentState / 2);
+
+      if (pendingEnds.delete(current)) {
+        endStates.set(current, currentState);
+
+        if (!pendingEnds.size) {
+          break;
+        }
       }
 
-      const vertical = pointsByX.get(points[current].x) || [];
-      const horizontal = pointsByY.get(points[current].y) || [];
-      let verticalIndex = 0;
-      let horizontalIndex = 0;
+      for (const edge of visibilityGraph[current]) {
+        const nextState = edge.index * 2 + edge.direction;
 
-      while (
-        verticalIndex < vertical.length ||
-        horizontalIndex < horizontal.length
+        if (!pending.has(nextState)) {
+          continue;
+        }
+
+        const candidate = distance[currentState] +
+          manhattan(points[current], points[edge.index]) +
+          (
+            currentState === startState ||
+            currentState % 2 !== edge.direction
+              ? VISIBILITY_GRAPH_TURN_PENALTY
+              : 0
+          );
+
+        if (candidate < distance[nextState]) {
+          distance[nextState] = candidate;
+          previous[nextState] = currentState;
+          pushVisibilityNode(queue, {
+            index: nextState,
+            distance: candidate
+          });
+        }
+      }
+    }
+
+    const routes = new Map<number, Point[]>();
+
+    for (const endIndex of endIndexes) {
+      const endState = endStates.get(endIndex);
+
+      if (endState === undefined) {
+        continue;
+      }
+
+      const route: Point[] = [];
+
+      for (
+        let currentState = endState;
+        currentState !== -1;
+        currentState = previous[currentState]
       ) {
-        const verticalNext = vertical[verticalIndex] ?? Infinity;
-        const horizontalNext = horizontal[horizontalIndex] ?? Infinity;
-        const next = Math.min(verticalNext, horizontalNext);
+        const current = currentState === startState
+          ? startIndex
+          : Math.floor(currentState / 2);
 
-        if (verticalNext === next) {
-          verticalIndex++;
-        }
+        route.unshift(points[current]);
+      }
 
-        if (horizontalNext === next) {
-          horizontalIndex++;
-        }
+      routes.set(endIndex, cleanPoints(route));
+    }
 
-        if (!pending.has(next)) {
+    return routes;
+  }
+
+  function buildVisibilityGraph(
+      points: Point[],
+      pointsByX: Map<number, number[]>,
+      pointsByY: Map<number, number[]>
+  ): VisibilityEdge[][] {
+    const graph = points.map(() => [] as VisibilityEdge[]);
+
+    for (const [ indexes, coordinate, direction ] of [
+      [ ...pointsByX.values() ].map(indexes => [
+        indexes,
+        (index: number) => points[index].y,
+        1
+      ] as const),
+      [ ...pointsByY.values() ].map(indexes => [
+        indexes,
+        (index: number) => points[index].x,
+        0
+      ] as const)
+    ].flat()) {
+      const ordered = [ ...indexes ].sort((a, b) => {
+        return coordinate(a) - coordinate(b) || a - b;
+      });
+
+      for (let index = 1; index < ordered.length; index++) {
+        const a = ordered[index - 1];
+        const b = ordered[index];
+
+        if (!segmentIsClear(points[a], points[b])) {
           continue;
         }
 
-        if (!segmentIsClear(points[current], points[next])) {
-          continue;
-        }
-
-        const candidate = distance[current] +
-          manhattan(points[current], points[next]) +
-          VISIBILITY_GRAPH_TURN_PENALTY;
-
-        if (candidate < distance[next]) {
-          distance[next] = candidate;
-          previous[next] = current;
-          pushVisibilityNode(queue, { index: next, distance: candidate });
-        }
+        graph[a].push({ direction, index: b });
+        graph[b].push({ direction, index: a });
       }
     }
 
-    if (distance[endIndex] === Infinity) {
-      return null;
-    }
+    graph.forEach(edges => edges.sort((a, b) => {
+      return a.index - b.index || a.direction - b.direction;
+    }));
 
-    const route: Point[] = [];
-
-    for (let current = endIndex; current !== -1; current = previous[current]) {
-      route.unshift(points[current]);
-    }
-
-    return cleanPoints(route);
+    return graph;
   }
 
   return Object.freeze({
     findRoute,
+    findRoutes,
     isClear,
     isPathClear,
     isSegmentClear

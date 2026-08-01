@@ -270,7 +270,7 @@
       <bpmndi:BPMNShape id="BPMNShape_End_Err" bpmnElement="End_Err">
         <dc:Bounds x="2254" y="982" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2232" y="1043" width="80" height="14" />
+          <dc:Bounds x="2232" y="1023" width="80" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Manual_UW" bpmnElement="Manual_UW">
@@ -282,7 +282,7 @@
       <bpmndi:BPMNShape id="BPMNShape_B_Err" bpmnElement="B_Err">
         <dc:Bounds x="1886" y="862" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1833" y="903" width="62" height="28" />
+          <dc:Bounds x="1873" y="923" width="62" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_b1" bpmnElement="b1">
@@ -366,8 +366,8 @@
       <bpmndi:BPMNEdge id="BPMNEdge_dc1" bpmnElement="dc1">
         <di:waypoint x="1404" y="1000" />
         <di:waypoint x="1424" y="1000" />
-        <di:waypoint x="1424" y="962" />
-        <di:waypoint x="2104" y="962" />
+        <di:waypoint x="1424" y="900" />
+        <di:waypoint x="2104" y="900" />
         <di:waypoint x="2104" y="880" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_dc_end" bpmnElement="dc_end">
@@ -376,15 +376,16 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_er2" bpmnElement="er2">
         <di:waypoint x="2154" y="600" />
-        <di:waypoint x="2234" y="600" />
-        <di:waypoint x="2234" y="1000" />
-        <di:waypoint x="2254" y="1000" />
+        <di:waypoint x="2310" y="600" />
+        <di:waypoint x="2310" y="962" />
+        <di:waypoint x="2272" y="962" />
+        <di:waypoint x="2272" y="982" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_er1" bpmnElement="er1">
         <di:waypoint x="1904" y="898" />
-        <di:waypoint x="1904" y="1038" />
-        <di:waypoint x="2310" y="1038" />
-        <di:waypoint x="2310" y="600" />
+        <di:waypoint x="1904" y="918" />
+        <di:waypoint x="2174" y="918" />
+        <di:waypoint x="2174" y="600" />
         <di:waypoint x="2154" y="600" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_m_loop" bpmnElement="m_loop">

@@ -7,6 +7,7 @@ import type {
   ConstrainedPath,
   OrthogonalRouter
 } from './OrthogonalRouting.js';
+import type { DockPair } from './BpmnDockRouting.js';
 
 type BpmnRouterShape = { element: BpmnElement; rect: Rect };
 type RoutedConnection = {
@@ -28,7 +29,8 @@ export type BpmnPathRole =
   | 'source-dock'
   | 'connector'
   | 'channel'
-  | 'target-dock';
+  | 'target-dock'
+  | 'direct';
 
 export type BpmnPathSection = {
   points: Point[];
@@ -40,7 +42,7 @@ export type BpmnPath = {
 };
 
 export type BpmnPathPolicy = {
-  channelClearance: number;
+  channelClearance?: number;
   connectorClearance?: number;
   connectorCollisionTolerance?: number;
   dockingClearance?: number;
@@ -48,7 +50,8 @@ export type BpmnPathPolicy = {
 };
 
 export type BpmnOrthogonalRouter = OrthogonalRouter & {
-  isBpmnPathClear(path: BpmnPath, policy: BpmnPathPolicy): boolean;
+  findBpmnRoutes(pairs: DockPair[]): (Point[] | null)[];
+  isBpmnPathClear(path: BpmnPath, policy?: BpmnPathPolicy): boolean;
 };
 
 export function createBpmnOrthogonalRouter({
@@ -90,18 +93,64 @@ export function createBpmnOrthogonalRouter({
   });
   let constrainedRouter: OrthogonalRouter | undefined;
 
-  function isBpmnPathClear(
-      path: BpmnPath,
-      policy: BpmnPathPolicy
-  ): boolean {
-    validateBpmnPathPolicy(policy);
-
+  function getConstrainedRouter(): OrthogonalRouter {
     constrainedRouter ||= createOrthogonalRouter({
       ...commonOptions,
       obstacles
     });
 
-    return constrainedRouter.isPathClear(toConstrainedPath(
+    return constrainedRouter;
+  }
+
+  function findBpmnRoutes(pairs: DockPair[]): (Point[] | null)[] {
+    if (!Array.isArray(pairs) || !pairs.length) {
+      throw new TypeError('dock pairs must be a non-empty array');
+    }
+
+    const router = getConstrainedRouter();
+    const visibilityRoutes = router.findRoutes(pairs.map(pair => ({
+      start: pair.source.stub,
+      end: pair.target.stub
+    })));
+
+    return visibilityRoutes.map((visibilityRoute, index) => {
+      if (!visibilityRoute) {
+        return null;
+      }
+
+      const pair = pairs[index];
+      const path: BpmnPath = {
+        sections: [
+          {
+            role: 'source-dock',
+            points: [ pair.source.dock, pair.source.stub ]
+          },
+          ...(visibilityRoute.length > 1
+            ? [ {
+              role: 'connector' as const,
+              points: visibilityRoute
+            } ]
+            : []),
+          {
+            role: 'target-dock',
+            points: [ pair.target.stub, pair.target.dock ]
+          }
+        ]
+      };
+
+      return isBpmnPathClear(path)
+        ? flattenBpmnPath(path)
+        : null;
+    });
+  }
+
+  function isBpmnPathClear(
+      path: BpmnPath,
+      policy: BpmnPathPolicy = {}
+  ): boolean {
+    validateBpmnPathPolicy(policy);
+
+    return getConstrainedRouter().isPathClear(toConstrainedPath(
       path,
       policy,
       sourceElement,
@@ -112,6 +161,7 @@ export function createBpmnOrthogonalRouter({
 
   return Object.freeze({
     ...router,
+    findBpmnRoutes,
     isBpmnPathClear
   });
 }
@@ -124,10 +174,36 @@ export function flattenBpmnPath(path: BpmnPath): Point[] {
   });
 }
 
+export function bpmnPathFromPoints(points: Point[]): BpmnPath {
+  if (!Array.isArray(points) || points.length < 2) {
+    throw new TypeError('points must contain at least two points');
+  }
+
+  if (points.length === 2) {
+    return {
+      sections: [ {
+        role: 'direct',
+        points: [ points[0], points[1] ]
+      } ]
+    };
+  }
+
+  return {
+    sections: points.slice(1).map((end, index) => ({
+      role: index === 0
+        ? 'source-dock'
+        : index === points.length - 2
+          ? 'target-dock'
+          : 'connector',
+      points: [ points[index], end ]
+    }))
+  };
+}
+
 function toConstrainedPath(
     path: BpmnPath,
     {
-      channelClearance,
+      channelClearance = 0,
       connectorClearance = 0,
       connectorCollisionTolerance = ROUTE_COLLISION_TOLERANCE,
       dockingClearance = 0,
@@ -142,6 +218,7 @@ function toConstrainedPath(
   return {
     sections: path.sections.map(({ points, role }, index) => {
       const channel = role === 'channel';
+      const direct = role === 'direct';
       const adjacentEndpointOverrides = [
         ...(
           channel &&
@@ -192,7 +269,20 @@ function toConstrainedPath(
             targetElement &&
             obstacleIds.has(targetElement)
             ? [ targetElement ]
-            : [],
+            : direct
+              ? [
+                ...(sourceElement && obstacleIds.has(sourceElement)
+                  ? [ sourceElement ]
+                  : []),
+                ...(
+                  targetElement &&
+                  targetElement !== sourceElement &&
+                  obstacleIds.has(targetElement)
+                    ? [ targetElement ]
+                    : []
+                )
+              ]
+              : [],
         obstacleOverrides: adjacentEndpointOverrides,
         points
       };
@@ -221,7 +311,8 @@ function validateBpmnPath(path: BpmnPath): void {
       'source-dock',
       'connector',
       'channel',
-      'target-dock'
+      'target-dock',
+      'direct'
     ].includes(role)) {
       throw new TypeError(`path.sections[${ index }].role is invalid`);
     }
@@ -232,6 +323,10 @@ function validateBpmnPath(path: BpmnPath): void {
 
     if (role === 'target-dock' && index !== path.sections.length - 1) {
       throw new TypeError('target-dock must be the last path section');
+    }
+
+    if (role === 'direct' && path.sections.length !== 1) {
+      throw new TypeError('direct must be the only path section');
     }
 
     if (!Array.isArray(points) || points.length < 2) {
@@ -263,7 +358,7 @@ function validateBpmnPathPolicy(policy: BpmnPathPolicy): void {
   }
 
   for (const [ name, value ] of [
-    [ 'channelClearance', policy.channelClearance ],
+    [ 'channelClearance', policy.channelClearance ?? 0 ],
     [ 'connectorClearance', policy.connectorClearance ?? 0 ],
     [
       'connectorCollisionTolerance',
