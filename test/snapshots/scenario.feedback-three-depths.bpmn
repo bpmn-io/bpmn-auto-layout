@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_feedback_three_depths" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_feedback_three_depths">
+    <bpmn:documentation>Keep three nested feedback depths ordered around the main spine without routing local feedback around an unrelated upper escalation branch.</bpmn:documentation>
+    <bpmn:startEvent id="Start">
+      <bpmn:outgoing>Flow_start_outer_merge</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="OuterMerge">
+      <bpmn:incoming>Flow_start_outer_merge</bpmn:incoming>
+      <bpmn:incoming>Flow_outer_feedback</bpmn:incoming>
+      <bpmn:outgoing>Flow_outer_prepare</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="PrepareOuter">
+      <bpmn:incoming>Flow_outer_prepare</bpmn:incoming>
+      <bpmn:outgoing>Flow_middle_merge</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="MiddleMerge">
+      <bpmn:incoming>Flow_middle_merge</bpmn:incoming>
+      <bpmn:incoming>Flow_middle_feedback</bpmn:incoming>
+      <bpmn:outgoing>Flow_middle_prepare</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="PrepareMiddle">
+      <bpmn:incoming>Flow_middle_prepare</bpmn:incoming>
+      <bpmn:outgoing>Flow_split</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:boundaryEvent id="EscalationBoundary" cancelActivity="false" attachedToRef="PrepareMiddle">
+      <bpmn:outgoing>Flow_escalation_task</bpmn:outgoing>
+      <bpmn:escalationEventDefinition id="EscalationDefinition" />
+    </bpmn:boundaryEvent>
+    <bpmn:task id="EscalationTask">
+      <bpmn:incoming>Flow_escalation_task</bpmn:incoming>
+      <bpmn:outgoing>Flow_escalation_end</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EscalationEnd">
+      <bpmn:incoming>Flow_escalation_end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Split">
+      <bpmn:incoming>Flow_split</bpmn:incoming>
+      <bpmn:incoming>Flow_direct_feedback</bpmn:incoming>
+      <bpmn:incoming>Flow_nested_feedback</bpmn:incoming>
+      <bpmn:outgoing>Flow_finish</bpmn:outgoing>
+      <bpmn:outgoing>Flow_direct_retry</bpmn:outgoing>
+      <bpmn:outgoing>Flow_nested_choice</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Finish">
+      <bpmn:incoming>Flow_finish</bpmn:incoming>
+      <bpmn:outgoing>Flow_end</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End">
+      <bpmn:incoming>Flow_end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="DirectRetry">
+      <bpmn:incoming>Flow_direct_retry</bpmn:incoming>
+      <bpmn:outgoing>Flow_direct_wait</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:intermediateCatchEvent id="DirectWait">
+      <bpmn:incoming>Flow_direct_wait</bpmn:incoming>
+      <bpmn:outgoing>Flow_direct_feedback</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="DirectMessageDefinition" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:exclusiveGateway id="NestedChoice">
+      <bpmn:incoming>Flow_nested_choice</bpmn:incoming>
+      <bpmn:outgoing>Flow_nested_retry</bpmn:outgoing>
+      <bpmn:outgoing>Flow_deep_choice</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="NestedRetry">
+      <bpmn:incoming>Flow_nested_retry</bpmn:incoming>
+      <bpmn:outgoing>Flow_nested_wait</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:intermediateCatchEvent id="NestedWait">
+      <bpmn:incoming>Flow_nested_wait</bpmn:incoming>
+      <bpmn:outgoing>Flow_nested_feedback</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="NestedMessageDefinition" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:exclusiveGateway id="DeepChoice">
+      <bpmn:incoming>Flow_deep_choice</bpmn:incoming>
+      <bpmn:outgoing>Flow_middle_retry</bpmn:outgoing>
+      <bpmn:outgoing>Flow_outer_retry</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="MiddleRetry">
+      <bpmn:incoming>Flow_middle_retry</bpmn:incoming>
+      <bpmn:outgoing>Flow_middle_wait</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:intermediateCatchEvent id="MiddleWait">
+      <bpmn:incoming>Flow_middle_wait</bpmn:incoming>
+      <bpmn:outgoing>Flow_middle_feedback</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MiddleMessageDefinition" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:task id="OuterRetry">
+      <bpmn:incoming>Flow_outer_retry</bpmn:incoming>
+      <bpmn:outgoing>Flow_outer_wait</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:intermediateCatchEvent id="OuterWait">
+      <bpmn:incoming>Flow_outer_wait</bpmn:incoming>
+      <bpmn:outgoing>Flow_outer_feedback</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="OuterMessageDefinition" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_start_outer_merge" sourceRef="Start" targetRef="OuterMerge" />
+    <bpmn:sequenceFlow id="Flow_outer_prepare" sourceRef="OuterMerge" targetRef="PrepareOuter" />
+    <bpmn:sequenceFlow id="Flow_middle_merge" sourceRef="PrepareOuter" targetRef="MiddleMerge" />
+    <bpmn:sequenceFlow id="Flow_middle_prepare" sourceRef="MiddleMerge" targetRef="PrepareMiddle" />
+    <bpmn:sequenceFlow id="Flow_split" sourceRef="PrepareMiddle" targetRef="Split" />
+    <bpmn:sequenceFlow id="Flow_finish" sourceRef="Split" targetRef="Finish" />
+    <bpmn:sequenceFlow id="Flow_end" sourceRef="Finish" targetRef="End" />
+    <bpmn:sequenceFlow id="Flow_direct_retry" sourceRef="Split" targetRef="DirectRetry" />
+    <bpmn:sequenceFlow id="Flow_direct_wait" sourceRef="DirectRetry" targetRef="DirectWait" />
+    <bpmn:sequenceFlow id="Flow_direct_feedback" sourceRef="DirectWait" targetRef="Split" />
+    <bpmn:sequenceFlow id="Flow_nested_choice" sourceRef="Split" targetRef="NestedChoice" />
+    <bpmn:sequenceFlow id="Flow_nested_retry" sourceRef="NestedChoice" targetRef="NestedRetry" />
+    <bpmn:sequenceFlow id="Flow_nested_wait" sourceRef="NestedRetry" targetRef="NestedWait" />
+    <bpmn:sequenceFlow id="Flow_nested_feedback" sourceRef="NestedWait" targetRef="Split" />
+    <bpmn:sequenceFlow id="Flow_deep_choice" sourceRef="NestedChoice" targetRef="DeepChoice" />
+    <bpmn:sequenceFlow id="Flow_middle_retry" sourceRef="DeepChoice" targetRef="MiddleRetry" />
+    <bpmn:sequenceFlow id="Flow_middle_wait" sourceRef="MiddleRetry" targetRef="MiddleWait" />
+    <bpmn:sequenceFlow id="Flow_middle_feedback" sourceRef="MiddleWait" targetRef="MiddleMerge" />
+    <bpmn:sequenceFlow id="Flow_outer_retry" sourceRef="DeepChoice" targetRef="OuterRetry" />
+    <bpmn:sequenceFlow id="Flow_outer_wait" sourceRef="OuterRetry" targetRef="OuterWait" />
+    <bpmn:sequenceFlow id="Flow_outer_feedback" sourceRef="OuterWait" targetRef="OuterMerge" />
+    <bpmn:sequenceFlow id="Flow_escalation_task" sourceRef="EscalationBoundary" targetRef="EscalationTask" />
+    <bpmn:sequenceFlow id="Flow_escalation_end" sourceRef="EscalationTask" targetRef="EscalationEnd" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Process_feedback_three_depths">
+    <bpmndi:BPMNPlane id="BPMNPlane_Process_feedback_three_depths" bpmnElement="Process_feedback_three_depths">
+      <bpmndi:BPMNShape id="BPMNShape_Start" bpmnElement="Start">
+        <dc:Bounds x="80" y="262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_OuterMerge" bpmnElement="OuterMerge" isMarkerVisible="true">
+        <dc:Bounds x="216" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_PrepareOuter" bpmnElement="PrepareOuter">
+        <dc:Bounds x="366" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_MiddleMerge" bpmnElement="MiddleMerge" isMarkerVisible="true">
+        <dc:Bounds x="566" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_PrepareMiddle" bpmnElement="PrepareMiddle">
+        <dc:Bounds x="716" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_EscalationTask" bpmnElement="EscalationTask">
+        <dc:Bounds x="916" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_EscalationEnd" bpmnElement="EscalationEnd">
+        <dc:Bounds x="1116" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Split" bpmnElement="Split" isMarkerVisible="true">
+        <dc:Bounds x="1252" y="255" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Finish" bpmnElement="Finish">
+        <dc:Bounds x="1402" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_End" bpmnElement="End">
+        <dc:Bounds x="1634" y="262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_DirectRetry" bpmnElement="DirectRetry">
+        <dc:Bounds x="1402" y="350" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_DirectWait" bpmnElement="DirectWait">
+        <dc:Bounds x="1634" y="372" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NestedChoice" bpmnElement="NestedChoice" isMarkerVisible="true">
+        <dc:Bounds x="1427" y="475" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NestedRetry" bpmnElement="NestedRetry">
+        <dc:Bounds x="1602" y="460" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_NestedWait" bpmnElement="NestedWait">
+        <dc:Bounds x="1834" y="482" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_DeepChoice" bpmnElement="DeepChoice" isMarkerVisible="true">
+        <dc:Bounds x="1627" y="585" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_MiddleRetry" bpmnElement="MiddleRetry">
+        <dc:Bounds x="1802" y="680" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_MiddleWait" bpmnElement="MiddleWait">
+        <dc:Bounds x="2002" y="702" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_OuterRetry" bpmnElement="OuterRetry">
+        <dc:Bounds x="1802" y="570" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_OuterWait" bpmnElement="OuterWait">
+        <dc:Bounds x="2002" y="592" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_EscalationBoundary" bpmnElement="EscalationBoundary">
+        <dc:Bounds x="748" y="222" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_start_outer_merge" bpmnElement="Flow_start_outer_merge">
+        <di:waypoint x="116" y="280" />
+        <di:waypoint x="216" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_outer_prepare" bpmnElement="Flow_outer_prepare">
+        <di:waypoint x="266" y="280" />
+        <di:waypoint x="366" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_middle_merge" bpmnElement="Flow_middle_merge">
+        <di:waypoint x="466" y="280" />
+        <di:waypoint x="566" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_middle_prepare" bpmnElement="Flow_middle_prepare">
+        <di:waypoint x="616" y="280" />
+        <di:waypoint x="716" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_split" bpmnElement="Flow_split">
+        <di:waypoint x="816" y="280" />
+        <di:waypoint x="1252" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_finish" bpmnElement="Flow_finish">
+        <di:waypoint x="1302" y="280" />
+        <di:waypoint x="1402" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_end" bpmnElement="Flow_end">
+        <di:waypoint x="1502" y="280" />
+        <di:waypoint x="1634" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_nested_retry" bpmnElement="Flow_nested_retry">
+        <di:waypoint x="1477" y="500" />
+        <di:waypoint x="1602" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_nested_wait" bpmnElement="Flow_nested_wait">
+        <di:waypoint x="1702" y="500" />
+        <di:waypoint x="1834" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_nested_feedback" bpmnElement="Flow_nested_feedback">
+        <di:waypoint x="1852" y="482" />
+        <di:waypoint x="1852" y="215" />
+        <di:waypoint x="1277" y="215" />
+        <di:waypoint x="1277" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_middle_wait" bpmnElement="Flow_middle_wait">
+        <di:waypoint x="1902" y="720" />
+        <di:waypoint x="2002" y="720" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_middle_feedback" bpmnElement="Flow_middle_feedback">
+        <di:waypoint x="2038" y="720" />
+        <di:waypoint x="2058" y="720" />
+        <di:waypoint x="2058" y="780" />
+        <di:waypoint x="591" y="780" />
+        <di:waypoint x="591" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_outer_retry" bpmnElement="Flow_outer_retry">
+        <di:waypoint x="1677" y="610" />
+        <di:waypoint x="1802" y="610" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_direct_retry" bpmnElement="Flow_direct_retry">
+        <di:waypoint x="1277" y="305" />
+        <di:waypoint x="1277" y="390" />
+        <di:waypoint x="1402" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_nested_choice" bpmnElement="Flow_nested_choice">
+        <di:waypoint x="1277" y="305" />
+        <di:waypoint x="1277" y="500" />
+        <di:waypoint x="1427" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_deep_choice" bpmnElement="Flow_deep_choice">
+        <di:waypoint x="1452" y="525" />
+        <di:waypoint x="1452" y="610" />
+        <di:waypoint x="1627" y="610" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_middle_retry" bpmnElement="Flow_middle_retry">
+        <di:waypoint x="1652" y="635" />
+        <di:waypoint x="1652" y="720" />
+        <di:waypoint x="1802" y="720" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_direct_wait" bpmnElement="Flow_direct_wait">
+        <di:waypoint x="1502" y="390" />
+        <di:waypoint x="1634" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_outer_wait" bpmnElement="Flow_outer_wait">
+        <di:waypoint x="1902" y="610" />
+        <di:waypoint x="2002" y="610" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_escalation_end" bpmnElement="Flow_escalation_end">
+        <di:waypoint x="1016" y="120" />
+        <di:waypoint x="1116" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_escalation_task" bpmnElement="Flow_escalation_task">
+        <di:waypoint x="766" y="222" />
+        <di:waypoint x="766" y="120" />
+        <di:waypoint x="916" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_direct_feedback" bpmnElement="Flow_direct_feedback">
+        <di:waypoint x="1670" y="390" />
+        <di:waypoint x="1690" y="390" />
+        <di:waypoint x="1690" y="215" />
+        <di:waypoint x="1277" y="215" />
+        <di:waypoint x="1277" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_outer_feedback" bpmnElement="Flow_outer_feedback">
+        <di:waypoint x="2038" y="610" />
+        <di:waypoint x="2078" y="610" />
+        <di:waypoint x="2078" y="800" />
+        <di:waypoint x="241" y="800" />
+        <di:waypoint x="241" y="305" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

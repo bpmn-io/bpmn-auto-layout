@@ -1,5 +1,6 @@
 import {
   clearBoundaryHandlerExits,
+  compactFeedbackRows,
   packComponents,
   placeBoundaryEvents,
   placeRecords
@@ -64,6 +65,7 @@ export function placeFlowNodes(context: ProcessLayoutContext): ProcessLayoutCont
   const typedRanks = getRequired(ranks);
 
   placeRecords(graphRecords, typedRanks, typedPolicy);
+  compactFeedbackRows(graphRecords, typedPolicy);
   clearBoundaryHandlerExits(
     graphRecords,
     typedBoundaryEdges,

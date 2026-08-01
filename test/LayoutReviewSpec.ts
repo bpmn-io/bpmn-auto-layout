@@ -62,8 +62,19 @@ describe('Layout review', function(this: TimedTestContext) {
     commit('base');
   });
 
-  afterEach(function() {
-    fs.rmSync(repositoryDirectory, { recursive: true, force: true });
+  afterEach(async function() {
+    try {
+      await fs.promises.rm(repositoryDirectory, {
+        recursive: true,
+        force: true,
+        maxRetries: 10,
+        retryDelay: 100
+      });
+    } catch (error) {
+      console.warn(
+        `Could not remove temporary layout-review repository ${repositoryDirectory}: ${ String(error) }`
+      );
+    }
   });
 
   it('should compare base and head snapshots', async function() {

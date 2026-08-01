@@ -2,6 +2,7 @@ import { createLayout } from '../geometry/index.js';
 import { analyzeSemantics } from './steps/analyzeSemantics.js';
 import { extractElements } from './steps/extractElements.js';
 import { layoutChildScopes } from './steps/layoutChildScopes.js';
+import { optimizeFlowNodeLayout } from './steps/optimizeFlowNodeLayout.js';
 import { placeArtifacts } from './steps/placeArtifacts.js';
 import { placeEventSubProcesses } from './steps/placeEventSubProcesses.js';
 import { placeExpandedChildren } from './steps/placeExpandedChildren.js';
@@ -30,6 +31,7 @@ const PROCESS_LAYOUT_STEPS: readonly ProcessLayoutStep[] = Object.freeze([
   placeFlowNodes,
   placeExpandedChildren,
   routeSequenceFlows,
+  optimizeFlowNodeLayout,
   placeEventSubProcesses,
   placeArtifacts,
   placeGroups

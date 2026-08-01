@@ -61,8 +61,9 @@ ownership:
 | `emitInParent` | container placement | Whether a child scope's geometry is included on its parent's plane. |
 
 Semantic policy produces placement decisions without mutating geometry.
-Placement writes shape bounds, routing writes initial edge waypoints, and the
-message-routing fixed point may enlarge resizable participant bounds.
+Placement writes initial shape bounds, routing writes provisional edge
+waypoints, and adaptive placement may commit a strictly better rerouted
+candidate. The message-routing fixed point may enlarge resizable participant bounds.
 Connection finalization may repair only edge waypoints. External-label layout
 then computes label bounds from finalized plane geometry. Diagram generation
 reads that complete geometry without changing it and creates all BPMN DI.
@@ -151,6 +152,11 @@ Band `0` is the spine. Other bands encode branch meaning:
 - alternatives without a default alternate below, above, farther below, and
   farther above;
 - alternatives to a default flow fan to one side;
+- alternatives whose paths return to ancestors of their split form one
+  feedback region on the same side of the spine;
+- feedback alternatives returning to their owning split stay inside upstream
+  returns; below a nested split, the farthest upstream return continues
+  straight while nearer upstream returns occupy successive outer rows;
 - alternatives from an off-spine gateway fan farther away from the spine;
 - error handlers occupy lower bands;
 - escalation handlers occupy upper bands;
@@ -211,6 +217,7 @@ Geometry uses these base constants:
 | --- | ---: |
 | Horizontal gap | 100 px |
 | Vertical gap | 80 px |
+| Compact feedback-region vertical gap | 30 px |
 | Outer shape margin | 80 px |
 | Expanded sub-process padding | 40 px |
 | Named expanded sub-process title band | 28 px |
@@ -219,7 +226,8 @@ Geometry uses these base constants:
 | Participant header width | 30 px |
 | Lane content padding | 40 px |
 
-Layout may add space for containers and routing; it does not reduce these gaps.
+Layout may add space for containers and routing. Feedback regions use their
+dedicated compact gap; other placement does not reduce these gaps.
 Bounds and waypoints are normalized to integers before DI emission.
 
 ## Ad-hoc sub-processes
@@ -359,7 +367,8 @@ Ports follow semantics:
   the bottom-side channel order. For an isolated gateway default flow, both
   local sides are compared at the same constraint level; the shorter route wins
   and equal routes use the top channel as the deterministic tie-break. Local
-  U-channels include rendered-stroke clearance around unrelated shapes.
+  Local and inner-feedback U-channels include a normal routing margin around
+  unrelated shapes.
 
 The boundary-event placement order described above creates nested vertical exits
 without weaving.
@@ -390,6 +399,58 @@ A segment is legal when it:
 Shared endpoints, endpoint touches, and intentional shared endpoint channels
 are not proper crossings. Channels may be shared regardless of whether
 connections enter or leave their common endpoint.
+
+Feedback from a compact return region evaluates outer routes from each source
+side. A source above its return target prefers an upper channel; a source below
+prefers a lower channel. Exposure to the shape-field boundary then wins before
+footprint, bends, and route length. East lead-ins remain available when the
+direct vertical dock is blocked. Feedback edges returning to the same target
+may share their outer and target channels. When one region returns to multiple
+spine ancestors, returns to the owning split share the nearest clear channel
+above that split. Returns to upstream ancestors use collision-separated
+channels below the feedback region.
+
+## Adaptive flow-node placement
+
+Baseline routing is followed by a bounded place-route-score-adjust stage.
+Semantic analysis exposes structured feedback regions whose branches return to
+an ancestor of their split. Nested regions are children of the smallest
+containing feedback branch; sequential regions remain independent.
+
+The initial move generator mirrors all coherent branches of one feedback region
+across its split's horizontal spine. A moved branch includes its flow nodes,
+attached boundary events, and emitted expanded-child geometry. Candidates that
+would move a node outside its original lane or participant are not generated.
+Scopes containing artifacts retain their baseline because artifacts are placed
+after this stage and therefore are not yet available for complete candidate
+scoring. This first move generator also runs only when the scope contains a
+boundary event: its production contract is to separate feedback alternatives
+from boundary-handler pressure. The candidate, routing, scoring, and search
+framework does not otherwise depend on boundary events.
+
+Every candidate owns cloned bounds, child layouts, and waypoints. The complete
+sequence-flow set is rerouted against those cloned bounds before scoring. Scores
+are compared lexicographically:
+
+1. shape overlaps;
+2. edge-shape intersections;
+3. detached or wrong-way dockings;
+4. non-orthogonal or backtracking routes;
+5. crossings;
+6. unequal non-spine shape load above and below the semantic spine;
+7. footprint area;
+8. bends;
+9. route length plus node displacement;
+10. total node displacement.
+
+A candidate is rejected if any hard-defect count exceeds the baseline or if it
+does not strictly improve the non-spine load balance. Search
+visits regions in descending footprint order for at most two passes, evaluates
+at most 32 candidates, and caps work at 1,200 routed-edge evaluations. It uses
+no wall-clock deadline. Only a strict improvement is committed; otherwise the
+baseline bounds and routes remain unchanged. Committing copies coordinates into
+the existing bounds objects so placement records and layout state retain shared
+references.
 
 ## Collaborations and message flows
 
@@ -526,6 +587,7 @@ extractElements
 → placeFlowNodes
 → placeExpandedChildren
 → routeSequenceFlows
+→ optimizeFlowNodeLayout
 → placeEventSubProcesses
 → placeArtifacts
 → placeGroups
@@ -535,8 +597,9 @@ Each step receives and returns one context containing the scope and recursive
 options, extracted elements, graph and semantic state, mutable placement
 records, layout state, and warnings. Extraction initializes elements and
 placement; semantic analysis replaces graph and policy state without writing
-geometry. Placement writes shape bounds, routing writes edge waypoints, and
-nested scopes re-enter the process entrypoint through a private callback.
+geometry. Placement writes initial shape bounds, routing writes provisional
+edge waypoints, adaptive placement may commit a rerouted candidate, and nested
+scopes re-enter the process entrypoint through a private callback.
 
 ### Collaboration pipeline
 

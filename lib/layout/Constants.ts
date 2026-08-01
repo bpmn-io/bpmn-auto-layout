@@ -32,6 +32,7 @@ export const MIN_SUB_PROCESS_HEIGHT = 120;
 // Distinct from VERTICAL_GAP despite the equal current value: this is the
 // vertical extent of a semantic band, not an inter-shape gap.
 export const SEMANTIC_BAND_HEIGHT = 80;
+export const FEEDBACK_REGION_VERTICAL_GAP = 30;
 export const MIN_LANE_CONTENT_WIDTH = 300;
 export const MIN_LANE_HEIGHT = 60;
 export const BOUNDARY_EVENT_SPACING = 8;

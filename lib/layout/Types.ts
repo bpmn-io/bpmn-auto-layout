@@ -34,6 +34,19 @@ export type LayoutRecord = {
   bounds?: Bounds;
 };
 
+export type FeedbackBranch = {
+  entry: BpmnElement;
+  nodes: Set<BpmnElement>;
+  returnEdges: Set<BpmnElement>;
+  maximumReturnDepth: number;
+};
+
+export type FeedbackRegion = {
+  split: BpmnElement;
+  branches: FeedbackBranch[];
+  children: FeedbackRegion[];
+};
+
 export type SemanticPolicy = {
   spine: Set<BpmnElement>;
   straightEdges: Set<BpmnElement>;
@@ -46,6 +59,11 @@ export type SemanticPolicy = {
   rankWeights: Map<BpmnElement, number>;
   backEdges: Set<BpmnElement>;
   boundaryBayEdges: Set<BpmnElement>;
+  compactFeedbackNodes?: Set<BpmnElement>;
+  feedbackBranchDepths?: Map<BpmnElement, number>;
+  innerFeedbackEdges?: Set<BpmnElement>;
+  nestedFeedbackLevels?: Map<BpmnElement, number>;
+  feedbackRegions: FeedbackRegion[];
 };
 
 export type RankAssignment = {

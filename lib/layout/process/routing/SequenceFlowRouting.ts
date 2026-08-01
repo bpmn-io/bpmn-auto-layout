@@ -9,7 +9,22 @@ type FlowEdge = ModdleElement<BpmnSequenceFlow> & { sourceRef: FlowNode; targetR
 type RouterShape = { element: BpmnElement; rect: Rect };
 type RoutedConnection = { flow: FlowEdge; points: Point[] };
 type Router = ReturnType<typeof createBpmnOrthogonalRouter>;
-type RoutingPolicy = { backEdges: Set<FlowEdge>; bands: Map<BpmnElement, number>; straightEdges: Set<FlowEdge>; spine: Set<FlowEdge>; graphEdges: FlowEdge[] };
+type RoutingPolicy = {
+  backEdges: Set<FlowEdge>;
+  bands: Map<BpmnElement, number>;
+  straightEdges: Set<FlowEdge>;
+  spine: Set<FlowEdge>;
+  graphEdges: FlowEdge[];
+  compactFeedbackNodes?: Set<BpmnElement>;
+  feedbackBranchDepths?: Map<BpmnElement, number>;
+  innerFeedbackEdges?: Set<BpmnElement>;
+  nestedFeedbackLevels?: Map<BpmnElement, number>;
+  adaptiveFeedbackSide?: boolean;
+};
+type FeedbackRouteCandidate = {
+  points: Point[];
+  score: number[];
+};
 type Classification = {
   feedback: boolean; isBack: boolean; sourceCenterX: number; targetCenterX: number;
   sourceCenterY: number; targetCenterY: number; horizontalTargetDock: boolean;
@@ -403,7 +418,11 @@ function tryLocalBypassRoute({
   sourceBoundary,
   start
 }: Routing): MaybeRoute {
-  if (!longForward && (!feedback || sourceBoundary)) {
+  const candidateFeedback =
+    feedback && policy.compactFeedbackNodes?.has(flow.sourceRef);
+
+  if (candidateFeedback ||
+      (!longForward && (!feedback || sourceBoundary))) {
     return null;
   }
 
@@ -421,11 +440,145 @@ function routeConnectionWithFallbacks(routing: Routing): Point[] {
   const extents = getShapeExtents(routing.shapes);
 
   return tryBoundaryRejoinChannels(routing) ||
+    tryInnerFeedbackChannel(routing) ||
+    tryNestedFeedbackChannel(routing, extents) ||
+    tryFeedbackDockCandidates(routing, extents) ||
     tryFeedbackChannels(routing, extents) ||
     tryPreferredChannel(routing, extents) ||
     tryVisibilityRoutes(routing) ||
     tryOuterRoutes(routing) ||
     routePerimeterOrThrow(routing);
+}
+
+function tryInnerFeedbackChannel(
+    {
+      flow,
+      policy,
+      routedConnections,
+      shapes,
+      source,
+      target
+    }: Routing
+): MaybeRoute {
+  if (!policy.innerFeedbackEdges?.has(flow)) {
+    return null;
+  }
+
+  const routedConnectionsWithoutSharedTarget = routedConnections.filter(connection => {
+    return connection.flow.targetRef !== flow.targetRef;
+  });
+  const sharedTargetRouter = createSequenceFlowRouter(
+    shapes,
+    flow.sourceRef,
+    flow.targetRef,
+    routedConnectionsWithoutSharedTarget,
+    { maxVisibilityPoints: MAX_VISIBILITY_GRAPH_POINTS }
+  );
+  const channelClearanceRouter = createSequenceFlowRouter(
+    shapes,
+    flow.sourceRef,
+    flow.targetRef,
+    routedConnectionsWithoutSharedTarget,
+    { obstacleInset: -ROUTING_MARGIN }
+  );
+  const sourceNorth = point(
+    source.x + source.width / 2,
+    source.y
+  );
+  const sourceEast = point(
+    source.x + source.width,
+    source.y + source.height / 2
+  );
+  const targetNorth = point(
+    target.x + target.width / 2,
+    target.y
+  );
+
+  for (let attempt = 1; attempt <= MAX_ROUTE_SEARCH_ATTEMPTS; attempt++) {
+    const channelY = target.y - attempt * ROUTING_MARGIN;
+    const candidates = [
+      {
+        channelStartX: sourceNorth.x,
+        route: cleanPoints([
+        sourceNorth,
+        point(sourceNorth.x, channelY),
+        point(targetNorth.x, channelY),
+        targetNorth
+        ])
+      },
+      {
+        channelStartX: sourceEast.x + ROUTING_MARGIN,
+        route: cleanPoints([
+        sourceEast,
+        point(sourceEast.x + ROUTING_MARGIN, sourceEast.y),
+        point(sourceEast.x + ROUTING_MARGIN, channelY),
+        point(targetNorth.x, channelY),
+        targetNorth
+        ])
+      }
+    ];
+
+    for (const candidate of candidates) {
+      const channel = [
+        point(candidate.channelStartX, channelY),
+        point(targetNorth.x, channelY)
+      ];
+
+      if (
+        channelClearanceRouter.isClear(channel) &&
+        sharedTargetRouter.isClear(candidate.route)
+      ) {
+        return candidate.route;
+      }
+    }
+  }
+
+  return null;
+}
+
+function tryNestedFeedbackChannel(
+    {
+      flow,
+      policy,
+      router,
+      source,
+      target
+    }: Routing,
+    extents: { maxX: number; maxY: number }
+): MaybeRoute {
+  const level = policy.nestedFeedbackLevels?.get(flow);
+
+  if (!level) {
+    return null;
+  }
+
+  const sourceEast = point(
+    source.x + source.width,
+    source.y + source.height / 2
+  );
+  const targetSouth = point(
+    target.x + target.width / 2,
+    target.y + target.height
+  );
+
+  for (let attempt = 0; attempt < MAX_ROUTE_SEARCH_ATTEMPTS; attempt++) {
+    const spacing = (level + attempt) * ROUTING_MARGIN;
+    const channelX = extents.maxX + spacing;
+    const channelY = extents.maxY + spacing;
+    const candidate = cleanPoints([
+      sourceEast,
+      point(channelX, sourceEast.y),
+      point(channelX, channelY),
+      point(targetSouth.x, channelY),
+      targetSouth
+    ]);
+
+    if (router.isClear(candidate)) {
+      return candidate;
+    }
+  }
+
+  return null;
 }
 
 function tryBoundaryRejoinChannels({
@@ -457,6 +610,167 @@ function tryBoundaryRejoinChannels({
   }
 
   return null;
+}
+
+function tryFeedbackDockCandidates(
+    {
+      flow,
+      isBack,
+      policy,
+      router,
+      routedConnections,
+      shapes,
+      source,
+      target
+    }: Routing,
+    extents: { minX: number; minY: number; maxX: number; maxY: number }
+): MaybeRoute {
+  if (!isBack || !policy.compactFeedbackNodes?.has(flow.sourceRef)) {
+    return null;
+  }
+
+  const sourceCenterX = source.x + source.width / 2;
+  const sourceCenterY = source.y + source.height / 2;
+  const targetCenterX = target.x + target.width / 2;
+  const sourceDocks = {
+    east: point(source.x + source.width, sourceCenterY),
+    south: point(sourceCenterX, source.y + source.height),
+    west: point(source.x, sourceCenterY),
+    north: point(sourceCenterX, source.y)
+  };
+  const targetSouth = point(targetCenterX, target.y + target.height);
+  const targetNorth = point(targetCenterX, target.y);
+  const preferTop = sourceCenterY < target.y + target.height / 2;
+  const feedbackRouter = policy.adaptiveFeedbackSide
+    ? createSequenceFlowRouter(
+      shapes,
+      flow.sourceRef,
+      flow.targetRef,
+      routedConnections.filter(connection => {
+        return connection.flow.targetRef !== flow.targetRef;
+      }),
+      { maxVisibilityPoints: MAX_VISIBILITY_GRAPH_POINTS }
+    )
+    : router;
+  const exposure = {
+    east: extents.maxX - sourceDocks.east.x,
+    south: extents.maxY - sourceDocks.south.y,
+    west: sourceDocks.west.x - extents.minX,
+    north: sourceDocks.north.y - extents.minY
+  };
+  const candidates: FeedbackRouteCandidate[] = [];
+
+  for (let attempt = 1; attempt <= MAX_ROUTE_SEARCH_ATTEMPTS; attempt++) {
+    const spacing = attempt * ROUTING_MARGIN;
+    const bottomY = extents.maxY + spacing;
+    const topY = extents.minY - spacing;
+    const eastX = extents.maxX + spacing;
+    const westX = extents.minX - spacing;
+    const routeCandidates = [
+      {
+        exposure: exposure.east,
+        order: 0,
+        top: false,
+        points: cleanPoints([
+          sourceDocks.east,
+          point(eastX, sourceDocks.east.y),
+          point(eastX, bottomY),
+          point(targetSouth.x, bottomY),
+          targetSouth
+        ])
+      },
+      {
+        exposure: exposure.south,
+        order: 1,
+        top: false,
+        points: cleanPoints([
+          sourceDocks.south,
+          point(sourceDocks.south.x, bottomY),
+          point(targetSouth.x, bottomY),
+          targetSouth
+        ])
+      },
+      {
+        exposure: exposure.west,
+        order: 2,
+        top: false,
+        points: cleanPoints([
+          sourceDocks.west,
+          point(westX, sourceDocks.west.y),
+          point(westX, bottomY),
+          point(targetSouth.x, bottomY),
+          targetSouth
+        ])
+      },
+      {
+        exposure: exposure.north,
+        order: 3,
+        top: true,
+        points: cleanPoints([
+          sourceDocks.north,
+          point(sourceDocks.north.x, topY),
+          point(targetNorth.x, topY),
+          targetNorth
+        ])
+      },
+      ...(policy.adaptiveFeedbackSide ? [ {
+        exposure: exposure.east,
+        order: 4,
+        top: true,
+        points: cleanPoints([
+          sourceDocks.east,
+          point(eastX, sourceDocks.east.y),
+          point(eastX, topY),
+          point(targetNorth.x, topY),
+          targetNorth
+        ])
+      } ] : [])
+    ];
+
+    for (const candidate of routeCandidates) {
+      if (!feedbackRouter.isClear(candidate.points)) {
+        continue;
+      }
+
+      const xs = candidate.points.map(({ x }) => x);
+      const ys = candidate.points.map(({ y }) => y);
+      const footprintExpansion =
+        Math.max(0, extents.minX - Math.min(...xs)) +
+        Math.max(0, Math.max(...xs) - extents.maxX) +
+        Math.max(0, extents.minY - Math.min(...ys)) +
+        Math.max(0, Math.max(...ys) - extents.maxY);
+
+      candidates.push({
+        points: candidate.points,
+        score: [
+          ...(policy.adaptiveFeedbackSide
+            ? [ candidate.top === preferTop ? 0 : 1 ]
+            : []),
+          candidate.exposure,
+          footprintExpansion,
+          Math.max(0, candidate.points.length - 2),
+          routeLength(candidate.points),
+          candidate.order
+        ]
+      });
+    }
+
+    if (candidates.length) {
+      break;
+    }
+  }
+
+  return candidates.sort((a, b) => compareRouteScores(a.score, b.score))[0]?.points || null;
+}
+
+function compareRouteScores(a: number[], b: number[]): number {
+  for (let index = 0; index < a.length; index++) {
+    if (a[index] !== b[index]) {
+      return a[index] - b[index];
+    }
+  }
+
+  return 0;
 }
 
 function tryFeedbackChannels(

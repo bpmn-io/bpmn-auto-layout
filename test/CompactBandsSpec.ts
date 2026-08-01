@@ -41,6 +41,7 @@ describe('CompactBands', function() {
       flowNodeDocumentIndex: new Map(),
       graphEdges: [],
       compactFlowRegions: [],
+      feedbackRegions: [],
       rankWeights: new Map()
     };
     const ranks: RankAssignment = {

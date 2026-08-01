@@ -63,4 +63,44 @@ describe('LanePlacement', function() {
       height: 80
     });
   });
+
+  it('should preserve compact feedback rows inside a lane', function() {
+      const first = moddle.create('bpmn:Task', { id: 'First' });
+      const second = moddle.create('bpmn:Task', { id: 'Second' });
+      const lane = moddle.create('bpmn:Lane', {
+        id: 'Lane',
+        flowNodeRef: [ first, second ]
+      });
+      const scope = moddle.create('bpmn:Process', {
+        laneSets: [ moddle.create('bpmn:LaneSet', { lanes: [ lane ] }) ]
+      });
+      const records: LaneRecord[] = [ first, second ].map((element, index) => ({
+        element,
+        index,
+        size: { width: 100, height: 80 },
+        isBoundary: false,
+        isArtifact: false,
+        expanded: false,
+        child: null,
+        bounds: { x: index * 200, y: index * 160, width: 100, height: 80 }
+      }));
+      const layout: LayoutState = {
+        scope,
+        shapes: new Map(),
+        edges: new Map(),
+        children: [],
+        emitInParent: false
+      };
+      const policy: LanePolicy = {
+        backEdges: new Set<FlowEdge>(),
+        straightEdges: new Set<FlowEdge>(),
+        compactFeedbackNodes: new Set([ second ])
+      };
+
+      applyLaneMembership(scope, records, [], policy, layout);
+
+      assert.strictEqual(layout.shapes.get(lane)?.height, 350);
+      assert.strictEqual(records[0].bounds.y, 80);
+      assert.strictEqual(records[1].bounds.y, 190);
+  });
 });

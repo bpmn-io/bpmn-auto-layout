@@ -1374,6 +1374,300 @@ describe('Layout', function(this: SuiteContext) {
       assert.strictEqual(centerY(alternatives[1][1]), centerY(alternatives[2][1]));
     });
 
+    it('should compact and externally route a shared feedback region', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'scenario.shared-feedback-region.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const rootElement = await readLayoutDiagram(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const edges = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
+        .map(element => [ element.bpmnElement.id, element.waypoint ]));
+      const centerY = (bounds: Bounds): number => bounds.y + bounds.height / 2;
+      const rows = [
+        centerY(shapes.get('Gateway_1tl0lnv')),
+        centerY(shapes.get('Gateway_0d6hc95')),
+        centerY(shapes.get('Activity_0pughmq')),
+        centerY(shapes.get('Activity_1yyl8ki'))
+      ];
+
+      assert.deepStrictEqual(rows.slice(1).map((row, index) => {
+        return row - rows[index];
+      }), [ 110, 110, 110 ]);
+
+      const feedback = [
+        [ 'Flow_0uba23m', 'Event_0a2yshr' ],
+        [ 'Flow_18ldpd8', 'Event_1c750jd' ]
+      ].map(([ flowId, sourceId ]) => {
+        return {
+          points: edges.get(flowId),
+          source: shapes.get(sourceId)
+        };
+      });
+      const target = shapes.get('Gateway_17t8ypn');
+      const outerX = Math.max(...[ ...shapes.values() ].map(shape => {
+        return shape.x + shape.width;
+      })) + ROUTING_MARGIN;
+
+      for (const { points, source } of feedback) {
+        assert.strictEqual(points.length, 5);
+        assert.strictEqual(points[0].x, source.x + source.width);
+        assert.strictEqual(points[0].y, centerY(source));
+        assert.strictEqual(points[1].x, outerX);
+        assert.strictEqual(points[2].x, outerX);
+        assert.strictEqual(last(points).x, target.x + target.width / 2);
+        assert.strictEqual(last(points).y, target.y + target.height);
+      }
+
+      assert.strictEqual(feedback[0].points[2].y, feedback[1].points[2].y);
+      assert.deepStrictEqual(
+        feedback[0].points.slice(2),
+        feedback[1].points.slice(2)
+      );
+    });
+
+    it('should nest feedback regions by return depth', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'scenario.feedback.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const rootElement = await readLayoutDiagram(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const edges = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
+        .map(element => [ element.bpmnElement.id, element.waypoint ]));
+      const centerY = (bounds: Bounds): number => bounds.y + bounds.height / 2;
+      const rows = [
+        centerY(shapes.get('Gateway_1tl0lnv')),
+        centerY(shapes.get('Activity_1yyl8ki')),
+        centerY(shapes.get('Gateway_0d6hc95')),
+        centerY(shapes.get('Activity_1v8xus9'))
+      ];
+
+      assert.deepStrictEqual(rows.slice(1).map((row, index) => {
+        return row - rows[index];
+      }), [ 110, 110, 110 ]);
+      assert.strictEqual(
+        centerY(shapes.get('Event_1c750jd')),
+        centerY(shapes.get('Activity_1yyl8ki'))
+      );
+      assert.strictEqual(
+        centerY(shapes.get('Activity_0pughmq')),
+        centerY(shapes.get('Gateway_0d6hc95'))
+      );
+
+      const inner = edges.get('Flow_18ldpd8');
+      const innerSource = shapes.get('Event_1c750jd');
+      const innerTarget = shapes.get('Gateway_1tl0lnv');
+      const topY = innerTarget.y - 2 * ROUTING_MARGIN;
+
+      assert.deepStrictEqual(inner.map(({ x, y }) => ({ x, y })), [
+        {
+          x: innerSource.x + innerSource.width / 2,
+          y: innerSource.y
+        },
+        {
+          x: innerSource.x + innerSource.width / 2,
+          y: topY
+        },
+        {
+          x: innerTarget.x + innerTarget.width / 2,
+          y: topY
+        },
+        {
+          x: innerTarget.x + innerTarget.width / 2,
+          y: innerTarget.y
+        }
+      ]);
+
+      const outer = edges.get('Flow_0uba23m');
+      const outerSource = shapes.get('Event_0a2yshr');
+      const bottomY = Math.max(...[ ...shapes.values() ].map(shape => {
+        return shape.y + shape.height;
+      })) + ROUTING_MARGIN;
+
+      assert.strictEqual(outer[0].x, outerSource.x + outerSource.width);
+      assert.strictEqual(outer[2].y, bottomY);
+
+      const reorderedXml = xml.replace(
+        [
+          '      <bpmn:outgoing>Flow_0urpvcg</bpmn:outgoing>',
+          '      <bpmn:outgoing>Flow_0hu31ps</bpmn:outgoing>',
+          '      <bpmn:outgoing>Flow_1je4u6n</bpmn:outgoing>'
+        ].join('\n'),
+        [
+          '      <bpmn:outgoing>Flow_0hu31ps</bpmn:outgoing>',
+          '      <bpmn:outgoing>Flow_0urpvcg</bpmn:outgoing>',
+          '      <bpmn:outgoing>Flow_1je4u6n</bpmn:outgoing>'
+        ].join('\n')
+      );
+      const reorderedRoot = await readLayoutDiagram(
+        await layoutProcess(reorderedXml)
+      );
+      const reorderedShapes = new RequiredMap(
+        reorderedRoot.diagrams[0].plane.planeElement
+          .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+          .map(element => [ element.bpmnElement.id, element.bounds ])
+      );
+
+      for (const id of [
+        'Activity_1yyl8ki',
+        'Gateway_0d6hc95',
+        'Activity_1v8xus9'
+      ]) {
+        assert.strictEqual(
+          centerY(reorderedShapes.get(id)),
+          centerY(shapes.get(id))
+        );
+      }
+    });
+
+    it('should assign channels for three feedback depths', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'scenario.feedback-three-depths.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+      const rootElement = await readLayoutDiagram(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const edges = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
+        .map(element => [ element.bpmnElement.id, element.waypoint ]));
+      const centerY = (bounds: Bounds): number => bounds.y + bounds.height / 2;
+      const rows = [
+        centerY(shapes.get('Split')),
+        centerY(shapes.get('DirectRetry')),
+        centerY(shapes.get('NestedChoice')),
+        centerY(shapes.get('DeepChoice')),
+        centerY(shapes.get('MiddleRetry'))
+      ];
+
+      assert.deepStrictEqual(rows.slice(1).map((row, index) => {
+        return row - rows[index];
+      }), [ 110, 110, 110, 110 ]);
+      assert.strictEqual(
+        centerY(shapes.get('OuterRetry')),
+        centerY(shapes.get('DeepChoice'))
+      );
+
+      const split = shapes.get('Split');
+      const localChannelY = split.y - 2 * ROUTING_MARGIN;
+      const direct = edges.get('Flow_direct_feedback');
+      const nested = edges.get('Flow_nested_feedback');
+
+      assert.strictEqual(direct[direct.length - 2].y, localChannelY);
+      assert.strictEqual(nested[nested.length - 2].y, localChannelY);
+      assert.deepStrictEqual(
+        direct.slice(-2).map(({ x, y }) => ({ x, y })),
+        nested.slice(-2).map(({ x, y }) => ({ x, y }))
+      );
+
+      const maxY = Math.max(...[ ...shapes.values() ].map(shape => {
+        return shape.y + shape.height;
+      }));
+      const middle = edges.get('Flow_middle_feedback');
+      const outer = edges.get('Flow_outer_feedback');
+
+      assert.strictEqual(middle[2].y, maxY + ROUTING_MARGIN);
+      assert.strictEqual(outer[2].y, maxY + 2 * ROUTING_MARGIN);
+    });
+
+    it('should move feedback away from a boundary-handler side', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'scenario.feedback-side-choice.bpmn'),
+        'utf8'
+      );
+      const output = await layoutProcess(xml);
+
+      assert.strictEqual(await layoutProcess(xml), output);
+
+      const rootElement = await readLayoutDiagram(output);
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const edges = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
+        .map(element => [ element.bpmnElement.id, element.waypoint ]));
+      const centerY = (bounds: Bounds): number => bounds.y + bounds.height / 2;
+      const split = shapes.get('Gateway_0l5yog5');
+      const spineY = centerY(split);
+
+      assert.strictEqual(centerY(shapes.get('Activity_03ca02k')), spineY);
+      assert.ok(centerY(shapes.get('Activity_1ju5zdt')) < spineY);
+      assert.ok(centerY(shapes.get('Activity_17hkzcm')) < spineY);
+      assert.ok(centerY(shapes.get('Activity_0g2whog')) > spineY);
+
+      const target = shapes.get('Gateway_1g8ywo2');
+      const returns = [
+        edges.get('Flow_15cmzce'),
+        edges.get('Flow_1ajepfh')
+      ];
+
+      for (const points of returns) {
+        assert.ok(Math.min(...points.map(({ y }) => y)) < split.y);
+        assert.strictEqual(last(points).y, target.y);
+      }
+    });
+
+    it('should optimize independent feedback regions independently', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'scenario.independent-feedback-regions.bpmn'),
+        'utf8'
+      );
+      const rootElement = await readLayoutDiagram(await layoutProcess(xml));
+      const shapes = new RequiredMap(
+        rootElement.diagrams[0].plane.planeElement
+          .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+          .map(element => [ element.bpmnElement.id, element.bounds ])
+      );
+      const centerY = (bounds: Bounds): number => bounds.y + bounds.height / 2;
+      const spineY = centerY(shapes.get('Gateway_0ccw2ak'));
+
+      assert.ok(centerY(shapes.get('Activity_0f46xhj')) < spineY);
+      assert.ok(centerY(shapes.get('Activity_1xl89e2')) > spineY);
+      assert.ok(centerY(shapes.get('Activity_0pjoovf')) > spineY);
+    });
+
+    it('should reject feedback moves across lane boundaries', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'scenario.lane-contained-feedback.bpmn'),
+        'utf8'
+      );
+      const rootElement = await readLayoutDiagram(await layoutProcess(xml));
+      const shapes = new RequiredMap(
+        rootElement.diagrams[0].plane.planeElement
+          .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+          .map(element => [ element.bpmnElement.id, element.bounds ])
+      );
+      const upperLane = shapes.get('Lane_1f9vgyp');
+      const lowerLane = shapes.get('Lane_0a339ok');
+
+      for (const id of [ 'Activity_1ybax3o', 'Event_0jcdgm9' ]) {
+        const shape = shapes.get(id);
+
+        assert.ok(shape.y >= upperLane.y);
+        assert.ok(shape.y + shape.height <= upperLane.y + upperLane.height);
+      }
+
+      const handler = shapes.get('Activity_1wzukqc');
+
+      assert.ok(handler.y >= lowerLane.y);
+      assert.ok(handler.y + handler.height <= lowerLane.y + lowerLane.height);
+    });
+
     it('should place detached boundary handlers before nearby alternatives', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'camunda-consulting.lifesci-pharmacovigilance.bpmn'),

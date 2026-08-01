@@ -32,7 +32,9 @@ type LaneRowState = {
 };
 type RowsByLane = Map<Lane, LaneRecord[][]>;
 type LaneHeights = Map<Lane, number>;
-type LaneSemanticPolicy = Pick<SemanticPolicy, 'backEdges' | 'straightEdges'>;
+type LaneSemanticPolicy = Pick<SemanticPolicy,
+  'backEdges' | 'straightEdges' | 'compactFeedbackNodes'
+>;
 
 function getRequired<Value>(value: Value | undefined): Value {
   if (value === undefined) {
@@ -45,6 +47,7 @@ function getRequired<Value>(value: Value | undefined): Value {
 import { is } from '../../../di/DiUtil.js';
 import { LayoutError } from '../../../LayoutError.js';
 import {
+  FEEDBACK_REGION_VERTICAL_GAP,
   LANE_CONTENT_PADDING,
   MIN_LANE_CONTENT_WIDTH,
   MIN_LANE_HEIGHT,
@@ -74,10 +77,10 @@ export function applyLaneMembership(
     memberships,
     policy
   );
-  const laneHeights = measureLaneHeights(lanes, rowsByLane);
+  const laneHeights = measureLaneHeights(lanes, rowsByLane, policy);
 
   createLaneBounds(lanes, laneWidth, laneHeights, layout);
-  positionLaneRows(lanes, rowsByLane, layout);
+  positionLaneRows(lanes, rowsByLane, policy, layout);
 }
 
 function collectLaneMemberships(lanes: Lane[]): LaneMemberships {
@@ -312,11 +315,15 @@ function collectRowsByLane(
   return rowsByLane;
 }
 
-function measureLaneHeights(lanes: Lane[], rowsByLane: RowsByLane): LaneHeights {
+function measureLaneHeights(
+    lanes: Lane[],
+    rowsByLane: RowsByLane,
+    policy: LaneSemanticPolicy
+): LaneHeights {
   const laneHeights: LaneHeights = new Map();
 
   for (const lane of topLevelLanes(lanes)) {
-    requiredLaneHeight(lane, rowsByLane, laneHeights);
+    requiredLaneHeight(lane, rowsByLane, laneHeights, policy);
   }
 
   return laneHeights;
@@ -325,7 +332,8 @@ function measureLaneHeights(lanes: Lane[], rowsByLane: RowsByLane): LaneHeights 
 function requiredLaneHeight(
     lane: Lane,
     rowsByLane: RowsByLane,
-    laneHeights: LaneHeights
+    laneHeights: LaneHeights,
+    policy: LaneSemanticPolicy
 ): number {
   if (laneHeights.has(lane)) {
     return getRequired(laneHeights.get(lane));
@@ -335,13 +343,13 @@ function requiredLaneHeight(
   const directHeight = rows.length
     ? rows.reduce((total, row) => {
       return total + Math.max(...row.map(record => record.bounds.height));
-    }, 0) + Math.max(0, rows.length - 1) * VERTICAL_GAP + 2 * VERTICAL_GAP
+    }, 0) + totalRowGaps(rows, policy) + 2 * VERTICAL_GAP
     : 0;
   const childrenHeight = (lane.childLaneSet?.lanes || []).reduce((
       total,
       child
   ) => {
-    return total + requiredLaneHeight(child, rowsByLane, laneHeights);
+    return total + requiredLaneHeight(child, rowsByLane, laneHeights, policy);
   }, 0);
   const height = Math.max(MIN_LANE_HEIGHT, directHeight, childrenHeight);
 
@@ -368,6 +376,7 @@ function createLaneBounds(
 function positionLaneRows(
     lanes: Lane[],
     rowsByLane: RowsByLane,
+    policy: LaneSemanticPolicy,
     layout: LayoutState
 ): void {
   for (const lane of lanes) {
@@ -380,11 +389,11 @@ function positionLaneRows(
 
     const totalHeight = rows.reduce((total, row) => {
       return total + Math.max(...row.map(record => record.bounds.height));
-    }, 0) + Math.max(0, rows.length - 1) * VERTICAL_GAP;
+    }, 0) + totalRowGaps(rows, policy);
     let recordY = laneBounds.y +
       Math.round((laneBounds.height - totalHeight) / 2);
 
-    for (const row of rows) {
+    for (const [ index, row ] of rows.entries()) {
       const rowHeight = Math.max(
         ...row.map(record => record.bounds.height)
       );
@@ -394,9 +403,35 @@ function positionLaneRows(
         record.bounds.y = centerY - record.bounds.height / 2;
       }
 
-      recordY += rowHeight + VERTICAL_GAP;
+      recordY += rowHeight + (
+        index < rows.length - 1
+          ? laneRowGap(row, getRequired(rows[index + 1]), policy)
+          : 0
+      );
     }
   }
+}
+
+function totalRowGaps(
+    rows: LaneRecord[][],
+    policy: LaneSemanticPolicy
+): number {
+  return rows.slice(1).reduce((total, row, index) => {
+    return total + laneRowGap(getRequired(rows[index]), row, policy);
+  }, 0);
+}
+
+function laneRowGap(
+    a: LaneRecord[],
+    b: LaneRecord[],
+    policy: LaneSemanticPolicy
+): number {
+  const compact = policy.compactFeedbackNodes;
+  const feedbackAdjacent = compact && [ ...a, ...b ].some(record => {
+    return compact.has(record.element);
+  });
+
+  return feedbackAdjacent ? FEEDBACK_REGION_VERTICAL_GAP : VERTICAL_GAP;
 }
 
 function topLevelLanes(lanes: Lane[]): Lane[] {

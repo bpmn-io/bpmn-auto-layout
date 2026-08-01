@@ -1,6 +1,7 @@
 import { is } from '../../../di/DiUtil.js';
 import { hasEventDefinition } from '../../bpmn/Predicates.js';
 import type {
+  FeedbackRegion,
   LayoutRecord,
   RankAssignment,
   SemanticPolicy as LayoutSemanticPolicy
@@ -42,7 +43,8 @@ type EdgeOrder = Map<FlowEdge, number>;
 type SemanticPolicy = Omit<LayoutSemanticPolicy,
   'spine' | 'straightEdges' | 'bands' | 'components' | 'edgeOrder' |
   'flowNodeDocumentIndex' | 'graphEdges' | 'compactFlowRegions' |
-  'rankWeights' | 'backEdges' | 'boundaryBayEdges'
+  'rankWeights' | 'backEdges' | 'boundaryBayEdges' |
+  'feedbackBranchDepths' | 'innerFeedbackEdges' | 'nestedFeedbackLevels'
 > & {
   spine: Set<FlowEdge>;
   straightEdges: Set<FlowEdge>;
@@ -55,9 +57,18 @@ type SemanticPolicy = Omit<LayoutSemanticPolicy,
   rankWeights: Map<FlowEdge, number>;
   backEdges: Set<FlowEdge>;
   boundaryBayEdges: Set<FlowEdge>;
+  feedbackBranchDepths: Map<FlowEdge, number>;
+  innerFeedbackEdges: Set<FlowEdge>;
+  nestedFeedbackLevels: Map<FlowEdge, number>;
 };
 type OutgoingEdges = Map<FlowNode, FlowEdge[]>;
 type FlowNodeIndex = Map<FlowNode, number>;
+type FeedbackTrace = {
+  nodes: Set<FlowNode>;
+  targets: Set<FlowNode>;
+  returnEdges: Map<FlowEdge, FlowNode>;
+  predecessors: Map<FlowNode, Set<FlowNode>>;
+};
 type LinkEvents = {
   throwEvent?: FlowNode;
   catchEvent?: FlowNode;
@@ -141,6 +152,20 @@ export function createSemanticPolicy(
     edgeOrder,
     spine
   );
+  const feedbackRegions = findFeedbackRegions(
+    records.map(record => record.element),
+    outgoing,
+    straightEdges,
+    spine
+  );
+  preferFeedbackStraightEdges(
+    records,
+    outgoing,
+    edgeOrder,
+    spine,
+    straightEdges,
+    feedbackRegions.branchDepths
+  );
   const bands = assignSemanticBands(
     records,
     graphEdges,
@@ -150,7 +175,9 @@ export function createSemanticPolicy(
     allElementsDocumentIndex,
     edgeOrder,
     components,
-    backEdges
+    backEdges,
+    feedbackRegions.oneSidedSplits,
+    feedbackRegions.branchDepths
   );
 
   adjustJoinRankWeights(graphEdges, bands, rankWeights);
@@ -167,7 +194,12 @@ export function createSemanticPolicy(
     compactFlowRegions,
     rankWeights,
     backEdges,
-    boundaryBayEdges: new Set<FlowEdge>()
+    boundaryBayEdges: new Set<FlowEdge>(),
+    compactFeedbackNodes: feedbackRegions.nodes,
+    feedbackBranchDepths: feedbackRegions.branchDepths,
+    innerFeedbackEdges: feedbackRegions.innerReturnEdges,
+    nestedFeedbackLevels: feedbackRegions.nestedReturnLevels,
+    feedbackRegions: feedbackRegions.regions
   };
 }
 
@@ -742,7 +774,9 @@ function assignSemanticBands(
     allElementsDocumentIndex: Map<BpmnElement, number>,
     edgeIndex: EdgeOrder,
     components: Map<FlowNode, number>,
-    backEdges: Set<FlowEdge>
+    backEdges: Set<FlowEdge>,
+    oneSidedSplits: Set<FlowNode>,
+    feedbackBranchDepths: Map<FlowEdge, number>
 ): Map<FlowNode, number> {
   const nodes = records.map(record => record.element);
   const outgoing: OutgoingEdges = new Map();
@@ -801,8 +835,27 @@ function assignSemanticBands(
     getRequired(occupied.get(component)).add(band);
 
     const candidates = (outgoing.get(node) || [])
-      .filter(edge => !backEdges.has(edge))
-      .sort((a, b) => (edgeIndex.get(a) ?? 0) - (edgeIndex.get(b) ?? 0));
+      .filter(edge => !backEdges.has(edge));
+    const feedbackDepths = candidates
+      .map(edge => feedbackBranchDepths.get(edge))
+      .filter((depth): depth is number => depth !== undefined);
+    const feedbackDirection = feedbackDepths.includes(0) ? 1 : -1;
+
+    candidates.sort((a, b) => {
+      const depthA = feedbackBranchDepths.get(a);
+      const depthB = feedbackBranchDepths.get(b);
+
+      if (depthA !== undefined && depthB !== undefined) {
+        return feedbackDirection * (depthA - depthB) ||
+          (edgeIndex.get(a) ?? 0) - (edgeIndex.get(b) ?? 0);
+      }
+
+      if (depthA !== undefined || depthB !== undefined) {
+        return depthA !== undefined ? -1 : 1;
+      }
+
+      return (edgeIndex.get(a) ?? 0) - (edgeIndex.get(b) ?? 0);
+    });
     const primary = candidates.find(edge => straightEdges.has(edge)) || candidates[0];
 
     if (primary) {
@@ -816,7 +869,7 @@ function assignSemanticBands(
         continue;
       }
 
-      const oneSided = Boolean(node.default);
+      const oneSided = Boolean(node.default) || oneSidedSplits.has(node);
       const outwardDirection = oneSided && band !== 0 ? Math.sign(band) : 1;
       const offset = branchOffset(branchIndex++, oneSided) * outwardDirection;
 
@@ -855,6 +908,383 @@ function assignSemanticBands(
   }
 
   return bands;
+}
+
+function findFeedbackRegions(
+    nodes: FlowNode[],
+    outgoing: OutgoingEdges,
+    straightEdges: Set<FlowEdge>,
+    spine: Set<FlowEdge>
+): {
+    oneSidedSplits: Set<FlowNode>;
+    nodes: Set<FlowNode>;
+    branchDepths: Map<FlowEdge, number>;
+    innerReturnEdges: Set<FlowEdge>;
+    nestedReturnLevels: Map<FlowEdge, number>;
+    regions: FeedbackRegion[];
+  } {
+  const oneSidedSplits = new Set<FlowNode>();
+  const regionNodes = new Set<FlowNode>();
+  const branchDepths = new Map<FlowEdge, number>();
+  const innerReturnEdges = new Set<FlowEdge>();
+  const nestedReturnLevels = new Map<FlowEdge, number>();
+  const regions: FeedbackRegion[] = [];
+  const spineOutgoing: OutgoingEdges = new Map(nodes.map(node => [ node, [] ]));
+
+  for (const edge of spine) {
+    getOutgoing(spineOutgoing, edge.sourceRef).push(edge);
+  }
+
+  for (const node of nodes) {
+    const candidates = (outgoing.get(node) || [])
+      .filter(edge => edge.targetRef !== node);
+    const primary = candidates.find(edge => straightEdges.has(edge)) || candidates[0];
+    const alternatives = candidates.filter(edge => edge !== primary);
+    const alternativeTraces = alternatives.map(edge => ({
+      edge,
+      trace: traceFeedbackBranch(
+        edge.targetRef,
+        node,
+        outgoing,
+        spineOutgoing
+      )
+    }));
+    const branches = alternativeTraces
+      .filter(({ trace }) => trace.targets.size > 0)
+      .map(({ edge, trace }) => {
+        const depths = [ ...trace.targets ]
+          .map(target => spineDistance(target, node, spineOutgoing))
+          .filter((depth): depth is number => depth !== null);
+
+        return {
+          entry: edge.targetRef,
+          nodes: new Set<BpmnElement>(trace.nodes),
+          returnEdges: new Set<BpmnElement>(trace.returnEdges.keys()),
+          maximumReturnDepth: depths.length ? Math.max(...depths) : 0
+        };
+      });
+
+    if (branches.length) {
+      regions.push({
+        split: node,
+        branches,
+        children: []
+      });
+    }
+
+    if (alternatives.length < 2) {
+      continue;
+    }
+
+    const traces = alternativeTraces.map(({ trace }) => trace);
+    const targetCounts = new Map<FlowNode, number>();
+
+    for (const trace of traces) {
+      for (const target of trace.targets) {
+        targetCounts.set(target, (targetCounts.get(target) || 0) + 1);
+      }
+    }
+
+    const sharedTargets = [ ...targetCounts ]
+      .filter(([ , count ]) => count > 1)
+      .map(([ target ]) => target);
+
+    if (!sharedTargets.length) {
+      continue;
+    }
+
+    oneSidedSplits.add(node);
+    const regionTraces = traces.filter(trace => {
+      return sharedTargets.some(target => trace.targets.has(target));
+    });
+    const currentRegionNodes = new Set<FlowNode>();
+
+    for (const trace of regionTraces) {
+      trace.nodes.forEach(regionNode => {
+        regionNodes.add(regionNode);
+        currentRegionNodes.add(regionNode);
+      });
+    }
+
+    const returnDepths = new Map<FlowEdge, number>();
+
+    for (const trace of regionTraces) {
+      for (const [ edge, target ] of trace.returnEdges) {
+        const depth = spineDistance(target, node, spineOutgoing);
+
+        if (depth !== null) {
+          returnDepths.set(edge, depth);
+        }
+      }
+    }
+
+    const distinctDepths = new Set(returnDepths.values());
+
+    for (const [ edge, depth ] of returnDepths) {
+      if (depth === 0) {
+        innerReturnEdges.add(edge);
+      }
+    }
+
+    if (distinctDepths.size > 1) {
+      const positiveDepths = [ ...distinctDepths ]
+        .filter(depth => depth > 0)
+        .sort((a, b) => a - b);
+
+      for (const [ edge, depth ] of returnDepths) {
+        if (depth === 0) {
+          continue;
+        }
+
+        const level = positiveDepths.indexOf(depth) + 1;
+
+        if (level) {
+          nestedReturnLevels.set(
+            edge,
+            Math.max(nestedReturnLevels.get(edge) || 0, level)
+          );
+        }
+      }
+    }
+
+    for (const regionNode of [ node, ...currentRegionNodes ]) {
+      const branches = outgoing.get(regionNode) || [];
+
+      if (branches.length < 2) {
+        continue;
+      }
+
+      for (const edge of branches) {
+        const trace = traceFeedbackBranch(
+          edge.targetRef,
+          node,
+          outgoing,
+          spineOutgoing
+        );
+        const depths = [ ...trace.targets ]
+          .map(target => spineDistance(target, node, spineOutgoing))
+          .filter((depth): depth is number => depth !== null);
+
+        if (depths.length) {
+          const depth = Math.max(...depths);
+          branchDepths.set(
+            edge,
+            Math.max(branchDepths.get(edge) ?? depth, depth)
+          );
+        }
+      }
+    }
+  }
+
+  return {
+    oneSidedSplits,
+    nodes: regionNodes,
+    branchDepths,
+    innerReturnEdges,
+    nestedReturnLevels,
+    regions: nestFeedbackRegions(regions)
+  };
+}
+
+function nestFeedbackRegions(regions: FeedbackRegion[]): FeedbackRegion[] {
+  const roots: FeedbackRegion[] = [];
+
+  for (const region of regions) {
+    const parent = regions
+      .filter(candidate => {
+        return candidate !== region && candidate.branches.some(branch => {
+          return branch.nodes.has(region.split);
+        });
+      })
+      .sort((a, b) => {
+        return feedbackRegionNodeCount(a) - feedbackRegionNodeCount(b);
+      })[0];
+
+    if (parent) {
+      parent.children.push(region);
+    } else {
+      roots.push(region);
+    }
+  }
+
+  return roots;
+}
+
+function feedbackRegionNodeCount(region: FeedbackRegion): number {
+  return new Set(region.branches.flatMap(branch => [ ...branch.nodes ])).size;
+}
+
+function traceFeedbackBranch(
+    start: FlowNode,
+    split: FlowNode,
+    outgoing: OutgoingEdges,
+    spineOutgoing: OutgoingEdges
+): FeedbackTrace {
+  const visited = new Set<FlowNode>();
+  const targets = new Set<FlowNode>();
+  const returnEdges = new Map<FlowEdge, FlowNode>();
+  const predecessors = new Map<FlowNode, Set<FlowNode>>();
+  const pending = [ start ];
+
+  while (pending.length) {
+    const node = getRequired(pending.shift());
+
+    if (visited.has(node)) {
+      continue;
+    }
+
+    visited.add(node);
+
+    for (const edge of outgoing.get(node) || []) {
+      if (canReachNode(edge.targetRef, split, spineOutgoing, new Set())) {
+        targets.add(edge.targetRef);
+        returnEdges.set(edge, edge.targetRef);
+      } else {
+        if (!predecessors.has(edge.targetRef)) {
+          predecessors.set(edge.targetRef, new Set());
+        }
+
+        getRequired(predecessors.get(edge.targetRef)).add(node);
+        pending.push(edge.targetRef);
+      }
+    }
+  }
+
+  return {
+    nodes: feedbackNodesLeadingTo(
+      { nodes: visited, targets, returnEdges, predecessors },
+      targets
+    ),
+    targets,
+    returnEdges,
+    predecessors
+  };
+}
+
+function feedbackNodesLeadingTo(
+    trace: FeedbackTrace,
+    targets: Set<FlowNode>
+): Set<FlowNode> {
+  const nodes = new Set<FlowNode>();
+  const pending = [ ...trace.returnEdges ]
+    .filter(([ , target ]) => targets.has(target))
+    .map(([ edge ]) => edge.sourceRef);
+
+  while (pending.length) {
+    const node = getRequired(pending.shift());
+
+    if (nodes.has(node)) {
+      continue;
+    }
+
+    nodes.add(node);
+    pending.push(...(trace.predecessors.get(node) || []));
+  }
+
+  return nodes;
+}
+
+function spineDistance(
+    start: FlowNode,
+    target: FlowNode,
+    outgoing: OutgoingEdges
+): number | null {
+  const pending: Array<{ node: FlowNode; distance: number }> = [
+    { node: start, distance: 0 }
+  ];
+  const visited = new Set<FlowNode>();
+
+  while (pending.length) {
+    const current = getRequired(pending.shift());
+
+    if (current.node === target) {
+      return current.distance;
+    }
+
+    if (visited.has(current.node)) {
+      continue;
+    }
+
+    visited.add(current.node);
+
+    for (const edge of outgoing.get(current.node) || []) {
+      pending.push({
+        node: edge.targetRef,
+        distance: current.distance + 1
+      });
+    }
+  }
+
+  return null;
+}
+
+function preferFeedbackStraightEdges(
+    records: FlowRecord[],
+    outgoing: OutgoingEdges,
+    edgeOrder: EdgeOrder,
+    spine: Set<FlowEdge>,
+    straightEdges: Set<FlowEdge>,
+    branchDepths: Map<FlowEdge, number>
+): void {
+  for (const { element } of records) {
+    const candidates = outgoing.get(element) || [];
+
+    if (candidates.length < 2 || candidates.some(edge => spine.has(edge))) {
+      continue;
+    }
+
+    const feedbackCandidates = candidates.filter(edge => {
+      return branchDepths.has(edge);
+    });
+
+    if (feedbackCandidates.length < 2) {
+      continue;
+    }
+
+    const hasLocalReturn = feedbackCandidates.some(edge => {
+      return branchDepths.get(edge) === 0;
+    });
+    const preferred = [ ...feedbackCandidates ].sort((a, b) => {
+      const depthDifference =
+        getRequired(branchDepths.get(a)) - getRequired(branchDepths.get(b));
+
+      return (hasLocalReturn ? depthDifference : -depthDifference) ||
+        (edgeOrder.get(a) ?? 0) - (edgeOrder.get(b) ?? 0);
+    })[0];
+
+    candidates.forEach(edge => straightEdges.delete(edge));
+    straightEdges.add(preferred);
+  }
+}
+
+function canReachNode(
+    node: FlowNode,
+    target: FlowNode,
+    outgoing: OutgoingEdges,
+    visited: Set<FlowNode>
+): boolean {
+  if (node === target) {
+    return true;
+  }
+
+  if (visited.has(node)) {
+    return false;
+  }
+
+  visited.add(node);
+
+  for (const edge of outgoing.get(node) || []) {
+    if (canReachNode(
+      edge.targetRef,
+      target,
+      outgoing,
+      visited
+    )) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function selectPrimaryEdge(

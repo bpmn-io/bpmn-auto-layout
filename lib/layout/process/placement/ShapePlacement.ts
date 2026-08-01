@@ -33,7 +33,8 @@ type BoundaryRecord = ShapeRecord & {
 };
 type ShapeRecordsByElement = Map<FlowNode, ShapeRecord>;
 type PlacementPolicy = Pick<SemanticPolicy,
-  'bands' | 'components' | 'backEdges' | 'straightEdges'
+  'bands' | 'components' | 'backEdges' | 'straightEdges' |
+  'compactFeedbackNodes'
 >;
 type RankRecords = Map<number, ShapeRecord[]>;
 type ComponentItem = {
@@ -64,7 +65,14 @@ function isBoundaryRecord(record: ShapeRecord): record is BoundaryRecord {
 }
 
 import { is } from '../../../di/DiUtil.js';
-import { HORIZONTAL_GAP, VERTICAL_GAP, ROUTING_MARGIN, SEMANTIC_BAND_HEIGHT, BOUNDARY_EVENT_SPACING } from '../../Constants.js';
+import {
+  BOUNDARY_EVENT_SPACING,
+  FEEDBACK_REGION_VERTICAL_GAP,
+  HORIZONTAL_GAP,
+  ROUTING_MARGIN,
+  SEMANTIC_BAND_HEIGHT,
+  VERTICAL_GAP
+} from '../../Constants.js';
 import { hasEventDefinition } from '../../bpmn/Predicates.js';
 import { bounds, rectanglesOverlap, getRecordExtents } from '../../geometry/index.js';
 
@@ -117,6 +125,101 @@ export function placeRecords(
     }
   }
 
+}
+
+export function compactFeedbackRows(
+    records: ShapeRecord[],
+    policy: PlacementPolicy
+): void {
+  const feedbackNodes = policy.compactFeedbackNodes;
+
+  if (!feedbackNodes?.size) {
+    return;
+  }
+
+  const groups = new Map<string, ShapeRecord[]>();
+
+  for (const record of records) {
+    if (!feedbackNodes.has(record.element)) {
+      continue;
+    }
+
+    const band = policy.bands.get(record.element) || 0;
+
+    if (!band) {
+      continue;
+    }
+
+    const key = `${policy.components.get(record.element)}:${Math.sign(band)}`;
+
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+
+    getRequired(groups.get(key)).push(record);
+  }
+
+  for (const group of groups.values()) {
+    compactFeedbackGroup(records, group, policy);
+  }
+}
+
+function compactFeedbackGroup(
+    records: ShapeRecord[],
+    group: ShapeRecord[],
+    policy: PlacementPolicy
+): void {
+  const bands = [ ...new Set(group.map(record => {
+    return policy.bands.get(record.element) || 0;
+  })) ].sort((a, b) => Math.abs(a) - Math.abs(b));
+  const direction = Math.sign(getRequired(bands[0]));
+  const rowHeight = SEMANTIC_BAND_HEIGHT + FEEDBACK_REGION_VERTICAL_GAP;
+  const compactCenterByBand = new Map(bands.map((band, index) => {
+    return [ band, direction * (index + 1) * rowHeight ];
+  }));
+  const candidates = new Map<ShapeRecord, Bounds>();
+
+  for (const record of group) {
+    const band = policy.bands.get(record.element) || 0;
+    const currentCenter = band * (VERTICAL_GAP + SEMANTIC_BAND_HEIGHT);
+    const compactCenter = getRequired(compactCenterByBand.get(band));
+
+    candidates.set(record, bounds(
+      record.bounds.x,
+      record.bounds.y + compactCenter - currentCenter,
+      record.bounds.width,
+      record.bounds.height
+    ));
+  }
+
+  if (createsCompactRowOverlap(records, candidates)) {
+    return;
+  }
+
+  for (const [ record, candidate ] of candidates) {
+    record.bounds = candidate;
+  }
+}
+
+function createsCompactRowOverlap(
+    records: ShapeRecord[],
+    candidates: Map<ShapeRecord, Bounds>
+): boolean {
+  return records.some((record, index) => {
+    const candidate = candidates.get(record) || record.bounds;
+
+    return records.slice(index + 1).some(other => {
+      const otherCandidate = candidates.get(other) || other.bounds;
+      const horizontalOverlap =
+        candidate.x < otherCandidate.x + otherCandidate.width &&
+        otherCandidate.x < candidate.x + candidate.width;
+      const verticallySeparated =
+        candidate.y + candidate.height + FEEDBACK_REGION_VERTICAL_GAP <= otherCandidate.y ||
+        otherCandidate.y + otherCandidate.height + FEEDBACK_REGION_VERTICAL_GAP <= candidate.y;
+
+      return horizontalOverlap && !verticallySeparated;
+    });
+  });
 }
 
 export function clearBoundaryHandlerExits(

@@ -1,12 +1,15 @@
 import { is } from '../../../di/DiUtil.js';
 import { isArtifact } from '../../bpmn/Predicates.js';
-import { getExpandedChildShapes } from '../../geometry/index.js';
 import { edgePriority } from '../semantics/SemanticPolicy.js';
 import { routeConnection } from '../routing/SequenceFlowRouting.js';
 
 import type {
+  BpmnElement,
+  Bounds,
+  LayoutState,
   ProcessLayoutContext,
-  SemanticPolicy as LayoutSemanticPolicy
+  SemanticPolicy as LayoutSemanticPolicy,
+  Waypoint
 } from '../../Types.js';
 
 type RoutingPolicy = Parameters<typeof routeConnection>[5];
@@ -15,12 +18,43 @@ type ProcessRoutingPolicy = RoutingPolicy & PriorityPolicy;
 
 export function routeSequenceFlows(context: ProcessLayoutContext): ProcessLayoutContext {
   const { layout } = context;
-  const { sequenceFlows } = context.elements;
-  const policy = getRoutingPolicy(context.semantics.policy);
+  const routed = routeSequenceFlowLayout({
+    shapes: layout.shapes,
+    children: layout.children,
+    flows: context.elements.sequenceFlows,
+    policy: context.semantics.policy
+  });
+
+  layout.edges.clear();
+
+  for (const [ flow, points ] of routed) {
+    layout.edges.set(flow, points);
+  }
+
+  return context;
+}
+
+export function routeSequenceFlowLayout({
+  shapes: layoutShapes,
+  children,
+  flows,
+  policy: semanticPolicy,
+  adaptiveFeedbackSide = false
+}: {
+  shapes: Map<BpmnElement, Bounds>;
+  children: LayoutState[];
+  flows: BpmnElement[];
+  policy: ProcessLayoutContext['semantics']['policy'];
+  adaptiveFeedbackSide?: boolean;
+}): Map<BpmnElement, Waypoint[]> {
+  const basePolicy = getRoutingPolicy(semanticPolicy);
+  const policy = adaptiveFeedbackSide
+    ? { ...basePolicy, adaptiveFeedbackSide: true }
+    : basePolicy;
   const routedConnections: Parameters<typeof routeConnection>[4] = [];
   const shapes = [
-    ...layout.shapes.entries(),
-    ...getExpandedChildShapes(layout)
+    ...layoutShapes.entries(),
+    ...getEmittedChildShapes(children)
   ]
     .filter(([ element ]) => {
       return !is(element, 'bpmn:Lane') &&
@@ -28,14 +62,15 @@ export function routeSequenceFlows(context: ProcessLayoutContext): ProcessLayout
         !isArtifact(element);
     })
     .map(([ element, rect ]) => ({ element, rect }));
-  const ordered = sequenceFlows.filter(isRoutableSequenceFlow).sort((a, b) => {
+  const ordered = flows.filter(isRoutableSequenceFlow).sort((a, b) => {
     return edgePriority(a, policy) - edgePriority(b, policy) ||
       getRequired(policy.edgeOrder.get(a)) - getRequired(policy.edgeOrder.get(b));
   });
+  const routed = new Map<BpmnElement, Waypoint[]>();
 
   for (const flow of ordered) {
-    const source = layout.shapes.get(flow.sourceRef);
-    const target = layout.shapes.get(flow.targetRef);
+    const source = layoutShapes.get(flow.sourceRef);
+    const target = layoutShapes.get(flow.targetRef);
 
     if (!source || !target) {
       continue;
@@ -50,11 +85,28 @@ export function routeSequenceFlows(context: ProcessLayoutContext): ProcessLayout
       policy
     );
 
-    layout.edges.set(flow, points);
+    routed.set(flow, points);
     routedConnections.push({ flow, points });
   }
 
-  return context;
+  return routed;
+}
+
+function getEmittedChildShapes(
+    children: LayoutState[]
+): Array<[ BpmnElement, Bounds ]> {
+  const shapes: Array<[ BpmnElement, Bounds ]> = [];
+
+  for (const child of children) {
+    if (!child.emitInParent) {
+      continue;
+    }
+
+    shapes.push(...child.shapes.entries());
+    shapes.push(...getEmittedChildShapes(child.children));
+  }
+
+  return shapes;
 }
 
 
