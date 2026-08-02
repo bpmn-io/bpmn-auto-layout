@@ -155,7 +155,8 @@ tests freshly built `dist/`, not stale output. Mocha discovers both
 [LayoutSpec.ts](LayoutSpec.ts) and [metrics.test.ts](metrics.test.ts): it enforces the
 snapshot assertions and runs the metrics harness. A metrics execution error or
 Band-A defect fails the command. Polish-metric changes remain review signals,
-not gates.
+not gates. The metrics suite has a 60-second timeout because it lays out the
+entire fixture corpus; other tests retain the default 15-second timeout.
 
 ## Updating snapshots
 
@@ -209,9 +210,11 @@ After every run the `after` hook builds `output/index.html` from
 - the **current output**, and
 - the **committed snapshot** (when one exists),
 
-and flags whether output and snapshot match. `npm run test:inspect` runs the
-suite to generate a fresh report, then opens it even if a snapshot assertion
-fails. The command still exits with the test result.
+and flags whether output and snapshot match. `npm run test:inspect` runs only
+the fixture snapshot suite needed to generate a fresh report, then opens it
+even if a snapshot assertion fails. The command still exits with the snapshot
+test result; run `npm run metrics` separately to review the aggregate metrics
+gate.
 The string diff identifies changed bytes; the inspector shows the resulting
 geometry.
 

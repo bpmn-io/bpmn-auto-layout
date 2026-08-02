@@ -9,6 +9,8 @@ type Waypoint = [ x: number, y: number ];
 
 describe('Layout metrics', function() {
 
+  this.timeout(60_000);
+
   it('should not contain Band-A geometry defects', async function() {
     await run();
   });

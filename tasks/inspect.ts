@@ -11,7 +11,7 @@ if (!npmExecPath) {
 
 const testExitCode = await run(
   process.execPath,
-  [ npmExecPath, 'test' ],
+  [ npmExecPath, 'test', '--', 'test/LayoutSpec.ts' ],
   { ...process.env, INSPECTOR_TIMINGS: 'true' }
 );
 
