@@ -91,6 +91,53 @@ describe('SequenceFlowRouting', function() {
     ]);
   });
 
+  it('should directly route rank-aligned adaptive feedback', function() {
+    const source = element('Source');
+    const target = element('Target');
+    const flow = sequenceFlow(source, target);
+    const sourceBounds = { x: 0, y: 160, width: 100, height: 80 };
+    const targetBounds = { x: 0, y: 0, width: 100, height: 80 };
+
+    assert.deepStrictEqual(routeConnection(
+      flow,
+      sourceBounds,
+      targetBounds,
+      shapes(source, sourceBounds, target, targetBounds),
+      [],
+      {
+        ...policy(flow, source, target),
+        adaptiveFeedbackSide: true,
+        backEdges: new Set([ flow ])
+      }
+    ), [
+      { x: 50, y: 160 },
+      { x: 50, y: 80 }
+    ]);
+  });
+
+  it('should directly route band-aligned adaptive feedback', function() {
+    const source = element('Source');
+    const target = element('Target');
+    const flow = sequenceFlow(source, target);
+    const sourceBounds = { x: 200, y: 0, width: 100, height: 80 };
+    const targetBounds = { x: 0, y: 0, width: 100, height: 80 };
+
+    assert.deepStrictEqual(routeConnection(
+      flow,
+      sourceBounds,
+      targetBounds,
+      shapes(source, sourceBounds, target, targetBounds),
+      [],
+      {
+        ...policy(flow, source, target),
+        adaptiveFeedbackSide: true
+      }
+    ), [
+      { x: 200, y: 40 },
+      { x: 100, y: 40 }
+    ]);
+  });
+
   it('should route inner feedback above its nested region', function() {
     const source = element('Source');
     const target = element('Target');

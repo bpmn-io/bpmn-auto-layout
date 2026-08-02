@@ -23,6 +23,7 @@ import type { Point } from 'diagram-js/lib/util/Types.js';
 import type { Segment } from '../geometry/Geometry.js';
 
 const ASSOCIATION_OBSTACLE_CLEARANCE = 1;
+const ASSOCIATION_DOCK_INSET = ASSOCIATION_OBSTACLE_CLEARANCE + 1;
 
 type ArtifactAssociation =
   | BpmnElementFor<'bpmn:Association'>
@@ -183,9 +184,55 @@ export function artifactAssociationConnection(
     );
   }
 
+  if (
+    isCornerDock(ownerPoint, ownerBounds) ||
+    isCornerDock(artifactPoint, artifactBounds) ||
+    !dockDirectionMatches(ownerPoint, artifactPoint, ownerBounds) ||
+    !dockDirectionMatches(artifactPoint, ownerPoint, artifactBounds)
+  ) {
+    const points = orthogonalAssociationRoute(
+      owner,
+      ownerBounds,
+      artifact,
+      artifactBounds,
+      obstacles,
+      routeSegments,
+      connectionIndex,
+      connectionCount
+    );
+
+    return artifactIsSource ? points : points.reverse();
+  }
+
   return artifactIsSource
     ? [ artifactPoint, ownerPoint ]
     : [ ownerPoint, artifactPoint ];
+}
+
+function dockDirectionMatches(
+    dock: Point,
+    adjacent: Point,
+    bounds: Bounds
+): boolean {
+  return dock.x === bounds.x && adjacent.x < dock.x ||
+    dock.x === bounds.x + bounds.width && adjacent.x > dock.x ||
+    dock.y === bounds.y && adjacent.y < dock.y ||
+    dock.y === bounds.y + bounds.height && adjacent.y > dock.y;
+}
+
+function isCornerDock(dock: Point, bounds: Bounds): boolean {
+  const horizontalBoundary =
+    dock.x === bounds.x || dock.x === bounds.x + bounds.width;
+  const verticalBoundary =
+    dock.y === bounds.y || dock.y === bounds.y + bounds.height;
+
+  return horizontalBoundary && (
+    dock.y < bounds.y + ASSOCIATION_DOCK_INSET ||
+    dock.y > bounds.y + bounds.height - ASSOCIATION_DOCK_INSET
+  ) || verticalBoundary && (
+    dock.x < bounds.x + ASSOCIATION_DOCK_INSET ||
+    dock.x > bounds.x + bounds.width - ASSOCIATION_DOCK_INSET
+  );
 }
 
 function associationDockOffset(
@@ -199,8 +246,10 @@ function associationDockOffset(
   }
 
   const span = Math.min(ownerSpan, artifactSpan);
+  const offset = (index + 1) * span / (count + 1) - span / 2;
+  const maximumOffset = span / 2 - ASSOCIATION_DOCK_INSET;
 
-  return (index + 1) * span / (count + 1) - span / 2;
+  return Math.max(-maximumOffset, Math.min(maximumOffset, offset));
 }
 
 function orthogonalAssociationRoute(

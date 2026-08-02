@@ -134,10 +134,67 @@ export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shap
     ...classification,
     ...docks
   };
+  const alignedFeedbackRoute = tryAlignedFeedbackRoute(
+    flow,
+    source,
+    target,
+    clearRouter,
+    policy
+  );
+
+  if (alignedFeedbackRoute) {
+    return alignedFeedbackRoute;
+  }
+
   const preferredRoute = tryPreferredConnectionRoutes(routing);
 
   if (preferredRoute) {
     return preferredRoute;
+  }
+
+  function tryAlignedFeedbackRoute(
+      flow: FlowEdge,
+      source: Rect,
+      target: Rect,
+      router: Router,
+      policy: RoutingPolicy
+  ): MaybeRoute {
+    if (
+      !policy.adaptiveFeedbackSide ||
+      !policy.backEdges.has(flow) && target.x >= source.x
+    ) {
+      return null;
+    }
+
+    const sourceCenterX = source.x + source.width / 2;
+    const sourceCenterY = source.y + source.height / 2;
+    const targetCenterX = target.x + target.width / 2;
+    const targetCenterY = target.y + target.height / 2;
+    let route: Point[] | null = null;
+
+    if (sourceCenterX === targetCenterX) {
+      route = sourceCenterY < targetCenterY
+        ? [
+          point(sourceCenterX, source.y + source.height),
+          point(targetCenterX, target.y)
+        ]
+        : [
+          point(sourceCenterX, source.y),
+          point(targetCenterX, target.y + target.height)
+        ];
+    } else if (sourceCenterY === targetCenterY) {
+      route = sourceCenterX < targetCenterX
+        ? [
+          point(source.x + source.width, sourceCenterY),
+          point(target.x, targetCenterY)
+        ]
+        : [
+          point(source.x, sourceCenterY),
+          point(target.x + target.width, targetCenterY)
+        ];
+    }
+
+    return route && isRouteClear(router, route) ? route : null;
   }
 
   return routeConnectionWithFallbacks(routing);
@@ -684,7 +741,6 @@ function tryFeedbackDockCandidates(
     north: sourceDocks.north.y - extents.minY
   };
   const candidates: FeedbackRouteCandidate[] = [];
-
   for (let attempt = 1; attempt <= MAX_ROUTE_SEARCH_ATTEMPTS; attempt++) {
     const spacing = attempt * ROUTING_MARGIN;
     const bottomY = extents.maxY + spacing;
@@ -820,7 +876,7 @@ function tryFeedbackChannels(
       end
     ]);
 
-    if (isRouteClear(router, backRoute)) {
+    if (backRoute.length >= 2 && isRouteClear(router, backRoute)) {
       return backRoute;
     }
   }
@@ -1383,5 +1439,6 @@ function createSequenceFlowRouter(shapes: RouterShape[], sourceElement: BpmnElem
 }
 
 function isRouteClear(router: Router, points: Point[]): boolean {
-  return router.isBpmnPathClear(bpmnPathFromPoints(points));
+  return points.length >= 2 &&
+    router.isBpmnPathClear(bpmnPathFromPoints(points));
 }

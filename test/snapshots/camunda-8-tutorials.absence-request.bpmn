@@ -186,7 +186,7 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_ClarifyRequestTask" bpmnElement="ClarifyRequestTask">
-        <dc:Bounds x="1792" y="320" width="100" height="80" />
+        <dc:Bounds x="1617" y="320" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_GetNotification" bpmnElement="GetNotification">
         <dc:Bounds x="2142" y="160" width="100" height="80" />
@@ -261,10 +261,9 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1f7d78d" bpmnElement="Flow_1f7d78d">
         <di:waypoint x="1667" y="575" />
-        <di:waypoint x="1667" y="360" />
-        <di:waypoint x="1792" y="360" />
+        <di:waypoint x="1667" y="400" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1672" y="434" width="88" height="28" />
+          <dc:Bounds x="1672" y="494" width="88" height="28" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_1a3eadh" bpmnElement="Flow_1a3eadh">
@@ -286,8 +285,8 @@
         <di:waypoint x="1306" y="760" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0axp5vf" bpmnElement="Flow_0axp5vf">
-        <di:waypoint x="1842" y="320" />
-        <di:waypoint x="1842" y="300" />
+        <di:waypoint x="1667" y="320" />
+        <di:waypoint x="1667" y="300" />
         <di:waypoint x="981" y="300" />
         <di:waypoint x="981" y="575" />
       </bpmndi:BPMNEdge>

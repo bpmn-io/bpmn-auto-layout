@@ -444,18 +444,23 @@ channels below the feedback region.
 Baseline routing is followed by a bounded place-route-score-adjust stage.
 Semantic analysis exposes structured feedback regions whose branches return to
 an ancestor of their split. Nested regions are children of the smallest
-containing feedback branch; sequential regions remain independent.
+containing feedback branch; sequential regions remain independent. Geometrically
+backward sequence flows that are not part of those semantic regions contribute
+synthetic single-return regions derived from the graph path between target and
+source.
 
-The initial move generator mirrors all coherent branches of one feedback region
-across its split's horizontal spine. A moved branch includes its flow nodes,
-attached boundary events, and emitted expanded-child geometry. Candidates that
-would move a node outside its original lane or participant are not generated.
-Scopes containing artifacts retain their baseline because artifacts are placed
-after this stage and therefore are not yet available for complete candidate
-scoring. This first move generator also runs only when the scope contains a
-boundary event: its production contract is to separate feedback alternatives
-from boundary-handler pressure. The candidate, routing, scoring, and search
-framework does not otherwise depend on boundary events.
+Search first considers mirroring coherent semantic feedback regions across the
+split's horizontal spine. A mirror is accepted only when semantic spine-load
+imbalance strictly improves. Alignment search then preserves the selected side
+while considering return-source, whole-branch, and branch-entry rank or band
+alignment. It also considers moving an inbound arm or direct-return corridor
+around blocking shapes. Bounded pairwise moves may combine complementary
+operations; entry-clearance moves are support operations and are never evaluated
+alone.
+
+A moved branch includes its flow nodes, attached boundary events, and emitted
+expanded-child geometry. Candidates that would move a node outside its original
+lane or participant are not generated.
 
 Every candidate owns cloned bounds, child layouts, and waypoints. The complete
 sequence-flow set is rerouted against those cloned bounds before scoring. Scores
@@ -465,21 +470,25 @@ are compared lexicographically:
 2. edge-shape intersections;
 3. detached or wrong-way dockings;
 4. non-orthogonal or backtracking routes;
-5. crossings;
-6. unequal non-spine shape load above and below the semantic spine;
-7. footprint area;
-8. bends;
-9. route length plus node displacement;
-10. total node displacement.
+5. opposing collinear edge overlaps;
+6. feedback target-approach defects;
+7. crossings;
+8. unequal non-spine shape load above and below the semantic spine;
+9. footprint area;
+10. bends;
+11. route length plus node displacement;
+12. total node displacement.
 
-A candidate is rejected if any hard-defect count exceeds the baseline or if it
-does not strictly improve the non-spine load balance. Search
-visits regions in descending footprint order for at most two passes, evaluates
-at most 32 candidates, and caps work at 1,200 routed-edge evaluations. It uses
-no wall-clock deadline. Only a strict improvement is committed; otherwise the
-baseline bounds and routes remain unchanged. Committing copies coordinates into
-the existing bounds objects so placement records and layout state retain shared
-references.
+A candidate is rejected if any hard-defect count exceeds the baseline. Mirror
+search additionally requires improved non-spine load balance. Alignment
+candidates are evaluated round-robin across regions so a complex early region
+cannot consume the full budget. Search visits regions in descending footprint
+order for at most two passes, evaluates at most 48 candidates, and caps work at
+1,200 routed-edge evaluations. It uses no wall-clock deadline. A final candidate
+is committed only when it strictly improves the score without increasing total
+bends or raw routed length over the baseline; otherwise the baseline bounds and
+routes remain unchanged. Committing copies coordinates into the existing bounds
+objects so placement records and layout state retain shared references.
 
 ## Collaborations and message flows
 

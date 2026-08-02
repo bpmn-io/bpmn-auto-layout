@@ -1,6 +1,7 @@
 import { is } from '../../../di/DiUtil.js';
 import { isArtifact } from '../../bpmn/Predicates.js';
 import {
+  collinearOverlap,
   getShapeExtents,
   inset,
   rectanglesOverlap,
@@ -25,8 +26,10 @@ import type {
 } from '../../../moddle-types/bpmn.js';
 
 export type LayoutScore = {
+  bends: number;
   vector: number[];
   hardDefects: number[];
+  length: number;
   spineLoadImbalance: number;
 };
 
@@ -59,6 +62,12 @@ export function scorePlacementCandidate(
   const edgeShapeIntersections = countEdgeShapeIntersections(edges, shapes);
   const dockingDefects = countDockingDefects(edges, candidate.layout.shapes);
   const routeDefects = countRouteDefects(edges);
+  const opposingEdgeOverlaps = countOpposingEdgeOverlaps(edges);
+  const feedbackApproachDefects = countFeedbackApproachDefects(
+    edges,
+    candidate.layout.shapes,
+    policy
+  );
   const crossings = countCrossings(edges);
   const spineImbalance = measureSpineLoadImbalance(shapes, policy);
   const extents = getShapeExtents(shapes);
@@ -73,14 +82,18 @@ export function scorePlacementCandidate(
     overlaps,
     edgeShapeIntersections,
     dockingDefects,
-    routeDefects
+    routeDefects,
+    opposingEdgeOverlaps
   ];
 
   return {
+    bends,
     hardDefects,
+    length,
     spineLoadImbalance: spineImbalance,
     vector: [
       ...hardDefects,
+      feedbackApproachDefects,
       crossings,
       spineImbalance,
       footprint,
@@ -89,6 +102,62 @@ export function scorePlacementCandidate(
       candidate.displacement
     ]
   };
+}
+
+function countOpposingEdgeOverlaps(edges: RoutedEdge[]): number {
+  let overlaps = 0;
+
+  for (let left = 0; left < edges.length; left++) {
+    for (let right = left + 1; right < edges.length; right++) {
+      for (const [ a, b ] of toSegments(edges[left].points)) {
+        for (const [ c, d ] of toSegments(edges[right].points)) {
+          const opposing =
+            (b.x - a.x) * (d.x - c.x) +
+            (b.y - a.y) * (d.y - c.y) < 0;
+
+          if (opposing && collinearOverlap(a, b, c, d)) {
+            overlaps++;
+          }
+        }
+      }
+    }
+  }
+
+  return overlaps;
+}
+
+function countFeedbackApproachDefects(
+    edges: RoutedEdge[],
+    shapes: Map<BpmnElement, Bounds>,
+    policy: SemanticPolicy
+): number {
+  let defects = 0;
+
+  for (const edge of edges) {
+    if (!policy.backEdges.has(edge.element)) {
+      continue;
+    }
+
+    const source = shapes.get(edge.element.sourceRef);
+    const target = shapes.get(edge.element.targetRef);
+    const end = edge.points.at(-1);
+
+    if (!source || !target || !end) {
+      continue;
+    }
+
+    const sourceCenterY = source.y + source.height / 2;
+    const targetCenterY = target.y + target.height / 2;
+
+    if (
+      sourceCenterY < targetCenterY && end.y !== target.y ||
+      sourceCenterY > targetCenterY && end.y !== target.y + target.height
+    ) {
+      defects++;
+    }
+  }
+
+  return defects;
 }
 
 export function introducesHardDefect(
@@ -193,10 +262,43 @@ function countDockingDefects(
       !last ||
       !beforeLast ||
       !pointTouchesRect(first, source) ||
-      !pointTouchesRect(last, target)
+      !pointTouchesRect(last, target) ||
+      !dockingPointsOutward(first, second, source) ||
+      !dockingPointsOutward(last, beforeLast, target)
     ) {
       defects++;
       continue;
+    }
+
+    function dockingPointsOutward(
+        endpoint: Waypoint,
+        adjacent: Waypoint,
+        rect: Bounds
+    ): boolean {
+      const sides = [
+        endpoint.y === rect.y ? 'top' : null,
+        endpoint.y === rect.y + rect.height ? 'bottom' : null,
+        endpoint.x === rect.x ? 'left' : null,
+        endpoint.x === rect.x + rect.width ? 'right' : null
+      ].filter((side): side is 'top' | 'bottom' | 'left' | 'right' => !!side);
+
+      if (sides.length !== 1) {
+        return false;
+      }
+
+      if (sides[0] === 'top') {
+        return adjacent.y < endpoint.y;
+      }
+
+      if (sides[0] === 'bottom') {
+        return adjacent.y > endpoint.y;
+      }
+
+      if (sides[0] === 'left') {
+        return adjacent.x < endpoint.x;
+      }
+
+      return adjacent.x > endpoint.x;
     }
 
     if (

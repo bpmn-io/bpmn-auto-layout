@@ -498,8 +498,7 @@ describe('Layout', function(this: SuiteContext) {
 
     it('should reuse branch bands with disjoint rank intervals', async function() {
       const cases: [ string, string, string ][] = [
-        [ 'gateway.multiple-with-tasks.bpmn', 'Activity_0011ct6', 'Activity_16ahi4e' ],
-        [ 'gateway.multiple.bpmn', 'Activity_0qdwjpf', 'Activity_1387cfu' ]
+        [ 'gateway.multiple-with-tasks.bpmn', 'Activity_0011ct6', 'Activity_16ahi4e' ]
       ];
 
       for (const [ fixture, firstId, secondId ] of cases) {
@@ -517,6 +516,19 @@ describe('Layout', function(this: SuiteContext) {
           second.y + second.height / 2
         );
       }
+    });
+
+    it('should mirror a feedback arm away from the completing branch', async function() {
+      const xml = fs.readFileSync(path.join(fixturesDirectory, 'gateway.multiple.bpmn'), 'utf8');
+      const rootElement = await readLayoutDiagram(await layoutProcess(xml));
+      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const centerY = (bounds: Bounds): number => bounds.y + bounds.height / 2;
+      const spineY = centerY(shapes.get('Gateway_06frsfc'));
+
+      assert.ok(centerY(shapes.get('Activity_1387cfu')) < spineY);
+      assert.ok(centerY(shapes.get('Activity_0qdwjpf')) > spineY);
     });
 
     it('should keep boundary handler paths on coherent bands', async function() {
@@ -1023,13 +1035,12 @@ describe('Layout', function(this: SuiteContext) {
       assert.strictEqual(directBranch[1].y, directBranch[2].y);
 
       const routedBranch = edges.get('Flow_0p0ho5k').waypoint;
-      assert.strictEqual(routedBranch.length, 3);
+      assert.strictEqual(routedBranch.length, 2);
       assert.strictEqual(routedBranch[0].x, routedBranch[1].x);
-      assert.strictEqual(routedBranch[1].y, routedBranch[2].y);
 
       const feedback = edges.get('Flow_137be2r').waypoint;
       assert.strictEqual(feedback.length, 4);
-      assert.ok(feedback[1].y > last(routedBranch).y);
+      assert.ok(feedback[1].y < last(routedBranch).y);
       assert.strictEqual(feedback[0].x, feedback[1].x);
       assert.strictEqual(feedback[1].y, feedback[2].y);
       assert.strictEqual(feedback[2].x, feedback[3].x);
@@ -1616,7 +1627,7 @@ describe('Layout', function(this: SuiteContext) {
       assert.strictEqual(outer[2].y, maxY + 2 * ROUTING_MARGIN);
     });
 
-    it('should move feedback away from a boundary-handler side', async function() {
+    it('should route feedback outside the boundary-handler branch fan', async function() {
       const xml = fs.readFileSync(
         path.join(fixturesDirectory, 'scenario.feedback-side-choice.bpmn'),
         'utf8'
@@ -1638,19 +1649,24 @@ describe('Layout', function(this: SuiteContext) {
       const spineY = centerY(split);
 
       assert.strictEqual(centerY(shapes.get('Activity_03ca02k')), spineY);
-      assert.ok(centerY(shapes.get('Activity_1ju5zdt')) < spineY);
-      assert.ok(centerY(shapes.get('Activity_17hkzcm')) < spineY);
+      assert.ok(centerY(shapes.get('Activity_1ju5zdt')) > spineY);
+      assert.ok(centerY(shapes.get('Activity_17hkzcm')) > spineY);
       assert.ok(centerY(shapes.get('Activity_0g2whog')) > spineY);
 
       const target = shapes.get('Gateway_1g8ywo2');
+      const branchBottom = Math.max(
+        shapes.get('Activity_03ca02k').y + shapes.get('Activity_03ca02k').height,
+        shapes.get('Activity_1ju5zdt').y + shapes.get('Activity_1ju5zdt').height,
+        shapes.get('Activity_17hkzcm').y + shapes.get('Activity_17hkzcm').height
+      );
       const returns = [
         edges.get('Flow_15cmzce'),
         edges.get('Flow_1ajepfh')
       ];
 
       for (const points of returns) {
-        assert.ok(Math.min(...points.map(({ y }) => y)) < split.y);
-        assert.strictEqual(last(points).y, target.y);
+        assert.ok(Math.max(...points.map(({ y }) => y)) > branchBottom);
+        assert.strictEqual(last(points).y, target.y + target.height);
       }
     });
 
@@ -1671,6 +1687,68 @@ describe('Layout', function(this: SuiteContext) {
       assert.ok(centerY(shapes.get('Activity_0f46xhj')) < spineY);
       assert.ok(centerY(shapes.get('Activity_1xl89e2')) > spineY);
       assert.ok(centerY(shapes.get('Activity_0pjoovf')) > spineY);
+    });
+
+    it('should not increase application feedback return complexity', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'process.application-processing.bpmn'),
+        'utf8'
+      );
+      const rootElement = await readLayoutDiagram(await layoutProcess(xml));
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const edges = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
+        .map(element => [ element.bpmnElement.id, element.waypoint ]));
+
+      const longReturn =
+        edges.get('sid-7BA05743-5D0C-4D1C-B193-22FE2A156E22');
+      const localReturn =
+        edges.get('sid-3C44D333-01F3-43B7-AE4F-F13DD6D05DAC');
+
+      assert.ok(
+        Math.max(0, longReturn.length - 2) +
+        Math.max(0, localReturn.length - 2) <= 4
+      );
+
+      const association =
+        edges.get('sid-CC4AD237-37B5-4CDD-8697-237BE3E1F960');
+      const owner =
+        shapes.get('sid-B316767E-63CE-4A62-A9BF-AB4F0A0D517F');
+      const dock = association[0];
+
+      assert.ok(
+        dock.x !== owner.x && dock.x !== owner.x + owner.width ||
+        dock.y !== owner.y && dock.y !== owner.y + owner.height
+      );
+    });
+
+    it('should not overlap sequence flows in opposing directions', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'gateway.multiple.bpmn'),
+        'utf8'
+      );
+      const rootElement = await readLayoutDiagram(await layoutProcess(xml));
+      const edges = rootElement.diagrams[0].plane.planeElement.filter(element => {
+        return element.$instanceOf('bpmndi:BPMNEdge') &&
+          element.bpmnElement.$instanceOf('bpmn:SequenceFlow');
+      });
+
+      for (let left = 0; left < edges.length; left++) {
+        for (let right = left + 1; right < edges.length; right++) {
+          for (const [ a, b ] of toSegments(edges[left].waypoint)) {
+            for (const [ c, d ] of toSegments(edges[right].waypoint)) {
+              const opposing =
+                (b.x - a.x) * (d.x - c.x) +
+                (b.y - a.y) * (d.y - c.y) < 0;
+
+              assert.ok(!opposing || !collinearOverlap(a, b, c, d));
+            }
+          }
+        }
+      }
     });
 
     it('should reject feedback moves across lane boundaries', async function() {

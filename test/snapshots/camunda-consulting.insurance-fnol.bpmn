@@ -256,7 +256,7 @@
         <dc:Bounds x="1372" y="720" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Request_Info" bpmnElement="Request_Info">
-        <dc:Bounds x="1172" y="400" width="100" height="80" />
+        <dc:Bounds x="997" y="400" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_Send_Denial" bpmnElement="Send_Denial">
         <dc:Bounds x="1172" y="880" width="100" height="80" />
@@ -340,10 +340,9 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_d_info" bpmnElement="d_info">
         <di:waypoint x="1047" y="575" />
-        <di:waypoint x="1047" y="440" />
-        <di:waypoint x="1172" y="440" />
+        <di:waypoint x="1047" y="480" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1052" y="501" width="64" height="14" />
+          <dc:Bounds x="1052" y="521" width="64" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_d_deny" bpmnElement="d_deny">
@@ -377,8 +376,8 @@
         <di:waypoint x="686" y="760" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_loop" bpmnElement="loop">
-        <di:waypoint x="1222" y="400" />
-        <di:waypoint x="1222" y="380" />
+        <di:waypoint x="1047" y="400" />
+        <di:waypoint x="1047" y="380" />
         <di:waypoint x="536" y="380" />
         <di:waypoint x="536" y="560" />
       </bpmndi:BPMNEdge>
