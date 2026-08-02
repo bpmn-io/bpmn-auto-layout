@@ -10,8 +10,12 @@ type FlowEdge = ModdleElement<BpmnSequenceFlow> & { sourceRef: FlowNode; targetR
 type RouterShape = { element: BpmnElement; rect: Rect };
 type RoutedConnection = { flow: FlowEdge; points: Point[] };
 export type ConnectionDockAssignment = {
-  source?: DockSide;
-  target?: DockSide;
+  readonly source?: DockSide;
+  readonly target?: DockSide;
+};
+export type RoutingConstraints = {
+  readonly adaptiveFeedbackSide?: boolean;
+  readonly dockAssignment?: ConnectionDockAssignment;
 };
 type Router = ReturnType<typeof createBpmnOrthogonalRouter>;
 type RoutingPolicy = {
@@ -24,7 +28,6 @@ type RoutingPolicy = {
   feedbackBranchDepths?: Map<BpmnElement, number>;
   innerFeedbackEdges?: Set<BpmnElement>;
   nestedFeedbackLevels?: Map<BpmnElement, number>;
-  adaptiveFeedbackSide?: boolean;
 };
 type FeedbackRouteCandidate = {
   points: Point[];
@@ -41,7 +44,7 @@ type Classification = {
 };
 type Routing = Classification & { flow: FlowEdge; source: Rect; target: Rect; shapes: RouterShape[];
   routedConnections: RoutedConnection[]; policy: RoutingPolicy; router: Router; clearRouter: Router;
-  start: Point; end: Point; dockAssignment: ConnectionDockAssignment };
+  start: Point; end: Point; constraints: RoutingConstraints };
 type ShapeByElement = Map<BpmnElement, Rect>;
 type MaybeRoute = Point[] | null;
 
@@ -93,8 +96,9 @@ function getRequired<Value>(value: Value | undefined): Value {
 }
 
 const CLEAR_DOCK_X_FRACTIONS = [ 0.5, 0.25, 0.75 ];
+const NO_ROUTING_CONSTRAINTS: RoutingConstraints = Object.freeze({});
 
-export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shapes: RouterShape[], routedConnections: RoutedConnection[], policy: RoutingPolicy, dockAssignment: ConnectionDockAssignment = {}): Point[] {
+export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shapes: RouterShape[], routedConnections: RoutedConnection[], policy: RoutingPolicy, constraints: RoutingConstraints = NO_ROUTING_CONSTRAINTS): Point[] {
   const router = createSequenceFlowRouter(
     shapes,
     flow.sourceRef,
@@ -128,11 +132,12 @@ export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shap
     clearRouter,
     classification
   );
+  const dockAssignment = constraints.dockAssignment;
   const assignedDocks = {
-    start: dockAssignment.source
+    start: dockAssignment?.source
       ? getSideCenter(source, dockAssignment.source)
       : docks.start,
-    end: dockAssignment.target
+    end: dockAssignment?.target
       ? getSideCenter(target, dockAssignment.target)
       : docks.end
   };
@@ -145,7 +150,7 @@ export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shap
     policy,
     router,
     clearRouter,
-    dockAssignment,
+    constraints,
     ...classification,
     ...assignedDocks
   };
@@ -157,11 +162,11 @@ export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shap
     policy
   );
 
-  if (!dockAssignment.source && !dockAssignment.target && alignedFeedbackRoute) {
+  if (!dockAssignment?.source && !dockAssignment?.target && alignedFeedbackRoute) {
     return alignedFeedbackRoute;
   }
 
-  if (dockAssignment.source || dockAssignment.target) {
+  if (dockAssignment?.source || dockAssignment?.target) {
     const assignedRoute = tryVisibilityRoutes(routing);
 
     if (!assignedRoute) {
@@ -185,7 +190,7 @@ export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shap
       policy: RoutingPolicy
   ): MaybeRoute {
     if (
-      !policy.adaptiveFeedbackSide ||
+      !constraints.adaptiveFeedbackSide ||
       !policy.backEdges.has(flow) && target.x >= source.x
     ) {
       return null;
@@ -758,6 +763,7 @@ function tryFeedbackDockCandidates(
       flow,
       isBack,
       policy,
+      constraints,
       router,
       routedConnections,
       shapes,
@@ -782,7 +788,7 @@ function tryFeedbackDockCandidates(
   const targetSouth = point(targetCenterX, target.y + target.height);
   const targetNorth = point(targetCenterX, target.y);
   const preferTop = sourceCenterY < target.y + target.height / 2;
-  const feedbackRouter = policy.adaptiveFeedbackSide
+  const feedbackRouter = constraints.adaptiveFeedbackSide
     ? createSequenceFlowRouter(
       shapes,
       flow.sourceRef,
@@ -853,7 +859,7 @@ function tryFeedbackDockCandidates(
           targetNorth
         ])
       },
-      ...(policy.adaptiveFeedbackSide ? [ {
+      ...(constraints.adaptiveFeedbackSide ? [ {
         exposure: exposure.east,
         order: 4,
         top: true,
@@ -883,7 +889,7 @@ function tryFeedbackDockCandidates(
       candidates.push({
         points: candidate.points,
         score: [
-          ...(policy.adaptiveFeedbackSide
+          ...(constraints.adaptiveFeedbackSide
             ? [ candidate.top === preferTop ? 0 : 1 ]
             : []),
           candidate.exposure,
@@ -975,7 +981,7 @@ function tryPreferredChannel(routing: Routing, extents: { minY: number; maxY: nu
 
 function tryVisibilityRoutes({
   clearRouter,
-  dockAssignment,
+  constraints,
   end,
   shapes,
   source,
@@ -985,17 +991,18 @@ function tryVisibilityRoutes({
   start,
   target
 }: Routing) {
+  const dockAssignment = constraints.dockAssignment;
   const sourceCandidates = createDockCandidates({
     allowedSides: sourceBoundary
       ? [ getDockSide(start, source) ]
-      : dockAssignment.source
+      : dockAssignment?.source
         ? [ dockAssignment.source ]
         : undefined,
     preferredDock: start,
     rect: source
   });
   const targetCandidates = createDockCandidates({
-    allowedSides: dockAssignment.target
+    allowedSides: dockAssignment?.target
       ? [ dockAssignment.target ]
       : undefined,
     preferredDock: end,

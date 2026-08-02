@@ -425,6 +425,12 @@ then relaxes only that allocation constraint if no candidate exists. The
 selected geometry is already endpoint-legal and does not depend on finalization
 to replace its dock or route topology.
 
+Semantic policy supplies the route's BPMN intent. Candidate-local constraints
+such as forced docks or adaptive feedback routing are supplied separately, so
+post-layout optimization cannot alter semantic policy while evaluating a
+candidate. Full layout routing and selected-flow rerouting use the same route
+executor; their only difference is the initial set of already allocated edges.
+
 Shared endpoints, endpoint touches, and intentional shared endpoint channels
 are not proper crossings. Channels may be shared regardless of whether
 connections enter or leave their common endpoint.
@@ -493,6 +499,9 @@ is committed only when it strictly improves the score without increasing total
 bends or raw routed length over the baseline; otherwise the baseline bounds and
 routes remain unchanged. Committing copies coordinates into the existing bounds
 objects so placement records and layout state retain shared references.
+Both feedback and junction optimizers use the same candidate evaluator: a
+routing failure rejects the candidate, while a successful reroute produces one
+shared layout score before optimizer-specific acceptance rules apply.
 
 After adaptive feedback placement, mixed event-based gateways with exactly two
 incoming and two outgoing sequence flows undergo bounded junction optimization.

@@ -107,9 +107,9 @@ describe('SequenceFlowRouting', function() {
       [],
       {
         ...policy(flow, source, target),
-        adaptiveFeedbackSide: true,
         backEdges: new Set([ flow ])
-      }
+      },
+      { adaptiveFeedbackSide: true }
     ), [
       { x: 50, y: 160 },
       { x: 50, y: 80 }
@@ -130,9 +130,9 @@ describe('SequenceFlowRouting', function() {
       shapes(source, sourceBounds, target, targetBounds),
       [],
       {
-        ...policy(flow, source, target),
-        adaptiveFeedbackSide: true
-      }
+        ...policy(flow, source, target)
+      },
+      { adaptiveFeedbackSide: true }
     ), [
       { x: 200, y: 40 },
       { x: 100, y: 40 }
@@ -154,8 +154,10 @@ describe('SequenceFlowRouting', function() {
       [],
       policy(flow, source, target),
       {
-        source: 'south',
-        target: 'north'
+        dockAssignment: {
+          source: 'south',
+          target: 'north'
+        }
       }
     ), [
       { x: 50, y: 80 },
@@ -185,8 +187,10 @@ describe('SequenceFlowRouting', function() {
       [],
       policy(flow, source, target),
       {
-        source: 'north',
-        target: 'west'
+        dockAssignment: {
+          source: 'north',
+          target: 'west'
+        }
       }
     ), (error: unknown) => {
       return error instanceof LayoutError && error.code === 'ROUTING_FAILED';

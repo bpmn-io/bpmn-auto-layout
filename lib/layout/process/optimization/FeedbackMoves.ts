@@ -27,7 +27,7 @@ type FlowEdge = ModdleElement<BpmnSequenceFlow> & {
   sourceRef: FlowNode;
   targetRef: FlowNode;
 };
-type Movement = {
+export type Movement = {
   dx: number;
   dy: number;
 };
@@ -273,11 +273,11 @@ export function flattenFeedbackRegions(
   ]);
 }
 
-function includeAttachedBoundaryEvents(
-    layout: LayoutState,
+export function includeAttachedBoundaryEvents(
+    shapes: Map<BpmnElement, Bounds>,
     movements: Map<BpmnElement, Movement>
 ): void {
-  for (const element of layout.shapes.keys()) {
+  for (const element of shapes.keys()) {
     if (!is(element, 'bpmn:BoundaryEvent')) {
       continue;
     }
@@ -296,18 +296,18 @@ function includeAttachedBoundaryEvents(
   }
 }
 
-function fitsOriginalContainers(
-    layout: LayoutState,
+export function fitsOriginalContainers(
+    shapes: Map<BpmnElement, Bounds>,
     movements: Map<BpmnElement, Movement>
 ): boolean {
-  const containers = [ ...layout.shapes ]
+  const containers = [ ...shapes ]
     .filter(([ element ]) => {
       return is(element, 'bpmn:Lane') || is(element, 'bpmn:Participant');
     })
     .map(([ , rect ]) => rect);
 
   for (const [ element, { dx, dy } ] of movements) {
-    const rect = layout.shapes.get(element);
+    const rect = shapes.get(element);
 
     if (!rect) {
       continue;
@@ -360,9 +360,9 @@ function applyMovements(
     return null;
   }
 
-  includeAttachedBoundaryEvents(candidate.layout, movements);
+  includeAttachedBoundaryEvents(candidate.layout.shapes, movements);
 
-  if (!fitsOriginalContainers(candidate.layout, movements)) {
+  if (!fitsOriginalContainers(candidate.layout.shapes, movements)) {
     return null;
   }
 

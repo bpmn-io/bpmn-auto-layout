@@ -1,5 +1,4 @@
 import { is } from '../../../di/DiUtil.js';
-import { LayoutError } from '../../../LayoutError.js';
 import { compareScores, getShapeExtents } from '../../geometry/index.js';
 import {
   createFeedbackAlignmentCandidates,
@@ -14,6 +13,9 @@ import {
   commitPlacementCandidate,
   createBaselineCandidate
 } from '../optimization/PlacementCandidate.js';
+import {
+  evaluatePlacementCandidate
+} from '../optimization/PlacementEvaluation.js';
 import { routeSequenceFlowLayout } from './routeSequenceFlows.js';
 
 import type {
@@ -95,12 +97,13 @@ export function optimizeFlowNodeLayout(
         `${ current.moveKey }/feedback-${ index }-mirror`
       );
 
-      if (!candidate || !routeCandidate(candidate, context, policy)) {
+      const score = candidate && routeCandidate(candidate, context, policy);
+
+      if (!candidate || !score) {
         continue;
       }
 
       evaluated++;
-      const score = scorePlacementCandidate(candidate, policy);
 
       if (
         introducesHardDefect(score, baselineScore) ||
@@ -156,12 +159,13 @@ export function optimizeFlowNodeLayout(
           continue;
         }
 
-        if (!routeCandidate(candidate, context, policy)) {
+        const score = routeCandidate(candidate, context, policy);
+
+        if (!score) {
           continue;
         }
 
         evaluated++;
-        const score = scorePlacementCandidate(candidate, policy);
 
         if (
           introducesHardDefect(score, baselineScore) ||
@@ -328,24 +332,20 @@ function routeCandidate(
     candidate: PlacementCandidate,
     context: ProcessLayoutContext,
     policy: SemanticPolicy
-): boolean {
-  try {
-    candidate.layout.edges = routeSequenceFlowLayout({
-      shapes: candidate.layout.shapes,
-      children: candidate.layout.children,
-      flows: context.elements.sequenceFlows,
-      policy,
-      adaptiveFeedbackSide: true
-    });
-
-    return true;
-  } catch (error) {
-    if (error instanceof LayoutError && error.code === 'ROUTING_FAILED') {
-      return false;
+): LayoutScore | null {
+  return evaluatePlacementCandidate({
+    candidate,
+    policy,
+    reroute: () => {
+      candidate.layout.edges = routeSequenceFlowLayout({
+        shapes: candidate.layout.shapes,
+        children: candidate.layout.children,
+        flows: context.elements.sequenceFlows,
+        policy,
+        constraints: { adaptiveFeedbackSide: true }
+      });
     }
-
-    throw error;
-  }
+  });
 }
 
 function isStrictImprovement(

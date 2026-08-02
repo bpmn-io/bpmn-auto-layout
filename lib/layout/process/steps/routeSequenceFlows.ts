@@ -6,7 +6,7 @@ import {
 } from '../routing/SequenceFlowRouting.js';
 
 import type {
-  ConnectionDockAssignment
+  RoutingConstraints
 } from '../routing/SequenceFlowRouting.js';
 import type {
   BpmnElement,
@@ -22,11 +22,21 @@ type PriorityPolicy = NonNullable<Parameters<typeof edgePriority>[1]>;
 type ProcessRoutingPolicy = RoutingPolicy & PriorityPolicy;
 
 type BundleRoutingOptions = {
-  assignments: Map<BpmnElement, ConnectionDockAssignment>;
+  constraints: Map<BpmnElement, RoutingConstraints>;
   bundle: Set<BpmnElement>;
   flows: BpmnElement[];
   layout: LayoutState;
   policy: ProcessLayoutContext['semantics']['policy'];
+};
+type RoutePlan = {
+  children: LayoutState[];
+  constraints: RoutingConstraints;
+  constraintsByFlow: Map<BpmnElement, RoutingConstraints>;
+  flows: BpmnElement[];
+  initialEdges: Map<BpmnElement, Waypoint[]>;
+  layoutShapes: Map<BpmnElement, Bounds>;
+  policy: ProcessRoutingPolicy;
+  selectedFlows?: Set<BpmnElement>;
 };
 
 export function routeSequenceFlows(context: ProcessLayoutContext): ProcessLayoutContext {
@@ -52,21 +62,56 @@ export function routeSequenceFlowLayout({
   children,
   flows,
   policy: semanticPolicy,
-  adaptiveFeedbackSide = false,
-  dockAssignments = new Map()
+  constraints = {},
+  constraintsByFlow = new Map()
 }: {
   shapes: Map<BpmnElement, Bounds>;
   children: LayoutState[];
   flows: BpmnElement[];
   policy: ProcessLayoutContext['semantics']['policy'];
-  adaptiveFeedbackSide?: boolean;
-  dockAssignments?: Map<BpmnElement, ConnectionDockAssignment>;
+  constraints?: RoutingConstraints;
+  constraintsByFlow?: Map<BpmnElement, RoutingConstraints>;
 }): Map<BpmnElement, Waypoint[]> {
-  const basePolicy = getRoutingPolicy(semanticPolicy);
-  const policy = adaptiveFeedbackSide
-    ? { ...basePolicy, adaptiveFeedbackSide: true }
-    : basePolicy;
-  const routedConnections: Parameters<typeof routeConnection>[4] = [];
+  return executeRoutePlan({
+    children,
+    constraints,
+    constraintsByFlow,
+    flows,
+    initialEdges: new Map(),
+    layoutShapes,
+    policy: getRoutingPolicy(semanticPolicy)
+  });
+}
+
+export function rerouteSequenceFlowBundle({
+  constraints,
+  bundle,
+  flows,
+  layout,
+  policy: semanticPolicy
+}: BundleRoutingOptions): Map<BpmnElement, Waypoint[]> {
+  return executeRoutePlan({
+    children: layout.children,
+    constraints: { adaptiveFeedbackSide: true },
+    constraintsByFlow: constraints,
+    flows,
+    initialEdges: layout.edges,
+    layoutShapes: layout.shapes,
+    policy: getRoutingPolicy(semanticPolicy),
+    selectedFlows: bundle
+  });
+}
+
+function executeRoutePlan({
+  children,
+  constraints,
+  constraintsByFlow,
+  flows,
+  initialEdges,
+  layoutShapes,
+  policy,
+  selectedFlows
+}: RoutePlan): Map<BpmnElement, Waypoint[]> {
   const shapes = [
     ...layoutShapes.entries(),
     ...getEmittedChildShapes(children)
@@ -77,11 +122,23 @@ export function routeSequenceFlowLayout({
         !isArtifact(element);
     })
     .map(([ element, rect ]) => ({ element, rect }));
-  const ordered = flows.filter(isRoutableSequenceFlow).sort((a, b) => {
-    return edgePriority(a, policy) - edgePriority(b, policy) ||
-      getRequired(policy.edgeOrder.get(a)) - getRequired(policy.edgeOrder.get(b));
-  });
-  const routed = new Map<BpmnElement, Waypoint[]>();
+  const routed = new Map(initialEdges);
+  const routedConnections: Parameters<typeof routeConnection>[4] = [
+    ...routed
+  ]
+    .filter((entry): entry is [ Parameters<typeof routeConnection>[0], Waypoint[] ] => {
+      return !selectedFlows?.has(entry[0]) && isRoutableSequenceFlow(entry[0]);
+    })
+    .map(([ flow, points ]) => ({ flow, points }));
+  const ordered = flows
+    .filter((flow): flow is Parameters<typeof routeConnection>[0] => {
+      return (!selectedFlows || selectedFlows.has(flow)) &&
+        isRoutableSequenceFlow(flow);
+    })
+    .sort((a, b) => {
+      return edgePriority(a, policy) - edgePriority(b, policy) ||
+        getRequired(policy.edgeOrder.get(a)) - getRequired(policy.edgeOrder.get(b));
+    });
 
   for (const flow of ordered) {
     const source = layoutShapes.get(flow.sourceRef);
@@ -98,7 +155,7 @@ export function routeSequenceFlowLayout({
       shapes,
       routedConnections,
       policy,
-      dockAssignments.get(flow)
+      mergeRoutingConstraints(constraints, constraintsByFlow.get(flow))
     );
 
     routed.set(flow, points);
@@ -108,67 +165,13 @@ export function routeSequenceFlowLayout({
   return routed;
 }
 
-export function rerouteSequenceFlowBundle({
-  assignments,
-  bundle,
-  flows,
-  layout,
-  policy: semanticPolicy
-}: BundleRoutingOptions): Map<BpmnElement, Waypoint[]> {
-  const policy = {
-    ...getRoutingPolicy(semanticPolicy),
-    adaptiveFeedbackSide: true
-  };
-  const shapes = [
-    ...layout.shapes.entries(),
-    ...getEmittedChildShapes(layout.children)
-  ]
-    .filter(([ element ]) => {
-      return !is(element, 'bpmn:Lane') &&
-        !is(element, 'bpmn:Participant') &&
-        !isArtifact(element);
-    })
-    .map(([ element, rect ]) => ({ element, rect }));
-  const routed = new Map(layout.edges);
-  const routedConnections: Parameters<typeof routeConnection>[4] = [
-    ...routed
-  ]
-    .filter((entry): entry is [ Parameters<typeof routeConnection>[0], Waypoint[] ] => {
-      return !bundle.has(entry[0]) && isRoutableSequenceFlow(entry[0]);
-    })
-    .map(([ flow, points ]) => ({ flow, points }));
-  const ordered = flows
-    .filter((flow): flow is Parameters<typeof routeConnection>[0] => {
-      return bundle.has(flow) && isRoutableSequenceFlow(flow);
-    })
-    .sort((a, b) => {
-      return edgePriority(a, policy) - edgePriority(b, policy) ||
-        getRequired(policy.edgeOrder.get(a)) - getRequired(policy.edgeOrder.get(b));
-    });
-
-  for (const flow of ordered) {
-    const source = layout.shapes.get(flow.sourceRef);
-    const target = layout.shapes.get(flow.targetRef);
-
-    if (!source || !target) {
-      continue;
-    }
-
-    const points = routeConnection(
-      flow,
-      source,
-      target,
-      shapes,
-      routedConnections,
-      policy,
-      assignments.get(flow)
-    );
-
-    routed.set(flow, points);
-    routedConnections.push({ flow, points });
-  }
-
-  return routed;
+function mergeRoutingConstraints(
+    defaults: RoutingConstraints,
+    overrides: RoutingConstraints | undefined
+): RoutingConstraints {
+  return overrides
+    ? { ...defaults, ...overrides }
+    : defaults;
 }
 
 function getEmittedChildShapes(

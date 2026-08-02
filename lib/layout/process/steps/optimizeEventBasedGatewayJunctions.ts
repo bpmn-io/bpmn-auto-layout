@@ -1,5 +1,4 @@
 import { is } from '../../../di/DiUtil.js';
-import { LayoutError } from '../../../LayoutError.js';
 import {
   compareScores,
   inset,
@@ -7,6 +6,10 @@ import {
   toSegments
 } from '../../geometry/index.js';
 import { getDockSide } from '../../routing/BpmnDockRouting.js';
+import {
+  fitsOriginalContainers,
+  includeAttachedBoundaryEvents
+} from '../optimization/FeedbackMoves.js';
 import {
   introducesHardDefect,
   scorePlacementCandidate
@@ -16,11 +19,14 @@ import {
   commitPlacementCandidate,
   createBaselineCandidate
 } from '../optimization/PlacementCandidate.js';
+import {
+  evaluatePlacementCandidate
+} from '../optimization/PlacementEvaluation.js';
 import { rerouteSequenceFlowBundle } from './routeSequenceFlows.js';
 import { routeSequenceFlowLayout } from './routeSequenceFlows.js';
 
 import type { DockSide } from '../../routing/BpmnDockRouting.js';
-import type { ConnectionDockAssignment } from '../routing/SequenceFlowRouting.js';
+import type { RoutingConstraints } from '../routing/SequenceFlowRouting.js';
 import type {
   BpmnElement,
   Bounds,
@@ -142,38 +148,40 @@ export function optimizeEventBasedGatewayJunctions(
         current,
         `${ current.moveKey }/junction-${ junction.element.id }-${ index }`
       );
-      const docks = new Map<BpmnElement, ConnectionDockAssignment>(
+      const constraints = new Map<BpmnElement, RoutingConstraints>(
         junction.flows.map((flow, flowIndex) => {
           const side = sides[flowIndex];
 
           return [
             flow,
             flow.sourceRef === junction.element
-              ? { source: side, target: oppositeSide(side) }
-              : { source: oppositeSide(side), target: side }
+              ? { dockAssignment: { source: side, target: oppositeSide(side) } }
+              : { dockAssignment: { source: oppositeSide(side), target: side } }
           ];
         })
       );
 
       evaluated++;
 
-      try {
-        candidate.layout.edges = rerouteSequenceFlowBundle({
-          assignments: docks,
-          bundle,
-          flows,
-          layout: candidate.layout,
-          policy
-        });
-      } catch (error) {
-        if (error instanceof LayoutError && error.code === 'ROUTING_FAILED') {
-          continue;
+      const evaluation = evaluatePlacementCandidate({
+        candidate,
+        policy,
+        reroute: () => {
+          candidate.layout.edges = rerouteSequenceFlowBundle({
+            constraints,
+            bundle,
+            flows,
+            layout: candidate.layout,
+            policy
+          });
         }
+      });
 
-        throw error;
+      if (!evaluation) {
+        continue;
       }
 
-      const score = scorePlacementCandidate(candidate, policy);
+      const score = evaluation;
       const incidentBends = countBends(candidate.layout.edges, bundle);
       const continuationBends = countContinuationBends(
         candidate.layout.edges,
@@ -238,15 +246,15 @@ export function optimizeEventBasedGatewayJunctions(
           current,
           `${ current.moveKey }/junction-${ junction.element.id }-${ index }-aligned`
         );
-        const docks = new Map<BpmnElement, ConnectionDockAssignment>(
+        const constraints = new Map<BpmnElement, RoutingConstraints>(
           junction.flows.map((flow, flowIndex) => {
             const side = sides[flowIndex];
 
             return [
               flow,
               flow.sourceRef === junction.element
-                ? { source: side, target: oppositeSide(side) }
-                : { source: oppositeSide(side), target: side }
+                ? { dockAssignment: { source: side, target: oppositeSide(side) } }
+                : { dockAssignment: { source: oppositeSide(side), target: side } }
             ];
           })
         );
@@ -264,7 +272,7 @@ export function optimizeEventBasedGatewayJunctions(
 
         return {
           candidate,
-          docks,
+          constraints,
           groupPenalty,
           index,
           movedNodes
@@ -279,7 +287,7 @@ export function optimizeEventBasedGatewayJunctions(
 
     for (const {
       candidate,
-      docks,
+      constraints,
       groupPenalty,
       movedNodes
     } of alignedCandidates) {
@@ -325,32 +333,34 @@ export function optimizeEventBasedGatewayJunctions(
       bestJunctionVector = evaluation.junctionVector;
 
       function routeAndMeasure(full: boolean) {
-        try {
-          candidate.layout.edges = full
-            ? routeSequenceFlowLayout({
-              shapes: candidate.layout.shapes,
-              children: candidate.layout.children,
-              flows,
-              policy,
-              adaptiveFeedbackSide: true,
-              dockAssignments: docks
-            })
-            : rerouteSequenceFlowBundle({
-              assignments: docks,
-              bundle: affected,
-              flows,
-              layout: candidate.layout,
-              policy
-            });
-        } catch (error) {
-          if (error instanceof LayoutError && error.code === 'ROUTING_FAILED') {
-            return null;
+        const evaluation = evaluatePlacementCandidate({
+          candidate,
+          policy,
+          reroute: () => {
+            candidate.layout.edges = full
+              ? routeSequenceFlowLayout({
+                shapes: candidate.layout.shapes,
+                children: candidate.layout.children,
+                flows,
+                policy,
+                constraints: { adaptiveFeedbackSide: true },
+                constraintsByFlow: constraints
+              })
+              : rerouteSequenceFlowBundle({
+                constraints,
+                bundle: affected,
+                flows,
+                layout: candidate.layout,
+                policy
+              });
           }
+        });
 
-          throw error;
+        if (!evaluation) {
+          return null;
         }
 
-        const score = scorePlacementCandidate(candidate, policy);
+        const score = evaluation;
         const incidentBends = countBends(candidate.layout.edges, bundle);
         const continuationBends = countContinuationBends(
           candidate.layout.edges,
@@ -668,68 +678,6 @@ export function optimizeEventBasedGatewayJunctions(
       return candidate.displacement > 0
         ? new Set(movements.keys())
         : null;
-    }
-
-    function includeAttachedBoundaryEvents(
-        shapes: Map<BpmnElement, Bounds>,
-        movements: Map<BpmnElement, { dx: number; dy: number }>
-    ): void {
-      for (const element of shapes.keys()) {
-        if (!is(element, 'bpmn:BoundaryEvent')) {
-          continue;
-        }
-
-        const host = element.attachedToRef;
-        const movement = host && movements.get(host);
-
-        if (movement) {
-          movements.set(element, movement);
-        }
-      }
-    }
-
-    function fitsOriginalContainers(
-        shapes: Map<BpmnElement, Bounds>,
-        movements: Map<BpmnElement, { dx: number; dy: number }>
-    ): boolean {
-      const containers = [ ...shapes ]
-        .filter(([ element ]) => {
-          return is(element, 'bpmn:Lane') || is(element, 'bpmn:Participant');
-        })
-        .map(([ , rect ]) => rect);
-
-      for (const [ element, { dx, dy } ] of movements) {
-        const rect = shapes.get(element);
-
-        if (!rect) {
-          continue;
-        }
-
-        const memberships = containers.filter(container => {
-          const { x, y } = center(rect);
-
-          return x >= container.x &&
-            x <= container.x + container.width &&
-            y >= container.y &&
-            y <= container.y + container.height;
-        });
-        const moved = {
-          ...rect,
-          x: rect.x + dx,
-          y: rect.y + dy
-        };
-
-        if (memberships.some(container => {
-          return moved.x < container.x ||
-            moved.y < container.y ||
-            moved.x + moved.width > container.x + container.width ||
-            moved.y + moved.height > container.y + container.height;
-        })) {
-          return false;
-        }
-      }
-
-      return true;
     }
 
     function center(rect: Bounds): { x: number; y: number } {
