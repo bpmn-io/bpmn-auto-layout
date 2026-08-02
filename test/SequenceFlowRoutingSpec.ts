@@ -6,6 +6,7 @@ import { describe, it } from 'mocha';
 import {
   routeConnection
 } from '../lib/layout/process/routing/SequenceFlowRouting.js';
+import { LayoutError } from '../lib/LayoutError.js';
 
 import type { BpmnElementFor } from '../lib/layout/bpmn/Types.js';
 
@@ -136,6 +137,60 @@ describe('SequenceFlowRouting', function() {
       { x: 200, y: 40 },
       { x: 100, y: 40 }
     ]);
+  });
+
+  it('should honor a facing dock assignment without redundant waypoints', function() {
+    const source = element('Source');
+    const target = element('Target');
+    const flow = sequenceFlow(source, target);
+    const sourceBounds = { x: 0, y: 0, width: 100, height: 80 };
+    const targetBounds = { x: 0, y: 200, width: 100, height: 80 };
+
+    assert.deepStrictEqual(routeConnection(
+      flow,
+      sourceBounds,
+      targetBounds,
+      shapes(source, sourceBounds, target, targetBounds),
+      [],
+      policy(flow, source, target),
+      {
+        source: 'south',
+        target: 'north'
+      }
+    ), [
+      { x: 50, y: 80 },
+      { x: 50, y: 200 }
+    ]);
+  });
+
+  it('should reject an assigned dock that cannot be routed', function() {
+    const source = element('Source');
+    const target = element('Target');
+    const blocker = element('Blocker');
+    const flow = sequenceFlow(source, target);
+    const sourceBounds = { x: 0, y: 0, width: 100, height: 80 };
+    const targetBounds = { x: 200, y: 0, width: 100, height: 80 };
+
+    assert.throws(() => routeConnection(
+      flow,
+      sourceBounds,
+      targetBounds,
+      [
+        ...shapes(source, sourceBounds, target, targetBounds),
+        {
+          element: blocker,
+          rect: { x: 0, y: -100, width: 100, height: 100 }
+        }
+      ],
+      [],
+      policy(flow, source, target),
+      {
+        source: 'north',
+        target: 'west'
+      }
+    ), (error: unknown) => {
+      return error instanceof LayoutError && error.code === 'ROUTING_FAILED';
+    });
   });
 
   it('should route inner feedback above its nested region', function() {

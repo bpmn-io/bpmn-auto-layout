@@ -1707,11 +1707,16 @@ describe('Layout', function(this: SuiteContext) {
         edges.get('sid-7BA05743-5D0C-4D1C-B193-22FE2A156E22');
       const localReturn =
         edges.get('sid-3C44D333-01F3-43B7-AE4F-F13DD6D05DAC');
+      const messageEvent =
+        shapes.get('sid-8910ED9B-DADC-4E11-9AD5-E12448B57ADF');
 
-      assert.ok(
-        Math.max(0, longReturn.length - 2) +
-        Math.max(0, localReturn.length - 2) <= 4
+      assert.strictEqual(longReturn.length, 3);
+      assert.strictEqual(longReturn[0].x, messageEvent.x);
+      assert.strictEqual(
+        longReturn[0].y,
+        messageEvent.y + messageEvent.height / 2
       );
+      assert.ok(Math.max(0, localReturn.length - 2) <= 2);
 
       const association =
         edges.get('sid-CC4AD237-37B5-4CDD-8697-237BE3E1F960');
@@ -1723,6 +1728,37 @@ describe('Layout', function(this: SuiteContext) {
         dock.x !== owner.x && dock.x !== owner.x + owner.width ||
         dock.y !== owner.y && dock.y !== owner.y + owner.height
       );
+    });
+
+    it('should orient mixed gateway arms toward their facing docks', async function() {
+      const xml = fs.readFileSync(
+        path.join(fixturesDirectory, 'process.application-processing.bpmn'),
+        'utf8'
+      );
+      const rootElement = await readLayoutDiagram(await layoutProcess(xml));
+      const elements = rootElement.diagrams[0].plane.planeElement;
+      const shapes = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
+        .map(element => [ element.bpmnElement.id, element.bounds ]));
+      const edges = new RequiredMap(elements
+        .filter(element => element.$instanceOf('bpmndi:BPMNEdge'))
+        .map(element => [ element.bpmnElement.id, element.waypoint ]));
+      const junction = shapes.get('sid-545B3227-D12A-43A8-B746-55E8C75F3A8A');
+      const incomingTask = edges.get('sid-DC611CCE-BA2C-459D-974D-4D09E2C390E6');
+      const incomingReturn = edges.get('sid-3C44D333-01F3-43B7-AE4F-F13DD6D05DAC');
+      const outgoingMessage = edges.get('sid-B9DF0BE4-4658-4908-8E4C-B528E8EA1FDD');
+      const outgoingTimer = edges.get('sid-F9A96365-936B-4461-8D51-C38EBA362A68');
+      const messageReturn = edges.get('sid-7BA05743-5D0C-4D1C-B193-22FE2A156E22');
+
+      for (const points of [ incomingReturn, outgoingMessage, outgoingTimer ]) {
+        assert.strictEqual(points.length, 2);
+      }
+
+      assert.strictEqual(last(incomingTask).y, junction.y);
+      assert.strictEqual(last(incomingReturn).x, junction.x + junction.width);
+      assert.strictEqual(outgoingMessage[0].x, junction.x);
+      assert.strictEqual(outgoingTimer[0].y, junction.y + junction.height);
+      assert.ok(messageReturn.length >= 2);
     });
 
     it('should not overlap sequence flows in opposing directions', async function() {

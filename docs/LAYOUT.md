@@ -429,11 +429,15 @@ Shared endpoints, endpoint touches, and intentional shared endpoint channels
 are not proper crossings. Channels may be shared regardless of whether
 connections enter or leave their common endpoint.
 
-Feedback from a compact return region evaluates outer routes from each source
-side. A source above its return target prefers an upper channel; a source below
-prefers a lower channel. Exposure to the shape-field boundary then wins before
-footprint, bends, and route length. East lead-ins remain available when the
-direct vertical dock is blocked. Feedback edges returning to the same target
+Feedback continuations from an intermediate catch event first attempt a
+source-facing horizontal rejoin when their gateway target is upstream and the
+resulting L-route is clear. This avoids expanding an event continuation into an
+outer channel solely because it closes a cycle. Feedback from a compact return
+region otherwise evaluates outer routes from each source side. A source above
+its return target prefers an upper channel; a source below prefers a lower
+channel. Exposure to the shape-field boundary then wins before footprint,
+bends, and route length. East lead-ins remain available when the direct
+vertical dock is blocked. Feedback edges returning to the same target
 may share their outer and target channels. When one region returns to multiple
 spine ancestors, returns to the owning split share the nearest clear channel
 above that split. Returns to upstream ancestors use collision-separated
@@ -489,6 +493,27 @@ is committed only when it strictly improves the score without increasing total
 bends or raw routed length over the baseline; otherwise the baseline bounds and
 routes remain unchanged. Committing copies coordinates into the existing bounds
 objects so placement records and layout state retain shared references.
+
+After adaptive feedback placement, mixed event-based gateways with exactly two
+incoming and two outgoing sequence flows undergo bounded junction optimization.
+The optimizer enumerates unique side assignments and facing dock pairs. It
+first reroutes fixed-position assignments, then may rotate bounded linear arms
+as rigid groups around the gateway. A candidate moves at most five arm nodes,
+carries their attached boundary events, and remains inside the original lane
+and participant. The local score counts bends in a unique continuation from an
+outgoing arm, so a direct incident edge cannot hide a detour immediately after
+the junction.
+
+Candidates must reduce incident connections that dock on a side pointing away
+from their neighboring node. They must also improve the global score without
+increasing hard defects, total bends, or raw routed length. Junction scoring
+prefers fewer wrong-way approaches, then fewer incident bends. Assignments that
+keep each incoming or outgoing pair on adjacent rather than opposing sides are
+preferred, followed by less movement and lower global route complexity. At
+most 96 junction candidates are evaluated per process scope. Arm candidates
+first reroute every sequence flow incident to a moved node; a complete reroute
+is used only when unchanged surrounding routes prevent that incremental
+candidate from satisfying the global safety gates.
 
 ## Collaborations and message flows
 
@@ -626,6 +651,7 @@ extractElements
 → placeExpandedChildren
 → routeSequenceFlows
 → optimizeFlowNodeLayout
+→ optimizeEventBasedGatewayJunctions
 → placeEventSubProcesses
 → placeArtifacts
 → placeGroups
@@ -636,8 +662,9 @@ options, extracted elements, graph and semantic state, mutable placement
 records, layout state, and warnings. Extraction initializes elements and
 placement; semantic analysis replaces graph and policy state without writing
 geometry. Placement writes initial shape bounds, routing writes provisional
-edge waypoints, adaptive placement may commit a rerouted candidate, and nested
-scopes re-enter the process entrypoint through a private callback.
+edge waypoints, adaptive placement and junction optimization may commit
+rerouted candidates, and nested scopes re-enter the process entrypoint through
+a private callback.
 
 ### Collaboration pipeline
 

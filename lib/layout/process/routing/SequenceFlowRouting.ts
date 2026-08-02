@@ -9,6 +9,10 @@ type FlowNode = ModdleElement<BpmnFlowNode> & { default?: FlowEdge; eventDefinit
 type FlowEdge = ModdleElement<BpmnSequenceFlow> & { sourceRef: FlowNode; targetRef: FlowNode };
 type RouterShape = { element: BpmnElement; rect: Rect };
 type RoutedConnection = { flow: FlowEdge; points: Point[] };
+export type ConnectionDockAssignment = {
+  source?: DockSide;
+  target?: DockSide;
+};
 type Router = ReturnType<typeof createBpmnOrthogonalRouter>;
 type RoutingPolicy = {
   backEdges: Set<FlowEdge>;
@@ -37,7 +41,7 @@ type Classification = {
 };
 type Routing = Classification & { flow: FlowEdge; source: Rect; target: Rect; shapes: RouterShape[];
   routedConnections: RoutedConnection[]; policy: RoutingPolicy; router: Router; clearRouter: Router;
-  start: Point; end: Point };
+  start: Point; end: Point; dockAssignment: ConnectionDockAssignment };
 type ShapeByElement = Map<BpmnElement, Rect>;
 type MaybeRoute = Point[] | null;
 
@@ -69,11 +73,13 @@ import {
 import {
   createDockCandidates,
   createDockPairs,
-  getDockSide
+  getDockSide,
+  getSideCenter
 } from '../../routing/BpmnDockRouting.js';
 
 import type {
-  DockPair
+  DockPair,
+  DockSide
 } from '../../routing/BpmnDockRouting.js';
 
 // Preferred fractional x-offsets (in that order) when searching for a clear
@@ -88,7 +94,7 @@ function getRequired<Value>(value: Value | undefined): Value {
 
 const CLEAR_DOCK_X_FRACTIONS = [ 0.5, 0.25, 0.75 ];
 
-export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shapes: RouterShape[], routedConnections: RoutedConnection[], policy: RoutingPolicy): Point[] {
+export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shapes: RouterShape[], routedConnections: RoutedConnection[], policy: RoutingPolicy, dockAssignment: ConnectionDockAssignment = {}): Point[] {
   const router = createSequenceFlowRouter(
     shapes,
     flow.sourceRef,
@@ -122,6 +128,14 @@ export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shap
     clearRouter,
     classification
   );
+  const assignedDocks = {
+    start: dockAssignment.source
+      ? getSideCenter(source, dockAssignment.source)
+      : docks.start,
+    end: dockAssignment.target
+      ? getSideCenter(target, dockAssignment.target)
+      : docks.end
+  };
   const routing = {
     flow,
     source,
@@ -131,8 +145,9 @@ export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shap
     policy,
     router,
     clearRouter,
+    dockAssignment,
     ...classification,
-    ...docks
+    ...assignedDocks
   };
   const alignedFeedbackRoute = tryAlignedFeedbackRoute(
     flow,
@@ -142,8 +157,18 @@ export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shap
     policy
   );
 
-  if (alignedFeedbackRoute) {
+  if (!dockAssignment.source && !dockAssignment.target && alignedFeedbackRoute) {
     return alignedFeedbackRoute;
+  }
+
+  if (dockAssignment.source || dockAssignment.target) {
+    const assignedRoute = tryVisibilityRoutes(routing);
+
+    if (!assignedRoute) {
+      throwRoutingFailed(flow);
+    }
+
+    return cleanPoints(assignedRoute);
   }
 
   const preferredRoute = tryPreferredConnectionRoutes(routing);
@@ -336,9 +361,43 @@ function selectConnectionDocks(
 
 function tryPreferredConnectionRoutes(routing: Routing): MaybeRoute {
   return tryDirectRoute(routing) ||
+    tryFeedbackRejoinRoute(routing) ||
     tryBranchRoute(routing) ||
     tryCrossBandRoute(routing) ||
     tryLocalBypassRoute(routing);
+}
+
+function tryFeedbackRejoinRoute({
+  feedback,
+  flow,
+  policy,
+  router,
+  source,
+  target
+}: Routing): MaybeRoute {
+  if (
+    !feedback ||
+    target.x >= source.x ||
+    !is(flow.sourceRef, 'bpmn:IntermediateCatchEvent') ||
+    !is(flow.targetRef, 'bpmn:Gateway') ||
+    policy.innerFeedbackEdges?.has(flow) ||
+    policy.nestedFeedbackLevels?.has(flow)
+  ) {
+    return null;
+  }
+
+  const sourceWest = point(source.x, source.y + source.height / 2);
+  const targetSouth = point(
+    target.x + target.width / 2,
+    target.y + target.height
+  );
+  const route = cleanPoints([
+    sourceWest,
+    point(targetSouth.x, sourceWest.y),
+    targetSouth
+  ]);
+
+  return isRouteClear(router, route) ? route : null;
 }
 
 function tryDirectRoute({
@@ -916,6 +975,7 @@ function tryPreferredChannel(routing: Routing, extents: { minY: number; maxY: nu
 
 function tryVisibilityRoutes({
   clearRouter,
+  dockAssignment,
   end,
   shapes,
   source,
@@ -928,11 +988,16 @@ function tryVisibilityRoutes({
   const sourceCandidates = createDockCandidates({
     allowedSides: sourceBoundary
       ? [ getDockSide(start, source) ]
-      : undefined,
+      : dockAssignment.source
+        ? [ dockAssignment.source ]
+        : undefined,
     preferredDock: start,
     rect: source
   });
   const targetCandidates = createDockCandidates({
+    allowedSides: dockAssignment.target
+      ? [ dockAssignment.target ]
+      : undefined,
     preferredDock: end,
     rect: target
   });
@@ -1059,14 +1124,18 @@ function routePerimeterOrThrow({
   );
 
   if (!route) {
-    throw new LayoutError(
-      'ROUTING_FAILED',
-      flow.id,
-      `No legal orthogonal route could be found without crossing a shape (${flow.id}).`
-    );
+    throwRoutingFailed(flow);
   }
 
   return route;
+}
+
+function throwRoutingFailed(flow: FlowEdge): never {
+  throw new LayoutError(
+    'ROUTING_FAILED',
+    flow.id,
+    `No legal orthogonal route could be found without crossing a shape (${flow.id}).`
+  );
 }
 
 function routeSelfLoop(flow: FlowEdge, source: Rect, target: Rect, clearRouter: Router): Point[] {

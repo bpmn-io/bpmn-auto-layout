@@ -57,7 +57,7 @@ export function createDockCandidates({
             : 1;
 
         return createDockCandidate(
-          sideCenter(rect, side),
+          getSideCenter(rect, side),
           side,
           semanticPenalty,
           rect
@@ -153,7 +153,7 @@ export function getDockSide(dock: Point, rect: Rect): DockSide {
   throw new TypeError('preferred dock must lie on the rectangle boundary');
 }
 
-function sideCenter(rect: Rect, side: DockSide): Point {
+export function getSideCenter(rect: Rect, side: DockSide): Point {
   if (side === 'north') {
     return point(rect.x + rect.width / 2, rect.y);
   }
