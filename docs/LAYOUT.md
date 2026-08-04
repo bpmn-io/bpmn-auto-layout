@@ -203,7 +203,9 @@ Rank assignment applies three BPMN-specific refinements:
 
 Each rank becomes an x-position. Its width is the widest node in that rank.
 Each semantic band becomes a y-position. Nodes sharing a rank and band are
-separated in declaration order.
+separated in declaration order. When tall shapes in different bands overlap at
+one rank, band `0` keeps its position and outer-band shapes move farther from
+the spine.
 
 Semantic analysis compacts non-overlapping band intervals before any bounds are
 created. Shape placement then proceeds in this order:

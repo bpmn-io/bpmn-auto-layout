@@ -286,7 +286,8 @@ export function packComponents(
     records: ShapeRecord[],
     graphEdges: FlowEdge[],
     boundaryEdges: BoundaryEdge[],
-    ranks: RankAssignment
+    ranks: RankAssignment,
+    policy: PlacementPolicy
 ): void {
   const parent = new Map<FlowNode, FlowNode>(
     records.map(record => [ record.element, record.element ])
@@ -343,7 +344,7 @@ export function packComponents(
   });
 
   for (const component of ordered) {
-    separateRankOverlaps(component, ranks);
+    separateRankOverlaps(component, ranks, policy);
   }
 
   if (is(scope, 'bpmn:AdHocSubProcess')) {
@@ -446,7 +447,11 @@ function rectanglesOverlapWithGap(a: Bounds, b: Bounds): boolean {
     a.y + a.height + VERTICAL_GAP > b.y;
 }
 
-function separateRankOverlaps(records: ShapeRecord[], ranks: RankAssignment): void {
+function separateRankOverlaps(
+    records: ShapeRecord[],
+    ranks: RankAssignment,
+    policy: PlacementPolicy
+): void {
   const byRank: RankRecords = new Map();
 
   for (const record of records) {
@@ -462,19 +467,37 @@ function separateRankOverlaps(records: ShapeRecord[], ranks: RankAssignment): vo
   for (const rankRecords of byRank.values()) {
     const placed: ShapeRecord[] = [];
 
-    for (const record of rankRecords.sort((a, b) => a.index - b.index)) {
+    for (const record of rankRecords.sort((a, b) => {
+      const bandA = policy.bands.get(a.element) || 0;
+      const bandB = policy.bands.get(b.element) || 0;
+
+      return overlapPlacementOrder(bandA) - overlapPlacementOrder(bandB) ||
+        Math.abs(bandA) - Math.abs(bandB) ||
+        a.index - b.index;
+    })) {
       let blockers;
 
       while ((blockers = placed.filter(other => rectanglesOverlap(record.bounds, other.bounds))).length) {
-        record.bounds.y = Math.max(
-          record.bounds.y,
-          ...blockers.map(other => other.bounds.y + other.bounds.height + VERTICAL_GAP)
-        );
+        const band = policy.bands.get(record.element) || 0;
+
+        record.bounds.y = band < 0
+          ? Math.min(
+            record.bounds.y,
+            ...blockers.map(other => other.bounds.y - record.bounds.height - VERTICAL_GAP)
+          )
+          : Math.max(
+            record.bounds.y,
+            ...blockers.map(other => other.bounds.y + other.bounds.height + VERTICAL_GAP)
+          );
       }
 
       placed.push(record);
     }
   }
+}
+
+function overlapPlacementOrder(band: number): number {
+  return band === 0 ? 0 : band > 0 ? 1 : 2;
 }
 
 export function placeBoundaryEvents(

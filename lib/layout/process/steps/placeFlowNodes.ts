@@ -72,7 +72,14 @@ export function placeFlowNodes(context: ProcessLayoutContext): ProcessLayoutCont
     typedRecordsByElement,
     typedPolicy
   );
-  packComponents(scope, graphRecords, typedGraphEdges, typedBoundaryEdges, typedRanks);
+  packComponents(
+    scope,
+    graphRecords,
+    typedGraphEdges,
+    typedBoundaryEdges,
+    typedRanks,
+    typedPolicy
+  );
   applyLaneMembership(scope, graphRecords, typedGraphEdges, typedPolicy, layout);
   placeBoundaryEvents(allShapeRecords, typedRecordsByElement);
   addRecordBounds(layout, graphRecords);
