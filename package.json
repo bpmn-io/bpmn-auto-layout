@@ -32,6 +32,7 @@
     "render:fixture": "npm run build && tsx tasks/render-fixture.ts",
     "review:layout": "tsx tasks/layout-review.ts",
     "benchmark:fixture": "npm run build && tsx tasks/benchmark-fixture.ts",
+    "test:xml-order": "npm run build && tsx tasks/xml-order-fixture.ts",
     "test:performance": "npm run build && tsx tasks/performance-guardrails.ts",
     "trace:fixture": "npm run build:example && tsx tasks/trace-fixture.ts",
     "metrics": "tsx test/metrics.ts",

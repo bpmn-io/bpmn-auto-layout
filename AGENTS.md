@@ -53,6 +53,18 @@ npm run benchmark:fixture -- <fixture-name-or-path> <iterations>
 The command accepts a fixture name or a path below `test/fixtures/`, excludes
 20 warm-ups, and reports average, p50, and p90 layout times.
 
+Check a fixture's resilience to arbitrary BPMN `flowElements` ordering:
+
+```sh
+npm run test:xml-order -- <fixture-name-or-path>
+```
+
+The command lays out authored, ID-sorted, and reversed scoped orders. It rejects
+missing DI and hard geometry defects, then reports each variant's metrics and
+delta from authored order. Use it to investigate a fixture on demand; add
+fixture-specific semantic invariants to `test/XmlOrderInvarianceSpec.ts` when
+the property is permanent.
+
 Run `npm run metrics` to assess visual-quality changes beyond exact snapshots.
 
 ## TypeScript policy

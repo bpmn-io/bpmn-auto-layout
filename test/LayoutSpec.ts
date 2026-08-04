@@ -302,26 +302,6 @@ describe('Layout', function(this: SuiteContext) {
 
   describe('Layout behavior', function() {
 
-    it('should retain the spine through an expanded subprocess', async function() {
-      const xml = fs.readFileSync(
-        path.join(fixturesDirectory, 'expanded-subprocess-retry-loop.bpmn'),
-        'utf8'
-      );
-      const rootElement = await readLayoutDiagram(await layoutProcess(xml));
-      const shapes = new RequiredMap(rootElement.diagrams[0].plane.planeElement
-        .filter(element => element.$instanceOf('bpmndi:BPMNShape'))
-        .map(element => [ element.bpmnElement.id, element.bounds ]));
-      const centerY = (id: string): number => {
-        const shape = shapes.get(id);
-
-        return shape.y + shape.height / 2;
-      };
-
-      assert.strictEqual(centerY('Gateway_01mjb0r'), centerY('Activity_0jyy09f'));
-      assert.strictEqual(centerY('Activity_0jyy09f'), centerY('Gateway_10bvoyq'));
-      assert.ok(shapes.get('Activity_1rcdusb').y > shapes.get('Activity_0jyy09f').y);
-    });
-
     it('should route self-loops into the left side', async function() {
       const xml = fs.readFileSync(path.join(fixturesDirectory, 'scenario.self-loop.bpmn'), 'utf8');
       const output = await layoutProcess(xml);

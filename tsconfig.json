@@ -19,6 +19,8 @@
     "lib/**/*.ts",
     "tasks/benchmark-util.ts",
     "tasks/benchmark-fixture.ts",
+    "tasks/xml-order-fixture.ts",
+    "tasks/xml-order-variants.ts",
     "tasks/performance-guardrails.ts",
     "tasks/inspect.ts",
     "tasks/bpmn-to-image.d.ts",
@@ -51,6 +53,7 @@
     "test/LayoutReviewSpec.ts",
     "test/metrics.test.ts",
     "test/LayoutSpec.ts",
+    "test/XmlOrderInvarianceSpec.ts",
     "test/mocha.d.ts"
   ]
 }

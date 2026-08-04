@@ -150,6 +150,20 @@ The command writes `<fixture>.input.{png,svg}` from existing fixture DI and
 `<fixture>.{png,svg}` from current layouter output to `output/rendered/`. It
 rejects failure fixtures.
 
+## XML-order checks
+
+Test any normal fixture against deterministic `flowElements` order variants:
+
+```sh
+npm run test:xml-order -- gateway.multiple
+```
+
+The command lays out authored, ID-sorted, and reversed scoped orders. It rejects
+missing DI and Band-A geometry defects, then reports every variant's metrics and
+delta from authored order. It is an on-demand diagnostic rather than a snapshot
+assertion: add permanent, fixture-specific semantic invariants to
+[`XmlOrderInvarianceSpec.ts`](XmlOrderInvarianceSpec.ts).
+
 `npm test` runs `pretest` (`npm run build`) first, so the snapshot suite always
 tests freshly built `dist/`, not stale output. Mocha discovers both
 [LayoutSpec.ts](LayoutSpec.ts) and [metrics.test.ts](metrics.test.ts): it enforces the
