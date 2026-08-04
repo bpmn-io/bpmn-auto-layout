@@ -422,7 +422,7 @@ function selectStraightEdges(
       });
       const primaryEdge = spineRejoining.length === 1
         ? spineRejoining[0]
-        : selectPrimaryEdge(
+        : candidates.find(edge => spine.has(edge)) || selectPrimaryEdge(
           record.element,
           candidates,
           edgeOrder,
@@ -1341,13 +1341,33 @@ function selectPrimaryEdge(
   const defaultEdge = node.default;
   const forwardEdges = edges.filter(edge => !visited.has(edge.targetRef));
   const candidates = forwardEdges.length ? forwardEdges : edges;
+  const completionPath = new Set(visited);
+  completionPath.add(node);
   const endReaching = candidates.filter(edge => {
-    return canReachEndEvent(edge.targetRef, outgoing, new Set([ node ]));
+    return canReachEndEvent(edge.targetRef, outgoing, new Set(completionPath));
   });
   const preferred = endReaching.length ? endReaching : candidates;
+  const upstreamSpineNodes = new Set(visited);
+
+  upstreamSpineNodes.delete(node);
+
+  const feedbackGatewayContinuations = upstreamSpineNodes.size
+    ? preferred.filter(edge => {
+      return is(edge.targetRef, 'bpmn:Gateway') &&
+        canReachAnyNode(
+          edge.targetRef,
+          outgoing,
+          upstreamSpineNodes,
+          new Set([ node ])
+        );
+    })
+    : [];
+  const continuing = feedbackGatewayContinuations.length
+    ? feedbackGatewayContinuations
+    : preferred;
 
   return preferred.find(edge => edge === defaultEdge) ||
-    [ ...preferred ].sort((a, b) => (edgeOrder.get(a) ?? 0) - (edgeOrder.get(b) ?? 0))[0] || null;
+    [ ...continuing ].sort((a, b) => (edgeOrder.get(a) ?? 0) - (edgeOrder.get(b) ?? 0))[0] || null;
 }
 
 function canReachEndEvent(

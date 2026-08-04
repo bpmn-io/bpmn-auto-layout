@@ -21,12 +21,24 @@ type Bounds = {
 	width: number;
 	height: number;
 };
+type Waypoint = {
+	x: number;
+	y: number;
+};
 
 const FIXTURE = "expanded-subprocess-retry-loop.bpmn";
 const RETRY_ID = "Activity_1rcdusb";
 const SUBPROCESS_ID = "Activity_0jyy09f";
 const ENTRY_GATEWAY_ID = "Gateway_01mjb0r";
 const EXIT_GATEWAY_ID = "Gateway_10bvoyq";
+const GATEWAY_FIXTURE = "gateway.multiple.bpmn";
+const GATEWAY_SPINE_FLOW_IDS = [
+	"Flow_174mdxz",
+	"Flow_0x21408",
+	"Flow_1825yj3",
+	"Flow_0lt2wxp",
+	"Flow_1ge6e6x",
+];
 const variants = [
 	...XML_ORDER_VARIANTS,
 	{
@@ -80,6 +92,42 @@ describe("XML order invariance", function () {
 			);
 		}
 	});
+
+	it("should retain the completing gateway path through order variants", async function () {
+		const xml = await readFile(
+			new URL(`fixtures/${GATEWAY_FIXTURE}`, import.meta.url),
+			"utf8",
+		);
+
+		for (const variant of XML_ORDER_VARIANTS) {
+			const output = (
+				await layoutProcess(await reorderFlowElements(xml, variant))
+			).xml;
+			const edges = await readEdges(output);
+			const metrics = await evaluateMetrics(output);
+
+			for (const flowId of GATEWAY_SPINE_FLOW_IDS) {
+				const waypoints = getRequired(edges.get(flowId));
+
+				assert.strictEqual(
+					waypoints.length,
+					2,
+					`${variant.name} should route ${flowId} directly`,
+				);
+				assert.strictEqual(
+					waypoints[0].y,
+					waypoints[1].y,
+					`${variant.name} should keep ${flowId} on the horizontal spine`,
+				);
+			}
+
+			assert.strictEqual(
+				hasBandADefect(metrics),
+				false,
+				`${variant.name} should not introduce a hard geometry defect`,
+			);
+		}
+	});
 });
 
 function swapRetryAndSubprocess(elements: BpmnElement[]): BpmnElement[] {
@@ -124,6 +172,28 @@ async function readShapes(xml: string): Promise<Map<string, Bounds>> {
 	return shapes;
 }
 
+async function readEdges(xml: string): Promise<Map<string, Waypoint[]>> {
+	const { rootElement } = await new BpmnModdle().fromXML(xml);
+	const planeElements = rootElement.diagrams?.[0]?.plane?.planeElement || [];
+	const edges = new Map<string, Waypoint[]>();
+
+	for (const element of planeElements) {
+		if (!isBpmndiType(element, "bpmndi:BPMNEdge")) {
+			continue;
+		}
+
+		const id = element.bpmnElement?.id;
+
+		if (!hasWaypoints(element.waypoint) || typeof id !== "string") {
+			continue;
+		}
+
+		edges.set(id, element.waypoint);
+	}
+
+	return edges;
+}
+
 function hasBounds(value: unknown): value is Bounds {
 	return (
 		!!value &&
@@ -136,6 +206,22 @@ function hasBounds(value: unknown): value is Bounds {
 		typeof value.y === "number" &&
 		typeof value.width === "number" &&
 		typeof value.height === "number"
+	);
+}
+
+function hasWaypoints(value: unknown): value is Waypoint[] {
+	return (
+		Array.isArray(value) &&
+		value.every((point) => {
+			return (
+				!!point &&
+				typeof point === "object" &&
+				"x" in point &&
+				"y" in point &&
+				typeof point.x === "number" &&
+				typeof point.y === "number"
+			);
+		})
 	);
 }
 

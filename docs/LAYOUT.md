@@ -136,7 +136,9 @@ The primary path, or spine, is selected one edge at a time:
 
 1. prefer an edge whose target can reach an end event;
 2. among eligible edges, prefer the BPMN default flow;
-3. otherwise use declaration order.
+3. otherwise prefer a gateway continuation that contains an upstream feedback
+   return;
+4. otherwise use declaration order.
 
 This prevents a dead-end alternative from becoming the main narrative merely
 because it was declared first. The selected edge and deterministic
