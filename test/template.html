@@ -341,6 +341,14 @@
         gap: 8px 10px;
       }
 
+      .inspector-title {
+        flex-basis: 100%;
+        margin: 0;
+        color: #171717;
+        font-size: 16px;
+        line-height: 24px;
+      }
+
       .statistic-summary {
         display: flex;
         align-items: center;
@@ -675,6 +683,7 @@
   <body>
     <div id="scroll-container">
       <div class="statistic">
+        <h1 class="inspector-title">Snapshot inspector</h1>
         <div class="statistic-summary">
           <button id="pass" class="badge badge-success filter-toggle" type="button" aria-pressed="true"></button>
           <button id="fail" class="badge badge-destructive filter-toggle" type="button" aria-pressed="true"></button>

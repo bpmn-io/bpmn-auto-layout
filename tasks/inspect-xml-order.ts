@@ -331,6 +331,18 @@ function createReportHtml(manifest: {
         font-size: large;
       }
 
+      .inspector-title {
+        flex-basis: 100%;
+        margin: 0;
+        color: #171717;
+        font-size: 16px;
+        line-height: 24px;
+      }
+
+      .fixture-name {
+        min-width: 0;
+      }
+
       .inspect-content {
         padding: 0 16px 20px;
       }
@@ -356,8 +368,9 @@ function createReportHtml(manifest: {
         background: #fafafa;
       }
 
-      .fixture-name {
-        min-width: 0;
+      .fixture-path {
+        color: #555;
+        font-size: 12px;
       }
 
       .links {
@@ -397,7 +410,16 @@ function createReportHtml(manifest: {
         object-fit: contain;
       }
 
-      .metrics-panel,
+      .metrics-panel {
+        flex-basis: 100%;
+        box-sizing: border-box;
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        background: #fff;
+        color: #444;
+        font-weight: normal;
+      }
+
       details {
         box-sizing: border-box;
         margin-top: 10px;
@@ -488,7 +510,7 @@ function createReportHtml(manifest: {
   </head>
   <body>
     <div id="scroll-container">
-      <header class="statistic">XML-order review: <span id="fixture"></span></header>
+      <header class="statistic"><h1 class="inspector-title">Layout variation inspector</h1><span id="fixture" class="fixture-path"></span></header>
       <main class="inspect-content"><div class="variants" id="variants"></div></main>
     </div>
     <script>
@@ -519,11 +541,11 @@ function createReportHtml(manifest: {
           <div class="title">
             <span class="fixture-name">\${ report.name }</span>
             <div class="links"><a class="button" href="\${ report.sourcePath }">Source</a><a class="button" href="\${ report.layoutPath }">BPMN</a><a class="button" href="\${ report.svgPath }">SVG</a></div>
-          </div>
-          <div class="metrics-panel">
-            <div class="metrics-grid">\${ metrics.map(metric => \`<div class="metric \${ metricClass(metric) }"><span class="metric-name">\${ metric[0] }</span><span class="metric-value">\${ metric[1] }</span><span class="metric-delta">\${ metricDelta(metric) }</span></div>\`).join('') }</div>
-            \${ report.metricsError ? \`<p class="warning">\${ report.metricsError }</p>\` : '' }
-            \${ report.warnings.length ? \`<p class="warning">Warnings: \${ report.warnings.map(warning => warning.code + (warning.elementId ? ' (' + warning.elementId + ')' : '')).join(', ') }</p>\` : '' }
+            <div class="metrics-panel">
+              <div class="metrics-grid">\${ metrics.map(metric => \`<div class="metric \${ metricClass(metric) }"><span class="metric-name">\${ metric[0] }</span><span class="metric-value">\${ metric[1] }</span><span class="metric-delta">\${ metricDelta(metric) }</span></div>\`).join('') }</div>
+              \${ report.metricsError ? \`<p class="warning">\${ report.metricsError }</p>\` : '' }
+              \${ report.warnings.length ? \`<p class="warning">Warnings: \${ report.warnings.map(warning => warning.code + (warning.elementId ? ' (' + warning.elementId + ')' : '')).join(', ') }</p>\` : '' }
+            </div>
           </div>
           <div class="container"><img src="\${ report.svgPath }" alt="\${ report.name } layout"></div>
           <details><summary>DI differences: \${ differences.movedShapes.length } moved shapes, \${ differences.resizedShapes.length } resized shapes, \${ differences.changedEdges.length } changed edges</summary>
