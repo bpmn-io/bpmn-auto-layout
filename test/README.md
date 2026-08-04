@@ -164,6 +164,17 @@ delta from authored order. It is an on-demand diagnostic rather than a snapshot
 assertion: add permanent, fixture-specific semantic invariants to
 [`XmlOrderInvarianceSpec.ts`](XmlOrderInvarianceSpec.ts).
 
+Render the same variants for side-by-side visual review:
+
+```sh
+npm run inspect:xml-order -- gateway.multiple
+```
+
+The command writes reordered source BPMN, generated BPMN/SVG, `manifest.json`,
+and `index.html` to `output/xml-order/<fixture>/`. The report lists metric
+deltas and DI changes from authored order; unlike `test:xml-order`, it retains
+variants with warnings or geometry defects for inspection.
+
 `npm test` runs `pretest` (`npm run build`) first, so the snapshot suite always
 tests freshly built `dist/`, not stale output. Mocha discovers both
 [LayoutSpec.ts](LayoutSpec.ts) and [metrics.test.ts](metrics.test.ts): it enforces the

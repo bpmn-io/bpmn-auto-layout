@@ -65,6 +65,17 @@ delta from authored order. Use it to investigate a fixture on demand; add
 fixture-specific semantic invariants to `test/XmlOrderInvarianceSpec.ts` when
 the property is permanent.
 
+Render those variants for visual review:
+
+```sh
+npm run inspect:xml-order -- <fixture-name-or-path>
+```
+
+The command writes reordered source BPMN, generated BPMN and SVG, a DI and
+metrics manifest, and a side-by-side `index.html` to
+`test/output/xml-order/<fixture>/`. Unlike `test:xml-order`, it keeps variants
+with warnings or geometry defects so they can be inspected.
+
 Run `npm run metrics` to assess visual-quality changes beyond exact snapshots.
 
 ## TypeScript policy

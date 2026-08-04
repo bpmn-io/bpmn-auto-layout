@@ -19,6 +19,7 @@
     "lib/**/*.ts",
     "tasks/benchmark-util.ts",
     "tasks/benchmark-fixture.ts",
+    "tasks/inspect-xml-order.ts",
     "tasks/xml-order-fixture.ts",
     "tasks/xml-order-variants.ts",
     "tasks/performance-guardrails.ts",
