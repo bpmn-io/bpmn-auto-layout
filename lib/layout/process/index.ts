@@ -66,6 +66,7 @@ export function layoutProcessScope(
   }, context);
 
   return {
+    primaryPathDiagnostics: completed.options.primaryPathDiagnostics,
     layout: completed.layout,
     semantics: completed.semantics,
     warnings: completed.warnings
@@ -82,6 +83,7 @@ function createProcessLayoutContext(
       messageFlowEndpointDirections = new Map<BpmnElement, Set<string>>(),
       primaryEdgeOverrides = new Map<BpmnElement, BpmnElement>(),
       optimizePrimaryPaths = true,
+      primaryPathDiagnostics = [],
       layoutScope
     }: ProcessLayoutContextOptions
 ): ProcessLayoutContext {
@@ -93,6 +95,7 @@ function createProcessLayoutContext(
       messageFlowEndpointDirections,
       primaryEdgeOverrides,
       optimizePrimaryPaths,
+      primaryPathDiagnostics,
       layoutScope
     },
     elements: {

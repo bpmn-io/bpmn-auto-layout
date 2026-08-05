@@ -88,13 +88,32 @@ export function optimizePrimaryPaths(
 
       evaluated++;
 
-      if (
-        introducesHardDefect(candidate.score, baselineScore) ||
-        !isBetterCandidate(candidate, best)
-      ) {
+      if (introducesHardDefect(candidate.score, baselineScore)) {
+        context.options.primaryPathDiagnostics.push({
+          gatewayId: decision.gateway.id,
+          edgeId: edge.id,
+          score: candidate.score.vector,
+          status: 'rejected-hard-defect'
+        });
         continue;
       }
 
+      if (!isBetterCandidate(candidate, best)) {
+        context.options.primaryPathDiagnostics.push({
+          gatewayId: decision.gateway.id,
+          edgeId: edge.id,
+          score: candidate.score.vector,
+          status: 'rejected-quality'
+        });
+        continue;
+      }
+
+      context.options.primaryPathDiagnostics.push({
+        gatewayId: decision.gateway.id,
+        edgeId: edge.id,
+        score: candidate.score.vector,
+        status: 'accepted'
+      });
       best = candidate;
     }
 

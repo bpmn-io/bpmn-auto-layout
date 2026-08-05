@@ -62,6 +62,7 @@ export function layoutParticipants(
     );
 
     warnings.push(...processResult.warnings);
+    context.primaryPathDiagnostics.push(...processResult.primaryPathDiagnostics);
     translateLayout(
       processLayout,
       -participantRect.x,

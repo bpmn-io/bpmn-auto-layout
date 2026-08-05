@@ -75,6 +75,7 @@ export type ProcessLayoutStep = (
 ) => ProcessLayoutContext;
 
 export type ProcessLayoutResult = {
+  primaryPathDiagnostics: PrimaryPathDiagnostic[];
   layout: LayoutState;
   semantics: ProcessSemantics;
   warnings: LayoutWarning[];
@@ -86,10 +87,18 @@ export type ProcessLayoutOptions = {
   messageFlowEndpointDirections: Map<BpmnElement, Set<string>>;
   primaryEdgeOverrides: Map<BpmnElement, BpmnElement>;
   optimizePrimaryPaths: boolean;
+  primaryPathDiagnostics: PrimaryPathDiagnostic[];
   layoutScope: (
     scope: BpmnElement,
     options?: Partial<ProcessLayoutOptions>
   ) => ProcessLayoutResult;
+};
+
+export type PrimaryPathDiagnostic = {
+  gatewayId: string | undefined;
+  edgeId: string | undefined;
+  score: number[];
+  status: 'accepted' | 'rejected-hard-defect' | 'rejected-quality';
 };
 
 export type ProcessElements = {
@@ -148,4 +157,5 @@ export type CollaborationLayoutContext = {
   };
   layout: LayoutState;
   warnings: LayoutWarning[];
+  primaryPathDiagnostics: PrimaryPathDiagnostic[];
 };

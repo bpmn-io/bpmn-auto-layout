@@ -40,6 +40,12 @@ type DiDifference = {
 	resizedShapes: string[];
 };
 type VariantReport = {
+	primaryPathDiagnostics: Array<{
+		edgeId: string | undefined;
+		gatewayId: string | undefined;
+		score: number[];
+		status: string;
+	}>;
 	difference: DiDifference | null;
 	layoutPath: string;
 	metrics: MetricValues | null;
@@ -95,6 +101,7 @@ for (const variant of XML_ORDER_VARIANTS) {
 	]);
 
 	reports.push({
+		primaryPathDiagnostics: result.primaryPathDiagnostics,
 		difference: authoredSnapshot ? diffDi(authoredSnapshot, snapshot) : null,
 		layoutPath: relative(outputDirectory, layoutPath),
 		metrics: currentMetrics,

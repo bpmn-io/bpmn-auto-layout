@@ -61,6 +61,7 @@ class LayoutEngine {
     validateInputVisuals(definitions, root);
     definitions.diagrams = [];
     let layout;
+    let primaryPathDiagnostics = [];
 
     if (is(root, 'bpmn:Collaboration')) {
       const result = layoutCollaboration(root, {
@@ -68,11 +69,13 @@ class LayoutEngine {
       });
 
       layout = result.layout;
+      primaryPathDiagnostics = result.primaryPathDiagnostics;
       this.warnings.push(...result.warnings);
     } else {
       const result = layoutProcessScope(root, { expandedIds: this.expandedIds });
 
       layout = result.layout;
+      primaryPathDiagnostics = result.primaryPathDiagnostics;
       this.warnings.push(...result.warnings);
     }
 
@@ -83,6 +86,7 @@ class LayoutEngine {
 
     return {
       xml: (await this.moddle.toXML(definitions, { format: true })).xml,
+      primaryPathDiagnostics,
       warnings: this.warnings
     };
   }

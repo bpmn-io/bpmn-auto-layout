@@ -37,6 +37,7 @@ export function layoutCollaboration(
   }, context);
 
   return {
+    primaryPathDiagnostics: completed.primaryPathDiagnostics,
     layout: completed.layout,
     semantics: {
       policy: null,
@@ -69,5 +70,7 @@ function createCollaborationLayoutContext(
     },
     layout: createLayout(collaboration),
     warnings: []
+    ,
+    primaryPathDiagnostics: []
   };
 }
