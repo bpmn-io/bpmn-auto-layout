@@ -127,6 +127,60 @@ describe('SemanticPolicy', function() {
     assert.strictEqual(policy.bands.get(approved), policy.bands.get(split));
     assert.notStrictEqual(policy.bands.get(declined), policy.bands.get(split));
   });
+
+  it('should use an eligible primary-edge override', function() {
+    const start = flowNode('bpmn:StartEvent', 'Start', { outgoing: [] });
+    const split = flowNode('bpmn:ExclusiveGateway', 'Split', {
+      incoming: [],
+      outgoing: []
+    });
+    const preferred = flowNode('bpmn:Task', 'Preferred', { incoming: [] });
+    const alternate = flowNode('bpmn:Task', 'Alternate', { incoming: [] });
+    const preferredEnd = flowNode('bpmn:EndEvent', 'PreferredEnd', {
+      incoming: []
+    });
+    const alternateEnd = flowNode('bpmn:EndEvent', 'AlternateEnd', {
+      incoming: []
+    });
+    const incoming = connect(start, split, 'Incoming');
+    const preferredBranch = connect(split, preferred, 'PreferredBranch');
+    const alternateBranch = connect(split, alternate, 'AlternateBranch');
+    const preferredCompletion = connect(
+      preferred,
+      preferredEnd,
+      'PreferredCompletion'
+    );
+    const alternateCompletion = connect(
+      alternate,
+      alternateEnd,
+      'AlternateCompletion'
+    );
+    const records = [
+      start,
+      split,
+      preferred,
+      alternate,
+      preferredEnd,
+      alternateEnd
+    ].map(flowRecord);
+    const policy = createSemanticPolicy(
+      moddle.create('bpmn:Process', { id: 'Process' }),
+      records,
+      [
+        incoming,
+        preferredBranch,
+        alternateBranch,
+        preferredCompletion,
+        alternateCompletion
+      ],
+      [],
+      records,
+      new Map([ [ split, alternateBranch ] ])
+    );
+
+    assert.strictEqual(policy.straightEdges.has(alternateBranch), true);
+    assert.strictEqual(policy.straightEdges.has(preferredBranch), false);
+  });
 });
 
 function connect(sourceRef: FlowNode, targetRef: FlowNode, id: string): FlowEdge {

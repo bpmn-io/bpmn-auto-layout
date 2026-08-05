@@ -49,7 +49,8 @@ export function analyzeSemantics(context: ProcessLayoutContext): ProcessLayoutCo
     graphRecords,
     graphEdges,
     boundaryEdges,
-    records
+    records,
+    context.options.primaryEdgeOverrides
   );
   const ranks = assignRanks(
     graphRecords,

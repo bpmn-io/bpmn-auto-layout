@@ -38,6 +38,10 @@ export function layoutCollaboration(
 
   return {
     layout: completed.layout,
+    semantics: {
+      policy: null,
+      ranks: null
+    },
     warnings: completed.warnings
   };
 }

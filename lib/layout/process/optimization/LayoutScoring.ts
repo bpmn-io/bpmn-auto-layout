@@ -30,7 +30,9 @@ export type LayoutScore = {
   vector: number[];
   hardDefects: number[];
   length: number;
+  footprint: number;
   spineLoadImbalance: number;
+  containerFootprint: number;
 };
 
 type RoutedEdge = {
@@ -72,6 +74,7 @@ export function scorePlacementCandidate(
   const spineImbalance = measureSpineLoadImbalance(shapes, policy);
   const extents = getShapeExtents(shapes);
   const footprint = extents.width * extents.height;
+  const containerFootprint = measureContainerFootprint(candidate.layout);
   const bends = edges.reduce((total, edge) => {
     return total + Math.max(0, edge.points.length - 2);
   }, 0);
@@ -90,18 +93,37 @@ export function scorePlacementCandidate(
     bends,
     hardDefects,
     length,
+    footprint,
     spineLoadImbalance: spineImbalance,
+    containerFootprint,
     vector: [
       ...hardDefects,
       feedbackApproachDefects,
       crossings,
       spineImbalance,
+      containerFootprint,
       footprint,
       bends,
       length + candidate.displacement,
       candidate.displacement
     ]
   };
+}
+
+function measureContainerFootprint(layout: LayoutState): number {
+  let footprint = 0;
+
+  for (const [ element, rect ] of layout.shapes) {
+    if (isContainer(element)) {
+      footprint += rect.width * rect.height;
+    }
+  }
+
+  for (const child of layout.children) {
+    footprint += measureContainerFootprint(child);
+  }
+
+  return footprint;
 }
 
 function countOpposingEdgeOverlaps(edges: RoutedEdge[]): number {

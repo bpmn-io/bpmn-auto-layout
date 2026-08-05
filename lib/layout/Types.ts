@@ -76,6 +76,7 @@ export type ProcessLayoutStep = (
 
 export type ProcessLayoutResult = {
   layout: LayoutState;
+  semantics: ProcessSemantics;
   warnings: LayoutWarning[];
 };
 
@@ -83,6 +84,8 @@ export type ProcessLayoutOptions = {
   expandedIds: Set<string>;
   participantProcess: boolean;
   messageFlowEndpointDirections: Map<BpmnElement, Set<string>>;
+  primaryEdgeOverrides: Map<BpmnElement, BpmnElement>;
+  optimizePrimaryPaths: boolean;
   layoutScope: (
     scope: BpmnElement,
     options?: Partial<ProcessLayoutOptions>

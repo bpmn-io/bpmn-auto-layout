@@ -110,7 +110,8 @@ export function createSemanticPolicy(
     records: FlowRecord[],
     graphEdges: FlowEdge[],
     boundaryEdges: BoundaryEdge[],
-    allRecords: LayoutRecord[]
+    allRecords: LayoutRecord[],
+    primaryEdgeOverrides: Map<BpmnElement, BpmnElement> = new Map()
 ): SemanticPolicy {
   const {
     allElementsDocumentIndex,
@@ -144,7 +145,8 @@ export function createSemanticPolicy(
     graphEdges,
     outgoing,
     edgeOrder,
-    components
+    components,
+    primaryEdgeOverrides
   );
   const straightEdges = selectStraightEdges(
     records,
@@ -325,7 +327,8 @@ function selectSemanticSpine(
     graphEdges: FlowEdge[],
     outgoing: OutgoingEdges,
     edgeOrder: EdgeOrder,
-    components: Map<FlowNode, number>
+    components: Map<FlowNode, number>,
+    primaryEdgeOverrides: Map<BpmnElement, BpmnElement>
 ): Set<FlowEdge> {
   const spine = new Set<FlowEdge>();
   const starts = records.filter(record => is(record.element, 'bpmn:StartEvent'))
@@ -382,7 +385,8 @@ function selectSemanticSpine(
         candidates,
         edgeOrder,
         visited,
-        outgoing
+        outgoing,
+        primaryEdgeOverrides.get(current)
       );
 
       if (!next) {
@@ -1332,10 +1336,15 @@ function selectPrimaryEdge(
     edges: FlowEdge[],
     edgeOrder: EdgeOrder,
     visited: Set<FlowNode> = new Set(),
-    outgoing: OutgoingEdges = new Map()
+    outgoing: OutgoingEdges = new Map(),
+    override?: BpmnElement
 ): FlowEdge | null {
   if (!edges.length) {
     return null;
+  }
+
+  if (isFlowEdgeOverride(override, edges)) {
+    return override;
   }
 
   const defaultEdge = node.default;
@@ -1368,6 +1377,14 @@ function selectPrimaryEdge(
 
   return preferred.find(edge => edge === defaultEdge) ||
     [ ...continuing ].sort((a, b) => (edgeOrder.get(a) ?? 0) - (edgeOrder.get(b) ?? 0))[0] || null;
+}
+
+function isFlowEdgeOverride(
+    override: BpmnElement | undefined,
+    edges: FlowEdge[]
+): override is FlowEdge {
+  return !!override && is(override, 'bpmn:SequenceFlow') &&
+    edges.some(edge => edge === override);
 }
 
 function canReachEndEvent(

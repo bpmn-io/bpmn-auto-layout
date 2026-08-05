@@ -148,6 +148,14 @@ spine is also marked straight before applying the ordinary default-flow
 tie-breaker. Independently originating paths therefore merge into the main
 narrative without forcing their rejoining branch into an outer band.
 
+For an inclusive split, the initial primary edge is a candidate rather than a
+permanent visual decision. The layout replays each eligible outgoing edge in an
+isolated candidate, rebuilding semantic policy, ranks, placement, and routing.
+It accepts only a strict geometry-score improvement with no new hard defect,
+uses at most 16 candidates per scope, and rejects candidates that enlarge the
+non-container footprint by more than 10%. Thus a default-flow preference is a
+semantic starting point, not a reason to retain an inferior complete geometry.
+
 When unobstructed, a spine edge is one horizontal segment from the source's
 right center to the target's left center.
 

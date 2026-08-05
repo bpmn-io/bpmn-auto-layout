@@ -4,6 +4,7 @@ import { extractElements } from './steps/extractElements.js';
 import { layoutChildScopes } from './steps/layoutChildScopes.js';
 import { optimizeFlowNodeLayout } from './steps/optimizeFlowNodeLayout.js';
 import { optimizeEventBasedGatewayJunctions } from './steps/optimizeEventBasedGatewayJunctions.js';
+import { optimizePrimaryPaths } from './steps/optimizePrimaryPaths.js';
 import { placeArtifacts } from './steps/placeArtifacts.js';
 import { placeEventSubProcesses } from './steps/placeEventSubProcesses.js';
 import { placeExpandedChildren } from './steps/placeExpandedChildren.js';
@@ -34,6 +35,7 @@ const PROCESS_LAYOUT_STEPS: readonly ProcessLayoutStep[] = Object.freeze([
   routeSequenceFlows,
   optimizeFlowNodeLayout,
   optimizeEventBasedGatewayJunctions,
+  optimizePrimaryPaths,
   placeEventSubProcesses,
   placeArtifacts,
   placeGroups
@@ -56,12 +58,16 @@ export function layoutProcessScope(
     ...options,
     layoutScope
   });
-  const completed = PROCESS_LAYOUT_STEPS.reduce((current, runStep) => {
+  const steps = context.options.optimizePrimaryPaths
+    ? PROCESS_LAYOUT_STEPS
+    : PROCESS_LAYOUT_STEPS.filter(step => step !== optimizePrimaryPaths);
+  const completed = steps.reduce((current, runStep) => {
     return runStep(current);
   }, context);
 
   return {
     layout: completed.layout,
+    semantics: completed.semantics,
     warnings: completed.warnings
   };
 }
@@ -74,6 +80,8 @@ function createProcessLayoutContext(
       expandedIds = new Set<string>(),
       participantProcess = false,
       messageFlowEndpointDirections = new Map<BpmnElement, Set<string>>(),
+      primaryEdgeOverrides = new Map<BpmnElement, BpmnElement>(),
+      optimizePrimaryPaths = true,
       layoutScope
     }: ProcessLayoutContextOptions
 ): ProcessLayoutContext {
@@ -83,6 +91,8 @@ function createProcessLayoutContext(
       expandedIds,
       participantProcess,
       messageFlowEndpointDirections,
+      primaryEdgeOverrides,
+      optimizePrimaryPaths,
       layoutScope
     },
     elements: {

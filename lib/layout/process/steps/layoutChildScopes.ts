@@ -11,6 +11,8 @@ export function layoutChildScopes(context: ProcessLayoutContext): ProcessLayoutC
     expandedIds,
     layoutScope,
     messageFlowEndpointDirections,
+    primaryEdgeOverrides,
+    optimizePrimaryPaths
   } = context.options;
 
   for (const record of records) {
@@ -22,7 +24,9 @@ export function layoutChildScopes(context: ProcessLayoutContext): ProcessLayoutC
       record.element,
       {
         expandedIds,
-        messageFlowEndpointDirections
+        messageFlowEndpointDirections,
+        primaryEdgeOverrides,
+        optimizePrimaryPaths
       }
     );
 
