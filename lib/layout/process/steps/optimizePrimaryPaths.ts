@@ -166,11 +166,59 @@ function collectPrimaryPathDecisions(policy: SemanticPolicy): PrimaryPathDecisio
     const current = selectedPrimaryEdge(policy, gateway);
 
     if (
-      !is(gateway, 'bpmn:InclusiveGateway') ||
+      !isEligibleGateway(gateway, candidates, outgoing) ||
       candidates.length < 2 ||
       !current
     ) {
       continue;
+    }
+
+    function isEligibleGateway(
+        gateway: FlowNode,
+        candidates: FlowEdge[],
+        outgoing: Map<FlowNode, FlowEdge[]>
+    ): boolean {
+      return is(gateway, 'bpmn:InclusiveGateway') ||
+        hasReconvergingAlternatives(candidates, outgoing);
+    }
+
+    function hasReconvergingAlternatives(
+        candidates: FlowEdge[],
+        outgoing: Map<FlowNode, FlowEdge[]>
+    ): boolean {
+      const reachable = candidates.map(candidate => {
+        return reachableNodes(candidate.targetRef, outgoing);
+      });
+
+      return reachable.every((nodes, index) => {
+        return reachable.slice(index + 1).some(other => {
+          return [ ...nodes ].some(node => other.has(node));
+        });
+      });
+    }
+
+    function reachableNodes(
+        start: FlowNode,
+        outgoing: Map<FlowNode, FlowEdge[]>
+    ): Set<FlowNode> {
+      const visited = new Set<FlowNode>();
+      const pending = [ start ];
+
+      while (pending.length) {
+        const node = pending.shift();
+
+        if (!node || visited.has(node)) {
+          continue;
+        }
+
+        visited.add(node);
+
+        for (const edge of outgoing.get(node) || []) {
+          pending.push(edge.targetRef);
+        }
+      }
+
+      return visited;
     }
 
     decisions.push({
