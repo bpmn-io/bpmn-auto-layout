@@ -16,6 +16,7 @@ export type ConnectionDockAssignment = {
 export type RoutingConstraints = {
   readonly adaptiveFeedbackSide?: boolean;
   readonly dockAssignment?: ConnectionDockAssignment;
+  readonly localUChannel?: 'north' | 'south';
 };
 type Router = ReturnType<typeof createBpmnOrthogonalRouter>;
 type RoutingPolicy = {
@@ -154,6 +155,26 @@ export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shap
     ...classification,
     ...assignedDocks
   };
+  const forcedLocalUChannel = constraints.localUChannel
+    ? findLocalUBypass(
+      flow,
+      assignedDocks.start,
+      assignedDocks.end,
+      shapes,
+      policy,
+      routedConnections,
+      constraints.localUChannel
+    )
+    : null;
+
+  if (forcedLocalUChannel) {
+    return forcedLocalUChannel;
+  }
+
+  if (constraints.localUChannel) {
+    throwRoutingFailed(flow);
+  }
+
   const alignedFeedbackRoute = tryAlignedFeedbackRoute(
     flow,
     source,
@@ -1189,7 +1210,7 @@ function findClearVerticalDock(target: Rect, onTop: boolean, clearRouter: Router
   }) || candidates[0];
 }
 
-function findLocalUBypass(flow: FlowEdge, start: Point, end: Point, shapes: RouterShape[], policy: RoutingPolicy, routedConnections: RoutedConnection[]): MaybeRoute {
+function findLocalUBypass(flow: FlowEdge, start: Point, end: Point, shapes: RouterShape[], policy: RoutingPolicy, routedConnections: RoutedConnection[], localUChannel?: 'north' | 'south'): MaybeRoute {
   const sourceElement = flow.sourceRef;
   const targetElement = flow.targetRef;
   const shapeByElement: ShapeByElement = new Map(shapes.map(({ element, rect }) => [ element, rect ]));
@@ -1243,6 +1264,30 @@ function findLocalUBypass(flow: FlowEdge, start: Point, end: Point, shapes: Rout
     targetElement,
     []
   );
+
+  if (localUChannel) {
+    const bottom = localUChannel === 'south';
+    const channelStart = bottom ? start : topStart;
+    const channelEnd = bottom ? end : topEnd;
+    const nearest = bottom ? nearestBottom : nearestTop;
+    const direction = bottom ? 1 : -1;
+
+    return findClearLocalUChannel(
+      channelStart,
+      channelEnd,
+      nearest,
+      direction,
+      depth,
+      localURouter
+    ) || findClearLocalUChannel(
+      channelStart,
+      channelEnd,
+      nearest,
+      direction,
+      depth,
+      localUClearRouter
+    );
+  }
 
   if (!balancedDefault) {
     return findClearLocalUChannel(

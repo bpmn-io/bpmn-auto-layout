@@ -7,6 +7,7 @@ import {
 } from './routing/MessageFlowRouting.js';
 import { layoutParticipants } from './steps/layoutParticipants.js';
 import { placeArtifacts } from './steps/placeArtifacts.js';
+import { optimizeCollaborationLayout } from './steps/optimizeCollaborationLayout.js';
 import {
   validateCollaboration
 } from './steps/validateCollaboration.js';
@@ -24,15 +25,30 @@ const COLLABORATION_LAYOUT_STEPS: readonly CollaborationLayoutStep[] = Object.fr
   layoutParticipants,
   layoutParticipantGeometry,
   routeMessageFlows,
-  placeArtifacts
+  placeArtifacts,
+  optimizeCollaborationLayout
 ]);
 
 export function layoutCollaboration(
     collaboration: BpmnElement,
     options: Partial<CollaborationLayoutOptions> = {}
 ): ProcessLayoutResult {
-  const context = createCollaborationLayoutContext(collaboration, options);
-  const completed = COLLABORATION_LAYOUT_STEPS.reduce((current, runStep) => {
+  const layoutScope = (
+      childCollaboration: BpmnElement,
+      childOptions: Partial<CollaborationLayoutOptions> = {}
+  ) => {
+    return layoutCollaboration(childCollaboration, childOptions);
+  };
+  const context = createCollaborationLayoutContext(collaboration, {
+    ...options,
+    layoutCollaboration: layoutScope
+  });
+  const steps = context.options.optimizeCollaboration
+    ? COLLABORATION_LAYOUT_STEPS
+    : COLLABORATION_LAYOUT_STEPS.filter(step => {
+      return step !== optimizeCollaborationLayout;
+    });
+  const completed = steps.reduce((current, runStep) => {
     return runStep(current);
   }, context);
 
@@ -50,27 +66,43 @@ export function layoutCollaboration(
 function createCollaborationLayoutContext(
     collaboration: BpmnElement,
     {
-      expandedIds = new Set<string>()
+      expandedIds = new Set<string>(),
+      layoutCollaboration,
+      optimizeCollaboration = true,
+      optimizePrimaryPaths = true,
+      primaryEdgeOverrides = new Map()
     }: Partial<CollaborationLayoutOptions>
 ): CollaborationLayoutContext {
   return {
     collaboration,
     options: {
-      expandedIds
+      expandedIds,
+      layoutCollaboration: getRequired(layoutCollaboration),
+      optimizeCollaboration,
+      optimizePrimaryPaths,
+      primaryEdgeOverrides
     },
     participants: {
       layouts: new Map(),
       anchorPositioned: new Set(),
       expandable: new Set(),
-      order: []
+      order: [],
+      semantics: new Map()
     },
     routing: {
       endpointDirections: new Map(),
       channelOffsets: new Map()
     },
     layout: createLayout(collaboration),
-    warnings: []
-    ,
+    warnings: [],
     primaryPathDiagnostics: []
   };
+}
+
+function getRequired<Value>(value: Value | undefined): Value {
+  if (value === undefined) {
+    throw new Error('Expected collaboration layout option');
+  }
+
+  return value;
 }

@@ -140,6 +140,13 @@ export type CollaborationLayoutStep = (
 
 export type CollaborationLayoutOptions = {
   expandedIds: Set<string>;
+  optimizeCollaboration: boolean;
+  optimizePrimaryPaths: boolean;
+  primaryEdgeOverrides: Map<BpmnElement, BpmnElement>;
+  layoutCollaboration: (
+    collaboration: BpmnElement,
+    options?: Partial<CollaborationLayoutOptions>
+  ) => ProcessLayoutResult;
 };
 
 export type CollaborationLayoutContext = {
@@ -150,6 +157,7 @@ export type CollaborationLayoutContext = {
     anchorPositioned: Set<BpmnElement>;
     expandable: Set<BpmnElement>;
     order: BpmnElement[];
+    semantics: Map<BpmnElement, ProcessSemantics>;
   };
   routing: {
     endpointDirections: Map<BpmnElement, Set<string>>;

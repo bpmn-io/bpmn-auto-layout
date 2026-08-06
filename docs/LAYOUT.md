@@ -46,7 +46,16 @@ flowchart LR
 Within each process scope, the engine analyzes cycles and narrative structure,
 places flow nodes and containers, routes sequence flows, and then places
 artifacts and groups. A collaboration composes those completed process layouts,
-orders and aligns their participants, and routes message flows.
+orders and aligns their participants, routes message flows, and may replay
+primary-path combinations against the complete collaboration geometry. It
+considers at most 32 replay candidates across at most five decisions. Replay
+candidates are finalized before scoring; when cleanup creates a crossing at a
+removed collinear waypoint on exactly one sequence flow, that candidate may
+reroute only that flow through one south-docked local U channel. A failed or
+non-improving reroute is discarded, leaving the candidate and default layout
+unchanged. A candidate may trade one crossing for at least three fewer bends
+only when its container footprint, total footprint, and route length do not
+increase.
 
 The layout state for each process, sub-process, or collaboration scope contains
 shape bounds, edge waypoints, and child layouts. Its fields have one-way
@@ -148,13 +157,14 @@ spine is also marked straight before applying the ordinary default-flow
 tie-breaker. Independently originating paths therefore merge into the main
 narrative without forcing their rejoining branch into an outer band.
 
-For an inclusive split, the initial primary edge is a candidate rather than a
-permanent visual decision. The layout replays each eligible outgoing edge in an
-isolated candidate, rebuilding semantic policy, ranks, placement, and routing.
-It accepts only a strict geometry-score improvement with no new hard defect,
-uses at most 16 candidates per scope, and rejects candidates that enlarge the
-non-container footprint by more than 10%. Thus a default-flow preference is a
-semantic starting point, not a reason to retain an inferior complete geometry.
+For an inclusive split, or another split whose alternatives reconverge, the
+initial primary edge is a candidate rather than a permanent visual decision.
+The layout replays each eligible outgoing edge in an isolated candidate,
+rebuilding semantic policy, ranks, placement, and routing. It accepts only a
+strict geometry-score improvement with no new hard defect, uses at most 16
+candidates per scope, and rejects candidates that enlarge the non-container
+footprint by more than 10%. Thus a default-flow preference is a semantic
+starting point, not a reason to retain an inferior complete geometry.
 
 When unobstructed, a spine edge is one horizontal segment from the source's
 right center to the target's left center.
@@ -573,6 +583,21 @@ crossings first. Single-process collaborations keep their process position.
 Disconnected message-flow components are translated to a common left edge.
 Consecutive black-box participants may share a row when they retain the normal
 horizontal gap; process-backed participants always occupy an exclusive row.
+
+After message routing and artifact placement, collaborations with two to four
+process-backed participants and three eligible primary-path decisions replay up
+to 32 stable combinations across at most five gateways. This initial
+collaboration-wide search is reserved for coupled decisions where process-local
+selection is least reliable and full replay remains bounded. Each replay
+disables nested optimization and rebuilds every participant plus its message
+flows. The complete score includes emitted process geometry and collaboration
+message flows after connection docking finalization, rejects new hard defects,
+and limits aggregate
+participant-and-lane footprint growth to 10%. A candidate also cannot increase
+bends by more than 10%, with four additional bends allowed for small layouts.
+Only a strict improvement before the route-length tie-break replaces the
+assembled baseline, so negligible path shortening does not churn otherwise
+equivalent DI.
 
 ### Message routing
 

@@ -46,7 +46,7 @@ const snapshot = fs.readFileSync(
 
 describe('Layout review', function(this: TimedTestContext) {
 
-  this.timeout(60000);
+  this.timeout(240000);
 
   let repositoryDirectory: string;
 

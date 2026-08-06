@@ -37,7 +37,7 @@ export function commitPlacementCandidate(
   copyLayout(target, candidate.layout);
 }
 
-function cloneLayout(layout: LayoutState): LayoutState {
+export function cloneLayout(layout: LayoutState): LayoutState {
   return {
     scope: layout.scope,
     shapes: new Map(

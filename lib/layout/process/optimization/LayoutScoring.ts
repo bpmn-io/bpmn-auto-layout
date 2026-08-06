@@ -21,7 +21,9 @@ import type {
 import type { PlacementCandidate } from './PlacementCandidate.js';
 import type { ModdleElement } from 'moddle';
 import type {
+  BpmnAssociation,
   BpmnFlowNode,
+  BpmnMessageFlow,
   BpmnSequenceFlow
 } from '../../../moddle-types/bpmn.js';
 
@@ -35,15 +37,33 @@ export type LayoutScore = {
   containerFootprint: number;
 };
 
+export type CompleteLayoutScore = {
+  bends: number;
+  containerFootprint: number;
+  crossings: number;
+  footprint: number;
+  hardDefects: number[];
+  length: number;
+  vector: number[];
+};
+
 type RoutedEdge = {
-  element: FlowEdge;
+  element: ConnectionEdge;
   points: Waypoint[];
 };
 type FlowNode = ModdleElement<BpmnFlowNode>;
-type FlowEdge = ModdleElement<BpmnSequenceFlow> & {
-  sourceRef: FlowNode;
-  targetRef: FlowNode;
-};
+type FlowEdge =
+  & ModdleElement<BpmnSequenceFlow | BpmnMessageFlow>
+  & {
+    sourceRef: FlowNode;
+    targetRef: FlowNode;
+  };
+type ConnectionEdge =
+  & ModdleElement<BpmnSequenceFlow | BpmnMessageFlow | BpmnAssociation>
+  & {
+    sourceRef: BpmnElement;
+    targetRef: BpmnElement;
+  };
 
 type Shape = {
   element: BpmnElement;
@@ -57,7 +77,7 @@ export function scorePlacementCandidate(
   const shapes = collectScoredShapes(candidate.layout);
   const edges = [ ...candidate.layout.edges ]
     .filter((entry): entry is [ FlowEdge, Waypoint[] ] => {
-      return isScoredEdge(entry[0]);
+      return isFlowEdge(entry[0]);
     })
     .map(([ element, points ]) => ({ element, points }));
   const overlaps = countShapeOverlaps(shapes);
@@ -110,6 +130,69 @@ export function scorePlacementCandidate(
   };
 }
 
+export function scoreCompleteLayout(layout: LayoutState): CompleteLayoutScore {
+  const shapes = collectScoredShapes(layout);
+  const edges = collectScoredEdges(layout);
+  const flowEdges = edges.filter((edge): edge is RoutedEdge & {
+    element: FlowEdge;
+  } => {
+    return isFlowEdge(edge.element);
+  });
+  const overlaps = countShapeOverlaps(shapes);
+  const edgeShapeIntersections = countEdgeShapeIntersections(edges, shapes);
+  const routeDefects = countRouteDefects(flowEdges);
+  const opposingEdgeOverlaps = countOpposingEdgeOverlaps(edges, true);
+  const crossings = countCrossings(edges);
+  const extents = getShapeExtents(shapes);
+  const footprint = extents.width * extents.height;
+  const containerFootprint = measureContainerFootprint(layout);
+  const bends = edges.reduce((total, edge) => {
+    return total + Math.max(0, edge.points.length - 2);
+  }, 0);
+  const length = edges.reduce((total, edge) => {
+    return total + routeLength(edge.points);
+  }, 0);
+  const hardDefects = [
+    overlaps,
+    edgeShapeIntersections,
+    routeDefects,
+    opposingEdgeOverlaps
+  ];
+
+  return {
+    bends,
+    containerFootprint,
+    crossings,
+    footprint,
+    hardDefects,
+    length,
+    vector: [
+      ...hardDefects,
+      crossings,
+      containerFootprint,
+      footprint,
+      bends,
+      length
+    ]
+  };
+}
+
+function collectScoredEdges(layout: LayoutState): RoutedEdge[] {
+  const edges = [ ...layout.edges ]
+    .filter((entry): entry is [ FlowEdge, Waypoint[] ] => {
+      return isCompleteEdge(entry[0]);
+    })
+    .map(([ element, points ]) => ({ element, points }));
+
+  for (const child of layout.children) {
+    if (child.emitInParent) {
+      edges.push(...collectScoredEdges(child));
+    }
+  }
+
+  return edges;
+}
+
 function measureContainerFootprint(layout: LayoutState): number {
   let footprint = 0;
 
@@ -126,7 +209,10 @@ function measureContainerFootprint(layout: LayoutState): number {
   return footprint;
 }
 
-function countOpposingEdgeOverlaps(edges: RoutedEdge[]): number {
+function countOpposingEdgeOverlaps(
+    edges: RoutedEdge[],
+    ignoreSharedDockingStubs = false
+): number {
   let overlaps = 0;
 
   for (let left = 0; left < edges.length; left++) {
@@ -137,7 +223,14 @@ function countOpposingEdgeOverlaps(edges: RoutedEdge[]): number {
             (b.x - a.x) * (d.x - c.x) +
             (b.y - a.y) * (d.y - c.y) < 0;
 
-          if (opposing && collinearOverlap(a, b, c, d)) {
+          if (
+            opposing &&
+            collinearOverlap(a, b, c, d) &&
+            (
+              !ignoreSharedDockingStubs ||
+              !isSharedDockingStub(edges[left], a, b, edges[right], c, d)
+            )
+          ) {
             overlaps++;
           }
         }
@@ -146,6 +239,88 @@ function countOpposingEdgeOverlaps(edges: RoutedEdge[]): number {
   }
 
   return overlaps;
+}
+
+function isSharedDockingStub(
+    leftEdge: RoutedEdge,
+    leftStart: Waypoint,
+    leftEnd: Waypoint,
+    rightEdge: RoutedEdge,
+    rightStart: Waypoint,
+    rightEnd: Waypoint
+): boolean {
+  return sharedDockingPoints(leftEdge, rightEdge).some(point => {
+    return hasEndpoint(leftStart, leftEnd, point) &&
+      hasEndpoint(rightStart, rightEnd, point);
+  });
+}
+
+function sharedDockingPoints(
+    left: RoutedEdge,
+    right: RoutedEdge
+): Waypoint[] {
+  const points: Waypoint[] = [];
+
+  addSharedDockingPoint(
+    points,
+    left.element.sourceRef,
+    left.points[0],
+    right.element.sourceRef,
+    right.points[0]
+  );
+  addSharedDockingPoint(
+    points,
+    left.element.sourceRef,
+    left.points[0],
+    right.element.targetRef,
+    right.points.at(-1)
+  );
+  addSharedDockingPoint(
+    points,
+    left.element.targetRef,
+    left.points.at(-1),
+    right.element.sourceRef,
+    right.points[0]
+  );
+  addSharedDockingPoint(
+    points,
+    left.element.targetRef,
+    left.points.at(-1),
+    right.element.targetRef,
+    right.points.at(-1)
+  );
+
+  return points;
+}
+
+function addSharedDockingPoint(
+    points: Waypoint[],
+    leftElement: BpmnElement,
+    leftPoint: Waypoint | undefined,
+    rightElement: BpmnElement,
+    rightPoint: Waypoint | undefined
+): void {
+  if (
+    leftElement === rightElement &&
+    leftPoint &&
+    rightPoint &&
+    leftPoint.x === rightPoint.x &&
+    leftPoint.y === rightPoint.y
+  ) {
+    points.push(leftPoint);
+  }
+}
+
+function hasEndpoint(
+    start: Waypoint,
+    end: Waypoint,
+    point: Waypoint
+): boolean {
+  return samePoint(start, point) || samePoint(end, point);
+}
+
+function samePoint(a: Waypoint, b: Waypoint): boolean {
+  return a.x === b.x && a.y === b.y;
 }
 
 function countFeedbackApproachDefects(
@@ -195,7 +370,11 @@ function collectScoredShapes(layout: LayoutState): Shape[] {
   const shapes: Shape[] = [];
 
   for (const [ element, rect ] of layout.shapes) {
-    if (!isContainer(element) && !isArtifact(element)) {
+    if (
+      !isContainer(element) &&
+      !isArtifact(element) &&
+      !isExpandedContainer(layout, element)
+    ) {
       shapes.push({ element, rect });
     }
   }
@@ -207,6 +386,15 @@ function collectScoredShapes(layout: LayoutState): Shape[] {
   }
 
   return shapes;
+}
+
+function isExpandedContainer(
+    layout: LayoutState,
+    element: BpmnElement
+): boolean {
+  return layout.children.some(child => {
+    return child.emitInParent && child.scope === element;
+  });
 }
 
 function countShapeOverlaps(shapes: Shape[]): number {
@@ -389,7 +577,7 @@ function measureSpineLoadImbalance(
   const spineNodes = new Set<BpmnElement>();
 
   for (const edge of policy.spine) {
-    if (isScoredEdge(edge)) {
+    if (isFlowEdge(edge)) {
       spineNodes.add(edge.sourceRef);
       spineNodes.add(edge.targetRef);
     }
@@ -443,8 +631,20 @@ function isBoundaryAttachment(a: BpmnElement, b: BpmnElement): boolean {
     is(b, 'bpmn:BoundaryEvent') && b.attachedToRef === a;
 }
 
-function isScoredEdge(element: BpmnElement): element is FlowEdge {
-  return is(element, 'bpmn:SequenceFlow') &&
+function isFlowEdge(element: BpmnElement): element is FlowEdge {
+  return (
+    is(element, 'bpmn:SequenceFlow') ||
+    is(element, 'bpmn:MessageFlow')
+  ) &&
+    !!element.sourceRef &&
+    !!element.targetRef;
+}
+
+function isCompleteEdge(element: BpmnElement): element is ConnectionEdge {
+  return (
+    isFlowEdge(element) ||
+    is(element, 'bpmn:Association')
+  ) &&
     !!element.sourceRef &&
     !!element.targetRef;
 }

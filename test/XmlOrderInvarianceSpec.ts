@@ -32,6 +32,7 @@ const SUBPROCESS_ID = "Activity_0jyy09f";
 const ENTRY_GATEWAY_ID = "Gateway_01mjb0r";
 const EXIT_GATEWAY_ID = "Gateway_10bvoyq";
 const GATEWAY_FIXTURE = "gateway.multiple.bpmn";
+const FINSERV_FIXTURE = "camunda-consulting.finserv-loan-kyc.bpmn";
 const GATEWAY_SPINE_FLOW_IDS = [
 	"Flow_174mdxz",
 	"Flow_0x21408",
@@ -128,6 +129,41 @@ describe("XML order invariance", function () {
 			);
 		}
 	});
+
+	it("should bound Finserv complexity through order variants", async function () {
+		const xml = await readFile(
+			new URL(`fixtures/${FINSERV_FIXTURE}`, import.meta.url),
+			"utf8",
+		);
+
+		for (const variant of XML_ORDER_VARIANTS) {
+			const output = (
+				await layoutProcess(await reorderFlowElements(xml, variant))
+			).xml;
+			const metrics = await evaluateMetrics(output);
+			const current = getRequired(metrics.current);
+
+			assert.strictEqual(
+				metrics.error,
+				null,
+				`${variant.name} should produce metrics`,
+			);
+			assert.strictEqual(
+				hasBandADefect(metrics),
+				false,
+				`${variant.name} should not introduce a hard geometry defect`,
+			);
+			assert.ok(
+				current.crossings <= 3,
+				`${variant.name} should have at most three crossings`,
+			);
+			assert.ok(
+				current.bendCount <= 22,
+				`${variant.name} should have at most 22 bends`,
+			);
+		}
+	});
+
 });
 
 function swapRetryAndSubprocess(elements: BpmnElement[]): BpmnElement[] {

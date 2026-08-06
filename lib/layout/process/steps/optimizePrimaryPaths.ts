@@ -8,7 +8,6 @@ import {
   commitPlacementCandidate,
   createBaselineCandidate
 } from '../optimization/PlacementCandidate.js';
-
 import type {
   BpmnElement,
   ProcessLayoutContext,
@@ -32,8 +31,13 @@ type FlowEdge = ModdleElement<BpmnSequenceFlow> & {
 };
 type PrimaryPathDecision = {
   candidates: FlowEdge[];
-  current: FlowEdge;
+  current: FlowEdge | null;
   gateway: FlowNode;
+};
+
+export type PrimaryEdgeOptions = {
+  candidates: BpmnElement[];
+  source: BpmnElement;
 };
 type EvaluatedCandidate = {
   candidate: PlacementCandidate;
@@ -71,7 +75,10 @@ export function optimizePrimaryPaths(
     let best = current;
 
     for (const edge of decision.candidates) {
-      if (edge === decision.current || evaluated >= MAX_PRIMARY_PATH_CANDIDATES) {
+      if (
+        edge === decision.current ||
+        evaluated >= MAX_PRIMARY_PATH_CANDIDATES
+      ) {
         continue;
       }
 
@@ -145,7 +152,22 @@ export function optimizePrimaryPaths(
   return context;
 }
 
-function collectPrimaryPathDecisions(policy: SemanticPolicy): PrimaryPathDecision[] {
+export function collectPrimaryEdgeOptions(
+    policy: SemanticPolicy
+): PrimaryEdgeOptions[] {
+  return collectPrimaryPathDecisions(policy, true, true).map((decision) => ({
+    candidates: [ ...decision.candidates ].sort((a, b) => {
+      return (a.id || '').localeCompare(b.id || '');
+    }),
+    source: decision.gateway
+  }));
+}
+
+function collectPrimaryPathDecisions(
+    policy: SemanticPolicy,
+    includeReconverging = false,
+    includeUnselected = false
+): PrimaryPathDecision[] {
   const outgoing = new Map<FlowNode, FlowEdge[]>();
 
   for (const element of policy.graphEdges) {
@@ -168,7 +190,7 @@ function collectPrimaryPathDecisions(policy: SemanticPolicy): PrimaryPathDecisio
     if (
       !isEligibleGateway(gateway, candidates, outgoing) ||
       candidates.length < 2 ||
-      !current
+      !current && !includeUnselected
     ) {
       continue;
     }
@@ -178,22 +200,28 @@ function collectPrimaryPathDecisions(policy: SemanticPolicy): PrimaryPathDecisio
         candidates: FlowEdge[],
         outgoing: Map<FlowNode, FlowEdge[]>
     ): boolean {
-      return is(gateway, 'bpmn:InclusiveGateway') ||
-        hasReconvergingAlternatives(candidates, outgoing);
+      return (
+        is(gateway, 'bpmn:InclusiveGateway') ||
+        includeReconverging &&
+        (
+          is(gateway, 'bpmn:Gateway') ||
+          hasReconvergingAlternatives(candidates, outgoing)
+        )
+      );
     }
 
     function hasReconvergingAlternatives(
         candidates: FlowEdge[],
         outgoing: Map<FlowNode, FlowEdge[]>
     ): boolean {
-      const reachable = candidates.map(candidate => {
+      const reachable = candidates.map((candidate) => {
         return reachableNodes(candidate.targetRef, outgoing);
       });
 
-      return reachable.every((nodes, index) => {
-        return reachable.slice(index + 1).some(other => {
-          return [ ...nodes ].some(node => other.has(node));
-        });
+      const [ first, ...rest ] = reachable;
+
+      return !!first && [ ...first ].some(node => {
+        return rest.every(nodes => nodes.has(node));
       });
     }
 
@@ -231,8 +259,10 @@ function collectPrimaryPathDecisions(policy: SemanticPolicy): PrimaryPathDecisio
   }
 
   return decisions.sort((a, b) => {
-    return (policy.flowNodeDocumentIndex.get(a.gateway) ?? 0) -
-      (policy.flowNodeDocumentIndex.get(b.gateway) ?? 0);
+    return (
+      (policy.flowNodeDocumentIndex.get(a.gateway) ?? 0) -
+      (policy.flowNodeDocumentIndex.get(b.gateway) ?? 0)
+    );
   });
 }
 
@@ -249,7 +279,8 @@ function evaluatePrimaryPathCandidate(
   const result = context.options.layoutScope(context.scope, {
     expandedIds: context.options.expandedIds,
     participantProcess: context.options.participantProcess,
-    messageFlowEndpointDirections: context.options.messageFlowEndpointDirections,
+    messageFlowEndpointDirections:
+      context.options.messageFlowEndpointDirections,
     optimizePrimaryPaths: false,
     primaryEdgeOverrides
   });
@@ -262,10 +293,9 @@ function evaluatePrimaryPathCandidate(
 
   const candidate: PlacementCandidate = {
     layout: result.layout,
-    moveKey: `primary-${ gateway.id }-${ edge.id }`,
+    moveKey: `primary-${gateway.id}-${edge.id}`,
     displacement: 0
   };
-
   return {
     candidate,
     policy,
@@ -297,10 +327,7 @@ function isBetterCandidate(
     return false;
   }
 
-  return compareScores(
-    candidate.score.vector,
-    current.score.vector
-  ) < 0;
+  return compareScores(candidate.score.vector, current.score.vector) < 0;
 }
 
 function selectedPrimaryEdge(
@@ -317,9 +344,11 @@ function selectedPrimaryEdge(
 }
 
 function isFlowEdge(element: BpmnElement): element is FlowEdge {
-  return is(element, 'bpmn:SequenceFlow') &&
+  return (
+    is(element, 'bpmn:SequenceFlow') &&
     is(element.sourceRef, 'bpmn:FlowNode') &&
-    is(element.targetRef, 'bpmn:FlowNode');
+    is(element.targetRef, 'bpmn:FlowNode')
+  );
 }
 
 function getRequired<Value>(value: Value | undefined): Value {

@@ -27,6 +27,7 @@ export function layoutParticipants(
     anchorPositioned,
     expandable
   } = context.participants;
+  const { semantics } = context.participants;
   const endpointDirections = collectMessageFlowEndpointDirections(
     collaboration.messageFlows || []
   );
@@ -53,7 +54,9 @@ export function layoutParticipants(
     const processResult = layoutProcessScope(process, {
       expandedIds,
       participantProcess: true,
-      messageFlowEndpointDirections: endpointDirections
+      messageFlowEndpointDirections: endpointDirections,
+      optimizePrimaryPaths: context.options.optimizePrimaryPaths,
+      primaryEdgeOverrides: context.options.primaryEdgeOverrides
     });
     const processLayout = processResult.layout;
     const participantRect = getParticipantContainerBounds(
@@ -75,6 +78,7 @@ export function layoutParticipants(
       participantRect.height
     ));
     layouts.set(participant, processLayout);
+    semantics.set(participant, processResult.semantics);
 
     if (!hasParticipantContent(processLayout)) {
       anchorPositioned.add(participant);
