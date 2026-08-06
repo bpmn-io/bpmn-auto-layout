@@ -6,6 +6,7 @@ import {
   flattenFeedbackRegions
 } from '../optimization/FeedbackMoves.js';
 import {
+  countLayoutShapeOverlaps,
   introducesHardDefect,
   scorePlacementCandidate
 } from '../optimization/LayoutScoring.js';
@@ -78,6 +79,7 @@ export function optimizeFlowNodeLayout(
 
   const baseline = createBaselineCandidate(context.layout);
   const baselineScore = scorePlacementCandidate(baseline, policy);
+  const baselineShapeOverlaps = countLayoutShapeOverlaps(baseline.layout);
   let current = baseline;
   let currentScore = baselineScore;
   let evaluated = 0;
@@ -96,6 +98,14 @@ export function optimizeFlowNodeLayout(
         mirrorRegions[index],
         `${ current.moveKey }/feedback-${ index }-mirror`
       );
+
+      if (
+        candidate &&
+        countLayoutShapeOverlaps(candidate.layout) > baselineShapeOverlaps
+      ) {
+        evaluated++;
+        continue;
+      }
 
       const score = candidate && routeCandidate(candidate, context, policy);
 
@@ -156,6 +166,13 @@ export function optimizeFlowNodeLayout(
         const candidate = candidates[candidateIndex];
 
         if (!candidate) {
+          continue;
+        }
+
+        if (
+          countLayoutShapeOverlaps(candidate.layout) > baselineShapeOverlaps
+        ) {
+          evaluated++;
           continue;
         }
 

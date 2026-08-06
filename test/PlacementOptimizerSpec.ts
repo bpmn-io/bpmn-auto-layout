@@ -8,6 +8,7 @@ import {
   createLayout
 } from '../lib/layout/geometry/index.js';
 import {
+  countLayoutShapeOverlaps,
   introducesHardDefect,
   scoreCompleteLayout
 } from '../lib/layout/process/optimization/LayoutScoring.js';
@@ -96,6 +97,27 @@ describe('PlacementOptimizer', function() {
       spineLoadImbalance: 0,
       vector: []
     }, baseline), true);
+  });
+
+  it('should count candidate shape overlaps before routing', function() {
+    const process = moddle.create('bpmn:Process', { id: 'Process' });
+    const first = moddle.create('bpmn:Task', { id: 'First' });
+    const second = moddle.create('bpmn:Task', { id: 'Second' });
+    const layout = createLayout(process);
+
+    layout.shapes.set(first, bounds(0, 0, 100, 80));
+    layout.shapes.set(second, bounds(200, 0, 100, 80));
+
+    const baseline = createBaselineCandidate(layout);
+    const candidate = clonePlacementCandidate(baseline, 'overlap');
+    const shapes = [ ...candidate.layout.shapes.values() ];
+
+    assert.strictEqual(countLayoutShapeOverlaps(baseline.layout), 0);
+
+    shapes[1].x = shapes[0].x;
+    shapes[1].y = shapes[0].y;
+
+    assert.strictEqual(countLayoutShapeOverlaps(candidate.layout), 1);
   });
 
   it('should score all crossings in emitted collaboration geometry', function() {

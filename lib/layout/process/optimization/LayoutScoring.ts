@@ -366,6 +366,10 @@ export function introducesHardDefect(
   });
 }
 
+export function countLayoutShapeOverlaps(layout: LayoutState): number {
+  return countShapeOverlaps(collectScoredShapes(layout));
+}
+
 function collectScoredShapes(layout: LayoutState): Shape[] {
   const shapes: Shape[] = [];
 
