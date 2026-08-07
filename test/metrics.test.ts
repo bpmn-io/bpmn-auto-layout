@@ -7,7 +7,11 @@ import { analyzeMetrics, computeMetrics } from './metrics/computeMetrics.js';
 
 type Waypoint = [ x: number, y: number ];
 
-describe('Layout metrics', function() {
+type TimedTestContext = {
+  timeout(milliseconds: number): void;
+};
+
+describe('Layout metrics', function(this: TimedTestContext) {
 
   this.timeout(60_000);
 

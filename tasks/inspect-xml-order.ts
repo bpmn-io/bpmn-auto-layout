@@ -101,7 +101,7 @@ for (const variant of XML_ORDER_VARIANTS) {
 	]);
 
 	reports.push({
-		primaryPathDiagnostics: result.primaryPathDiagnostics,
+		primaryPathDiagnostics: result.primaryPathDiagnostics ?? [],
 		difference: authoredSnapshot ? diffDi(authoredSnapshot, snapshot) : null,
 		layoutPath: relative(outputDirectory, layoutPath),
 		metrics: currentMetrics,
