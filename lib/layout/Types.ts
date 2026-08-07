@@ -1,4 +1,5 @@
 import type { LayoutWarning } from '../LayoutWarning.js';
+import type { PrimaryPathDiagnostic } from '../PrimaryPathDiagnostic.js';
 import type {
   Point,
   Rect
@@ -7,6 +8,7 @@ import type {
 import type { BpmnElement } from './bpmn/Types.js';
 
 export type { BpmnElement } from './bpmn/Types.js';
+export type { PrimaryPathDiagnostic } from '../PrimaryPathDiagnostic.js';
 
 export type Bounds = Rect;
 
@@ -92,13 +94,6 @@ export type ProcessLayoutOptions = {
     scope: BpmnElement,
     options?: Partial<ProcessLayoutOptions>
   ) => ProcessLayoutResult;
-};
-
-export type PrimaryPathDiagnostic = {
-  gatewayId: string | undefined;
-  edgeId: string | undefined;
-  score: number[];
-  status: 'accepted' | 'rejected-hard-defect' | 'rejected-quality';
 };
 
 export type ProcessElements = {

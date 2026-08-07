@@ -7,6 +7,7 @@ import {
 import { getDefaultSize, is } from '../di/DiUtil.js';
 import { LayoutError } from '../LayoutError.js';
 import { LayoutWarning } from '../LayoutWarning.js';
+import type { PrimaryPathDiagnostic } from '../PrimaryPathDiagnostic.js';
 import { generateDiagrams } from './DiagramGeneration.js';
 import { getExpectedDiElements } from './bpmn/ExpectedDiElements.js';
 import {
@@ -61,7 +62,7 @@ class LayoutEngine {
     validateInputVisuals(definitions, root);
     definitions.diagrams = [];
     let layout;
-    let primaryPathDiagnostics = [];
+    let primaryPathDiagnostics: PrimaryPathDiagnostic[] = [];
 
     if (is(root, 'bpmn:Collaboration')) {
       const result = layoutCollaboration(root, {
