@@ -10,7 +10,7 @@ import { isBpmndiType } from "../lib/layout/bpmn/Types.js";
 import { evaluateMetrics, hasBandADefect } from "./metrics/evaluateMetrics.js";
 import {
 	reorderFlowElements,
-	XML_ORDER_VARIANTS,
+	XML_ORDER_CORE_VARIANTS,
 } from "../tasks/xml-order-variants.js";
 
 import type { BpmnElement } from "../lib/layout/bpmn/Types.js";
@@ -41,7 +41,7 @@ const GATEWAY_SPINE_FLOW_IDS = [
 	"Flow_1ge6e6x",
 ];
 const variants = [
-	...XML_ORDER_VARIANTS,
+	...XML_ORDER_CORE_VARIANTS,
 	{
 		name: "subprocess-before-retry",
 		reorder: swapRetryAndSubprocess,
@@ -100,7 +100,7 @@ describe("XML order invariance", function () {
 			"utf8",
 		);
 
-		for (const variant of XML_ORDER_VARIANTS) {
+		for (const variant of XML_ORDER_CORE_VARIANTS) {
 			const output = (
 				await layoutProcess(await reorderFlowElements(xml, variant))
 			).xml;
@@ -136,7 +136,7 @@ describe("XML order invariance", function () {
 			"utf8",
 		);
 
-		for (const variant of XML_ORDER_VARIANTS) {
+		for (const variant of XML_ORDER_CORE_VARIANTS) {
 			const output = (
 				await layoutProcess(await reorderFlowElements(xml, variant))
 			).xml;
@@ -166,7 +166,9 @@ describe("XML order invariance", function () {
 
 });
 
-function swapRetryAndSubprocess(elements: BpmnElement[]): BpmnElement[] {
+function swapRetryAndSubprocess<Element extends BpmnElement>(
+	elements: Element[],
+): Element[] {
 	const reordered = [...elements];
 	const retryIndex = reordered.findIndex((element) => element.id === RETRY_ID);
 	const subProcessIndex = reordered.findIndex((element) => {

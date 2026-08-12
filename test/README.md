@@ -152,16 +152,21 @@ rejects failure fixtures.
 
 ## XML-order checks
 
-Test any normal fixture against deterministic `flowElements` order variants:
+Test any normal fixture against deterministic semantic-collection order
+variants:
 
 ```sh
 npm run test:xml-order -- gateway.multiple
 ```
 
-The command lays out authored, ID-sorted, and reversed scoped orders. It rejects
-missing DI and Band-A geometry defects, then reports every variant's metrics and
-delta from authored order. It is an on-demand diagnostic rather than a snapshot
-assertion: add permanent, fixture-specific semantic invariants to
+The command lays out authored, ID-sorted, reversed, and three seeded orders.
+Variants independently reorder unordered root elements, flow elements,
+artifacts, participants, message flows, flow references, data associations, and
+lane membership references. Lane sibling order is preserved because it defines
+their visual top-to-bottom order. The check rejects missing DI and Band-A
+geometry defects, then reports every variant's metrics and delta from authored
+order. It is an on-demand diagnostic rather than a snapshot assertion: add
+permanent semantic or normalized-geometry invariants to
 [`XmlOrderInvarianceSpec.ts`](XmlOrderInvarianceSpec.ts).
 
 Render the same variants for side-by-side visual review:
