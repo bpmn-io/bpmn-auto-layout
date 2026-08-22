@@ -60,6 +60,58 @@ describe('CompactBands', function() {
       [ 1, 1, 2 ]
     );
   });
+
+  it('should compact a boundary handler target against its host\'s compacted band', function() {
+
+    // The boundary host sits at a high original band that compacts down to a
+    // low one. Its SLA-style handler targets a node at a *lower* original band,
+    // so the target interval is processed before the host. The target's minimum
+    // magnitude must derive from the host's *compacted* band (1), not its stale
+    // original band (4); otherwise the target is pinned far too deep and leaves
+    // permanent empty bands between it and the rest of the diagram.
+    const host = flowNode('Host');
+    const target = flowNode('Target');
+    const boundary = moddle.create('bpmn:BoundaryEvent', {
+      id: 'Boundary',
+      attachedToRef: host
+    }) as FlowNode & { attachedToRef: FlowNode };
+    const records = [ host, target ].map(flowRecord);
+    const boundaryEdge = moddle.create('bpmn:SequenceFlow', {
+      id: 'BoundaryFlow',
+      sourceRef: boundary,
+      targetRef: target
+    }) as Parameters<typeof compactSemanticBands>[2][number];
+    const policy: SemanticPolicy = {
+      bands: new Map<FlowNode, number>([
+        [ host, 4 ],
+        [ target, 2 ]
+      ]),
+      components: new Map<FlowNode, number>([
+        [ host, 0 ],
+        [ target, 0 ]
+      ]),
+      backEdges: new Set<FlowEdge>(),
+      boundaryBayEdges: new Set<FlowEdge>(),
+      spine: new Set<FlowEdge>(),
+      straightEdges: new Set<FlowEdge>(),
+      edgeOrder: new Map(),
+      flowNodeDocumentIndex: new Map(),
+      graphEdges: [],
+      compactFlowRegions: [],
+      rankWeights: new Map()
+    };
+    const ranks: RankAssignment = {
+      rank: new Map<FlowNode, number>([
+        [ host, 0 ],
+        [ target, 1 ]
+      ])
+    };
+
+    compactSemanticBands(records, [], [ boundaryEdge ], ranks, policy);
+
+    assert.strictEqual(policy.bands.get(host), 1);
+    assert.strictEqual(policy.bands.get(target), 2);
+  });
 });
 
 function flowNode(id: string): FlowNode {

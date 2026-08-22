@@ -196,7 +196,13 @@ Each semantic band becomes a y-position. Nodes sharing a rank and band are
 separated in declaration order.
 
 Semantic analysis compacts non-overlapping band intervals before any bounds are
-created. Shape placement then proceeds in this order:
+created. A boundary handler's target band is compacted against its host's band,
+so compaction assigns every host before the targets that depend on it (a stable
+topological order over the host→target dependency, otherwise preserving band
+magnitude order). Without that ordering a target with a smaller original band
+than its host would be assigned first and pinned against the host's stale
+pre-compaction band, inflating the target and leaving permanent empty bands.
+Shape placement then proceeds in this order:
 
 1. create initial coordinates from ranks and compacted bands;
 2. clear boundary-handler exits;
