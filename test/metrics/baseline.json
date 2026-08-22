@@ -1,6 +1,7 @@
 {
   "artifact.association.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -18,6 +19,7 @@
   },
   "artifact.collaboration-association.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -35,6 +37,7 @@
   },
   "artifact.group-without-members.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -52,6 +55,7 @@
   },
   "artifact.group.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -69,6 +73,7 @@
   },
   "artifact.without-core-flow.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -86,6 +91,7 @@
   },
   "blueprint.ai-email-support-agent.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -103,6 +109,7 @@
   },
   "blueprint.bank-customer-complaint-dispute-handling.bpmn": {
     "crossings": 1,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 9,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -120,6 +127,7 @@
   },
   "blueprint.capital-market-trade-exception-remediation-processing.bpmn": {
     "crossings": 3,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 11,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -137,6 +145,7 @@
   },
   "blueprint.car-rental-booking-process.bpmn": {
     "crossings": 5,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 26,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -154,6 +163,7 @@
   },
   "blueprint.communication-agent.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -171,6 +181,7 @@
   },
   "blueprint.enforcing-sla.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -188,6 +199,7 @@
   },
   "blueprint.event-registration.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -205,6 +217,7 @@
   },
   "blueprint.fraud-detection-process.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -222,6 +235,7 @@
   },
   "blueprint.intelligent-routing-with-openai.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 10,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -239,6 +253,7 @@
   },
   "blueprint.safeguard-agent.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 7,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -256,6 +271,7 @@
   },
   "blueprint.servicenow-integration-blueprint.bpmn": {
     "crossings": 5,
+    "parallelEdgeOverlaps": 6,
     "bendCount": 24,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -273,6 +289,7 @@
   },
   "blueprint.telco-service-order-fulfillment-retail.bpmn": {
     "crossings": 4,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 18,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -290,6 +307,7 @@
   },
   "boundary-event.back-loop.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -307,6 +325,7 @@
   },
   "boundary-event.error-no-ref.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -324,6 +343,7 @@
   },
   "boundary-event.error.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -341,6 +361,7 @@
   },
   "boundary-event.escalation-no-ref.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -358,6 +379,7 @@
   },
   "boundary-event.escalation.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -375,6 +397,7 @@
   },
   "boundary-event.forward-modeling.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -392,6 +415,7 @@
   },
   "boundary-event.handler-loop.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 6,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -409,6 +433,7 @@
   },
   "boundary-event.handler-rejoin.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -426,6 +451,7 @@
   },
   "boundary-event.message-or-timer.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -443,6 +469,7 @@
   },
   "boundary-event.mixed.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -460,6 +487,7 @@
   },
   "boundary-event.multiple-errors.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -477,6 +505,7 @@
   },
   "boundary-event.multiple-escalations.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -494,6 +523,7 @@
   },
   "boundary-event.multiple.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -511,6 +541,7 @@
   },
   "boundary-event.on-expanded-sub-process.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -528,6 +559,7 @@
   },
   "boundary-event.self-loop.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -545,6 +577,7 @@
   },
   "boundary-event.simple.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -562,6 +595,7 @@
   },
   "camunda-8-tutorials.absence-request.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -579,6 +613,7 @@
   },
   "camunda-8-tutorials.ai-agent-chat-with-mcp.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -596,6 +631,7 @@
   },
   "camunda-8-tutorials.ai-agent-chat-with-tools.bpmn": {
     "crossings": 1,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -613,6 +649,7 @@
   },
   "camunda-8-tutorials.ai-intelligent-routing-azure-ai.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 10,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -630,6 +667,7 @@
   },
   "camunda-8-tutorials.ai-intelligent-routing-huggingface.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 10,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -647,6 +685,7 @@
   },
   "camunda-8-tutorials.ai-intelligent-routing-openai.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 10,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -664,6 +703,7 @@
   },
   "camunda-8-tutorials.bank-ai-loan-approval.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -681,6 +721,7 @@
   },
   "camunda-8-tutorials.bank-customer-complaint-dispute-handling.bpmn": {
     "crossings": 1,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 9,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -698,6 +739,7 @@
   },
   "camunda-8-tutorials.bank-loan-origination-and-processing.bpmn": {
     "crossings": 2,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -715,6 +757,7 @@
   },
   "camunda-8-tutorials.capital-market-exception-processing.bpmn": {
     "crossings": 3,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 11,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -732,6 +775,7 @@
   },
   "camunda-8-tutorials.car-rental-booking-process.bpmn": {
     "crossings": 5,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 26,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -749,6 +793,7 @@
   },
   "camunda-8-tutorials.ci-cd.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 21,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -766,6 +811,7 @@
   },
   "camunda-8-tutorials.enforcing-sla.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -783,6 +829,7 @@
   },
   "camunda-8-tutorials.error-handling.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -800,6 +847,7 @@
   },
   "camunda-8-tutorials.event-registration.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -817,6 +865,7 @@
   },
   "camunda-8-tutorials.expense-reimbursement.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -834,6 +883,7 @@
   },
   "camunda-8-tutorials.insurance-personal-property-damage-claim-handling.bpmn": {
     "crossings": 2,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 7,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -851,6 +901,7 @@
   },
   "camunda-8-tutorials.order-fulfillment.bpmn": {
     "crossings": 3,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -868,6 +919,7 @@
   },
   "camunda-8-tutorials.telco-service-order-fulfillment-retail.bpmn": {
     "crossings": 4,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 18,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -885,6 +937,7 @@
   },
   "camunda-8-tutorials.ticket-booking.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -902,6 +955,7 @@
   },
   "camunda-consulting.employee-onboarding.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 9,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -919,6 +973,7 @@
   },
   "camunda-consulting.finserv-loan-kyc.bpmn": {
     "crossings": 3,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 21,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -936,6 +991,7 @@
   },
   "camunda-consulting.healthcare-priorauth.bpmn": {
     "crossings": 2,
+    "parallelEdgeOverlaps": 1,
     "bendCount": 17,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -953,6 +1009,7 @@
   },
   "camunda-consulting.insurance-fnol.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 1,
     "bendCount": 13,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -970,6 +1027,7 @@
   },
   "camunda-consulting.lifesci-pharmacovigilance.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -987,6 +1045,7 @@
   },
   "camunda-consulting.order-to-cash.bpmn": {
     "crossings": 1,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1004,6 +1063,7 @@
   },
   "collaboration.black-box-participant.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1021,6 +1081,7 @@
   },
   "collaboration.message-flow-between-pools.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1038,6 +1099,7 @@
   },
   "collaboration.message-flow-to-collapsed-child.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1055,6 +1117,7 @@
   },
   "collaboration.message-flows-to-empty-process.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1072,6 +1135,7 @@
   },
   "collaboration.message-flows.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1089,6 +1153,7 @@
   },
   "collaboration.multiple-participants.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1106,6 +1171,7 @@
   },
   "collaboration.opposite-direction-message-flows.bpmn": {
     "crossings": 1,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 9,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1123,6 +1189,7 @@
   },
   "collaboration.single-participant.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1140,6 +1207,7 @@
   },
   "data-object-and-store.basic.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1157,6 +1225,7 @@
   },
   "data-object-and-store.reference.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1174,6 +1243,7 @@
   },
   "event-sub-process.basic.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1191,6 +1261,7 @@
   },
   "event-sub-process.multiple.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1208,6 +1279,7 @@
   },
   "event.data-association.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1225,6 +1297,7 @@
   },
   "gateway.exclusive-default.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1242,6 +1315,7 @@
   },
   "gateway.exclusive-no-default.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1259,6 +1333,7 @@
   },
   "gateway.future-incoming.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1276,6 +1351,7 @@
   },
   "gateway.inclusive-split-join.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1293,6 +1369,7 @@
   },
   "gateway.loop-back.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1310,6 +1387,7 @@
   },
   "gateway.multiple-branches.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1327,6 +1405,7 @@
   },
   "gateway.multiple-complex.bpmn": {
     "crossings": 3,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1344,6 +1423,7 @@
   },
   "gateway.multiple-incoming-future-node.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1361,6 +1441,7 @@
   },
   "gateway.multiple-with-tasks.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1378,6 +1459,7 @@
   },
   "gateway.multiple.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1395,6 +1477,7 @@
   },
   "gateway.nested.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1412,6 +1495,7 @@
   },
   "gateway.parallel-split-join.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1429,6 +1513,7 @@
   },
   "gateway.parallel.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1446,6 +1531,7 @@
   },
   "gateway.unstructured-convergence.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1463,6 +1549,7 @@
   },
   "lane.cross-lane-sequence-flow.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1480,6 +1567,7 @@
   },
   "lane.empty.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1497,6 +1585,7 @@
   },
   "lane.error-handler.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1514,6 +1603,7 @@
   },
   "lane.multiple.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1531,6 +1621,7 @@
   },
   "lane.nested.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1548,6 +1639,7 @@
   },
   "lane.redundant-ancestor-membership.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1565,6 +1657,7 @@
   },
   "lane.single.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1582,6 +1675,7 @@
   },
   "lane.skipping-lanes.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1599,6 +1693,7 @@
   },
   "link-event.basic.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1615,8 +1710,9 @@
     "branchSymmetry": 50
   },
   "link-event.loop.bpmn": {
-    "crossings": 1,
-    "bendCount": 5,
+    "crossings": 2,
+    "parallelEdgeOverlaps": 0,
+    "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "detachedDockings": 0,
@@ -1624,7 +1720,7 @@
     "nonOrthogonalConnections": 0,
     "backtrackingConnections": 0,
     "averageEdgeLength": 233,
-    "edgeSegmentLengthDeviation": 133.4,
+    "edgeSegmentLengthDeviation": 132.7,
     "labelShapeOverlaps": 0,
     "labelEdgeOverlaps": 0,
     "compactness": 15,
@@ -1633,6 +1729,7 @@
   },
   "link-event.throw-catch.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1650,6 +1747,7 @@
   },
   "link-event.with-ordinary-flow.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1666,7 +1764,8 @@
     "branchSymmetry": 50
   },
   "process.application-processing.bpmn": {
-    "crossings": 16,
+    "crossings": 17,
+    "parallelEdgeOverlaps": 1,
     "bendCount": 49,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1684,6 +1783,7 @@
   },
   "process.error-handling.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1701,6 +1801,7 @@
   },
   "process.independent-flows.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1718,6 +1819,7 @@
   },
   "process.joining-flows.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1735,6 +1837,7 @@
   },
   "scenario.declaration-order-ties.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1752,6 +1855,7 @@
   },
   "scenario.default-loop.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1769,6 +1873,7 @@
   },
   "scenario.determinism.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1786,6 +1891,7 @@
   },
   "scenario.disconnected-component-stability.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1803,6 +1909,7 @@
   },
   "scenario.disconnected-components.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1820,6 +1927,7 @@
   },
   "scenario.disconnected-loop-boundary.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1837,6 +1945,7 @@
   },
   "scenario.disconnected-loop.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1854,6 +1963,7 @@
   },
   "scenario.empty-definitions.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1871,6 +1981,7 @@
   },
   "scenario.empty-process.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1888,6 +1999,7 @@
   },
   "scenario.happy-path.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1905,6 +2017,7 @@
   },
   "scenario.idempotence.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1922,6 +2035,7 @@
   },
   "scenario.implicit-start.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1939,6 +2053,7 @@
   },
   "scenario.input-expansion-state.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1956,6 +2071,7 @@
   },
   "scenario.input-with-arbitrary-di.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1973,6 +2089,7 @@
   },
   "scenario.input-with-multiple-diagrams.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -1990,6 +2107,7 @@
   },
   "scenario.integer-geometry.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2007,6 +2125,7 @@
   },
   "scenario.irreducible-cycle.bpmn": {
     "crossings": 1,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2024,6 +2143,7 @@
   },
   "scenario.issue-100.bpmn": {
     "crossings": 2,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 12,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2041,6 +2161,7 @@
   },
   "scenario.issue-131.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2058,6 +2179,7 @@
   },
   "scenario.issue-79-1.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2075,6 +2197,7 @@
   },
   "scenario.issue-79-2.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2092,6 +2215,7 @@
   },
   "scenario.issue-79-3.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2109,6 +2233,7 @@
   },
   "scenario.linear-no-start.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2126,6 +2251,7 @@
   },
   "scenario.linear.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2143,6 +2269,7 @@
   },
   "scenario.long-branch-edge.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2160,6 +2287,7 @@
   },
   "scenario.loop.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2177,6 +2305,7 @@
   },
   "scenario.multiple-ad-hoc.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2193,8 +2322,9 @@
     "branchSymmetry": 0
   },
   "scenario.multiple-event-starts.bpmn": {
-    "crossings": 0,
-    "bendCount": 4,
+    "crossings": 1,
+    "parallelEdgeOverlaps": 0,
+    "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "detachedDockings": 0,
@@ -2202,7 +2332,7 @@
     "nonOrthogonalConnections": 0,
     "backtrackingConnections": 0,
     "averageEdgeLength": 220.9,
-    "edgeSegmentLengthDeviation": 194.9,
+    "edgeSegmentLengthDeviation": 198.6,
     "labelShapeOverlaps": 0,
     "labelEdgeOverlaps": 0,
     "compactness": 19.7,
@@ -2211,15 +2341,16 @@
   },
   "scenario.multiple-start-events.bpmn": {
     "crossings": 5,
-    "bendCount": 19,
+    "parallelEdgeOverlaps": 5,
+    "bendCount": 21,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
     "detachedDockings": 0,
     "wrongWayDockings": 0,
     "nonOrthogonalConnections": 0,
     "backtrackingConnections": 0,
-    "averageEdgeLength": 238,
-    "edgeSegmentLengthDeviation": 109.1,
+    "averageEdgeLength": 247.7,
+    "edgeSegmentLengthDeviation": 107.1,
     "labelShapeOverlaps": 0,
     "labelEdgeOverlaps": 0,
     "compactness": 21.1,
@@ -2228,6 +2359,7 @@
   },
   "scenario.multiple-starts.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 3,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2245,6 +2377,7 @@
   },
   "scenario.multiple-sub-processes.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 12,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2262,6 +2395,7 @@
   },
   "scenario.multiple-task-gateways-columns.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2279,6 +2413,7 @@
   },
   "scenario.no-outgoing.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2296,6 +2431,7 @@
   },
   "scenario.self-loop.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 9,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2313,6 +2449,7 @@
   },
   "scenario.simple.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2330,6 +2467,7 @@
   },
   "scenario.sink-less-cycle.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2347,6 +2485,7 @@
   },
   "scenario.source-less-cycle.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2364,6 +2503,7 @@
   },
   "scenario.translated-origin.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2381,6 +2521,7 @@
   },
   "scenario.unrelated-input-plane.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2398,6 +2539,7 @@
   },
   "sub-process.ad-hoc.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2415,6 +2557,7 @@
   },
   "sub-process.collapsed.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 1,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2432,6 +2575,7 @@
   },
   "sub-process.empty.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2449,6 +2593,7 @@
   },
   "sub-process.expanded-01-hour.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2466,6 +2611,7 @@
   },
   "sub-process.expanded-03-hour.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2483,6 +2629,7 @@
   },
   "sub-process.expanded-04-hour.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 5,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2500,6 +2647,7 @@
   },
   "sub-process.expanded-06-hour.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2517,6 +2665,7 @@
   },
   "sub-process.expanded-09-hour.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 8,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2524,8 +2673,8 @@
     "wrongWayDockings": 0,
     "nonOrthogonalConnections": 0,
     "backtrackingConnections": 0,
-    "averageEdgeLength": 185.1,
-    "edgeSegmentLengthDeviation": 143.2,
+    "averageEdgeLength": 187.2,
+    "edgeSegmentLengthDeviation": 142.3,
     "labelShapeOverlaps": 0,
     "labelEdgeOverlaps": 0,
     "compactness": 18.6,
@@ -2534,6 +2683,7 @@
   },
   "sub-process.expanded-empty.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2551,6 +2701,7 @@
   },
   "sub-process.expanded-self-loop.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 6,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2568,6 +2719,7 @@
   },
   "sub-process.expanded.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2585,6 +2737,7 @@
   },
   "sub-process.mixed.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 4,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2602,6 +2755,7 @@
   },
   "sub-process.nested-expanded.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2619,6 +2773,7 @@
   },
   "sub-process.nested.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2636,6 +2791,7 @@
   },
   "sub-process.parent-child-flow.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2653,6 +2809,7 @@
   },
   "sub-process.transaction.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2670,6 +2827,7 @@
   },
   "task.default-flow.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 2,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2687,6 +2845,7 @@
   },
   "text-annotation.basic.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2704,6 +2863,7 @@
   },
   "text-annotation.expanded-subprocess.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,
@@ -2721,6 +2881,7 @@
   },
   "text-annotation.positioning.bpmn": {
     "crossings": 0,
+    "parallelEdgeOverlaps": 0,
     "bendCount": 0,
     "overlaps": 0,
     "edgeShapeIntersections": 0,

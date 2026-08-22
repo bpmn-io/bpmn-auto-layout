@@ -16,6 +16,7 @@ type BpmnOrthogonalRouterOptions = {
   routedConnections?: RoutedConnection[];
   obstacleInset?: number;
   allowPerpendicularCrossings?: boolean;
+  minParallelSeparation?: number;
   maxVisibilityPoints?: number;
 };
 
@@ -26,6 +27,7 @@ export function createBpmnOrthogonalRouter({
   routedConnections = [],
   obstacleInset,
   allowPerpendicularCrossings,
+  minParallelSeparation,
   maxVisibilityPoints
 }: BpmnOrthogonalRouterOptions = {}): ReturnType<typeof createOrthogonalRouter> {
   return createOrthogonalRouter({
@@ -43,6 +45,7 @@ export function createBpmnOrthogonalRouter({
     })),
     obstacleInset,
     allowPerpendicularCrossings,
+    minParallelSeparation,
     maxVisibilityPoints
   });
 }

@@ -10,6 +10,7 @@ import type { LayoutMetrics } from './metrics/Types.js';
 
 type MetricKey =
   | 'crossings'
+  | 'parallelEdgeOverlaps'
   | 'bendCount'
   | 'overlaps'
   | 'edgeShapeIntersections'
@@ -45,6 +46,7 @@ type TableRow = {
 
 const METRIC_KEYS: readonly MetricKey[] = [
   'crossings',
+  'parallelEdgeOverlaps',
   'bendCount',
   'overlaps',
   'edgeShapeIntersections',
@@ -253,6 +255,7 @@ function printTable(rows: readonly TableRow[]): void {
 function pickMetricValues(metrics: LayoutMetrics): MetricValues {
   return {
     crossings: metrics.crossings,
+    parallelEdgeOverlaps: metrics.parallelEdgeOverlaps,
     bendCount: metrics.bendCount,
     overlaps: metrics.overlaps,
     edgeShapeIntersections: metrics.edgeShapeIntersections,
@@ -277,6 +280,7 @@ function createMetricRow(
   return {
     fixture,
     crossings: value('crossings'),
+    parallelEdgeOverlaps: value('parallelEdgeOverlaps'),
     bendCount: value('bendCount'),
     overlaps: value('overlaps'),
     edgeShapeIntersections: value('edgeShapeIntersections'),
