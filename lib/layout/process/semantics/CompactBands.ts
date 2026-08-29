@@ -207,12 +207,7 @@ function assignCompactedBands(
 ): BandMapping {
   const assigned: AssignedIntervals = new Map();
   const mapping: BandMapping = new Map();
-  const ordered = [ ...intervals.values() ].sort((a, b) => {
-    return a.component - b.component ||
-      Math.sign(a.band) - Math.sign(b.band) ||
-      Number(b.boundary) - Number(a.boundary) ||
-      Math.abs(a.band) - Math.abs(b.band);
-  });
+  const ordered = orderIntervalsForAssignment(intervals, boundaryHosts);
 
   for (const interval of ordered) {
     const direction = Math.sign(interval.band);
@@ -240,6 +235,77 @@ function assignCompactedBands(
   }
 
   return mapping;
+}
+
+// A boundary handler's target band is compacted against its host's band, so the
+// host must be assigned first. Hosts can carry a larger original band magnitude
+// than their targets, so the plain magnitude ordering would process the target
+// first and force `minimumCompactedMagnitude` to fall back to the host's stale
+// pre-compaction band, inflating the target and leaving permanent empty bands.
+// Emit intervals in a stable topological order that places every same-side host
+// before the targets that depend on it, preserving the base ordering otherwise.
+function orderIntervalsForAssignment(
+    intervals: BandIntervals,
+    boundaryHosts: BoundaryHostBands
+): BandInterval[] {
+  const base = [ ...intervals.values() ].sort((a, b) => {
+    return a.component - b.component ||
+      Math.sign(a.band) - Math.sign(b.band) ||
+      Number(b.boundary) - Number(a.boundary) ||
+      Math.abs(a.band) - Math.abs(b.band);
+  });
+  const present = new Set(
+    base.map(interval => `${interval.component}:${interval.band}`)
+  );
+  const prerequisites = new Map<string, Set<string>>();
+
+  for (const [ key, hostBands ] of boundaryHosts) {
+    const direction = Math.sign(Number(key.split(':')[1]));
+    const component = key.split(':')[0];
+    const deps = new Set<string>();
+
+    for (const hostBand of hostBands) {
+      if (Math.sign(hostBand) !== direction) {
+        continue;
+      }
+
+      const hostKey = `${component}:${hostBand}`;
+
+      if (hostKey !== key && present.has(hostKey)) {
+        deps.add(hostKey);
+      }
+    }
+
+    if (deps.size) {
+      prerequisites.set(key, deps);
+    }
+  }
+
+  if (!prerequisites.size) {
+    return base;
+  }
+
+  const remaining = [ ...base ];
+  const emitted = new Set<string>();
+  const ordered: BandInterval[] = [];
+
+  while (remaining.length) {
+    const readyIndex = remaining.findIndex(interval => {
+      const deps = prerequisites.get(`${interval.component}:${interval.band}`);
+
+      return !deps || [ ...deps ].every(dep => emitted.has(dep));
+    });
+
+    // A dependency cycle leaves nothing ready; fall back to base order for the
+    // remainder so compaction still terminates deterministically.
+    const nextIndex = readyIndex === -1 ? 0 : readyIndex;
+    const [ next ] = remaining.splice(nextIndex, 1);
+
+    ordered.push(next);
+    emitted.add(`${next.component}:${next.band}`);
+  }
+
+  return ordered;
 }
 
 function minimumCompactedMagnitude(
