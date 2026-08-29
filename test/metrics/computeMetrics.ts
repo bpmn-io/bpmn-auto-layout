@@ -1,6 +1,6 @@
 import { BpmnModdle } from 'bpmn-moddle';
 
-import { FLOW_LABEL_INDENT } from '../../lib/layout/Constants.js';
+import { FLOW_LABEL_INDENT, MIN_PARALLEL_EDGE_SEPARATION } from '../../lib/layout/Constants.js';
 import { externalLabelSize } from '../../lib/layout/labels/LayoutLabels.js';
 import {
   isBpmndiType,
@@ -59,6 +59,10 @@ const moddle = new BpmnModdle();
  * Band-C (polish — informational) numbers:
  *
  * - `crossings`                   — edge-segment pairs that properly cross.
+ * - `parallelEdgeOverlaps`        — unrelated edge-segment pairs that run
+ *                                   parallel and overlapping within
+ *                                   `MIN_PARALLEL_EDGE_SEPARATION`, so the two
+ *                                   edges read as a single doubled line.
  * - `bendCount`                   — direction changes in edge waypoint paths.
  * - `averageEdgeLength`           — average edge waypoint-polyline length.
  * - `edgeSegmentLengthDeviation`  — standard deviation of segment lengths.
@@ -115,6 +119,7 @@ export async function analyzeMetrics(xml: string): Promise<MetricAnalysis> {
 
   const findings: MetricFindings = {
     crossings: planes.flatMap(plane => findCrossings(plane.edges)),
+    parallelEdgeOverlaps: planes.flatMap(plane => findParallelEdgeOverlaps(plane.edges)),
     overlaps: planes.flatMap(plane => findOverlaps(plane.shapes)),
     edgeShapeIntersections: planes.flatMap(plane => findEdgeShapeIntersections(plane.edges, plane.shapes)),
     detachedDockings: planes.flatMap(plane => findDetachedDockings(plane.edges, plane.shapes)),
@@ -130,6 +135,7 @@ export async function analyzeMetrics(xml: string): Promise<MetricAnalysis> {
     shapeCount: sum(planes, plane => plane.shapes.length),
     edgeCount: sum(planes, plane => plane.edges.length),
     crossings: findings.crossings.length,
+    parallelEdgeOverlaps: findings.parallelEdgeOverlaps.length,
     overlaps: findings.overlaps.length,
     edgeShapeIntersections: findings.edgeShapeIntersections.length,
     detachedDockings: findings.detachedDockings.length,
@@ -466,6 +472,96 @@ function toSegments(waypoints: readonly MetricWaypoint[]): MetricSegment[] {
   }
 
   return segments;
+}
+
+/**
+ * Near-parallel overlap: two unrelated edges whose axis-aligned segments run
+ * in the same orientation, overlap along their shared axis, and sit closer
+ * than `MIN_PARALLEL_EDGE_SEPARATION` on the perpendicular axis. Such a pair
+ * renders as a single doubled line and is unreadable. Edges that share an
+ * endpoint node legitimately converge in a shared docking channel and are
+ * excluded.
+ */
+function findParallelEdgeOverlaps(
+    edges: readonly MetricEdge[]
+): MetricFindings['parallelEdgeOverlaps'] {
+  const segments = edges.map(edge => toSegments(edge.waypoints));
+  const findings: MetricFindings['parallelEdgeOverlaps'] = [];
+
+  for (let i = 0; i < edges.length; i++) {
+    for (let j = i + 1; j < edges.length; j++) {
+      if (edgesShareEndpoint(edges[i], edges[j])) {
+        continue;
+      }
+
+      for (const s of segments[i]) {
+        for (const t of segments[j]) {
+          const separation = parallelSegmentSeparation(s, t);
+
+          if (separation !== null) {
+            findings.push({
+              edgeIds: [ edges[i].id, edges[j].id ],
+              segments: [ s, t ],
+              separation
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return findings;
+}
+
+function edgesShareEndpoint(a: MetricEdge, b: MetricEdge): boolean {
+  return a.sourceId === b.sourceId ||
+    a.sourceId === b.targetId ||
+    a.targetId === b.sourceId ||
+    a.targetId === b.targetId;
+}
+
+/**
+ * Perpendicular separation of two axis-aligned segments when they run parallel
+ * and overlap along their shared axis closer than the lane threshold; `null`
+ * otherwise. Zero separation (exact collinear overlap) is included — fully
+ * coincident unrelated edges are the worst case.
+ */
+function parallelSegmentSeparation(
+    s: MetricSegment,
+    t: MetricSegment
+): number | null {
+  const horizontal = s[0].y === s[1].y && t[0].y === t[1].y;
+  const vertical = s[0].x === s[1].x && t[0].x === t[1].x;
+
+  if (!horizontal && !vertical) {
+    return null;
+  }
+
+  const separation = horizontal
+    ? Math.abs(s[0].y - t[0].y)
+    : Math.abs(s[0].x - t[0].x);
+
+  if (separation >= MIN_PARALLEL_EDGE_SEPARATION) {
+    return null;
+  }
+
+  const [ sStart, sEnd, tStart, tEnd ] = horizontal
+    ? [
+      Math.min(s[0].x, s[1].x),
+      Math.max(s[0].x, s[1].x),
+      Math.min(t[0].x, t[1].x),
+      Math.max(t[0].x, t[1].x)
+    ]
+    : [
+      Math.min(s[0].y, s[1].y),
+      Math.max(s[0].y, s[1].y),
+      Math.min(t[0].y, t[1].y),
+      Math.max(t[0].y, t[1].y)
+    ];
+
+  return Math.min(sEnd, tEnd) - Math.max(sStart, tStart) > 0
+    ? separation
+    : null;
 }
 
 /**

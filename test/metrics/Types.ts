@@ -91,6 +91,12 @@ export type CrossingFinding = {
   point: MetricWaypoint;
 };
 
+export type ParallelEdgeOverlapFinding = {
+  edgeIds: [ MetricId, MetricId ];
+  segments: [ MetricSegment, MetricSegment ];
+  separation: number;
+};
+
 export type OverlapFinding = {
   shapeIds: [ MetricId, MetricId ];
   bounds: MetricBounds;
@@ -130,6 +136,7 @@ export type LabelEdgeOverlapFinding = {
 
 export type MetricFindings = {
   crossings: CrossingFinding[];
+  parallelEdgeOverlaps: ParallelEdgeOverlapFinding[];
   overlaps: OverlapFinding[];
   edgeShapeIntersections: EdgeShapeIntersectionFinding[];
   detachedDockings: DockingFinding[];
@@ -144,6 +151,7 @@ export type LayoutMetrics = {
   shapeCount: number;
   edgeCount: number;
   crossings: number;
+  parallelEdgeOverlaps: number;
   overlaps: number;
   edgeShapeIntersections: number;
   detachedDockings: number;

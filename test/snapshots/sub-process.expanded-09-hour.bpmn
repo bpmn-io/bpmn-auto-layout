@@ -243,8 +243,8 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_Flow_0oauzzp" bpmnElement="Flow_0oauzzp">
         <di:waypoint x="906" y="458" />
-        <di:waypoint x="906" y="478" />
-        <di:waypoint x="266" y="478" />
+        <di:waypoint x="906" y="498" />
+        <di:waypoint x="266" y="498" />
         <di:waypoint x="266" y="440" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BPMNShape_Event_1z0vqio" bpmnElement="Event_1z0vqio">

@@ -13,6 +13,9 @@ import {
 import {
   createOrthogonalRouter
 } from '../lib/layout/routing/OrthogonalRouting.js';
+import {
+  parallelProximityOverlap
+} from '../lib/layout/geometry/index.js';
 
 import type {
   BpmnElement,
@@ -178,6 +181,102 @@ describe('BpmnOrthogonalRouting', function() {
 
     assert.strictEqual(sharedRouter.isSegmentClear(points[0], points[1]), true);
     assert.strictEqual(separateRouter.isSegmentClear(points[0], points[1]), false);
+  });
+});
+
+describe('parallelProximityOverlap', function() {
+
+  it('should detect near-parallel overlapping segments below the separation', function() {
+    assert.strictEqual(parallelProximityOverlap(
+      { x: 0, y: 50 }, { x: 100, y: 50 },
+      { x: 40, y: 48 }, { x: 140, y: 48 },
+      20
+    ), true);
+  });
+
+  it('should ignore exactly collinear segments (zero separation)', function() {
+    assert.strictEqual(parallelProximityOverlap(
+      { x: 0, y: 50 }, { x: 100, y: 50 },
+      { x: 40, y: 50 }, { x: 140, y: 50 },
+      20
+    ), false);
+  });
+
+  it('should ignore segments at or beyond the separation', function() {
+    assert.strictEqual(parallelProximityOverlap(
+      { x: 0, y: 50 }, { x: 100, y: 50 },
+      { x: 40, y: 70 }, { x: 140, y: 70 },
+      20
+    ), false);
+  });
+
+  it('should ignore parallel segments that do not overlap on the shared axis', function() {
+    assert.strictEqual(parallelProximityOverlap(
+      { x: 0, y: 50 }, { x: 100, y: 50 },
+      { x: 120, y: 48 }, { x: 200, y: 48 },
+      20
+    ), false);
+  });
+
+  it('should ignore perpendicular segments', function() {
+    assert.strictEqual(parallelProximityOverlap(
+      { x: 0, y: 50 }, { x: 100, y: 50 },
+      { x: 50, y: 0 }, { x: 50, y: 100 },
+      20
+    ), false);
+  });
+});
+
+describe('OrthogonalRouting minParallelSeparation', function() {
+
+  it('should reject a near-parallel overlapping route but keep crossings and distant lanes clear', function() {
+    const router = createOrthogonalRouter({
+      allowPerpendicularCrossings: true,
+      minParallelSeparation: 20,
+      routes: [ {
+        allowCollinearOverlap: false,
+        points: [
+          { x: 0, y: 50 },
+          { x: 100, y: 50 }
+        ]
+      } ]
+    });
+
+    // Near-parallel overlap two pixels away reads as a doubled line.
+    assert.strictEqual(router.isSegmentClear(
+      { x: 20, y: 48 },
+      { x: 80, y: 48 }
+    ), false);
+
+    // A full lane away is a legitimate separate channel.
+    assert.strictEqual(router.isSegmentClear(
+      { x: 20, y: 30 },
+      { x: 80, y: 30 }
+    ), true);
+
+    // A perpendicular crossing is not a parallel overlap.
+    assert.strictEqual(router.isSegmentClear(
+      { x: 50, y: 0 },
+      { x: 50, y: 100 }
+    ), true);
+  });
+
+  it('should exempt shared endpoint channels from the separation', function() {
+    const router = createOrthogonalRouter({
+      minParallelSeparation: 20,
+      routes: [ {
+        allowCollinearOverlap: true,
+        points: [
+          { x: 0, y: 50 },
+          { x: 100, y: 50 }
+        ]
+      } ]
+    });
+
+    assert.strictEqual(router.isSegmentClear(
+      { x: 20, y: 48 },
+      { x: 80, y: 48 }
+    ), true);
   });
 });
 
