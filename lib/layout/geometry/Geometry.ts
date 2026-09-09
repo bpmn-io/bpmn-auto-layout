@@ -236,6 +236,50 @@ export function collinearOverlap(
   return Math.min(aEnd, cEnd) - Math.max(aStart, cStart) > 0;
 }
 
+// Two axis-aligned segments run parallel and close enough to read as one line:
+// same orientation, overlapping along their shared axis, and separated on the
+// perpendicular axis by a positive distance strictly below `separation`.
+// Exact collinearity (zero separation) is intentionally excluded — that case is
+// covered by `collinearOverlap` — so this only catches near-parallel lanes.
+export function parallelProximityOverlap(
+    a: Point,
+    b: Point,
+    c: Point,
+    d: Point,
+    separation: number
+): boolean {
+  const horizontal = a.y === b.y && c.y === d.y;
+  const vertical = a.x === b.x && c.x === d.x;
+
+  if (!horizontal && !vertical) {
+    return false;
+  }
+
+  const gap = horizontal
+    ? Math.abs(a.y - c.y)
+    : Math.abs(a.x - c.x);
+
+  if (gap === 0 || gap >= separation) {
+    return false;
+  }
+
+  const [ aStart, aEnd, cStart, cEnd ] = horizontal
+    ? [
+      Math.min(a.x, b.x),
+      Math.max(a.x, b.x),
+      Math.min(c.x, d.x),
+      Math.max(c.x, d.x)
+    ]
+    : [
+      Math.min(a.y, b.y),
+      Math.max(a.y, b.y),
+      Math.min(c.y, d.y),
+      Math.max(c.y, d.y)
+    ];
+
+  return Math.min(aEnd, cEnd) - Math.max(aStart, cStart) > 0;
+}
+
 export function segmentsProperlyCross(
     a: Point,
     b: Point,

@@ -216,6 +216,7 @@ Geometry uses these base constants:
 | Named expanded sub-process title band | 28 px |
 | Group padding | 40 px |
 | Routing margin | 20 px |
+| Minimum parallel edge separation | 20 px (one routing margin) |
 | Participant header width | 30 px |
 | Lane content padding | 40 px |
 
@@ -385,11 +386,25 @@ A segment is legal when it:
 
 - does not enter an unrelated shape;
 - does not properly cross an allocated edge;
-- does not create a forbidden positive-length overlap.
+- does not create a forbidden positive-length overlap;
+- does not run near-parallel to an allocated edge within the minimum parallel
+  separation (`MIN_PARALLEL_EDGE_SEPARATION`, one routing margin). Two segments
+  of the same orientation whose perpendicular gap is smaller than this and whose
+  shared axis overlaps read as a single doubled line, so the second lane is
+  refused even when it is not exactly collinear.
 
 Shared endpoints, endpoint touches, and intentional shared endpoint channels
-are not proper crossings. Channels may be shared regardless of whether
-connections enter or leave their common endpoint.
+are not proper crossings, and are exempt from the near-parallel separation.
+Channels may be shared regardless of whether connections enter or leave their
+common endpoint.
+
+When a preferred route is rejected only because it would cross an allocated
+edge, the fallback finders (local U-bypass, visibility graph, outer and
+perimeter routes) first retry with an edge-aware, crossing-permitted router
+that still refuses overlaps and near-parallel lanes. Only when that also finds
+nothing do they fall back to the edge-blind router of last resort, so a
+crossing-blocked route de-conflicts against other edges before it is allowed to
+double a line.
 
 ## Collaborations and message flows
 

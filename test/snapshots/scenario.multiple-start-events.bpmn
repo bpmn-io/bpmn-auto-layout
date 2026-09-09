@@ -178,8 +178,10 @@
         <di:waypoint x="441" y="280" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1vaxhtr" bpmnElement="SequenceFlow_1vaxhtr">
-        <di:waypoint x="616" y="274" />
-        <di:waypoint x="596" y="274" />
+        <di:waypoint x="716" y="260" />
+        <di:waypoint x="736" y="260" />
+        <di:waypoint x="736" y="235" />
+        <di:waypoint x="596" y="235" />
         <di:waypoint x="596" y="180" />
         <di:waypoint x="841" y="180" />
         <di:waypoint x="841" y="165" />

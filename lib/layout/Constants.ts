@@ -3,6 +3,11 @@ export const VERTICAL_GAP = 80;
 export const OUTER_MARGIN = 80;
 export const SUB_PROCESS_PADDING = 40;
 export const ROUTING_MARGIN = 20;
+
+// Minimum perpendicular gap between two independent parallel edge lanes. Below
+// this, near-collinear overlapping edges read as a single doubled line, so the
+// router bumps the later edge to the next lane. Matches the routing grid margin.
+export const MIN_PARALLEL_EDGE_SEPARATION = ROUTING_MARGIN;
 export const MESSAGE_FLOW_BEND_PENALTY = VERTICAL_GAP;
 export const PARTICIPANT_HEADER_WIDTH = 30;
 export const LANE_CONTENT_PADDING = 40;

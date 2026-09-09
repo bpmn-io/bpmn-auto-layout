@@ -4,6 +4,7 @@ type MetricAnalysis = Awaited<ReturnType<typeof analyzeMetrics>>;
 
 export const METRIC_KEYS = [
   'crossings',
+  'parallelEdgeOverlaps',
   'bendCount',
   'overlaps',
   'edgeShapeIntersections',
@@ -81,6 +82,7 @@ export function hasBandADefect(metrics: MetricEvaluation): boolean {
 function pick(metrics: MetricAnalysis['metrics']): MetricValues {
   return {
     crossings: metrics.crossings, bendCount: metrics.bendCount, overlaps: metrics.overlaps,
+    parallelEdgeOverlaps: metrics.parallelEdgeOverlaps,
     edgeShapeIntersections: metrics.edgeShapeIntersections, detachedDockings: metrics.detachedDockings,
     wrongWayDockings: metrics.wrongWayDockings, nonOrthogonalConnections: metrics.nonOrthogonalConnections,
     backtrackingConnections: metrics.backtrackingConnections, averageEdgeLength: metrics.averageEdgeLength,
@@ -93,6 +95,7 @@ function pick(metrics: MetricAnalysis['metrics']): MetricValues {
 function delta(current: MetricValues, baseline: MetricBaseline): MetricValues {
   return {
     crossings: current.crossings - (baseline.crossings ?? 0), bendCount: current.bendCount - (baseline.bendCount ?? 0),
+    parallelEdgeOverlaps: current.parallelEdgeOverlaps - (baseline.parallelEdgeOverlaps ?? 0),
     overlaps: current.overlaps - (baseline.overlaps ?? 0), edgeShapeIntersections: current.edgeShapeIntersections - (baseline.edgeShapeIntersections ?? 0),
     detachedDockings: current.detachedDockings - (baseline.detachedDockings ?? 0), wrongWayDockings: current.wrongWayDockings - (baseline.wrongWayDockings ?? 0),
     nonOrthogonalConnections: current.nonOrthogonalConnections - (baseline.nonOrthogonalConnections ?? 0), backtrackingConnections: current.backtrackingConnections - (baseline.backtrackingConnections ?? 0),

@@ -9,6 +9,7 @@ import {
   getShapeExtents,
   inset,
   manhattan,
+  parallelProximityOverlap,
   point,
   pointInRect,
   segmentEntersRect,
@@ -39,6 +40,7 @@ export type OrthogonalRouterOptions = {
   routes?: RouterRoute[];
   obstacleInset?: number;
   allowPerpendicularCrossings?: boolean;
+  minParallelSeparation?: number;
   maxVisibilityPoints?: number;
 };
 
@@ -86,6 +88,7 @@ export function createOrthogonalRouter({
   routes = [],
   obstacleInset = ROUTE_OBSTACLE_INSET,
   allowPerpendicularCrossings = false,
+  minParallelSeparation = 0,
   maxVisibilityPoints = Infinity
 }: OrthogonalRouterOptions = {}): OrthogonalRouter {
   validateRouterOptions(
@@ -93,6 +96,7 @@ export function createOrthogonalRouter({
     routes,
     obstacleInset,
     allowPerpendicularCrossings,
+    minParallelSeparation,
     maxVisibilityPoints
   );
 
@@ -126,13 +130,25 @@ export function createOrthogonalRouter({
     }
 
     return !allocatedSegments.some(segment => {
-      return (
+      if (
         !allowPerpendicularCrossings &&
         segmentsProperlyCross(a, b, segment.start, segment.end)
-      ) || (
-        !segment.allowCollinearOverlap &&
-        collinearOverlap(a, b, segment.start, segment.end)
-      );
+      ) {
+        return true;
+      }
+
+      if (segment.allowCollinearOverlap) {
+        return false;
+      }
+
+      return collinearOverlap(a, b, segment.start, segment.end) ||
+        parallelProximityOverlap(
+          a,
+          b,
+          segment.start,
+          segment.end,
+          minParallelSeparation
+        );
     });
   }
 
@@ -321,6 +337,7 @@ function validateRouterOptions(
     routes: RouterRoute[],
     obstacleInset: number,
     allowPerpendicularCrossings: boolean,
+    minParallelSeparation: number,
     maxVisibilityPoints: number
 ): void {
   if (!Array.isArray(obstacles)) {
@@ -337,6 +354,12 @@ function validateRouterOptions(
 
   if (typeof allowPerpendicularCrossings !== 'boolean') {
     throw new TypeError('allowPerpendicularCrossings must be a boolean');
+  }
+
+  if (!Number.isFinite(minParallelSeparation) || minParallelSeparation < 0) {
+    throw new TypeError(
+      'minParallelSeparation must be a non-negative finite number'
+    );
   }
 
   if (

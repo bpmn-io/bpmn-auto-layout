@@ -21,7 +21,7 @@ type Classification = {
 };
 type Routing = Classification & { flow: FlowEdge; source: Rect; target: Rect; shapes: RouterShape[];
   routedConnections: RoutedConnection[]; policy: RoutingPolicy; router: Router; clearRouter: Router;
-  start: Point; end: Point };
+  crossingRouter: Router; start: Point; end: Point };
 type ShapeByElement = Map<BpmnElement, Rect>;
 type MaybeRoute = Point[] | null;
 
@@ -29,6 +29,7 @@ import { is } from '../../../di/DiUtil.js';
 import { LayoutError } from '../../../LayoutError.js';
 import {
   ROUTING_MARGIN,
+  MIN_PARALLEL_EDGE_SEPARATION,
   MAX_ROUTE_SEARCH_ATTEMPTS,
   MAX_LOCAL_U_CHANNEL_ATTEMPTS,
   ROUTE_OBSTACLE_INSET,
@@ -75,6 +76,22 @@ export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shap
     { maxVisibilityPoints: MAX_VISIBILITY_GRAPH_POINTS }
   );
 
+  // Edge-aware fallback that permits perpendicular crossings but still refuses
+  // to lay a parallel/collinear overlap on top of an already-routed edge. Sits
+  // between `router` (no crossings) and `clearRouter` (edge-blind) so a
+  // crossing-blocked route de-conflicts against other edges before we resort to
+  // the edge-blind router that can produce doubled lines.
+  const crossingRouter = createSequenceFlowRouter(
+    shapes,
+    flow.sourceRef,
+    flow.targetRef,
+    routedConnections,
+    {
+      allowPerpendicularCrossings: true,
+      maxVisibilityPoints: MAX_VISIBILITY_GRAPH_POINTS
+    }
+  );
+
   if (isSelfLoop(flow)) {
     return routeSelfLoop(flow, source, target, clearRouter);
   }
@@ -102,6 +119,7 @@ export function routeConnection(flow: FlowEdge, source: Rect, target: Rect, shap
     policy,
     router,
     clearRouter,
+    crossingRouter,
     ...classification,
     ...docks
   };
@@ -521,15 +539,19 @@ function tryPreferredChannel(routing: Routing, extents: { minY: number; maxY: nu
 
 function tryVisibilityRoutes({
   clearRouter,
+  crossingRouter,
   end,
   router,
   start
 }: Routing) {
-  return router.findRoute(start, end) || clearRouter.findRoute(start, end);
+  return router.findRoute(start, end) ||
+    crossingRouter.findRoute(start, end) ||
+    clearRouter.findRoute(start, end);
 }
 
 function tryOuterRoutes({
   clearRouter,
+  crossingRouter,
   end,
   isBack,
   router,
@@ -550,6 +572,14 @@ function tryOuterRoutes({
     start,
     end,
     shapes,
+    crossingRouter,
+    isBack,
+    sourceBoundary,
+    sourceTop
+  ) || findOuterRoute(
+    start,
+    end,
+    shapes,
     clearRouter,
     isBack,
     sourceBoundary,
@@ -559,6 +589,7 @@ function tryOuterRoutes({
 
 function routePerimeterOrThrow({
   clearRouter,
+  crossingRouter,
   flow,
   router,
   shapes,
@@ -570,6 +601,11 @@ function routePerimeterOrThrow({
     target,
     shapes,
     router
+  ) || findPerimeterRoute(
+    source,
+    target,
+    shapes,
+    crossingRouter
   ) || findPerimeterRoute(
     source,
     target,
@@ -677,12 +713,20 @@ function findLocalUBypass(flow: FlowEdge, start: Point, end: Point, shapes: Rout
     routedConnections,
     { obstacleInset: -LOCAL_U_OBSTACLE_CLEARANCE }
   );
+
+  // Fallback: a local U structurally crosses the spine above it, so the
+  // primary router (which forbids crossings) rejects every lane. Allow those
+  // perpendicular crossings here, but keep routed connections in play so the
+  // channel still refuses to sit near-parallel atop another edge.
   const expandedClearRouter = createSequenceFlowRouter(
     shapes,
     sourceElement,
     targetElement,
-    [],
-    { obstacleInset: -LOCAL_U_OBSTACLE_CLEARANCE }
+    routedConnections,
+    {
+      obstacleInset: -LOCAL_U_OBSTACLE_CLEARANCE,
+      allowPerpendicularCrossings: true
+    }
   );
 
   if (!balancedDefault) {
@@ -933,6 +977,7 @@ function createSequenceFlowRouter(shapes: RouterShape[], sourceElement: BpmnElem
     sourceElement,
     targetElement,
     routedConnections,
+    minParallelSeparation: MIN_PARALLEL_EDGE_SEPARATION,
     ...options
   });
 }

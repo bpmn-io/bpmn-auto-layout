@@ -130,6 +130,7 @@ const metricsBaselineKeys = new Set([
   'crossings',
   'bendCount',
   'overlaps',
+  'parallelEdgeOverlaps',
   'edgeShapeIntersections',
   'detachedDockings',
   'wrongWayDockings',
