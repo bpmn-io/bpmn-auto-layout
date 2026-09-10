@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_1" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_to_timer</bpmn:outgoing>
+      <bpmn:outgoing>Flow_to_join</bpmn:outgoing>
+      <bpmn:outgoing>Flow_to_gateway</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:intermediateCatchEvent id="TimerEvent_1" name="wait">
+      <bpmn:incoming>Flow_to_timer</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_end</bpmn:outgoing>
+      <bpmn:timerEventDefinition />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:task id="Task_join" name="join target">
+      <bpmn:incoming>Flow_to_join</bpmn:incoming>
+      <bpmn:incoming>Flow_from_gateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_end2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_1">
+      <bpmn:incoming>Flow_to_gateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_from_gateway</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_to_end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_2">
+      <bpmn:incoming>Flow_to_end2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_to_timer" sourceRef="StartEvent_1" targetRef="TimerEvent_1" />
+    <bpmn:sequenceFlow id="Flow_to_join" sourceRef="StartEvent_1" targetRef="Task_join" />
+    <bpmn:sequenceFlow id="Flow_to_gateway" sourceRef="StartEvent_1" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="Flow_from_gateway" sourceRef="Gateway_1" targetRef="Task_join" />
+    <bpmn:sequenceFlow id="Flow_to_end" sourceRef="TimerEvent_1" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="Flow_to_end2" sourceRef="Task_join" targetRef="EndEvent_2" />
+  </bpmn:process>
+</bpmn:definitions>
