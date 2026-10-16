@@ -136,8 +136,10 @@ handlers. A component starts at:
 3. otherwise its earliest declared node.
 
 Normal disconnected components are laid out independently and stacked
-vertically in declaration order. Adding a later component does not move an
-earlier one.
+vertically by their source roots' stable IDs. A paired link throw/catch
+constrains the throw-side component to precede the catch continuation.
+Declaration order does not affect this stack; stable IDs break otherwise equal
+component-order ties.
 
 ### Primary path
 

@@ -33,6 +33,8 @@ const ENTRY_GATEWAY_ID = "Gateway_01mjb0r";
 const EXIT_GATEWAY_ID = "Gateway_10bvoyq";
 const GATEWAY_FIXTURE = "gateway.multiple.bpmn";
 const FINSERV_FIXTURE = "camunda-consulting.finserv-loan-kyc.bpmn";
+const DISCONNECTED_COMPONENT_FIXTURE = "scenario.disconnected-components.bpmn";
+const LINK_CONTINUATION_FIXTURE = "link-event.throw-catch.bpmn";
 const GATEWAY_SPINE_FLOW_IDS = [
 	"Flow_174mdxz",
 	"Flow_0x21408",
@@ -49,6 +51,53 @@ const variants = [
 ];
 
 describe("XML order invariance", function () {
+	it("should stack disconnected components independently of XML declaration order", async function () {
+		const xml = await readFile(
+			new URL(`fixtures/${DISCONNECTED_COMPONENT_FIXTURE}`, import.meta.url),
+			"utf8",
+		);
+		let componentOrder: string[] | null = null;
+
+		for (const variant of XML_ORDER_CORE_VARIANTS) {
+			const output = (
+				await layoutProcess(await reorderFlowElements(xml, variant))
+			).xml;
+			const shapes = await readShapes(output);
+			const order = ["StartEvent_1", "Activity_15ig4z7"].sort((a, b) => {
+				return getRequired(shapes.get(a)).y - getRequired(shapes.get(b)).y;
+			});
+
+			componentOrder ||= order;
+			assert.deepStrictEqual(
+				order,
+				componentOrder,
+				`${variant.name} should retain disconnected component stacking`,
+			);
+		}
+
+		assert.deepStrictEqual(componentOrder, ["Activity_15ig4z7", "StartEvent_1"]);
+	});
+
+	it("should stack link throw components before catch continuations", async function () {
+		const xml = await readFile(
+			new URL(`fixtures/${LINK_CONTINUATION_FIXTURE}`, import.meta.url),
+			"utf8",
+		);
+
+		for (const variant of XML_ORDER_CORE_VARIANTS) {
+			const output = (
+				await layoutProcess(await reorderFlowElements(xml, variant))
+			).xml;
+			const shapes = await readShapes(output);
+
+			assert.ok(
+				getRequired(shapes.get("Event_0za4bxa")).y <
+					getRequired(shapes.get("Event_07kykhm")).y,
+				`${variant.name} should place the throw side before the catch continuation`,
+			);
+		}
+	});
+
 	it("should retain the expanded subprocess spine through order variants", async function () {
 		const xml = await readFile(
 			new URL(`fixtures/${FIXTURE}`, import.meta.url),

@@ -75,6 +75,7 @@ import {
 } from '../../Constants.js';
 import { hasEventDefinition } from '../../bpmn/Predicates.js';
 import { bounds, rectanglesOverlap, getRecordExtents } from '../../geometry/index.js';
+import { orderSourceRoots } from '../semantics/SourceRootOrder.js';
 
 export function placeRecords(
     records: ShapeRecord[],
@@ -339,9 +340,21 @@ export function packComponents(
     getRequired(components.get(root)).push(record);
   }
 
-  const ordered: ShapeRecord[][] = [ ...components.values() ].sort((a, b) => {
-    return Math.min(...a.map(record => record.index)) - Math.min(...b.map(record => record.index));
-  });
+  const ordered: ShapeRecord[][] = [ ...components.values() ];
+
+  if (!is(scope, 'bpmn:AdHocSubProcess')) {
+    const sourceOrder = new Map(orderSourceRoots(
+      records,
+      graphEdges,
+      boundaryEdges
+    ).map((node, index) => [ node, index ]));
+
+    ordered.sort((a, b) => {
+      return componentSourceOrder(a, sourceOrder) -
+        componentSourceOrder(b, sourceOrder) ||
+        componentId(a).localeCompare(componentId(b));
+    });
+  }
 
   for (const component of ordered) {
     separateRankOverlaps(component, ranks, policy);
@@ -366,6 +379,20 @@ export function packComponents(
 
     y += extents.height + 2 * VERTICAL_GAP;
   }
+}
+
+function componentSourceOrder(
+    component: ShapeRecord[],
+    sourceOrder: Map<FlowNode, number>
+): number {
+  return Math.min(...component.map(record => {
+    return sourceOrder.get(record.element) ?? Infinity;
+  }));
+}
+
+function componentId(component: ShapeRecord[]): string {
+  return component.map(record => record.element.id || '')
+    .sort((a, b) => a.localeCompare(b))[0] || '';
 }
 
 function packCompactComponents(components: ShapeRecord[][]): void {
