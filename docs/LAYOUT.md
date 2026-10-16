@@ -364,7 +364,10 @@ Ports follow semantics:
 - additional flows between the same source and target bypass the first one
   through matching ports on a side that no other connection of either endpoint
   docks on, alternating between free sides and nesting outside earlier bypasses;
-  nested bypasses dock activities further outward.
+  nested bypasses dock activities further outward, spaced so that every bypass
+  on a side gets its own dock. If no free side is clear, an occupied side is
+  used as a last resort, docking activities beside the existing connection,
+  toward the opposite element.
 
 The boundary-event placement order described above creates nested vertical exits
 without weaving.

@@ -273,19 +273,27 @@ function tryParallelBypassRoute({
   const candidates: BypassSide[] = overlapsHorizontally(source, target)
     ? [ 'right', 'left' ]
     : [ 'bottom', 'top' ];
-  const usedSides = [
+  const neighbours = [
     parallel[0],
-    ...routedConnections.filter(connection => !isParallelFlow(connection.flow, flow))
-  ].flatMap(connection => [
-    connection.flow.sourceRef === flow.sourceRef && getDockingSide(connection.points[0], source),
-    connection.flow.targetRef === flow.targetRef && getDockingSide(connection.points[connection.points.length - 1], target)
-  ]);
-  const freeSides = candidates.filter(side => !usedSides.includes(side));
+    ...routedConnections.filter(connection => connection.flow !== flow && !isParallelFlow(connection.flow, flow))
+  ];
+  const sourceSides = neighbours
+    .filter(connection => connection.flow.sourceRef === flow.sourceRef)
+    .map(connection => getDockingSide(connection.points[0], source));
+  const targetSides = neighbours
+    .filter(connection => connection.flow.targetRef === flow.targetRef)
+    .map(connection => getDockingSide(connection.points[connection.points.length - 1], target));
+  const freeSides = candidates.filter(side => !sourceSides.includes(side) && !targetSides.includes(side));
   const sides = freeSides.length ? freeSides : candidates;
   const preferredSide = sides[(parallel.length - 1) % sides.length];
+  const bypassCount = getParallelFlowCount(flow, parallel) - 1;
 
   for (const side of [ preferredSide, ...candidates.filter(side => side !== preferredSide) ]) {
-    const route = findParallelBypass(side, flow, source, target, parallel, router);
+    const route = findParallelBypass(side, flow, source, target, parallel, router, {
+      source: sourceSides.includes(side),
+      target: targetSides.includes(side),
+      bypasses: bypassCount
+    });
 
     if (route) {
       return route;
@@ -295,13 +303,21 @@ function tryParallelBypassRoute({
   return null;
 }
 
-function findParallelBypass(side: BypassSide, flow: FlowEdge, source: Rect, target: Rect, parallel: RoutedConnection[], router: Router): MaybeRoute {
-  const start = getBypassDock(flow.sourceRef, source, target, side, parallel.filter(({ points }) => {
-    return getDockingSide(points[0], source) === side;
-  }).length);
-  const end = getBypassDock(flow.targetRef, target, source, side, parallel.filter(({ points }) => {
-    return getDockingSide(points[points.length - 1], target) === side;
-  }).length);
+function findParallelBypass(
+    side: BypassSide,
+    flow: FlowEdge,
+    source: Rect,
+    target: Rect,
+    parallel: RoutedConnection[],
+    router: Router,
+    occupancy: { source: boolean; target: boolean; bypasses: number }
+): MaybeRoute {
+  const sourceDepth = parallel.filter(({ points }) => getDockingSide(points[0], source) === side).length +
+    (occupancy.source ? 1 : 0);
+  const targetDepth = parallel.filter(({ points }) => getDockingSide(points[points.length - 1], target) === side).length +
+    (occupancy.target ? 1 : 0);
+  const start = getBypassDock(flow.sourceRef, source, target, side, sourceDepth, occupancy.bypasses + (occupancy.source ? 1 : 0), occupancy.source);
+  const end = getBypassDock(flow.targetRef, target, source, side, targetDepth, occupancy.bypasses + (occupancy.target ? 1 : 0), occupancy.target);
   const vertical = side === 'top' || side === 'bottom';
   const direction = side === 'top' || side === 'left' ? -1 : 1;
   const coordinates = [ start, end, ...parallel.flatMap(({ points }) => points) ].map(({ x, y }) => vertical ? y : x);
@@ -329,6 +345,12 @@ function findParallelBypass(side: BypassSide, flow: FlowEdge, source: Rect, targ
   return null;
 }
 
+function getParallelFlowCount(flow: FlowEdge, parallel: RoutedConnection[]): number {
+  const declared = (flow.sourceRef.outgoing || []).filter(outgoing => outgoing.targetRef === flow.targetRef).length;
+
+  return Math.max(declared, parallel.length + 1);
+}
+
 function isParallelFlow(other: RoutedConnection['flow'], flow: FlowEdge): boolean {
   return other !== flow &&
     other.sourceRef === flow.sourceRef &&
@@ -339,7 +361,15 @@ function overlapsHorizontally(a: Rect, b: Rect): boolean {
   return a.x < b.x + b.width && b.x < a.x + a.width;
 }
 
-function getBypassDock(element: FlowNode, rect: Rect, opposite: Rect, side: BypassSide, depth: number): Point {
+function getBypassDock(
+    element: FlowNode,
+    rect: Rect,
+    opposite: Rect,
+    side: BypassSide,
+    depth: number,
+    capacity: number,
+    occupied: boolean
+): Point {
   const dock = getSideDock(rect, side);
 
   if (!depth || is(element, 'bpmn:Event') || is(element, 'bpmn:Gateway')) {
@@ -347,7 +377,8 @@ function getBypassDock(element: FlowNode, rect: Rect, opposite: Rect, side: Bypa
   }
 
   const vertical = side === 'top' || side === 'bottom';
-  const offset = Math.min(depth * ROUTING_MARGIN, (vertical ? rect.width : rect.height) / 4);
+  const room = (vertical ? rect.width : rect.height) / 2 - ROUTING_MARGIN / 2;
+  const offset = depth * Math.min(ROUTING_MARGIN, room / Math.max(capacity, 1)) * (occupied ? -1 : 1);
 
   return vertical
     ? point(dock.x + Math.sign(rect.x - opposite.x) * offset, dock.y)
