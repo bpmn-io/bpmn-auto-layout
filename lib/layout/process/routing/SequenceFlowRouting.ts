@@ -24,6 +24,7 @@ type Routing = Classification & { flow: FlowEdge; source: Rect; target: Rect; sh
   start: Point; end: Point };
 type ShapeByElement = Map<BpmnElement, Rect>;
 type MaybeRoute = Point[] | null;
+type BypassSide = 'top' | 'right' | 'bottom' | 'left';
 
 import { is } from '../../../di/DiUtil.js';
 import { LayoutError } from '../../../LayoutError.js';
@@ -249,10 +250,137 @@ function selectConnectionDocks(
 }
 
 function tryPreferredConnectionRoutes(routing: Routing): MaybeRoute {
-  return tryDirectRoute(routing) ||
+  return tryParallelBypassRoute(routing) ||
+    tryDirectRoute(routing) ||
     tryBranchRoute(routing) ||
     tryCrossBandRoute(routing) ||
     tryLocalBypassRoute(routing);
+}
+
+function tryParallelBypassRoute({
+  flow,
+  routedConnections,
+  router,
+  source,
+  target
+}: Routing): MaybeRoute {
+  const parallel = routedConnections.filter(connection => isParallelFlow(connection.flow, flow));
+
+  if (!parallel.length) {
+    return null;
+  }
+
+  const candidates: BypassSide[] = overlapsHorizontally(source, target)
+    ? [ 'right', 'left' ]
+    : [ 'bottom', 'top' ];
+  const usedSides = [
+    parallel[0],
+    ...routedConnections.filter(connection => !isParallelFlow(connection.flow, flow))
+  ].flatMap(connection => [
+    connection.flow.sourceRef === flow.sourceRef && getDockingSide(connection.points[0], source),
+    connection.flow.targetRef === flow.targetRef && getDockingSide(connection.points[connection.points.length - 1], target)
+  ]);
+  const freeSides = candidates.filter(side => !usedSides.includes(side));
+  const sides = freeSides.length ? freeSides : candidates;
+  const preferredSide = sides[(parallel.length - 1) % sides.length];
+
+  for (const side of [ preferredSide, ...candidates.filter(side => side !== preferredSide) ]) {
+    const route = findParallelBypass(side, flow, source, target, parallel, router);
+
+    if (route) {
+      return route;
+    }
+  }
+
+  return null;
+}
+
+function findParallelBypass(side: BypassSide, flow: FlowEdge, source: Rect, target: Rect, parallel: RoutedConnection[], router: Router): MaybeRoute {
+  const start = getBypassDock(flow.sourceRef, source, target, side, parallel.filter(({ points }) => {
+    return getDockingSide(points[0], source) === side;
+  }).length);
+  const end = getBypassDock(flow.targetRef, target, source, side, parallel.filter(({ points }) => {
+    return getDockingSide(points[points.length - 1], target) === side;
+  }).length);
+  const vertical = side === 'top' || side === 'bottom';
+  const direction = side === 'top' || side === 'left' ? -1 : 1;
+  const coordinates = [ start, end, ...parallel.flatMap(({ points }) => points) ].map(({ x, y }) => vertical ? y : x);
+  const nearest = direction > 0 ? Math.max(...coordinates) : Math.min(...coordinates);
+
+  for (let attempt = 1; attempt <= MAX_LOCAL_U_CHANNEL_ATTEMPTS; attempt++) {
+    const channel = nearest + direction * attempt * ROUTING_MARGIN;
+    const candidate = cleanPoints(vertical ? [
+      start,
+      point(start.x, channel),
+      point(end.x, channel),
+      end
+    ] : [
+      start,
+      point(channel, start.y),
+      point(channel, end.y),
+      end
+    ]);
+
+    if (router.isClear(candidate)) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+function isParallelFlow(other: RoutedConnection['flow'], flow: FlowEdge): boolean {
+  return other !== flow &&
+    other.sourceRef === flow.sourceRef &&
+    other.targetRef === flow.targetRef;
+}
+
+function overlapsHorizontally(a: Rect, b: Rect): boolean {
+  return a.x < b.x + b.width && b.x < a.x + a.width;
+}
+
+function getBypassDock(element: FlowNode, rect: Rect, opposite: Rect, side: BypassSide, depth: number): Point {
+  const dock = getSideDock(rect, side);
+
+  if (!depth || is(element, 'bpmn:Event') || is(element, 'bpmn:Gateway')) {
+    return dock;
+  }
+
+  const vertical = side === 'top' || side === 'bottom';
+  const offset = Math.min(depth * ROUTING_MARGIN, (vertical ? rect.width : rect.height) / 4);
+
+  return vertical
+    ? point(dock.x + Math.sign(rect.x - opposite.x) * offset, dock.y)
+    : point(dock.x, dock.y + Math.sign(rect.y - opposite.y) * offset);
+}
+
+function getSideDock(rect: Rect, side: BypassSide): Point {
+  switch (side) {
+  case 'top': return point(rect.x + rect.width / 2, rect.y);
+  case 'right': return point(rect.x + rect.width, rect.y + rect.height / 2);
+  case 'bottom': return point(rect.x + rect.width / 2, rect.y + rect.height);
+  case 'left': return point(rect.x, rect.y + rect.height / 2);
+  }
+}
+
+function getDockingSide(dock: Point, rect: Rect): BypassSide | null {
+  if (dock.y === rect.y) {
+    return 'top';
+  }
+
+  if (dock.y === rect.y + rect.height) {
+    return 'bottom';
+  }
+
+  if (dock.x === rect.x) {
+    return 'left';
+  }
+
+  if (dock.x === rect.x + rect.width) {
+    return 'right';
+  }
+
+  return null;
 }
 
 function tryDirectRoute({

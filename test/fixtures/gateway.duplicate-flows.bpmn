@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>Two gateway branches into the same task: the first stays straight, the second bypasses below so both flows and labels stay apart.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_review" name="Review request">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_approved" name="Approved?">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_approved</bpmn:outgoing>
+      <bpmn:outgoing>Flow_rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="Task_notify" name="Notify requester">
+      <bpmn:incoming>Flow_approved</bpmn:incoming>
+      <bpmn:incoming>Flow_rejected</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_review" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_review" targetRef="Gateway_approved" />
+    <bpmn:sequenceFlow id="Flow_approved" name="approved" sourceRef="Gateway_approved" targetRef="Task_notify" />
+    <bpmn:sequenceFlow id="Flow_rejected" name="rejected" sourceRef="Gateway_approved" targetRef="Task_notify" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_notify" targetRef="EndEvent_1" />
+  </bpmn:process>
+</bpmn:definitions>

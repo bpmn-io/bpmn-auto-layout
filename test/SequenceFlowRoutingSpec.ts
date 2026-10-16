@@ -58,6 +58,54 @@ describe('SequenceFlowRouting', function() {
     ]);
   });
 
+
+  it('should route a parallel flow around the flow already routed between the same elements', function() {
+    const source = element('Source');
+    const target = element('Target');
+    const routed = sequenceFlow(source, target, 'Flow_1');
+    const flow = sequenceFlow(source, target, 'Flow_2');
+    const sourceBounds = { x: 0, y: 0, width: 100, height: 80 };
+    const targetBounds = { x: 200, y: 0, width: 100, height: 80 };
+
+    assert.deepStrictEqual(routeConnection(
+      flow,
+      sourceBounds,
+      targetBounds,
+      shapes(source, sourceBounds, target, targetBounds),
+      [ { flow: routed, points: [ { x: 100, y: 40 }, { x: 200, y: 40 } ] } ],
+      policy(flow, source, target)
+    ), [
+      { x: 50, y: 80 },
+      { x: 50, y: 100 },
+      { x: 250, y: 100 },
+      { x: 250, y: 80 }
+    ]);
+  });
+
+
+  it('should route a parallel flow beside vertically stacked elements', function() {
+    const source = element('Source');
+    const target = element('Target');
+    const routed = sequenceFlow(source, target, 'Flow_1');
+    const flow = sequenceFlow(source, target, 'Flow_2');
+    const sourceBounds = { x: 0, y: 0, width: 100, height: 80 };
+    const targetBounds = { x: 0, y: 160, width: 100, height: 80 };
+
+    assert.deepStrictEqual(routeConnection(
+      flow,
+      sourceBounds,
+      targetBounds,
+      shapes(source, sourceBounds, target, targetBounds),
+      [ { flow: routed, points: [ { x: 50, y: 80 }, { x: 50, y: 160 } ] } ],
+      policy(flow, source, target)
+    ), [
+      { x: 100, y: 40 },
+      { x: 120, y: 40 },
+      { x: 120, y: 200 },
+      { x: 100, y: 200 }
+    ]);
+  });
+
 });
 
 function element(id: string): BpmnElementFor<'bpmn:Task'> {
@@ -66,10 +114,11 @@ function element(id: string): BpmnElementFor<'bpmn:Task'> {
 
 function sequenceFlow(
     sourceRef: BpmnElementFor<'bpmn:Task'>,
-    targetRef: BpmnElementFor<'bpmn:Task'>
+    targetRef: BpmnElementFor<'bpmn:Task'>,
+    id = 'Flow'
 ): Connection {
   const flow = moddle.create('bpmn:SequenceFlow', {
-    id: 'Flow',
+    id,
     sourceRef,
     targetRef
   });
