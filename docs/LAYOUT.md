@@ -343,8 +343,9 @@ not participate in parent-scope sequence-flow routing.
 Spine edges and other marked straight continuations are routed first, followed
 by cross-band gateway branches, other detours, and feedback edges. Cross-band
 gateway branches claim their constrained top or bottom channels before same-band
-detours choose an outer depth. Later edges treat accepted routes as allocated
-geometry.
+detours choose an outer depth. Additional flows between an already connected
+source and target are routed last. Later edges treat accepted routes as
+allocated geometry.
 
 Ports follow semantics:
 
@@ -359,7 +360,14 @@ Ports follow semantics:
   the bottom-side channel order. For an isolated gateway default flow, both
   local sides are compared at the same constraint level; the shorter route wins
   and equal routes use the top channel as the deterministic tie-break. Local
-  U-channels include rendered-stroke clearance around unrelated shapes.
+  U-channels include rendered-stroke clearance around unrelated shapes;
+- additional flows between the same source and target bypass the first one
+  through matching ports on a side that no other connection of either endpoint
+  docks on, alternating between free sides and nesting outside earlier bypasses;
+  nested bypasses dock activities further outward, spaced so that every bypass
+  on a side gets its own dock. If no free side is clear, an occupied side is
+  used as a last resort, docking activities beside the existing connection,
+  toward the opposite element.
 
 The boundary-event placement order described above creates nested vertical exits
 without weaving.
