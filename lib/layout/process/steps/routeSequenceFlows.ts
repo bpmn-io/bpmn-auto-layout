@@ -12,6 +12,7 @@ import type {
 type RoutingPolicy = Parameters<typeof routeConnection>[5];
 type PriorityPolicy = NonNullable<Parameters<typeof edgePriority>[1]>;
 type ProcessRoutingPolicy = RoutingPolicy & PriorityPolicy;
+type RoutableSequenceFlow = Parameters<typeof routeConnection>[0];
 
 export function routeSequenceFlows(context: ProcessLayoutContext): ProcessLayoutContext {
   const { layout } = context;
@@ -28,10 +29,10 @@ export function routeSequenceFlows(context: ProcessLayoutContext): ProcessLayout
         !isArtifact(element);
     })
     .map(([ element, rect ]) => ({ element, rect }));
-  const ordered = sequenceFlows.filter(isRoutableSequenceFlow).sort((a, b) => {
+  const ordered = deferParallelFlows(sequenceFlows.filter(isRoutableSequenceFlow).sort((a, b) => {
     return edgePriority(a, policy) - edgePriority(b, policy) ||
       getRequired(policy.edgeOrder.get(a)) - getRequired(policy.edgeOrder.get(b));
-  });
+  }));
 
   for (const flow of ordered) {
     const source = layout.shapes.get(flow.sourceRef);
@@ -57,6 +58,25 @@ export function routeSequenceFlows(context: ProcessLayoutContext): ProcessLayout
   return context;
 }
 
+function deferParallelFlows<Flow extends RoutableSequenceFlow>(flows: Flow[]): Flow[] {
+  const targetsBySource = new Map<RoutableSequenceFlow['sourceRef'], Set<RoutableSequenceFlow['targetRef']>>();
+  const parallel: Flow[] = [];
+  const primary = flows.filter(flow => {
+    const targets = targetsBySource.get(flow.sourceRef) || new Set();
+
+    targetsBySource.set(flow.sourceRef, targets);
+
+    if (targets.has(flow.targetRef)) {
+      parallel.push(flow);
+      return false;
+    }
+
+    targets.add(flow.targetRef);
+    return true;
+  });
+
+  return [ ...primary, ...parallel ];
+}
 
 function getRequired<Value>(value: Value | undefined): Value {
   if (value === undefined) {
@@ -91,7 +111,7 @@ function isRoutingPolicy(
 
 function isRoutableSequenceFlow(
     element: ProcessLayoutContext['elements']['sequenceFlows'][number]
-): element is Parameters<typeof routeConnection>[0] {
+): element is RoutableSequenceFlow {
   return is(element, 'bpmn:SequenceFlow') &&
     is(element.sourceRef, 'bpmn:FlowNode') &&
     is(element.targetRef, 'bpmn:FlowNode');

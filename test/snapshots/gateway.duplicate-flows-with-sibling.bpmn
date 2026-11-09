@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>Three gateway branches into the same task beside a sibling branch: the first stays straight, the others bypass on the side the sibling leaves free, nested at increasing distance.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_start</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_1" name="Route?">
+      <bpmn:incoming>Flow_start</bpmn:incoming>
+      <bpmn:outgoing>Flow_a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_b</bpmn:outgoing>
+      <bpmn:outgoing>Flow_c</bpmn:outgoing>
+      <bpmn:outgoing>Flow_other</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_1" name="Task 1">
+      <bpmn:incoming>Flow_a</bpmn:incoming>
+      <bpmn:incoming>Flow_b</bpmn:incoming>
+      <bpmn:incoming>Flow_c</bpmn:incoming>
+      <bpmn:outgoing>Flow_end_1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_2" name="Task 2">
+      <bpmn:incoming>Flow_other</bpmn:incoming>
+      <bpmn:outgoing>Flow_end_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_end_1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_2">
+      <bpmn:incoming>Flow_end_2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_start" sourceRef="StartEvent_1" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="Flow_a" name="a" sourceRef="Gateway_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_b" name="b" sourceRef="Gateway_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_c" name="c" sourceRef="Gateway_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_other" name="other" sourceRef="Gateway_1" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="Flow_end_1" sourceRef="Task_1" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="Flow_end_2" sourceRef="Task_2" targetRef="EndEvent_2" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Process_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Process_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
+        <dc:Bounds x="80" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Gateway_1" bpmnElement="Gateway_1" isMarkerVisible="true">
+        <dc:Bounds x="216" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="177" y="150" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Task_1" bpmnElement="Task_1">
+        <dc:Bounds x="366" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_Task_2" bpmnElement="Task_2">
+        <dc:Bounds x="366" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_EndEvent_1" bpmnElement="EndEvent_1">
+        <dc:Bounds x="566" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_EndEvent_2" bpmnElement="EndEvent_2">
+        <dc:Bounds x="566" y="262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_start" bpmnElement="Flow_start">
+        <di:waypoint x="116" y="120" />
+        <di:waypoint x="216" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_a" bpmnElement="Flow_a">
+        <di:waypoint x="266" y="120" />
+        <di:waypoint x="366" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="311" y="98" width="11" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_end_1" bpmnElement="Flow_end_1">
+        <di:waypoint x="466" y="120" />
+        <di:waypoint x="566" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_other" bpmnElement="Flow_other">
+        <di:waypoint x="241" y="145" />
+        <di:waypoint x="241" y="280" />
+        <di:waypoint x="366" y="280" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="246" y="206" width="39" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_end_2" bpmnElement="Flow_end_2">
+        <di:waypoint x="466" y="280" />
+        <di:waypoint x="566" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_b" bpmnElement="Flow_b">
+        <di:waypoint x="241" y="95" />
+        <di:waypoint x="241" y="60" />
+        <di:waypoint x="416" y="60" />
+        <di:waypoint x="416" y="80" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="323" y="68" width="11" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_Flow_c" bpmnElement="Flow_c">
+        <di:waypoint x="241" y="95" />
+        <di:waypoint x="241" y="40" />
+        <di:waypoint x="436" y="40" />
+        <di:waypoint x="436" y="80" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="333" y="18" width="11" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
