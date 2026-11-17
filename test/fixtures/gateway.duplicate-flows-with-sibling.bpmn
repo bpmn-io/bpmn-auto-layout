@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:documentation>Three gateway branches into the same task beside a sibling branch: the first stays straight, the others bypass on the side the sibling leaves free, nested at increasing distance.</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_start</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_1" name="Route?">
+      <bpmn:incoming>Flow_start</bpmn:incoming>
+      <bpmn:outgoing>Flow_a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_b</bpmn:outgoing>
+      <bpmn:outgoing>Flow_c</bpmn:outgoing>
+      <bpmn:outgoing>Flow_other</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_1" name="Task 1">
+      <bpmn:incoming>Flow_a</bpmn:incoming>
+      <bpmn:incoming>Flow_b</bpmn:incoming>
+      <bpmn:incoming>Flow_c</bpmn:incoming>
+      <bpmn:outgoing>Flow_end_1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_2" name="Task 2">
+      <bpmn:incoming>Flow_other</bpmn:incoming>
+      <bpmn:outgoing>Flow_end_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_end_1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_2">
+      <bpmn:incoming>Flow_end_2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_start" sourceRef="StartEvent_1" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="Flow_a" name="a" sourceRef="Gateway_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_b" name="b" sourceRef="Gateway_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_c" name="c" sourceRef="Gateway_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_other" name="other" sourceRef="Gateway_1" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="Flow_end_1" sourceRef="Task_1" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="Flow_end_2" sourceRef="Task_2" targetRef="EndEvent_2" />
+  </bpmn:process>
+</bpmn:definitions>
