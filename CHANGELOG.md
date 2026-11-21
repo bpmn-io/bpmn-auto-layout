@@ -6,6 +6,7 @@ All notable changes to [bpmn-auto-layout](https://github.com/bpmn-io/bpmn-auto-l
 
 _**Note:** Yet to be released changes appear here._
 
+* `FIX`: speed up sequence-flow visibility routing on large planes ([#161](https://github.com/bpmn-io/bpmn-auto-layout/issues/161))
 * `CHORE`: require Node.js >= 22
 
 ### Breaking Changes

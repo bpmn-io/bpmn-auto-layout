@@ -64,6 +64,11 @@ type AllocatedSegment = {
   start: Segment[0];
 };
 
+type LineCandidates = {
+  obstacles: Rect[];
+  segments: AllocatedSegment[];
+};
+
 type VisibilityPointIndexes = {
   pointsByX: Map<number, number[]>;
   pointsByY: Map<number, number[]>;
@@ -116,16 +121,54 @@ export function createOrthogonalRouter({
     return segmentIsClear(a, b);
   }
 
+  // Axis-aligned segments (every visibility-graph edge) only need testing
+  // against the obstacles and allocated segments that can touch their line:
+  // a vertical segment at x can only enter a rect spanning x, cross a segment
+  // spanning x, or overlap one lying on x. Each line's candidates are found
+  // once and cached; the per-candidate tests are the same as the general path,
+  // so the answer is unchanged — only the provably-false tests are skipped.
+  const verticalCandidates = new Map<number, LineCandidates>();
+  const horizontalCandidates = new Map<number, LineCandidates>();
+
+  function lineCandidates(vertical: boolean, coordinate: number): LineCandidates {
+    const cache = vertical ? verticalCandidates : horizontalCandidates;
+    let candidates = cache.get(coordinate);
+
+    if (!candidates) {
+      candidates = {
+        obstacles: collisionObstacles.filter(rect => vertical
+          ? rect.x <= coordinate && coordinate <= rect.x + rect.width
+          : rect.y <= coordinate && coordinate <= rect.y + rect.height),
+        segments: allocatedSegments.filter(({ start, end }) => {
+          const low = vertical ? Math.min(start.x, end.x) : Math.min(start.y, end.y);
+          const high = vertical ? Math.max(start.x, end.x) : Math.max(start.y, end.y);
+          const axisAligned = start.x === end.x || start.y === end.y;
+
+          return !axisAligned || (low <= coordinate && coordinate <= high);
+        })
+      };
+      cache.set(coordinate, candidates);
+    }
+
+    return candidates;
+  }
+
   function segmentIsClear(a: Point, b: Point): boolean {
     if (a.x === b.x && a.y === b.y) {
       return false;
     }
 
-    if (collisionObstacles.some(rect => segmentEntersRect(a, b, rect))) {
+    const { obstacles, segments } = a.x === b.x
+      ? lineCandidates(true, a.x)
+      : a.y === b.y
+        ? lineCandidates(false, a.y)
+        : { obstacles: collisionObstacles, segments: allocatedSegments };
+
+    if (obstacles.some(rect => segmentEntersRect(a, b, rect))) {
       return false;
     }
 
-    return !allocatedSegments.some(segment => {
+    return !segments.some(segment => {
       return (
         !allowPerpendicularCrossings &&
         segmentsProperlyCross(a, b, segment.start, segment.end)
@@ -188,12 +231,77 @@ export function createOrthogonalRouter({
     const startIndex = points.push(start) - 1;
     const endIndex = points.push(end) - 1;
     const { pointsByX, pointsByY } = indexVisibilityPoints(points);
+    const byY = (a: number, b: number) => points[a].y - points[b].y || a - b;
+    const byX = (a: number, b: number) => points[a].x - points[b].x || a - b;
+    const column: number[][] = [];
+    const row: number[][] = [];
+    const columnOf = Array<number>(points.length).fill(-1);
+    const rowOf = Array<number>(points.length).fill(-1);
+    const positionInColumn = Array<number>(points.length).fill(-1);
+    const positionInRow = Array<number>(points.length).fill(-1);
+
+    for (const line of pointsByX.values()) {
+      line.sort(byY);
+      line.forEach((index, position) => {
+        columnOf[index] = column.length;
+        positionInColumn[index] = position;
+      });
+      column.push(line);
+    }
+
+    for (const line of pointsByY.values()) {
+      line.sort(byX);
+      line.forEach((index, position) => {
+        rowOf[index] = row.length;
+        positionInRow[index] = position;
+      });
+      row.push(line);
+    }
     const distance = Array<number>(points.length).fill(Infinity);
     const previous = Array<number>(points.length).fill(-1);
     const pending = new Set<number>(points.map((_, index) => index));
     const queue: VisibilityNode[] = [];
     distance[startIndex] = 0;
     pushVisibilityNode(queue, { index: startIndex, distance: 0 });
+
+    const relax = (current: number, next: number): boolean => {
+      const from = points[current];
+      const to = points[next];
+
+      if (from.x === to.x && from.y === to.y) {
+        return true; // a coincident point blocks nothing beyond it
+      }
+
+      if (!segmentIsClear(from, to)) {
+        return false;
+      }
+
+      if (pending.has(next)) {
+        const candidate = distance[current] +
+          manhattan(from, to) +
+          VISIBILITY_GRAPH_TURN_PENALTY;
+
+        if (candidate < distance[next]) {
+          distance[next] = candidate;
+          previous[next] = current;
+          pushVisibilityNode(queue, { index: next, distance: candidate });
+        }
+      }
+
+      return true;
+    };
+
+    const relaxLine = (current: number, lines: number[][], lineIndex: number): void => {
+      if (lineIndex < 0) {
+        return;
+      }
+
+      const line = lines[lineIndex];
+      const at = lines === column ? positionInColumn[current] : positionInRow[current];
+
+      for (let position = at - 1; position >= 0 && relax(current, line[position]); position--);
+      for (let position = at + 1; position < line.length && relax(current, line[position]); position++);
+    };
 
     while (queue.length) {
       const entry = popVisibilityNode(queue);
@@ -209,45 +317,15 @@ export function createOrthogonalRouter({
         break;
       }
 
-      const vertical = pointsByX.get(points[current].x) || [];
-      const horizontal = pointsByY.get(points[current].y) || [];
-      let verticalIndex = 0;
-      let horizontalIndex = 0;
-
-      while (
-        verticalIndex < vertical.length ||
-        horizontalIndex < horizontal.length
-      ) {
-        const verticalNext = vertical[verticalIndex] ?? Infinity;
-        const horizontalNext = horizontal[horizontalIndex] ?? Infinity;
-        const next = Math.min(verticalNext, horizontalNext);
-
-        if (verticalNext === next) {
-          verticalIndex++;
-        }
-
-        if (horizontalNext === next) {
-          horizontalIndex++;
-        }
-
-        if (!pending.has(next)) {
-          continue;
-        }
-
-        if (!segmentIsClear(points[current], points[next])) {
-          continue;
-        }
-
-        const candidate = distance[current] +
-          manhattan(points[current], points[next]) +
-          VISIBILITY_GRAPH_TURN_PENALTY;
-
-        if (candidate < distance[next]) {
-          distance[next] = candidate;
-          previous[next] = current;
-          pushVisibilityNode(queue, { index: next, distance: candidate });
-        }
-      }
+      // Scan outward from `current` along its column and row, nearest first,
+      // and stop a direction at the first point the segment cannot reach: a
+      // longer collinear segment contains the shorter one, so it enters the
+      // same obstacle / crosses the same allocated segment. Each neighbour is
+      // relaxed with the same candidate as an exhaustive scan, and the queue
+      // orders by (distance, index), so the route is identical — but the work
+      // per node is the visible run, not the whole row and column.
+      relaxLine(current, column, columnOf[current]);
+      relaxLine(current, row, rowOf[current]);
     }
 
     if (distance[endIndex] === Infinity) {
